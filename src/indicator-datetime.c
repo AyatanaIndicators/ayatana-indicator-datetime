@@ -44,6 +44,7 @@ static void indicator_datetime_class_init (IndicatorDatetimeClass *klass);
 static void indicator_datetime_init       (IndicatorDatetime *self);
 static void indicator_datetime_dispose    (GObject *object);
 static void indicator_datetime_finalize   (GObject *object);
+static GtkLabel * get_label               (IndicatorObject * io);
 
 /* Indicator Module Config */
 INDICATOR_SET_VERSION
@@ -60,6 +61,10 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 
 	object_class->dispose = indicator_datetime_dispose;
 	object_class->finalize = indicator_datetime_finalize;
+
+	IndicatorObjectClass * io_class = INDICATOR_OBJECT_CLASS(klass);
+
+	io_class->get_label = get_label;
 
 	return;
 }
@@ -86,4 +91,12 @@ indicator_datetime_finalize (GObject *object)
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->finalize (object);
 	return;
+}
+
+static GtkLabel *
+get_label (IndicatorObject * io)
+{
+
+
+	return NULL;
 }
