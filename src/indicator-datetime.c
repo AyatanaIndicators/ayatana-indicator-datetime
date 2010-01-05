@@ -5,6 +5,7 @@
 /* GStuff */
 #include <glib.h>
 #include <glib-object.h>
+#include <glib/gi18n.h>
 
 /* Indicator Stuff */
 #include <libindicator/indicator.h>
@@ -93,13 +94,42 @@ indicator_datetime_finalize (GObject *object)
 	return;
 }
 
+static void
+update_label (GtkLabel * label)
+{
+	if (label == NULL) return;
+
+	gchar longstr[128];
+	time_t t;
+	struct tm *ltime;
+
+	t = time(NULL);
+	ltime = localtime(&t);
+	if (ltime == NULL) {
+		g_debug("Error getting local time");
+		gtk_label_set_label(label, _("Error getting time"));
+		return;
+	}
+
+	strftime(longstr, 128, "%I:%M %p", ltime);
+	
+	gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
+	gtk_label_set_label(label, utf8);
+	g_free(utf8);
+
+	return;
+}
+
 static GtkLabel *
 get_label (IndicatorObject * io)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(io);
 
+	/* If there's not a label, we'll build ourselves one */
 	if (self->priv->label == NULL) {
 		self->priv->label = GTK_LABEL(gtk_label_new("Time"));
+		g_object_ref(G_OBJECT(self->priv->label));
+		update_label(self->priv->label);
 		gtk_widget_show(GTK_WIDGET(self->priv->label));
 	}
 
