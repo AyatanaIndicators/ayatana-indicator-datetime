@@ -32,7 +32,7 @@ struct _IndicatorDatetime {
 };
 
 struct _IndicatorDatetimePrivate {
-	int dummy;
+	GtkLabel * label;
 };
 
 #define INDICATOR_DATETIME_GET_PRIVATE(o) \
@@ -96,7 +96,12 @@ indicator_datetime_finalize (GObject *object)
 static GtkLabel *
 get_label (IndicatorObject * io)
 {
+	IndicatorDatetime * self = INDICATOR_DATETIME(io);
 
+	if (self->priv->label == NULL) {
+		self->priv->label = GTK_LABEL(gtk_label_new("Time"));
+		gtk_widget_show(GTK_WIDGET(self->priv->label));
+	}
 
-	return NULL;
+	return self->priv->label;
 }
