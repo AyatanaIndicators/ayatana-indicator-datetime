@@ -45,6 +45,10 @@ static void indicator_datetime_init       (IndicatorDatetime *self);
 static void indicator_datetime_dispose    (GObject *object);
 static void indicator_datetime_finalize   (GObject *object);
 
+/* Indicator Module Config */
+INDICATOR_SET_VERSION
+INDICATOR_SET_TYPE(INDICATOR_DATETIME_TYPE)
+
 G_DEFINE_TYPE (IndicatorDatetime, indicator_datetime, INDICATOR_OBJECT_TYPE);
 
 static void
