@@ -94,6 +94,7 @@ indicator_datetime_finalize (GObject *object)
 	return;
 }
 
+/* Updates the label to be the current time. */
 static void
 update_label (GtkLabel * label)
 {
@@ -120,6 +121,8 @@ update_label (GtkLabel * label)
 	return;
 }
 
+/* Grabs the label.  Creates it if it doesn't
+   exist already */
 static GtkLabel *
 get_label (IndicatorObject * io)
 {
