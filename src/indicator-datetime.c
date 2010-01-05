@@ -34,6 +34,7 @@ struct _IndicatorDatetime {
 
 struct _IndicatorDatetimePrivate {
 	GtkLabel * label;
+	guint timer;
 };
 
 #define INDICATOR_DATETIME_GET_PRIVATE(o) \
@@ -121,6 +122,23 @@ update_label (GtkLabel * label)
 	return;
 }
 
+/* Runs every minute and updates the time */
+gboolean
+minute_timer_func (gpointer user_data)
+{
+	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
+
+	if (self->priv->label != NULL) {
+		update_label(self->priv->label);
+		return TRUE;
+	} else {
+		self->priv->timer = 0;
+		return FALSE;
+	}
+
+	return FALSE;
+}
+
 /* Grabs the label.  Creates it if it doesn't
    exist already */
 static GtkLabel *
@@ -134,6 +152,10 @@ get_label (IndicatorObject * io)
 		g_object_ref(G_OBJECT(self->priv->label));
 		update_label(self->priv->label);
 		gtk_widget_show(GTK_WIDGET(self->priv->label));
+	}
+	
+	if (self->priv->timer == 0) {
+		self->priv->timer = g_timeout_add_seconds(60, minute_timer_func, self);
 	}
 
 	return self->priv->label;
