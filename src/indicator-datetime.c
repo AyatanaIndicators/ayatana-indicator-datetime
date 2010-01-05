@@ -76,12 +76,26 @@ indicator_datetime_init (IndicatorDatetime *self)
 {
 	self->priv = INDICATOR_DATETIME_GET_PRIVATE(self);
 
+	self->priv->label = NULL;
+	self->priv->timer = 0;
+
 	return;
 }
 
 static void
 indicator_datetime_dispose (GObject *object)
 {
+	IndicatorDatetime * self = INDICATOR_DATETIME(object);
+
+	if (self->priv->label != NULL) {
+		g_object_unref(self->priv->label);
+		self->priv->label = NULL;
+	}
+
+	if (self->priv->timer != 0) {
+		g_source_remove(self->priv->timer);
+		self->priv->timer = 0;
+	}
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->dispose (object);
 	return;
