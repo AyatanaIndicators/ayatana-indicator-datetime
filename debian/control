@@ -1,0 +1,26 @@
+Source: indicator-datetime
+Section: gnome
+Priority: optional
+Maintainer: Ubuntu Core Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Build-Depends: debhelper (>= 5.0),
+               cdbs (>= 0.4.41),
+               libgtk2.0-dev (>= 2.12.0),
+               libdbus-glib-1-dev,
+               libindicator-dev (>= 0.3.0~dev),
+               libdbusmenu-glib-dev (>= 0.1.2),
+               libdbusmenu-gtk-dev (>= 0.1.2),
+               intltool
+Standards-Version: 3.8.2
+Homepage: https://launchpad.net/indicator-datetime
+
+Package: indicator-datetime
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: An indicator showing the date and time.
+ .
+ This indicator is designed to be placed on the right side of a panel and
+ give the user easy way to find out the date and time.
+ .
+ It requires some way to be hosted into a panel.  For the GNOME Panel the
+ appropriate package is indicator-applet.

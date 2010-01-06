@@ -1,0 +1,5 @@
+indicator-datetime (0.0.1~dev-0ubuntu1~ppa1) UNRELEASED; urgency=low
+
+  * Initial release.
+
+ -- Ted Gould <ted@ubuntu.com>  Wed, 06 Jan 2010 10:26:15 -0600
