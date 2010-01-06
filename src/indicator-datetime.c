@@ -47,6 +47,7 @@ static void indicator_datetime_init       (IndicatorDatetime *self);
 static void indicator_datetime_dispose    (GObject *object);
 static void indicator_datetime_finalize   (GObject *object);
 static GtkLabel * get_label               (IndicatorObject * io);
+static GtkMenu *  get_menu                (IndicatorObject * io);
 
 /* Indicator Module Config */
 INDICATOR_SET_VERSION
@@ -67,6 +68,7 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 	IndicatorObjectClass * io_class = INDICATOR_OBJECT_CLASS(klass);
 
 	io_class->get_label = get_label;
+	io_class->get_menu  = get_menu;
 
 	return;
 }
@@ -173,4 +175,22 @@ get_label (IndicatorObject * io)
 	}
 
 	return self->priv->label;
+}
+
+/* Build a dummy menu for now */
+static GtkMenu *
+get_menu (IndicatorObject * io)
+{
+	GtkWidget * menu = NULL;
+	GtkWidget * item = NULL;
+
+	menu = gtk_menu_new();
+
+	item = gtk_menu_item_new_with_label("No menu yet.");
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+	gtk_widget_show(item);
+
+	gtk_widget_show(menu);
+
+	return GTK_MENU(menu);
 }
