@@ -1,8 +1,8 @@
-indicator-datetime (0.0.1~dev-0ubuntu1~ppa4) UNRELEASED; urgency=low
+indicator-datetime (0.0.1~dev-0ubuntu1~ppa4) lucid; urgency=low
 
   * Bumping for rebuild with new dbusmenu
 
- -- Ted Gould <ted@ubuntu.com>  Mon, 08 Feb 2010 10:07:04 -0600
+ -- Ted Gould <ted@ubuntu.com>  Mon, 08 Feb 2010 10:08:03 -0600
 
 indicator-datetime (0.0.1~dev-0ubuntu1~ppa3) lucid; urgency=low
 
