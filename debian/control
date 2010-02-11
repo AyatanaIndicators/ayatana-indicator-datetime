@@ -6,7 +6,7 @@ Build-Depends: cdbs,
                debhelper (>= 5), 
                pkg-config,
                intltool (>= 0.35.0), 
-               libindicate-dev (>= 0.3.0),
+               libindicator-dev (>= 0.3.0),
                libdbusmenu-glib-dev (>= 0.1.1)
 Standards-Version: 3.8.3
 Homepage: https://launchpad.net/indicator-applet-developers
