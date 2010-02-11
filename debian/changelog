@@ -1,9 +1,9 @@
-indicator-datetime (0.0.1~r2-0ubuntu2) UNRELEASED; urgency=low
+indicator-datetime (0.0.1~r2-0ubuntu2) lucid; urgency=low
 
   * debian/control:
     - fix build-dep
 
- -- Didier Roche <didrocks@ubuntu.com>  Thu, 11 Feb 2010 20:26:58 +0100
+ -- Didier Roche <didrocks@ubuntu.com>  Thu, 11 Feb 2010 20:27:22 +0100
 
 indicator-datetime (0.0.1~r2-0ubuntu1) lucid; urgency=low
 
