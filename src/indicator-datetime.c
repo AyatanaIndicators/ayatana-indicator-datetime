@@ -34,6 +34,7 @@ struct _IndicatorDatetime {
 
 struct _IndicatorDatetimePrivate {
 	GtkLabel * label;
+	GtkMenuItem * date;
 	guint timer;
 };
 
@@ -79,6 +80,7 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv = INDICATOR_DATETIME_GET_PRIVATE(self);
 
 	self->priv->label = NULL;
+	self->priv->date = NULL;
 	self->priv->timer = 0;
 
 	return;
@@ -92,6 +94,11 @@ indicator_datetime_dispose (GObject *object)
 	if (self->priv->label != NULL) {
 		g_object_unref(self->priv->label);
 		self->priv->label = NULL;
+	}
+
+	if (self->priv->date != NULL) {
+		g_object_unref(self->priv->date);
+		self->priv->date = NULL;
 	}
 
 	if (self->priv->timer != 0) {
@@ -113,9 +120,11 @@ indicator_datetime_finalize (GObject *object)
 
 /* Updates the label to be the current time. */
 static void
-update_label (GtkLabel * label)
+update_label (IndicatorDatetime * io)
 {
-	if (label == NULL) return;
+	IndicatorDatetime * self = INDICATOR_DATETIME(io);
+
+	if (self->priv->label == NULL) return;
 
 	gchar longstr[128];
 	time_t t;
@@ -125,14 +134,23 @@ update_label (GtkLabel * label)
 	ltime = localtime(&t);
 	if (ltime == NULL) {
 		g_debug("Error getting local time");
-		gtk_label_set_label(label, _("Error getting time"));
+		gtk_label_set_label(self->priv->label, _("Error getting time"));
 		return;
 	}
 
 	strftime(longstr, 128, "%I:%M %p", ltime);
 	
 	gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
-	gtk_label_set_label(label, utf8);
+	gtk_label_set_label(self->priv->label, utf8);
+	g_free(utf8);
+
+	if (self->priv->date == NULL) return;
+
+	/* Note: may require some localization tweaks */
+	strftime(longstr, 128, "%A, %e %B %Y", ltime);
+	
+	utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
+	gtk_menu_item_set_label(self->priv->date, utf8);
 	g_free(utf8);
 
 	return;
@@ -145,7 +163,7 @@ minute_timer_func (gpointer user_data)
 	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
 
 	if (self->priv->label != NULL) {
-		update_label(self->priv->label);
+		update_label(self);
 		return TRUE;
 	} else {
 		self->priv->timer = 0;
@@ -154,6 +172,19 @@ minute_timer_func (gpointer user_data)
 
 	return FALSE;
 }
+
+static void
+settings_cb (GtkWidget *widget, gpointer dummy)
+{
+	GError * error = NULL;
+	gchar *prgname = "time-admin";
+
+	if (!g_spawn_command_line_async(prgname, &error)) {
+		g_warning("Unable to start %s: %s", (char *)prgname, error->message);
+		g_error_free(error);
+	}
+}
+
 
 /* Grabs the label.  Creates it if it doesn't
    exist already */
@@ -166,10 +197,10 @@ get_label (IndicatorObject * io)
 	if (self->priv->label == NULL) {
 		self->priv->label = GTK_LABEL(gtk_label_new("Time"));
 		g_object_ref(G_OBJECT(self->priv->label));
-		update_label(self->priv->label);
+		update_label(self);
 		gtk_widget_show(GTK_WIDGET(self->priv->label));
 	}
-	
+
 	if (self->priv->timer == 0) {
 		self->priv->timer = g_timeout_add_seconds(60, minute_timer_func, self);
 	}
@@ -181,16 +212,30 @@ get_label (IndicatorObject * io)
 static GtkMenu *
 get_menu (IndicatorObject * io)
 {
+	IndicatorDatetime * self = INDICATOR_DATETIME(io);
+
 	GtkWidget * menu = NULL;
 	GtkWidget * item = NULL;
 
 	menu = gtk_menu_new();
+	
+	if (self->priv->date == NULL) {
+		item = gtk_menu_item_new_with_label("No date yet...");
+		gtk_widget_set_sensitive (GTK_WIDGET (item), FALSE);
+		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+		self->priv->date = GTK_MENU_ITEM (item);
+		update_label(self);
+	}
 
-	item = gtk_menu_item_new_with_label("No menu yet.");
-	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
-	gtk_widget_show(item);
+	gtk_menu_shell_append (GTK_MENU_SHELL (menu),
+						   gtk_separator_menu_item_new ());
 
-	gtk_widget_show(menu);
+	GtkWidget *settings_mi = gtk_menu_item_new_with_label (_("Set Time and Date..."));
+	g_signal_connect (GTK_MENU_ITEM (settings_mi), "activate",
+					  G_CALLBACK (settings_cb), NULL);
+	gtk_menu_shell_append (GTK_MENU_SHELL(menu), settings_mi);
+
+	gtk_widget_show_all(menu);
 
 	return GTK_MENU(menu);
 }
