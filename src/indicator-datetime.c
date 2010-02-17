@@ -35,6 +35,7 @@ struct _IndicatorDatetime {
 struct _IndicatorDatetimePrivate {
 	GtkLabel * label;
 	GtkMenuItem * date;
+	GtkMenuItem * calendar;
 	guint timer;
 };
 
@@ -81,6 +82,7 @@ indicator_datetime_init (IndicatorDatetime *self)
 
 	self->priv->label = NULL;
 	self->priv->date = NULL;
+	self->priv->calendar = NULL;
 	self->priv->timer = 0;
 
 	return;
@@ -99,6 +101,11 @@ indicator_datetime_dispose (GObject *object)
 	if (self->priv->date != NULL) {
 		g_object_unref(self->priv->date);
 		self->priv->date = NULL;
+	}
+
+	if (self->priv->calendar != NULL) {
+		g_object_unref(self->priv->calendar);
+		self->priv->calendar = NULL;
 	}
 
 	if (self->priv->timer != 0) {
@@ -174,13 +181,12 @@ minute_timer_func (gpointer user_data)
 }
 
 static void
-settings_cb (GtkWidget *widget, gpointer dummy)
+activate_cb (GtkWidget *widget, const gchar *command)
 {
 	GError * error = NULL;
-	gchar *prgname = "time-admin";
 
-	if (!g_spawn_command_line_async(prgname, &error)) {
-		g_warning("Unable to start %s: %s", (char *)prgname, error->message);
+	if (!g_spawn_command_line_async(command, &error)) {
+		g_warning("Unable to start %s: %s", (char *)command, error->message);
 		g_error_free(error);
 	}
 }
@@ -208,7 +214,24 @@ get_label (IndicatorObject * io)
 	return self->priv->label;
 }
 
-/* Build a dummy menu for now */
+static void
+check_for_calendar_application (IndicatorDatetime * self)
+{
+	GtkMenuItem * item = self->priv->calendar;
+	g_return_if_fail (item != NULL);
+
+	gchar *evo = g_find_program_in_path("evolution");
+	if (evo != NULL) {
+		g_signal_connect (GTK_MENU_ITEM (item), "activate",
+						  G_CALLBACK (activate_cb), "evolution -c calendar");
+		gtk_widget_set_sensitive (GTK_WIDGET (item), TRUE);
+		gtk_widget_show(GTK_WIDGET(item));
+		g_free(evo);
+	} else {
+		gtk_widget_hide(GTK_WIDGET(item));
+	}
+}
+
 static GtkMenu *
 get_menu (IndicatorObject * io)
 {
@@ -227,15 +250,29 @@ get_menu (IndicatorObject * io)
 		update_label(self);
 	}
 
+	if (self->priv->calendar == NULL) {
+		item = gtk_menu_item_new_with_label(_("Open Calendar"));
+		/* insensitive until we check for available apps */
+		gtk_widget_set_sensitive (GTK_WIDGET (item), FALSE);
+		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+		self->priv->calendar = GTK_MENU_ITEM (item);
+	}
+ 
 	gtk_menu_shell_append (GTK_MENU_SHELL (menu),
 						   gtk_separator_menu_item_new ());
 
 	GtkWidget *settings_mi = gtk_menu_item_new_with_label (_("Set Time and Date..."));
 	g_signal_connect (GTK_MENU_ITEM (settings_mi), "activate",
-					  G_CALLBACK (settings_cb), NULL);
+					  G_CALLBACK (activate_cb), "time-admin");
 	gtk_menu_shell_append (GTK_MENU_SHELL(menu), settings_mi);
+	gtk_widget_show(settings_mi);
 
+	/* show_all to reveal the separator */
 	gtk_widget_show_all(menu);
+
+	/* Note: maybe should move that to an idle loop if that helps with
+	   boot performance	*/
+	check_for_calendar_application (self);
 
 	return GTK_MENU(menu);
 }
