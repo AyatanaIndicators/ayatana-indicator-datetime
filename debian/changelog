@@ -1,3 +1,9 @@
+indicator-datetime (0.0.1~r2-0ubuntu3) UNRELEASED; urgency=low
+
+  * debian/control: Adding libdbusmenu-gtk as a build dep
+
+ -- Ted Gould <ted@ubuntu.com>  Thu, 18 Feb 2010 10:43:12 -0600
+
 indicator-datetime (0.0.1~r2-0ubuntu2) lucid; urgency=low
 
   * debian/control:
