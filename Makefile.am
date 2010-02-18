@@ -7,6 +7,8 @@ SUBDIRS = \
 
 DISTCHECK_CONFIGURE_FLAGS = --enable-localinstall
 
+EXTRA_DIST = autogen.sh
+
 dist-hook:
 	@if test -d "$(top_srcdir)/.bzr"; \
 		then \
