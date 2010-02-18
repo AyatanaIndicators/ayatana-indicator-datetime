@@ -1,9 +1,9 @@
-indicator-datetime (0.0.1~dev-0ubuntu1~ppa5) UNRELEASED; urgency=low
+indicator-datetime (0.0.1~dev-0ubuntu1~ppa5) lucid; urgency=low
 
   * Upstream Merge
     * Date menuitem, calendar menuitem and settings menuitem
 
- -- Ted Gould <ted@ubuntu.com>  Wed, 17 Feb 2010 22:37:00 -0600
+ -- Ted Gould <ted@ubuntu.com>  Wed, 17 Feb 2010 22:38:00 -0600
 
 indicator-datetime (0.0.1~dev-0ubuntu1~ppa4) lucid; urgency=low
 
