@@ -263,6 +263,7 @@ SUBDIRS = \
 	po
 
 DISTCHECK_CONFIGURE_FLAGS = --enable-localinstall
+EXTRA_DIST = autogen.sh
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

@@ -15,6 +15,7 @@
 
 @SET_MAKE@
 
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -34,6 +35,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+libexec_PROGRAMS = indicator-datetime-service$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -68,7 +70,8 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(datetimelibdir)"
+am__installdirs = "$(DESTDIR)$(datetimelibdir)" \
+	"$(DESTDIR)$(libexecdir)"
 LTLIBRARIES = $(datetimelib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 libdatetime_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
@@ -80,6 +83,16 @@ am__v_lt_0 = --silent
 libdatetime_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(libdatetime_la_CFLAGS) $(CFLAGS) $(libdatetime_la_LDFLAGS) \
+	$(LDFLAGS) -o $@
+PROGRAMS = $(libexec_PROGRAMS)
+am_indicator_datetime_service_OBJECTS =  \
+	indicator_datetime_service-datetime-service.$(OBJEXT)
+indicator_datetime_service_OBJECTS =  \
+	$(am_indicator_datetime_service_OBJECTS)
+indicator_datetime_service_DEPENDENCIES = $(am__DEPENDENCIES_1)
+indicator_datetime_service_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(indicator_datetime_service_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -107,8 +120,10 @@ am__v_CCLD_0 = @echo "  CCLD  " $@;
 AM_V_GEN = $(am__v_GEN_$(V))
 am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
 am__v_GEN_0 = @echo "  GEN   " $@;
-SOURCES = $(libdatetime_la_SOURCES)
-DIST_SOURCES = $(libdatetime_la_SOURCES)
+SOURCES = $(libdatetime_la_SOURCES) \
+	$(indicator_datetime_service_SOURCES)
+DIST_SOURCES = $(libdatetime_la_SOURCES) \
+	$(indicator_datetime_service_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -257,6 +272,17 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+indicator_datetime_service_SOURCES = \
+	datetime-service.c
+
+indicator_datetime_service_CFLAGS = \
+	-Wall \
+	-Werror \
+	$(INDICATOR_CFLAGS)
+
+indicator_datetime_service_LDADD = \
+	$(INDICATOR_LIBS)
+
 datetimelibdir = $(INDICATORDIR)
 datetimelib_LTLIBRARIES = libdatetime.la
 libdatetime_la_SOURCES = \
@@ -273,6 +299,7 @@ libdatetime_la_LDFLAGS = \
 	-module \
 	-avoid-version
 
+EXTRA_DIST = $(libdatetime_la_SOURCES)
 all: all-am
 
 .SUFFIXES:
@@ -340,6 +367,52 @@ clean-datetimelibLTLIBRARIES:
 	done
 libdatetime.la: $(libdatetime_la_OBJECTS) $(libdatetime_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libdatetime_la_LINK) -rpath $(datetimelibdir) $(libdatetime_la_OBJECTS) $(libdatetime_la_LIBADD) $(LIBS)
+install-libexecPROGRAMS: $(libexec_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	test -z "$(libexecdir)" || $(MKDIR_P) "$(DESTDIR)$(libexecdir)"
+	@list='$(libexec_PROGRAMS)'; test -n "$(libexecdir)" || list=; \
+	for p in $$list; do echo "$$p $$p"; done | \
+	sed 's/$(EXEEXT)$$//' | \
+	while read p p1; do if test -f $$p || test -f $$p1; \
+	  then echo "$$p"; echo "$$p"; else :; fi; \
+	done | \
+	sed -e 'p;s,.*/,,;n;h' -e 's|.*|.|' \
+	    -e 'p;x;s,.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/' | \
+	sed 'N;N;N;s,\n, ,g' | \
+	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1 } \
+	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
+	    if ($$2 == $$4) files[d] = files[d] " " $$1; \
+	    else { print "f", $$3 "/" $$4, $$1; } } \
+	  END { for (d in files) print "f", d, files[d] }' | \
+	while read type dir files; do \
+	    if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
+	    test -z "$$files" || { \
+	    echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files '$(DESTDIR)$(libexecdir)$$dir'"; \
+	    $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files "$(DESTDIR)$(libexecdir)$$dir" || exit $$?; \
+	    } \
+	; done
+
+uninstall-libexecPROGRAMS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(libexec_PROGRAMS)'; test -n "$(libexecdir)" || list=; \
+	files=`for p in $$list; do echo "$$p"; done | \
+	  sed -e 'h;s,^.*/,,;s/$(EXEEXT)$$//;$(transform)' \
+	      -e 's/$$/$(EXEEXT)/' `; \
+	test -n "$$list" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(libexecdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(libexecdir)" && rm -f $$files
+
+clean-libexecPROGRAMS:
+	@list='$(libexec_PROGRAMS)'; test -n "$$list" || exit 0; \
+	echo " rm -f" $$list; \
+	rm -f $$list || exit $$?; \
+	test -n "$(EXEEXT)" || exit 0; \
+	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
+	echo " rm -f" $$list; \
+	rm -f $$list
+indicator-datetime-service$(EXEEXT): $(indicator_datetime_service_OBJECTS) $(indicator_datetime_service_DEPENDENCIES) 
+	@rm -f indicator-datetime-service$(EXEEXT)
+	$(AM_V_CCLD)$(indicator_datetime_service_LINK) $(indicator_datetime_service_OBJECTS) $(indicator_datetime_service_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -347,6 +420,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_service-datetime-service.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdatetime_la-indicator-datetime.Plo@am__quote@
 
 .c.o:
@@ -380,6 +454,22 @@ libdatetime_la-indicator-datetime.lo: indicator-datetime.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='indicator-datetime.c' object='libdatetime_la-indicator-datetime.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdatetime_la_CFLAGS) $(CFLAGS) -c -o libdatetime_la-indicator-datetime.lo `test -f 'indicator-datetime.c' || echo '$(srcdir)/'`indicator-datetime.c
+
+indicator_datetime_service-datetime-service.o: datetime-service.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -MT indicator_datetime_service-datetime-service.o -MD -MP -MF $(DEPDIR)/indicator_datetime_service-datetime-service.Tpo -c -o indicator_datetime_service-datetime-service.o `test -f 'datetime-service.c' || echo '$(srcdir)/'`datetime-service.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_service-datetime-service.Tpo $(DEPDIR)/indicator_datetime_service-datetime-service.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='datetime-service.c' object='indicator_datetime_service-datetime-service.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -c -o indicator_datetime_service-datetime-service.o `test -f 'datetime-service.c' || echo '$(srcdir)/'`datetime-service.c
+
+indicator_datetime_service-datetime-service.obj: datetime-service.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -MT indicator_datetime_service-datetime-service.obj -MD -MP -MF $(DEPDIR)/indicator_datetime_service-datetime-service.Tpo -c -o indicator_datetime_service-datetime-service.obj `if test -f 'datetime-service.c'; then $(CYGPATH_W) 'datetime-service.c'; else $(CYGPATH_W) '$(srcdir)/datetime-service.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_service-datetime-service.Tpo $(DEPDIR)/indicator_datetime_service-datetime-service.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='datetime-service.c' object='indicator_datetime_service-datetime-service.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -c -o indicator_datetime_service-datetime-service.obj `if test -f 'datetime-service.c'; then $(CYGPATH_W) 'datetime-service.c'; else $(CYGPATH_W) '$(srcdir)/datetime-service.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -471,9 +561,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LTLIBRARIES)
+all-am: Makefile $(LTLIBRARIES) $(PROGRAMS)
 installdirs:
-	for dir in "$(DESTDIR)$(datetimelibdir)"; do \
+	for dir in "$(DESTDIR)$(datetimelibdir)" "$(DESTDIR)$(libexecdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -503,8 +593,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-datetimelibLTLIBRARIES clean-generic clean-libtool \
-	mostlyclean-am
+clean-am: clean-datetimelibLTLIBRARIES clean-generic \
+	clean-libexecPROGRAMS clean-libtool mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -530,7 +620,7 @@ install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am:
+install-exec-am: install-libexecPROGRAMS
 
 install-html: install-html-am
 
@@ -570,24 +660,27 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-datetimelibLTLIBRARIES
+uninstall-am: uninstall-datetimelibLTLIBRARIES \
+	uninstall-libexecPROGRAMS
 
 .MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean \
-	clean-datetimelibLTLIBRARIES clean-generic clean-libtool ctags \
-	distclean distclean-compile distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-datetimelibLTLIBRARIES install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	pdf pdf-am ps ps-am tags uninstall uninstall-am \
-	uninstall-datetimelibLTLIBRARIES
+	clean-datetimelibLTLIBRARIES clean-generic \
+	clean-libexecPROGRAMS clean-libtool ctags distclean \
+	distclean-compile distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am \
+	install-datetimelibLTLIBRARIES install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-libexecPROGRAMS \
+	install-man install-pdf install-pdf-am install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am tags uninstall \
+	uninstall-am uninstall-datetimelibLTLIBRARIES \
+	uninstall-libexecPROGRAMS
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
