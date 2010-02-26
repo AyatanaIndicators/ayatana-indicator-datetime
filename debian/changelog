@@ -1,6 +1,8 @@
 indicator-datetime (0.0.1-0ubuntu1) UNRELEASED; urgency=low
 
   * New upstream release.
+  * debian/control:
+    - add libdbusmenu-gtk-dev build-dep (/!\ not in configure.ac)
 
  -- Didier Roche <didrocks@ubuntu.com>  Fri, 26 Feb 2010 10:39:44 +0100
 
