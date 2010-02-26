@@ -1,4 +1,15 @@
 
+libexec_PROGRAMS = indicator-datetime-service
+
+indicator_datetime_service_SOURCES = \
+	datetime-service.c
+indicator_datetime_service_CFLAGS = \
+	-Wall \
+	-Werror \
+	$(INDICATOR_CFLAGS)
+indicator_datetime_service_LDADD = \
+	$(INDICATOR_LIBS)
+
 datetimelibdir = $(INDICATORDIR)
 datetimelib_LTLIBRARIES = libdatetime.la
 libdatetime_la_SOURCES = \
@@ -11,3 +22,5 @@ libdatetime_la_LIBADD = \
 libdatetime_la_LDFLAGS = \
 	-module \
 	-avoid-version
+
+EXTRA_DIST = $(libdatetime_la_SOURCES)
