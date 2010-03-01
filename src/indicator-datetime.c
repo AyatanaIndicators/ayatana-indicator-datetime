@@ -37,6 +37,9 @@ struct _IndicatorDatetimePrivate {
 	GtkMenuItem * date;
 	GtkMenuItem * calendar;
 	guint timer;
+
+	guint idle_measure;
+	gint  max_width;
 };
 
 #define INDICATOR_DATETIME_GET_PRIVATE(o) \
@@ -85,6 +88,9 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv->calendar = NULL;
 	self->priv->timer = 0;
 
+	self->priv->idle_measure = 0;
+	self->priv->max_width = 0;
+
 	return;
 }
 
@@ -113,6 +119,11 @@ indicator_datetime_dispose (GObject *object)
 		self->priv->timer = 0;
 	}
 
+	if (self->priv->idle_measure != 0) {
+		g_source_remove(self->priv->idle_measure);
+		self->priv->idle_measure = 0;
+	}
+
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->dispose (object);
 	return;
 }
@@ -123,6 +134,28 @@ indicator_datetime_finalize (GObject *object)
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->finalize (object);
 	return;
+}
+
+/* Looks at the size of the label, if it grew beyond what we
+   thought was the max, make sure it doesn't shrink again. */
+static gboolean
+idle_measure (gpointer data)
+{
+	IndicatorDatetime * self = INDICATOR_DATETIME(data);
+	self->priv->idle_measure = 0;
+
+	GtkAllocation allocation;
+	gtk_widget_get_allocation(GTK_WIDGET(self->priv->label), &allocation);
+
+	if (allocation.width > self->priv->max_width) {
+		if (self->priv->max_width != 0) {
+			g_warning("Guessed wrong.  We thought the max would be %d but we're now at %d", self->priv->max_width, allocation.width);
+		}
+		self->priv->max_width = allocation.width;
+		gtk_widget_set_size_request(GTK_WIDGET(self->priv->label), self->priv->max_width, -1);
+	}
+
+	return FALSE;
 }
 
 /* Updates the label to be the current time. */
@@ -150,6 +183,10 @@ update_label (IndicatorDatetime * io)
 	gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
 	gtk_label_set_label(self->priv->label, utf8);
 	g_free(utf8);
+
+	if (self->priv->idle_measure == 0) {
+		self->priv->idle_measure = g_idle_add(idle_measure, io);
+	}
 
 	if (self->priv->date == NULL) return;
 
