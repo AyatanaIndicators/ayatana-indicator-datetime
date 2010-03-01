@@ -275,6 +275,18 @@ guess_label_size (IndicatorDatetime * self)
 	return;
 }
 
+/* React to the style changing, which could mean an font
+   update. */
+static void
+style_changed (GtkWidget * widget, GtkStyle * oldstyle, gpointer data)
+{
+	g_debug("New style for time label");
+	IndicatorDatetime * self = INDICATOR_DATETIME(data);
+	guess_label_size(self);
+	update_label(self);
+	return;
+}
+
 /* Grabs the label.  Creates it if it doesn't
    exist already */
 static GtkLabel *
@@ -286,6 +298,7 @@ get_label (IndicatorObject * io)
 	if (self->priv->label == NULL) {
 		self->priv->label = GTK_LABEL(gtk_label_new("Time"));
 		g_object_ref(G_OBJECT(self->priv->label));
+		g_signal_connect(G_OBJECT(self->priv->label), "style-set", G_CALLBACK(style_changed), self);
 		guess_label_size(self);
 		update_label(self);
 		gtk_widget_show(GTK_WIDGET(self->priv->label));
