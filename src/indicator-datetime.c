@@ -253,10 +253,16 @@ guess_label_size (IndicatorDatetime * self)
 	GtkStyle * style = gtk_widget_get_style(GTK_WIDGET(self->priv->label));
 	PangoContext * context = gtk_widget_get_pango_context(GTK_WIDGET(self->priv->label));
 
+	/* TRANSLATORS: This string is used for measuring the size of
+	   the font used for showing the time and is not shown to the
+	   user anywhere. */
 	gchar * am_str = g_strdup_printf(_("%d%d:%d%d AM"), FAT_NUMBER, FAT_NUMBER, FAT_NUMBER, FAT_NUMBER);
 	gint am_width = measure_string(style, context, am_str);
 	g_free(am_str);
 
+	/* TRANSLATORS: This string is used for measuring the size of
+	   the font used for showing the time and is not shown to the
+	   user anywhere. */
 	gchar * pm_str = g_strdup_printf(_("%d%d:%d%d PM"), FAT_NUMBER, FAT_NUMBER, FAT_NUMBER, FAT_NUMBER);
 	gint pm_width = measure_string(style, context, pm_str);
 	g_free(pm_str);
