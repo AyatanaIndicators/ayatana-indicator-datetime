@@ -264,6 +264,8 @@ guess_label_size (IndicatorDatetime * self)
 	self->priv->max_width = MAX(am_width, pm_width);
 	gtk_widget_set_size_request(GTK_WIDGET(self->priv->label), self->priv->max_width, -1);
 
+	g_debug("Guessing max time width: %d", self->priv->max_width);
+
 	return;
 }
 
