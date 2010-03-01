@@ -228,6 +228,44 @@ activate_cb (GtkWidget *widget, const gchar *command)
 	}
 }
 
+/* Does a quick meausre of how big the string is in
+   pixels with a Pango layout */
+static gint
+measure_string (GtkStyle * style, PangoContext * context, const gchar * string)
+{
+	PangoLayout * layout = pango_layout_new(context);
+	pango_layout_set_text(layout, string, -1);
+	pango_layout_set_font_description(layout, style->font_desc);
+
+	gint width;
+	pango_layout_get_pixel_size(layout, &width, NULL);
+	g_object_unref(layout);
+	return width;
+}
+
+#define FAT_NUMBER 8
+
+/* Try to get a good guess at what a maximum width of the entire
+   string would be. */
+static void
+guess_label_size (IndicatorDatetime * self)
+{
+	GtkStyle * style = gtk_widget_get_style(GTK_WIDGET(self->priv->label));
+	PangoContext * context = gtk_widget_get_pango_context(GTK_WIDGET(self->priv->label));
+
+	gchar * am_str = g_strdup_printf(_("%d%d:%d%d AM"), FAT_NUMBER, FAT_NUMBER, FAT_NUMBER, FAT_NUMBER);
+	gint am_width = measure_string(style, context, am_str);
+	g_free(am_str);
+
+	gchar * pm_str = g_strdup_printf(_("%d%d:%d%d PM"), FAT_NUMBER, FAT_NUMBER, FAT_NUMBER, FAT_NUMBER);
+	gint pm_width = measure_string(style, context, pm_str);
+	g_free(pm_str);
+
+	self->priv->max_width = MAX(am_width, pm_width);
+	gtk_widget_set_size_request(GTK_WIDGET(self->priv->label), self->priv->max_width, -1);
+
+	return;
+}
 
 /* Grabs the label.  Creates it if it doesn't
    exist already */
@@ -240,6 +278,7 @@ get_label (IndicatorObject * io)
 	if (self->priv->label == NULL) {
 		self->priv->label = GTK_LABEL(gtk_label_new("Time"));
 		g_object_ref(G_OBJECT(self->priv->label));
+		guess_label_size(self);
 		update_label(self);
 		gtk_widget_show(GTK_WIDGET(self->priv->label));
 	}
