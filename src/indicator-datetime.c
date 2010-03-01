@@ -178,7 +178,7 @@ update_label (IndicatorDatetime * io)
 		return;
 	}
 
-	strftime(longstr, 128, "%I:%M %p", ltime);
+	strftime(longstr, 128, "%l:%M %p", ltime);
 	
 	gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
 	gtk_label_set_label(self->priv->label, utf8);
