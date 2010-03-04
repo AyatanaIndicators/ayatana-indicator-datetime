@@ -1,8 +1,10 @@
 indicator-datetime (0.0.1-0ubuntu1) lucid; urgency=low
 
-  * Initial Upstream Release
+  * New upstream release.
+  * debian/control:
+    - add libdbusmenu-gtk-dev build-dep (/!\ not in configure.ac)
 
- -- Ted Gould <ted@ubuntu.com>  Thu, 25 Feb 2010 13:31:34 -0600
+ -- Didier Roche <didrocks@ubuntu.com>  Fri, 26 Feb 2010 10:41:22 +0100
 
 indicator-datetime (0.0.1~r2-0ubuntu3) lucid; urgency=low
 
@@ -28,3 +30,4 @@ indicator-datetime (0.0.1~r1-0ubuntu1) lucid; urgency=low
   * Initial packaging
 
  -- Didier Roche <didrocks@ubuntu.com>  Wed, 27 Jan 2010 12:13:00 +0100
+
