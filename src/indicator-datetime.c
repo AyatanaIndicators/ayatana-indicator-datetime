@@ -12,6 +12,9 @@
 #include <libindicator/indicator-object.h>
 #include <libindicator/indicator-service-manager.h>
 
+/* DBusMenu */
+#include <libdbusmenu-gtk/menu.h>
+
 #include "dbus-shared.h"
 
 
@@ -45,6 +48,7 @@ struct _IndicatorDatetimePrivate {
 	gint  max_width;
 
 	IndicatorServiceManager * sm;
+	DbusmenuGtkMenu * menu;
 };
 
 #define INDICATOR_DATETIME_GET_PRIVATE(o) \
@@ -97,6 +101,7 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv->max_width = 0;
 
 	self->priv->sm = NULL;
+	self->priv->menu = NULL;
 
 	self->priv->sm = indicator_service_manager_new_version(SERVICE_NAME, SERVICE_VERSION);
 
@@ -131,6 +136,11 @@ indicator_datetime_dispose (GObject *object)
 	if (self->priv->idle_measure != 0) {
 		g_source_remove(self->priv->idle_measure);
 		self->priv->idle_measure = 0;
+	}
+
+	if (self->priv->menu != NULL) {
+		g_object_unref(G_OBJECT(self->priv->menu));
+		self->priv->menu = NULL;
 	}
 
 	if (self->priv->sm != NULL) {
@@ -347,6 +357,12 @@ static GtkMenu *
 get_menu (IndicatorObject * io)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(io);
+
+	if (self->priv->menu == NULL) {
+		self->priv->menu = dbusmenu_gtkmenu_new(SERVICE_NAME, MENU_OBJ);
+	}
+
+	return GTK_MENU(self->priv->menu);
 
 	GtkWidget * menu = NULL;
 	GtkWidget * item = NULL;
