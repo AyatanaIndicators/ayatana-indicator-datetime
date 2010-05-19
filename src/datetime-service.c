@@ -14,6 +14,9 @@ static GMainLoop * mainloop = NULL;
 static DbusmenuServer * server = NULL;
 static DbusmenuMenuitem * root = NULL;
 
+/* Does the work to build the default menu, really calls out
+   to other functions but this is the core to clean up the
+   main function. */
 static void
 build_menus (DbusmenuMenuitem * root)
 {
@@ -21,6 +24,8 @@ build_menus (DbusmenuMenuitem * root)
 	return;
 }
 
+/* Repsonds to the service object saying it's time to shutdown.
+   It stops the mainloop. */
 static void 
 service_shutdown (IndicatorService * service, gpointer user_data)
 {
@@ -29,6 +34,7 @@ service_shutdown (IndicatorService * service, gpointer user_data)
 	return;
 }
 
+/* Function to build everything up.  Entry point from asm. */
 int
 main (int argc, char ** argv)
 {
