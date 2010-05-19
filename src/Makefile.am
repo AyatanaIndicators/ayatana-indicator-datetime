@@ -2,7 +2,8 @@
 libexec_PROGRAMS = indicator-datetime-service
 
 indicator_datetime_service_SOURCES = \
-	datetime-service.c
+	datetime-service.c \
+	dbus-shared.h
 indicator_datetime_service_CFLAGS = \
 	-Wall \
 	-Werror \
@@ -13,6 +14,7 @@ indicator_datetime_service_LDADD = \
 datetimelibdir = $(INDICATORDIR)
 datetimelib_LTLIBRARIES = libdatetime.la
 libdatetime_la_SOURCES = \
+	dbus-shared.h \
 	indicator-datetime.c
 libdatetime_la_CFLAGS = \
 	$(INDICATOR_CFLAGS) \
