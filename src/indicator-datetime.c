@@ -10,6 +10,9 @@
 /* Indicator Stuff */
 #include <libindicator/indicator.h>
 #include <libindicator/indicator-object.h>
+#include <libindicator/indicator-service-manager.h>
+
+#include "dbus-shared.h"
 
 
 #define INDICATOR_DATETIME_TYPE            (indicator_datetime_get_type ())
@@ -40,6 +43,8 @@ struct _IndicatorDatetimePrivate {
 
 	guint idle_measure;
 	gint  max_width;
+
+	IndicatorServiceManager * sm;
 };
 
 #define INDICATOR_DATETIME_GET_PRIVATE(o) \
@@ -91,6 +96,10 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv->idle_measure = 0;
 	self->priv->max_width = 0;
 
+	self->priv->sm = NULL;
+
+	self->priv->sm = indicator_service_manager_new_version(SERVICE_NAME, SERVICE_VERSION);
+
 	return;
 }
 
@@ -122,6 +131,11 @@ indicator_datetime_dispose (GObject *object)
 	if (self->priv->idle_measure != 0) {
 		g_source_remove(self->priv->idle_measure);
 		self->priv->idle_measure = 0;
+	}
+
+	if (self->priv->sm != NULL) {
+		g_object_unref(G_OBJECT(self->priv->sm));
+		self->priv->sm = NULL;
 	}
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->dispose (object);
