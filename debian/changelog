@@ -1,4 +1,4 @@
-indicator-datetime (0.0.2-0ubuntu1) UNRELEASED; urgency=low
+indicator-datetime (0.0.2-0ubuntu1) maverick; urgency=low
 
   * New upstream release.
 
