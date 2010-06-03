@@ -1,3 +1,12 @@
+indicator-datetime (0.0.3-0ubuntu1~ppa1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    * Copyright fixes
+    * Adding translations
+    * Fix translation domain
+
+ -- Ted Gould <ted@ubuntu.com>  Thu, 03 Jun 2010 12:36:35 -0500
+
 indicator-datetime (0.0.2-0ubuntu1~ppa1) lucid; urgency=low
 
   * New upstream release.
