@@ -1,3 +1,9 @@
+indicator-datetime (0.0.2-0ubuntu1) UNRELEASED; urgency=low
+
+  * New upstream release.
+
+ -- Didier Roche <didrocks@ubuntu.com>  Thu, 03 Jun 2010 17:44:45 +0200
+
 indicator-datetime (0.0.1-0ubuntu1) lucid; urgency=low
 
   * New upstream release.

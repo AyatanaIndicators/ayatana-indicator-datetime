@@ -3,7 +3,7 @@
 PKG_NAME="indicator-datetime"
 
 which gnome-autogen.sh || {
-	echo "You need gnome-common from GNOME SVN"
+	echo "You need gnome-common from GNOME Git"
 	exit 1
 }
 

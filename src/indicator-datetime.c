@@ -37,6 +37,9 @@ struct _IndicatorDatetimePrivate {
 	GtkMenuItem * date;
 	GtkMenuItem * calendar;
 	guint timer;
+
+	guint idle_measure;
+	gint  max_width;
 };
 
 #define INDICATOR_DATETIME_GET_PRIVATE(o) \
@@ -85,6 +88,9 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv->calendar = NULL;
 	self->priv->timer = 0;
 
+	self->priv->idle_measure = 0;
+	self->priv->max_width = 0;
+
 	return;
 }
 
@@ -113,6 +119,11 @@ indicator_datetime_dispose (GObject *object)
 		self->priv->timer = 0;
 	}
 
+	if (self->priv->idle_measure != 0) {
+		g_source_remove(self->priv->idle_measure);
+		self->priv->idle_measure = 0;
+	}
+
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->dispose (object);
 	return;
 }
@@ -123,6 +134,28 @@ indicator_datetime_finalize (GObject *object)
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->finalize (object);
 	return;
+}
+
+/* Looks at the size of the label, if it grew beyond what we
+   thought was the max, make sure it doesn't shrink again. */
+static gboolean
+idle_measure (gpointer data)
+{
+	IndicatorDatetime * self = INDICATOR_DATETIME(data);
+	self->priv->idle_measure = 0;
+
+	GtkAllocation allocation;
+	gtk_widget_get_allocation(GTK_WIDGET(self->priv->label), &allocation);
+
+	if (allocation.width > self->priv->max_width) {
+		if (self->priv->max_width != 0) {
+			g_warning("Guessed wrong.  We thought the max would be %d but we're now at %d", self->priv->max_width, allocation.width);
+		}
+		self->priv->max_width = allocation.width;
+		gtk_widget_set_size_request(GTK_WIDGET(self->priv->label), self->priv->max_width, -1);
+	}
+
+	return FALSE;
 }
 
 /* Updates the label to be the current time. */
@@ -145,11 +178,15 @@ update_label (IndicatorDatetime * io)
 		return;
 	}
 
-	strftime(longstr, 128, "%I:%M %p", ltime);
+	strftime(longstr, 128, "%l:%M %p", ltime);
 	
 	gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
 	gtk_label_set_label(self->priv->label, utf8);
 	g_free(utf8);
+
+	if (self->priv->idle_measure == 0) {
+		self->priv->idle_measure = g_idle_add(idle_measure, io);
+	}
 
 	if (self->priv->date == NULL) return;
 
@@ -191,6 +228,64 @@ activate_cb (GtkWidget *widget, const gchar *command)
 	}
 }
 
+/* Does a quick meausre of how big the string is in
+   pixels with a Pango layout */
+static gint
+measure_string (GtkStyle * style, PangoContext * context, const gchar * string)
+{
+	PangoLayout * layout = pango_layout_new(context);
+	pango_layout_set_text(layout, string, -1);
+	pango_layout_set_font_description(layout, style->font_desc);
+
+	gint width;
+	pango_layout_get_pixel_size(layout, &width, NULL);
+	g_object_unref(layout);
+	return width;
+}
+
+#define FAT_NUMBER 8
+
+/* Try to get a good guess at what a maximum width of the entire
+   string would be. */
+static void
+guess_label_size (IndicatorDatetime * self)
+{
+	GtkStyle * style = gtk_widget_get_style(GTK_WIDGET(self->priv->label));
+	PangoContext * context = gtk_widget_get_pango_context(GTK_WIDGET(self->priv->label));
+
+	/* TRANSLATORS: This string is used for measuring the size of
+	   the font used for showing the time and is not shown to the
+	   user anywhere. */
+	gchar * am_str = g_strdup_printf(_("%d%d:%d%d AM"), FAT_NUMBER, FAT_NUMBER, FAT_NUMBER, FAT_NUMBER);
+	gint am_width = measure_string(style, context, am_str);
+	g_free(am_str);
+
+	/* TRANSLATORS: This string is used for measuring the size of
+	   the font used for showing the time and is not shown to the
+	   user anywhere. */
+	gchar * pm_str = g_strdup_printf(_("%d%d:%d%d PM"), FAT_NUMBER, FAT_NUMBER, FAT_NUMBER, FAT_NUMBER);
+	gint pm_width = measure_string(style, context, pm_str);
+	g_free(pm_str);
+
+	self->priv->max_width = MAX(am_width, pm_width);
+	gtk_widget_set_size_request(GTK_WIDGET(self->priv->label), self->priv->max_width, -1);
+
+	g_debug("Guessing max time width: %d", self->priv->max_width);
+
+	return;
+}
+
+/* React to the style changing, which could mean an font
+   update. */
+static void
+style_changed (GtkWidget * widget, GtkStyle * oldstyle, gpointer data)
+{
+	g_debug("New style for time label");
+	IndicatorDatetime * self = INDICATOR_DATETIME(data);
+	guess_label_size(self);
+	update_label(self);
+	return;
+}
 
 /* Grabs the label.  Creates it if it doesn't
    exist already */
@@ -203,6 +298,8 @@ get_label (IndicatorObject * io)
 	if (self->priv->label == NULL) {
 		self->priv->label = GTK_LABEL(gtk_label_new("Time"));
 		g_object_ref(G_OBJECT(self->priv->label));
+		g_signal_connect(G_OBJECT(self->priv->label), "style-set", G_CALLBACK(style_changed), self);
+		guess_label_size(self);
 		update_label(self);
 		gtk_widget_show(GTK_WIDGET(self->priv->label));
 	}
