@@ -1,4 +1,4 @@
-indicator-datetime (0.0.3-0ubuntu1~ppa1) lucid; urgency=low
+indicator-datetime (0.0.3-0ubuntu1) UNRELEASED; urgency=low
 
   * New upstream release.
     * Copyright fixes
@@ -6,6 +6,12 @@ indicator-datetime (0.0.3-0ubuntu1~ppa1) lucid; urgency=low
     * Fix translation domain
 
  -- Ted Gould <ted@ubuntu.com>  Thu, 03 Jun 2010 12:40:49 -0500
+
+indicator-datetime (0.0.2-0ubuntu1) maverick; urgency=low
+
+  * New upstream release.
+
+ -- Didier Roche <didrocks@ubuntu.com>  Thu, 03 Jun 2010 17:44:45 +0200
 
 indicator-datetime (0.0.2-0ubuntu1~ppa1) lucid; urgency=low
 
@@ -46,4 +52,3 @@ indicator-datetime (0.0.1~r1-0ubuntu1) lucid; urgency=low
   * Initial packaging
 
  -- Didier Roche <didrocks@ubuntu.com>  Wed, 27 Jan 2010 12:13:00 +0100
-
