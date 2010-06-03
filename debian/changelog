@@ -1,8 +1,24 @@
+indicator-datetime (0.0.3-0ubuntu1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    * Copyright fixes
+    * Adding translations
+    * Fix translation domain
+
+ -- Ted Gould <ted@ubuntu.com>  Thu, 03 Jun 2010 12:40:49 -0500
+
 indicator-datetime (0.0.2-0ubuntu1) maverick; urgency=low
 
   * New upstream release.
 
  -- Didier Roche <didrocks@ubuntu.com>  Thu, 03 Jun 2010 17:44:45 +0200
+
+indicator-datetime (0.0.2-0ubuntu1~ppa1) lucid; urgency=low
+
+  * New upstream release.
+    * Making label guess and reasonable width starting out.
+
+ -- Ted Gould <ted@ubuntu.com>  Thu, 04 Mar 2010 12:04:55 -0600
 
 indicator-datetime (0.0.1-0ubuntu1) lucid; urgency=low
 
@@ -11,6 +27,12 @@ indicator-datetime (0.0.1-0ubuntu1) lucid; urgency=low
     - add libdbusmenu-gtk-dev build-dep (/!\ not in configure.ac)
 
  -- Didier Roche <didrocks@ubuntu.com>  Fri, 26 Feb 2010 10:41:22 +0100
+
+indicator-datetime (0.0.1~r2-0ubuntu3) lucid; urgency=low
+
+  * debian/control: Adding libdbusmenu-gtk as a build dep
+
+ -- Ted Gould <ted@ubuntu.com>  Thu, 18 Feb 2010 10:47:29 -0600
 
 indicator-datetime (0.0.1~r2-0ubuntu2) lucid; urgency=low
 
