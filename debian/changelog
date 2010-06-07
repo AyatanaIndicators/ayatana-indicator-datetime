@@ -9,6 +9,7 @@ indicator-datetime (0.0.3-0ubuntu1) UNRELEASED; urgency=low
   [ Didier Roche ]
   * debian/control:
     - bump Standards-Version to latest
+    - fix homepage url
 
  -- Didier Roche <didrocks@ubuntu.com>  Mon, 07 Jun 2010 10:24:51 +0200
 
