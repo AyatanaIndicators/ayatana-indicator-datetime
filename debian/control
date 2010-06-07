@@ -9,7 +9,7 @@ Build-Depends: cdbs,
                libindicator-dev (>= 0.3.0),
                libdbusmenu-glib-dev (>= 0.1.1),
                libdbusmenu-gtk-dev (>= 0.1.1)
-Standards-Version: 3.8.3
+Standards-Version: 3.8.4
 Homepage: https://launchpad.net/indicator-applet-developers
 
 Package: indicator-datetime
