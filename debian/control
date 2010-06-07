@@ -4,7 +4,6 @@ Priority: optional
 Maintainer: Ubuntu Desktop Team <ubuntu-desktop@lists.ubuntu.com>
 Build-Depends: cdbs, 
                debhelper (>= 5), 
-               pkg-config,
                intltool (>= 0.35.0), 
                libindicator-dev (>= 0.3.0),
                libdbusmenu-glib-dev (>= 0.1.1),
