@@ -1,11 +1,19 @@
-indicator-datetime (0.0.3-0ubuntu1) UNRELEASED; urgency=low
+indicator-datetime (0.0.3-0ubuntu1) maverick; urgency=low
 
+  [ Ted Gould ]
   * New upstream release.
     * Copyright fixes
     * Adding translations
     * Fix translation domain
 
- -- Ted Gould <ted@ubuntu.com>  Thu, 03 Jun 2010 12:40:49 -0500
+  [ Didier Roche ]
+  * debian/control:
+    - bump Standards-Version to latest
+    - fix homepage url
+    - remove uneeded pkg-config build-dep
+    - Recommends: indicator-applet | indicator-renderer
+
+ -- Didier Roche <didrocks@ubuntu.com>  Mon, 07 Jun 2010 10:24:51 +0200
 
 indicator-datetime (0.0.2-0ubuntu1) maverick; urgency=low
 
