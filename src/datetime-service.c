@@ -15,9 +15,21 @@ static GMainLoop * mainloop = NULL;
 static DbusmenuServer * server = NULL;
 static DbusmenuMenuitem * root = NULL;
 
-/* Items */
+/* Global Items */
 static DbusmenuMenuitem * date = NULL;
 static DbusmenuMenuitem * calendar = NULL;
+
+/* Run a particular program based on an activation */
+static void
+activate_cb (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
+{
+	GError * error = NULL;
+
+	if (!g_spawn_command_line_async(command, &error)) {
+		g_warning("Unable to start %s: %s", (char *)command, error->message);
+		g_error_free(error);
+	}
+}
 
 /* Does the work to build the default menu, really calls out
    to other functions but this is the core to clean up the
@@ -50,7 +62,7 @@ build_menus (DbusmenuMenuitem * root)
 	dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Set Time and Date..."));
 	/* insensitive until we check for available apps */
 	dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-	//g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ACTIVATE, G_CALLBACK(activate_cb), "time-admin");
+	g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "time-admin");
 	dbusmenu_menuitem_child_append(root, settings);
 
 	return;
