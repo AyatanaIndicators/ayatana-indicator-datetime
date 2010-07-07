@@ -5,6 +5,7 @@
 #include <glib/gi18n.h>
 
 #include <libdbusmenu-glib/server.h>
+#include <libdbusmenu-glib/client.h>
 #include <libdbusmenu-glib/menuitem.h>
 
 #include "dbus-shared.h"
@@ -40,6 +41,17 @@ build_menus (DbusmenuMenuitem * root)
 		dbusmenu_menuitem_child_append(root, calendar);
 		// queue checking for apps
 	}
+
+	DbusmenuMenuitem * separator = dbusmenu_menuitem_new();
+	dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
+	dbusmenu_menuitem_child_append(root, separator);
+
+	DbusmenuMenuitem * settings = dbusmenu_menuitem_new();
+	dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Set Time and Date..."));
+	/* insensitive until we check for available apps */
+	dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+	//g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ACTIVATE, G_CALLBACK(activate_cb), "time-admin");
+	dbusmenu_menuitem_child_append(root, settings);
 
 	return;
 }
