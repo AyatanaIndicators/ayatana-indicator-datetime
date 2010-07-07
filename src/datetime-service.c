@@ -14,12 +14,32 @@ static GMainLoop * mainloop = NULL;
 static DbusmenuServer * server = NULL;
 static DbusmenuMenuitem * root = NULL;
 
+/* Items */
+static DbusmenuMenuitem * date = NULL;
+static DbusmenuMenuitem * calendar = NULL;
+
 /* Does the work to build the default menu, really calls out
    to other functions but this is the core to clean up the
    main function. */
 static void
 build_menus (DbusmenuMenuitem * root)
 {
+	if (date == NULL) {
+		date = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set     (date, DBUSMENU_MENUITEM_PROP_LABEL, _("No date yet..."));
+		dbusmenu_menuitem_property_set_bool(date, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+		dbusmenu_menuitem_child_append(root, date);
+		//update_label(self);
+	}
+
+	if (calendar == NULL) {
+		calendar = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set     (calendar, DBUSMENU_MENUITEM_PROP_LABEL, _("Open Calendar"));
+		/* insensitive until we check for available apps */
+		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+		dbusmenu_menuitem_child_append(root, calendar);
+		// queue checking for apps
+	}
 
 	return;
 }
