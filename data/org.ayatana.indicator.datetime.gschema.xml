@@ -1,7 +1,7 @@
 <schemalist>
-	<schema id="org.ayatana.indicator.datetime" path="/apps/indicators/datetime" gettext_domain="indicator-datetime">
-		<key name="IndicatorTimeFormat" type="s">
-			<default>%l:%M %p</default>
+	<schema id="org.ayatana.indicator.datetime" path="/apps/indicators/datetime/" gettext-domain="indicator-datetime">
+		<key name="indicator-time-format" type="s">
+			<default>"%l:%M %p"</default>
 			<summary>The format string passed to strftime</summary>
 			<description>The format of the time and/or date that is visible on the panel when using the indicator.  For most users this will be a set of predefined values as determined by the configuration utility, but advanced users can change it to anything strftime can accept.  Look at the man page on strftime for more information.</description>
 		</key>
