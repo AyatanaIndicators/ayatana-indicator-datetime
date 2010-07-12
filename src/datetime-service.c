@@ -19,6 +19,34 @@ static DbusmenuMenuitem * root = NULL;
 static DbusmenuMenuitem * date = NULL;
 static DbusmenuMenuitem * calendar = NULL;
 
+/* Updates the label in the date menuitem */
+static gboolean
+update_datetime (gpointer user_data)
+{
+	g_debug("Updating Date/Time");
+
+	gchar longstr[128];
+	time_t t;
+	struct tm *ltime;
+
+	t = time(NULL);
+	ltime = localtime(&t);
+	if (ltime == NULL) {
+		g_warning("Error getting local time");
+		dbusmenu_menuitem_property_set(date, DBUSMENU_MENUITEM_PROP_LABEL, _("Error getting time"));
+		return FALSE;
+	}
+
+	/* Note: may require some localization tweaks */
+	strftime(longstr, 128, "%A, %e %B %Y", ltime);
+	
+	gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
+	dbusmenu_menuitem_property_set(date, DBUSMENU_MENUITEM_PROP_LABEL, utf8);
+	g_free(utf8);
+
+	return FALSE;
+}
+
 /* Run a particular program based on an activation */
 static void
 activate_cb (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
@@ -65,7 +93,9 @@ build_menus (DbusmenuMenuitem * root)
 		dbusmenu_menuitem_property_set     (date, DBUSMENU_MENUITEM_PROP_LABEL, _("No date yet..."));
 		dbusmenu_menuitem_property_set_bool(date, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 		dbusmenu_menuitem_child_append(root, date);
-		//update_label(self);
+
+		g_idle_add(update_datetime, NULL);
+		/* TODO: Set up updating daily */
 	}
 
 	if (calendar == NULL) {
