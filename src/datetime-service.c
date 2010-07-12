@@ -25,6 +25,7 @@ activate_cb (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
 {
 	GError * error = NULL;
 
+	g_debug("Issuing command '%s'", command);
 	if (!g_spawn_command_line_async(command, &error)) {
 		g_warning("Unable to start %s: %s", (char *)command, error->message);
 		g_error_free(error);
@@ -40,10 +41,12 @@ check_for_calendar (gpointer user_data)
 
 	gchar *evo = g_find_program_in_path("evolution");
 	if (evo != NULL) {
+		g_debug("Found the calendar application: %s", evo);
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 		g_free(evo);
 	} else {
+		g_debug("Unable to find calendar app.");
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 	}
 
@@ -56,6 +59,7 @@ check_for_calendar (gpointer user_data)
 static void
 build_menus (DbusmenuMenuitem * root)
 {
+	g_debug("Building Menus.");
 	if (date == NULL) {
 		date = dbusmenu_menuitem_new();
 		dbusmenu_menuitem_property_set     (date, DBUSMENU_MENUITEM_PROP_LABEL, _("No date yet..."));
