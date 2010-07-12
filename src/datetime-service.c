@@ -18,6 +18,7 @@ static DbusmenuMenuitem * root = NULL;
 /* Global Items */
 static DbusmenuMenuitem * date = NULL;
 static DbusmenuMenuitem * calendar = NULL;
+static DbusmenuMenuitem * settings = NULL;
 
 /* Updates the label in the date menuitem */
 static gboolean
@@ -81,6 +82,26 @@ check_for_calendar (gpointer user_data)
 	return FALSE;
 }
 
+/* Looks for the time and date admin application and enables the
+   item we have one */
+static gboolean
+check_for_timeadmin (gpointer user_data)
+{
+	g_return_val_if_fail (settings != NULL, FALSE);
+
+	gchar * timeadmin = g_find_program_in_path("time-admin");
+	if (timeadmin != NULL) {
+		g_debug("Found the time-admin application: %s", timeadmin);
+		dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+		g_free(timeadmin);
+	} else {
+		g_debug("Unable to find time-admin app.");
+		dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+	}
+
+	return FALSE;
+}
+
 /* Does the work to build the default menu, really calls out
    to other functions but this is the core to clean up the
    main function. */
@@ -114,12 +135,13 @@ build_menus (DbusmenuMenuitem * root)
 	dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
 	dbusmenu_menuitem_child_append(root, separator);
 
-	DbusmenuMenuitem * settings = dbusmenu_menuitem_new();
+	settings = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Set Time and Date..."));
 	/* insensitive until we check for available apps */
 	dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 	g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "time-admin");
 	dbusmenu_menuitem_child_append(root, settings);
+	g_idle_add(check_for_timeadmin, NULL);
 
 	return;
 }
