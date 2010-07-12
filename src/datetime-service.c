@@ -31,6 +31,25 @@ activate_cb (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
 	}
 }
 
+/* Looks for the calendar application and enables the item if
+   we have one */
+static gboolean
+check_for_calendar (gpointer user_data)
+{
+	g_return_val_if_fail (calendar != NULL, FALSE);
+
+	gchar *evo = g_find_program_in_path("evolution");
+	if (evo != NULL) {
+		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+		g_free(evo);
+	} else {
+		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+	}
+
+	return FALSE;
+}
+
 /* Does the work to build the default menu, really calls out
    to other functions but this is the core to clean up the
    main function. */
@@ -50,8 +69,11 @@ build_menus (DbusmenuMenuitem * root)
 		dbusmenu_menuitem_property_set     (calendar, DBUSMENU_MENUITEM_PROP_LABEL, _("Open Calendar"));
 		/* insensitive until we check for available apps */
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+		g_signal_connect (G_OBJECT(calendar), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
+						  G_CALLBACK (activate_cb), "evolution -c calendar");
 		dbusmenu_menuitem_child_append(root, calendar);
-		// queue checking for apps
+
+		g_idle_add(check_for_calendar, NULL);
 	}
 
 	DbusmenuMenuitem * separator = dbusmenu_menuitem_new();
