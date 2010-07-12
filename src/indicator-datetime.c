@@ -40,8 +40,6 @@ struct _IndicatorDatetime {
 
 struct _IndicatorDatetimePrivate {
 	GtkLabel * label;
-	GtkMenuItem * date;
-	GtkMenuItem * calendar;
 	guint timer;
 
 	guint idle_measure;
@@ -93,8 +91,6 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv = INDICATOR_DATETIME_GET_PRIVATE(self);
 
 	self->priv->label = NULL;
-	self->priv->date = NULL;
-	self->priv->calendar = NULL;
 	self->priv->timer = 0;
 
 	self->priv->idle_measure = 0;
@@ -116,16 +112,6 @@ indicator_datetime_dispose (GObject *object)
 	if (self->priv->label != NULL) {
 		g_object_unref(self->priv->label);
 		self->priv->label = NULL;
-	}
-
-	if (self->priv->date != NULL) {
-		g_object_unref(self->priv->date);
-		self->priv->date = NULL;
-	}
-
-	if (self->priv->calendar != NULL) {
-		g_object_unref(self->priv->calendar);
-		self->priv->calendar = NULL;
 	}
 
 	if (self->priv->timer != 0) {
@@ -212,15 +198,6 @@ update_label (IndicatorDatetime * io)
 		self->priv->idle_measure = g_idle_add(idle_measure, io);
 	}
 
-	if (self->priv->date == NULL) return;
-
-	/* Note: may require some localization tweaks */
-	strftime(longstr, 128, "%A, %e %B %Y", ltime);
-	
-	utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
-	gtk_menu_item_set_label(self->priv->date, utf8);
-	g_free(utf8);
-
 	return;
 }
 
@@ -239,17 +216,6 @@ minute_timer_func (gpointer user_data)
 	}
 
 	return FALSE;
-}
-
-static void
-activate_cb (GtkWidget *widget, const gchar *command)
-{
-	GError * error = NULL;
-
-	if (!g_spawn_command_line_async(command, &error)) {
-		g_warning("Unable to start %s: %s", (char *)command, error->message);
-		g_error_free(error);
-	}
 }
 
 /* Does a quick meausre of how big the string is in
@@ -335,24 +301,6 @@ get_label (IndicatorObject * io)
 	return self->priv->label;
 }
 
-static void
-check_for_calendar_application (IndicatorDatetime * self)
-{
-	GtkMenuItem * item = self->priv->calendar;
-	g_return_if_fail (item != NULL);
-
-	gchar *evo = g_find_program_in_path("evolution");
-	if (evo != NULL) {
-		g_signal_connect (GTK_MENU_ITEM (item), "activate",
-						  G_CALLBACK (activate_cb), "evolution -c calendar");
-		gtk_widget_set_sensitive (GTK_WIDGET (item), TRUE);
-		gtk_widget_show(GTK_WIDGET(item));
-		g_free(evo);
-	} else {
-		gtk_widget_hide(GTK_WIDGET(item));
-	}
-}
-
 static GtkMenu *
 get_menu (IndicatorObject * io)
 {
@@ -363,43 +311,4 @@ get_menu (IndicatorObject * io)
 	}
 
 	return GTK_MENU(self->priv->menu);
-
-	GtkWidget * menu = NULL;
-	GtkWidget * item = NULL;
-
-	menu = gtk_menu_new();
-	
-	if (self->priv->date == NULL) {
-		item = gtk_menu_item_new_with_label("No date yet...");
-		gtk_widget_set_sensitive (GTK_WIDGET (item), FALSE);
-		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
-		self->priv->date = GTK_MENU_ITEM (item);
-		update_label(self);
-	}
-
-	if (self->priv->calendar == NULL) {
-		item = gtk_menu_item_new_with_label(_("Open Calendar"));
-		/* insensitive until we check for available apps */
-		gtk_widget_set_sensitive (GTK_WIDGET (item), FALSE);
-		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
-		self->priv->calendar = GTK_MENU_ITEM (item);
-	}
- 
-	gtk_menu_shell_append (GTK_MENU_SHELL (menu),
-						   gtk_separator_menu_item_new ());
-
-	GtkWidget *settings_mi = gtk_menu_item_new_with_label (_("Set Time and Date..."));
-	g_signal_connect (GTK_MENU_ITEM (settings_mi), "activate",
-					  G_CALLBACK (activate_cb), "time-admin");
-	gtk_menu_shell_append (GTK_MENU_SHELL(menu), settings_mi);
-	gtk_widget_show(settings_mi);
-
-	/* show_all to reveal the separator */
-	gtk_widget_show_all(menu);
-
-	/* Note: maybe should move that to an idle loop if that helps with
-	   boot performance	*/
-	check_for_calendar_application (self);
-
-	return GTK_MENU(menu);
 }
