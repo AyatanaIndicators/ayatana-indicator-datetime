@@ -83,6 +83,8 @@ enum {
 
 #define SETTING_TIME_FORMAT_S "indicator-time-format"
 
+#define DEFAULT_TIME_FORMAT   "%l:%M %p"
+
 #define INDICATOR_DATETIME_GET_PRIVATE(o) \
 (G_TYPE_INSTANCE_GET_PRIVATE ((o), INDICATOR_DATETIME_TYPE, IndicatorDatetimePrivate))
 
@@ -131,7 +133,7 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 	                                 g_param_spec_string(PROP_TIME_FORMAT_S,
 	                                                     "The format that is used to show the time on the panel.",
 	                                                     "A format string in the form used to pass to strftime to make a string for displaying on the panel.",
-	                                                     "%l:%M %p",
+	                                                     DEFAULT_TIME_FORMAT,
 	                                                     G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	return;
@@ -148,7 +150,7 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv->idle_measure = 0;
 	self->priv->max_width = 0;
 
-	self->priv->time_format = NULL;
+	self->priv->time_format = g_strdup(DEFAULT_TIME_FORMAT);
 
 	self->priv->sm = NULL;
 	self->priv->menu = NULL;
@@ -276,7 +278,7 @@ update_label (IndicatorDatetime * io)
 		return;
 	}
 
-	strftime(longstr, 128, "%l:%M %p", ltime);
+	strftime(longstr, 128, self->priv->time_format, ltime);
 	
 	gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
 	gtk_label_set_label(self->priv->label, utf8);
