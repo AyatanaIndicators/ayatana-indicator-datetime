@@ -27,6 +27,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib.h>
 #include <glib-object.h>
 #include <glib/gi18n-lib.h>
+#include <gio/gio.h>
 
 /* Indicator Stuff */
 #include <libindicator/indicator.h>
@@ -63,12 +64,30 @@ struct _IndicatorDatetimePrivate {
 	GtkLabel * label;
 	guint timer;
 
+	gchar * time_format;
+
 	guint idle_measure;
 	gint  max_width;
 
 	IndicatorServiceManager * sm;
 	DbusmenuGtkMenu * menu;
+
+	GSettings * settings;
 };
+
+/* Enum for the properties so that they can be quickly
+   found and looked up. */
+enum {
+	PROP_0,
+	PROP_TIME_FORMAT
+};
+
+#define PROP_TIME_FORMAT_S    "time-format"
+
+#define SETTING_INTERFACE     "org.ayatana.indicator.datetime"
+#define SETTING_TIME_FORMAT_S "indicator-time-format"
+
+#define DEFAULT_TIME_FORMAT   "%l:%M %p"
 
 #define INDICATOR_DATETIME_GET_PRIVATE(o) \
 (G_TYPE_INSTANCE_GET_PRIVATE ((o), INDICATOR_DATETIME_TYPE, IndicatorDatetimePrivate))
@@ -77,6 +96,8 @@ GType indicator_datetime_get_type (void);
 
 static void indicator_datetime_class_init (IndicatorDatetimeClass *klass);
 static void indicator_datetime_init       (IndicatorDatetime *self);
+static void set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec);
+static void get_property (GObject * object, guint prop_id, GValue * value, GParamSpec * pspec);
 static void indicator_datetime_dispose    (GObject *object);
 static void indicator_datetime_finalize   (GObject *object);
 static GtkLabel * get_label               (IndicatorObject * io);
@@ -98,10 +119,26 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 	object_class->dispose = indicator_datetime_dispose;
 	object_class->finalize = indicator_datetime_finalize;
 
+	object_class->set_property = set_property;
+	object_class->get_property = get_property;
+
 	IndicatorObjectClass * io_class = INDICATOR_OBJECT_CLASS(klass);
 
 	io_class->get_label = get_label;
 	io_class->get_menu  = get_menu;
+
+	/**
+		IndicatorDatetime:time-format:
+		
+		The format that is used to show the time on the panel.
+	*/
+	g_object_class_install_property (object_class,
+	                                 PROP_TIME_FORMAT,
+	                                 g_param_spec_string(PROP_TIME_FORMAT_S,
+	                                                     "The format that is used to show the time on the panel.",
+	                                                     "A format string in the form used to pass to strftime to make a string for displaying on the panel.",
+	                                                     DEFAULT_TIME_FORMAT,
+	                                                     G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	return;
 }
@@ -117,8 +154,21 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv->idle_measure = 0;
 	self->priv->max_width = 0;
 
+	self->priv->time_format = g_strdup(DEFAULT_TIME_FORMAT);
+
 	self->priv->sm = NULL;
 	self->priv->menu = NULL;
+
+	self->priv->settings = g_settings_new(SETTING_INTERFACE);
+	if (self->priv->settings != NULL) {
+		g_settings_bind(self->priv->settings,
+		                SETTING_TIME_FORMAT_S,
+		                self,
+		                PROP_TIME_FORMAT_S,
+		                G_SETTINGS_BIND_DEFAULT);
+	} else {
+		g_warning("Unable to get settings for '" SETTING_INTERFACE "'");
+	}
 
 	self->priv->sm = indicator_service_manager_new_version(SERVICE_NAME, SERVICE_VERSION);
 
@@ -155,6 +205,11 @@ indicator_datetime_dispose (GObject *object)
 		self->priv->sm = NULL;
 	}
 
+	if (self->priv->settings != NULL) {
+		g_object_unref(G_OBJECT(self->priv->settings));
+		self->priv->settings = NULL;
+	}
+
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->dispose (object);
 	return;
 }
@@ -162,8 +217,42 @@ indicator_datetime_dispose (GObject *object)
 static void
 indicator_datetime_finalize (GObject *object)
 {
+	IndicatorDatetime * self = INDICATOR_DATETIME(object);
+
+	if (self->priv->time_format != NULL) {
+		g_free(self->priv->time_format);
+		self->priv->time_format = NULL;
+	}
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->finalize (object);
+	return;
+}
+
+static void
+set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec)
+{
+	g_return_if_fail(prop_id == PROP_TIME_FORMAT);
+	IndicatorDatetime * self = INDICATOR_DATETIME(object);
+
+	if (self->priv->time_format != NULL) {
+		g_free(self->priv->time_format);
+		self->priv->time_format = NULL;
+	}
+
+	self->priv->time_format = g_value_dup_string(value);
+	g_debug("Changing time format to '%s'", self->priv->time_format);
+
+	return;
+}
+
+static void
+get_property (GObject * object, guint prop_id, GValue * value, GParamSpec * pspec)
+{
+	g_return_if_fail(prop_id == PROP_TIME_FORMAT);
+	IndicatorDatetime * self = INDICATOR_DATETIME(object);
+
+	g_value_set_string(value, self->priv->time_format);
+
 	return;
 }
 
@@ -209,7 +298,7 @@ update_label (IndicatorDatetime * io)
 		return;
 	}
 
-	strftime(longstr, 128, "%l:%M %p", ltime);
+	strftime(longstr, 128, self->priv->time_format, ltime);
 	
 	gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
 	gtk_label_set_label(self->priv->label, utf8);
