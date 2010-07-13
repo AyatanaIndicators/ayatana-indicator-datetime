@@ -63,6 +63,8 @@ struct _IndicatorDatetimePrivate {
 	GtkLabel * label;
 	guint timer;
 
+	gchar * time_format;
+
 	guint idle_measure;
 	gint  max_width;
 
@@ -146,6 +148,8 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv->idle_measure = 0;
 	self->priv->max_width = 0;
 
+	self->priv->time_format = NULL;
+
 	self->priv->sm = NULL;
 	self->priv->menu = NULL;
 
@@ -191,6 +195,12 @@ indicator_datetime_dispose (GObject *object)
 static void
 indicator_datetime_finalize (GObject *object)
 {
+	IndicatorDatetime * self = INDICATOR_DATETIME(object);
+
+	if (self->priv->time_format != NULL) {
+		g_free(self->priv->time_format);
+		self->priv->time_format = NULL;
+	}
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->finalize (object);
 	return;
@@ -199,6 +209,16 @@ indicator_datetime_finalize (GObject *object)
 static void
 set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec)
 {
+	g_return_if_fail(prop_id == PROP_TIME_FORMAT);
+	IndicatorDatetime * self = INDICATOR_DATETIME(object);
+
+	if (self->priv->time_format != NULL) {
+		g_free(self->priv->time_format);
+		self->priv->time_format = NULL;
+	}
+
+	self->priv->time_format = g_value_dup_string(value);
+	g_debug("Changing time format to '%s'", self->priv->time_format);
 
 	return;
 }
@@ -206,6 +226,10 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 static void
 get_property (GObject * object, guint prop_id, GValue * value, GParamSpec * pspec)
 {
+	g_return_if_fail(prop_id == PROP_TIME_FORMAT);
+	IndicatorDatetime * self = INDICATOR_DATETIME(object);
+
+	g_value_set_string(value, self->priv->time_format);
 
 	return;
 }
