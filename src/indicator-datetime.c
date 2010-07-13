@@ -27,6 +27,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib.h>
 #include <glib-object.h>
 #include <glib/gi18n-lib.h>
+#include <gio/gio.h>
 
 /* Indicator Stuff */
 #include <libindicator/indicator.h>
@@ -70,6 +71,8 @@ struct _IndicatorDatetimePrivate {
 
 	IndicatorServiceManager * sm;
 	DbusmenuGtkMenu * menu;
+
+	GSettings * settings;
 };
 
 /* Enum for the properties so that they can be quickly
@@ -81,6 +84,7 @@ enum {
 
 #define PROP_TIME_FORMAT_S    "time-format"
 
+#define SETTING_INTERFACE     "org.ayatana.indicator.datetime"
 #define SETTING_TIME_FORMAT_S "indicator-time-format"
 
 #define DEFAULT_TIME_FORMAT   "%l:%M %p"
@@ -155,6 +159,17 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv->sm = NULL;
 	self->priv->menu = NULL;
 
+	self->priv->settings = g_settings_new(SETTING_INTERFACE);
+	if (self->priv->settings != NULL) {
+		g_settings_bind(self->priv->settings,
+		                SETTING_TIME_FORMAT_S,
+		                self,
+		                PROP_TIME_FORMAT_S,
+		                G_SETTINGS_BIND_DEFAULT);
+	} else {
+		g_warning("Unable to get settings for '" SETTING_INTERFACE "'");
+	}
+
 	self->priv->sm = indicator_service_manager_new_version(SERVICE_NAME, SERVICE_VERSION);
 
 	return;
@@ -188,6 +203,11 @@ indicator_datetime_dispose (GObject *object)
 	if (self->priv->sm != NULL) {
 		g_object_unref(G_OBJECT(self->priv->sm));
 		self->priv->sm = NULL;
+	}
+
+	if (self->priv->settings != NULL) {
+		g_object_unref(G_OBJECT(self->priv->settings));
+		self->priv->settings = NULL;
 	}
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->dispose (object);
