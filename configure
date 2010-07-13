@@ -8693,10 +8693,6 @@ _lt_linker_boilerplate=`cat conftest.err`
 $RM -r conftest*
 
 
-## CAVEAT EMPTOR:
-## There is no encapsulation within the following macros, do not change
-## the running order or otherwise move them around unless you know exactly
-## what you are doing...
 if test -n "$compiler"; then
 
 lt_prog_compiler_no_builtin_flag=
@@ -8722,11 +8718,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8725: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8721: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8729: \$? = $ac_status" >&5
+   echo "$as_me:8725: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9061,11 +9057,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9064: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9060: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9068: \$? = $ac_status" >&5
+   echo "$as_me:9064: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9166,11 +9162,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9169: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9165: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9173: \$? = $ac_status" >&5
+   echo "$as_me:9169: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9221,11 +9217,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9224: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9220: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9228: \$? = $ac_status" >&5
+   echo "$as_me:9224: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -11605,7 +11601,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11608 "configure"
+#line 11604 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11701,7 +11697,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11704 "configure"
+#line 11700 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12149,6 +12145,7 @@ fi
 
 INDICATOR_REQUIRED_VERSION=0.3.0
 DBUSMENUGLIB_REQUIRED_VERSION=0.1.1
+DBUSMENUGTK_REQUIRED_VERSION=0.1.1
 
 
 pkg_failed=no
@@ -12161,14 +12158,17 @@ if test -n "$PKG_CONFIG"; then
     else
         if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"indicator >= \$INDICATOR_REQUIRED_VERSION
-                             dbusmenu-glib >= \$DBUSMENUGLIB_REQUIRED_VERSION\""; } >&5
+                             dbusmenu-glib >= \$DBUSMENUGLIB_REQUIRED_VERSION
+                             dbusmenu-gtk >= \$DBUSMENUGTK_REQUIRED_VERSION\""; } >&5
   ($PKG_CONFIG --exists --print-errors "indicator >= $INDICATOR_REQUIRED_VERSION
-                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION") 2>&5
+                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
+                             dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_INDICATOR_CFLAGS=`$PKG_CONFIG --cflags "indicator >= $INDICATOR_REQUIRED_VERSION
-                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION" 2>/dev/null`
+                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
+                             dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION" 2>/dev/null`
 else
   pkg_failed=yes
 fi
@@ -12182,14 +12182,17 @@ if test -n "$PKG_CONFIG"; then
     else
         if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"indicator >= \$INDICATOR_REQUIRED_VERSION
-                             dbusmenu-glib >= \$DBUSMENUGLIB_REQUIRED_VERSION\""; } >&5
+                             dbusmenu-glib >= \$DBUSMENUGLIB_REQUIRED_VERSION
+                             dbusmenu-gtk >= \$DBUSMENUGTK_REQUIRED_VERSION\""; } >&5
   ($PKG_CONFIG --exists --print-errors "indicator >= $INDICATOR_REQUIRED_VERSION
-                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION") 2>&5
+                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
+                             dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_INDICATOR_LIBS=`$PKG_CONFIG --libs "indicator >= $INDICATOR_REQUIRED_VERSION
-                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION" 2>/dev/null`
+                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
+                             dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION" 2>/dev/null`
 else
   pkg_failed=yes
 fi
@@ -12209,16 +12212,19 @@ else
 fi
         if test $_pkg_short_errors_supported = yes; then
 	        INDICATOR_PKG_ERRORS=`$PKG_CONFIG --short-errors --errors-to-stdout --print-errors "indicator >= $INDICATOR_REQUIRED_VERSION
-                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION"`
+                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
+                             dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION"`
         else
 	        INDICATOR_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "indicator >= $INDICATOR_REQUIRED_VERSION
-                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION"`
+                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
+                             dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION"`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$INDICATOR_PKG_ERRORS" >&5
 
 	as_fn_error "Package requirements (indicator >= $INDICATOR_REQUIRED_VERSION
-                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION) were not met:
+                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
+                             dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION) were not met:
 
 $INDICATOR_PKG_ERRORS
 
