@@ -70,6 +70,17 @@ struct _IndicatorDatetimePrivate {
 	DbusmenuGtkMenu * menu;
 };
 
+/* Enum for the properties so that they can be quickly
+   found and looked up. */
+enum {
+	PROP_0,
+	PROP_TIME_FORMAT
+};
+
+#define PROP_TIME_FORMAT_S    "time-format"
+
+#define SETTING_TIME_FORMAT_S "indicator-time-format"
+
 #define INDICATOR_DATETIME_GET_PRIVATE(o) \
 (G_TYPE_INSTANCE_GET_PRIVATE ((o), INDICATOR_DATETIME_TYPE, IndicatorDatetimePrivate))
 
@@ -77,6 +88,8 @@ GType indicator_datetime_get_type (void);
 
 static void indicator_datetime_class_init (IndicatorDatetimeClass *klass);
 static void indicator_datetime_init       (IndicatorDatetime *self);
+static void set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec);
+static void get_property (GObject * object, guint prop_id, GValue * value, GParamSpec * pspec);
 static void indicator_datetime_dispose    (GObject *object);
 static void indicator_datetime_finalize   (GObject *object);
 static GtkLabel * get_label               (IndicatorObject * io);
@@ -98,10 +111,26 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 	object_class->dispose = indicator_datetime_dispose;
 	object_class->finalize = indicator_datetime_finalize;
 
+	object_class->set_property = set_property;
+	object_class->get_property = get_property;
+
 	IndicatorObjectClass * io_class = INDICATOR_OBJECT_CLASS(klass);
 
 	io_class->get_label = get_label;
 	io_class->get_menu  = get_menu;
+
+	/**
+		IndicatorDatetime:time-format:
+		
+		The format that is used to show the time on the panel.
+	*/
+	g_object_class_install_property (object_class,
+	                                 PROP_TIME_FORMAT,
+	                                 g_param_spec_string(PROP_TIME_FORMAT_S,
+	                                                     "The format that is used to show the time on the panel.",
+	                                                     "A format string in the form used to pass to strftime to make a string for displaying on the panel.",
+	                                                     "%l:%M %p",
+	                                                     G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	return;
 }
@@ -164,6 +193,20 @@ indicator_datetime_finalize (GObject *object)
 {
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->finalize (object);
+	return;
+}
+
+static void
+set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec)
+{
+
+	return;
+}
+
+static void
+get_property (GObject * object, guint prop_id, GValue * value, GParamSpec * pspec)
+{
+
 	return;
 }
 
