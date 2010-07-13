@@ -2,8 +2,9 @@ indicator-datetime (0.0.3-0ubuntu2~ppa1~confmat1) UNRELEASED; urgency=low
 
   * Merge upstream
     * Adding in GSettings for configuring the format on the panel.
+  * debian/control: Adding in a glib dependency to get gsettings
 
- -- Ted Gould <ted@ubuntu.com>  Mon, 12 Jul 2010 20:57:15 -0500
+ -- Ted Gould <ted@ubuntu.com>  Mon, 12 Jul 2010 20:59:29 -0500
 
 indicator-datetime (0.0.3-0ubuntu2~ppa1~service1) lucid; urgency=low
 
