@@ -1,8 +1,8 @@
-indicator-datetime (0.0.3-0ubuntu2~ppa1~confmat2) UNRELEASED; urgency=low
+indicator-datetime (0.0.3-0ubuntu2~ppa1~confmat2) lucid; urgency=low
 
   * Rebuilding for new glib
 
- -- Ted Gould <ted@ubuntu.com>  Wed, 14 Jul 2010 11:31:46 -0500
+ -- Ted Gould <ted@ubuntu.com>  Wed, 14 Jul 2010 11:32:34 -0500
 
 indicator-datetime (0.0.3-0ubuntu2~ppa1~confmat1) lucid; urgency=low
 
