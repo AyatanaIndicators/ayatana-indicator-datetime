@@ -84,10 +84,23 @@ enum {
 
 #define PROP_TIME_FORMAT_S    "time-format"
 
-#define SETTING_INTERFACE     "org.ayatana.indicator.datetime"
-#define SETTING_TIME_FORMAT_S "indicator-time-format"
+#define SETTINGS_INTERFACE              "org.ayatana.indicator.datetime"
+#define SETTINGS_TIME_FORMAT            "time-format"
+#define SETTINGS_SHOW_SECONDS           "show-seconds"
+#define SETTINGS_SHOW_DAY               "show-day"
+#define SETTINGS_SHOW_DATE              "show-date"
+#define SETTINGS_CUSTOM_TIME_FORMAT_S   "custom-time-format"
 
-#define DEFAULT_TIME_FORMAT   "%l:%M %p"
+enum {
+	SETTINGS_TIME_LOCALE = 0,
+	SETTINGS_TIME_12_HOUR = 1,
+	SETTINGS_TIME_24_HOUR = 2,
+	SETTINGS_TIME_CUSTOM = 3
+};
+
+#define DEFAULT_TIME_12_FORMAT   "%l:%M %p"
+#define DEFAULT_TIME_24_FORMAT   "%H:%M"
+#define DEFAULT_TIME_FORMAT      DEFAULT_TIME_12_FORMAT
 
 #define INDICATOR_DATETIME_GET_PRIVATE(o) \
 (G_TYPE_INSTANCE_GET_PRIVATE ((o), INDICATOR_DATETIME_TYPE, IndicatorDatetimePrivate))
@@ -159,15 +172,15 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv->sm = NULL;
 	self->priv->menu = NULL;
 
-	self->priv->settings = g_settings_new(SETTING_INTERFACE);
+	self->priv->settings = g_settings_new(SETTINGS_INTERFACE);
 	if (self->priv->settings != NULL) {
 		g_settings_bind(self->priv->settings,
-		                SETTING_TIME_FORMAT_S,
+		                SETTINGS_CUSTOM_TIME_FORMAT_S,
 		                self,
 		                PROP_TIME_FORMAT_S,
 		                G_SETTINGS_BIND_DEFAULT);
 	} else {
-		g_warning("Unable to get settings for '" SETTING_INTERFACE "'");
+		g_warning("Unable to get settings for '" SETTINGS_INTERFACE "'");
 	}
 
 	self->priv->sm = indicator_service_manager_new_version(SERVICE_NAME, SERVICE_VERSION);
