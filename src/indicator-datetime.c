@@ -80,11 +80,17 @@ struct _IndicatorDatetimePrivate {
 enum {
 	PROP_0,
 	PROP_TIME_FORMAT,
+	PROP_SHOW_SECONDS,
+	PROP_SHOW_DAY,
+	PROP_SHOW_DATE,
 	PROP_CUSTOM_TIME_FORMAT
 };
 
-#define PROP_TIME_FORMAT_S    "time-format"
-#define PROP_CUSTOM_TIME_FORMAT_S    "time-format"
+#define PROP_TIME_FORMAT_S              "time-format"
+#define PROP_SHOW_SECONDS_S             "show-seconds"
+#define PROP_SHOW_DAY_S                 "show-day"
+#define PROP_SHOW_DATE_S                "show-date"
+#define PROP_CUSTOM_TIME_FORMAT_S       "custom-time-format"
 
 #define SETTINGS_INTERFACE              "org.ayatana.indicator.datetime"
 #define SETTINGS_TIME_FORMAT            "time-format"
@@ -142,11 +148,36 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 	io_class->get_label = get_label;
 	io_class->get_menu  = get_menu;
 
-	/**
-		IndicatorDatetime:custom-time-format:
-		
-		The format that is used to show the time on the panel.
-	*/
+	g_object_class_install_property (object_class,
+	                                 PROP_TIME_FORMAT,
+	                                 g_param_spec_int(PROP_TIME_FORMAT_S,
+	                                                  "A choice of which format should be used on the panel",
+	                                                  "Chooses between letting the locale choose the time, 12-hour time, 24-time or using the custom string passed to strftime().",
+	                                                  SETTINGS_TIME_LOCALE, /* min */
+	                                                  SETTINGS_TIME_CUSTOM, /* max */
+	                                                  SETTINGS_TIME_LOCALE, /* default */
+	                                                  G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (object_class,
+	                                 PROP_SHOW_SECONDS,
+	                                 g_param_spec_boolean(PROP_SHOW_SECONDS_S,
+	                                                      "Whether to show seconds in the indicator.",
+	                                                      "Shows seconds along with the time in the indicator.  Also effects refresh interval.",
+	                                                      FALSE, /* default */
+	                                                      G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (object_class,
+	                                 PROP_SHOW_DAY,
+	                                 g_param_spec_boolean(PROP_SHOW_DAY_S,
+	                                                      "Whether to show the day of the week in the indicator.",
+	                                                      "Shows the day of the week along with the time in the indicator.",
+	                                                      FALSE, /* default */
+	                                                      G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (object_class,
+	                                 PROP_SHOW_DATE,
+	                                 g_param_spec_boolean(PROP_SHOW_DATE_S,
+	                                                      "Whether to show the day and month in the indicator.",
+	                                                      "Shows the day and month along with the time in the indicator.",
+	                                                      FALSE, /* default */
+	                                                      G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 	g_object_class_install_property (object_class,
 	                                 PROP_CUSTOM_TIME_FORMAT,
 	                                 g_param_spec_string(PROP_CUSTOM_TIME_FORMAT_S,
