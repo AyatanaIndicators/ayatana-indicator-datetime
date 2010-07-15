@@ -64,7 +64,13 @@ struct _IndicatorDatetimePrivate {
 	GtkLabel * label;
 	guint timer;
 
-	gchar * time_format;
+	gchar * time_string;
+
+	gint time_mode;
+	gboolean show_seconds;
+	gboolean show_date;
+	gboolean show_day;
+	gchar * custom_string;
 
 	guint idle_measure;
 	gint  max_width;
@@ -200,7 +206,13 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv->idle_measure = 0;
 	self->priv->max_width = 0;
 
-	self->priv->time_format = g_strdup(DEFAULT_TIME_FORMAT);
+	self->priv->time_string = g_strdup(DEFAULT_TIME_FORMAT);
+
+	self->priv->time_mode = SETTINGS_TIME_LOCALE;
+	self->priv->show_seconds = FALSE;
+	self->priv->show_date = FALSE;
+	self->priv->show_day = FALSE;
+	self->priv->custom_string = g_strdup(DEFAULT_TIME_FORMAT);
 
 	self->priv->sm = NULL;
 	self->priv->menu = NULL;
@@ -285,9 +297,14 @@ indicator_datetime_finalize (GObject *object)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(object);
 
-	if (self->priv->time_format != NULL) {
-		g_free(self->priv->time_format);
-		self->priv->time_format = NULL;
+	if (self->priv->time_string != NULL) {
+		g_free(self->priv->time_string);
+		self->priv->time_string = NULL;
+	}
+
+	if (self->priv->custom_string != NULL) {
+		g_free(self->priv->custom_string);
+		self->priv->custom_string = NULL;
 	}
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->finalize (object);
