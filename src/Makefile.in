@@ -270,7 +270,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 indicator_datetime_service_SOURCES = \
-	datetime-service.c
+	datetime-service.c \
+	dbus-shared.h
 
 indicator_datetime_service_CFLAGS = \
 	-Wall \
@@ -283,6 +284,7 @@ indicator_datetime_service_LDADD = \
 datetimelibdir = $(INDICATORDIR)
 datetimelib_LTLIBRARIES = libdatetime.la
 libdatetime_la_SOURCES = \
+	dbus-shared.h \
 	indicator-datetime.c
 
 libdatetime_la_CFLAGS = \
