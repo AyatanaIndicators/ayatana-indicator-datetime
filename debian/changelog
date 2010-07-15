@@ -1,4 +1,4 @@
-indicator-datetime (0.0.4-0ubuntu1~ppa1) lucid; urgency=low
+indicator-datetime (0.0.4-0ubuntu1) maverick; urgency=low
 
   * New upstream release.
     * Change menus to come from the service
