@@ -39,10 +39,7 @@ libexec_PROGRAMS = indicator-datetime-service$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/intltool.m4 \
-	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
-	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
-	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -273,7 +270,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 indicator_datetime_service_SOURCES = \
-	datetime-service.c
+	datetime-service.c \
+	dbus-shared.h
 
 indicator_datetime_service_CFLAGS = \
 	-Wall \
@@ -286,6 +284,7 @@ indicator_datetime_service_LDADD = \
 datetimelibdir = $(INDICATORDIR)
 datetimelib_LTLIBRARIES = libdatetime.la
 libdatetime_la_SOURCES = \
+	dbus-shared.h \
 	indicator-datetime.c
 
 libdatetime_la_CFLAGS = \

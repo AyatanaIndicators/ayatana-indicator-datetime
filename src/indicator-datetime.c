@@ -31,6 +31,12 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 /* Indicator Stuff */
 #include <libindicator/indicator.h>
 #include <libindicator/indicator-object.h>
+#include <libindicator/indicator-service-manager.h>
+
+/* DBusMenu */
+#include <libdbusmenu-gtk/menu.h>
+
+#include "dbus-shared.h"
 
 
 #define INDICATOR_DATETIME_TYPE            (indicator_datetime_get_type ())
@@ -55,12 +61,13 @@ struct _IndicatorDatetime {
 
 struct _IndicatorDatetimePrivate {
 	GtkLabel * label;
-	GtkMenuItem * date;
-	GtkMenuItem * calendar;
 	guint timer;
 
 	guint idle_measure;
 	gint  max_width;
+
+	IndicatorServiceManager * sm;
+	DbusmenuGtkMenu * menu;
 };
 
 #define INDICATOR_DATETIME_GET_PRIVATE(o) \
@@ -105,12 +112,15 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv = INDICATOR_DATETIME_GET_PRIVATE(self);
 
 	self->priv->label = NULL;
-	self->priv->date = NULL;
-	self->priv->calendar = NULL;
 	self->priv->timer = 0;
 
 	self->priv->idle_measure = 0;
 	self->priv->max_width = 0;
+
+	self->priv->sm = NULL;
+	self->priv->menu = NULL;
+
+	self->priv->sm = indicator_service_manager_new_version(SERVICE_NAME, SERVICE_VERSION);
 
 	return;
 }
@@ -125,16 +135,6 @@ indicator_datetime_dispose (GObject *object)
 		self->priv->label = NULL;
 	}
 
-	if (self->priv->date != NULL) {
-		g_object_unref(self->priv->date);
-		self->priv->date = NULL;
-	}
-
-	if (self->priv->calendar != NULL) {
-		g_object_unref(self->priv->calendar);
-		self->priv->calendar = NULL;
-	}
-
 	if (self->priv->timer != 0) {
 		g_source_remove(self->priv->timer);
 		self->priv->timer = 0;
@@ -143,6 +143,16 @@ indicator_datetime_dispose (GObject *object)
 	if (self->priv->idle_measure != 0) {
 		g_source_remove(self->priv->idle_measure);
 		self->priv->idle_measure = 0;
+	}
+
+	if (self->priv->menu != NULL) {
+		g_object_unref(G_OBJECT(self->priv->menu));
+		self->priv->menu = NULL;
+	}
+
+	if (self->priv->sm != NULL) {
+		g_object_unref(G_OBJECT(self->priv->sm));
+		self->priv->sm = NULL;
 	}
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->dispose (object);
@@ -209,15 +219,6 @@ update_label (IndicatorDatetime * io)
 		self->priv->idle_measure = g_idle_add(idle_measure, io);
 	}
 
-	if (self->priv->date == NULL) return;
-
-	/* Note: may require some localization tweaks */
-	strftime(longstr, 128, "%A, %e %B %Y", ltime);
-	
-	utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
-	gtk_menu_item_set_label(self->priv->date, utf8);
-	g_free(utf8);
-
 	return;
 }
 
@@ -236,17 +237,6 @@ minute_timer_func (gpointer user_data)
 	}
 
 	return FALSE;
-}
-
-static void
-activate_cb (GtkWidget *widget, const gchar *command)
-{
-	GError * error = NULL;
-
-	if (!g_spawn_command_line_async(command, &error)) {
-		g_warning("Unable to start %s: %s", (char *)command, error->message);
-		g_error_free(error);
-	}
 }
 
 /* Does a quick meausre of how big the string is in
@@ -332,65 +322,14 @@ get_label (IndicatorObject * io)
 	return self->priv->label;
 }
 
-static void
-check_for_calendar_application (IndicatorDatetime * self)
-{
-	GtkMenuItem * item = self->priv->calendar;
-	g_return_if_fail (item != NULL);
-
-	gchar *evo = g_find_program_in_path("evolution");
-	if (evo != NULL) {
-		g_signal_connect (GTK_MENU_ITEM (item), "activate",
-						  G_CALLBACK (activate_cb), "evolution -c calendar");
-		gtk_widget_set_sensitive (GTK_WIDGET (item), TRUE);
-		gtk_widget_show(GTK_WIDGET(item));
-		g_free(evo);
-	} else {
-		gtk_widget_hide(GTK_WIDGET(item));
-	}
-}
-
 static GtkMenu *
 get_menu (IndicatorObject * io)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(io);
 
-	GtkWidget * menu = NULL;
-	GtkWidget * item = NULL;
-
-	menu = gtk_menu_new();
-	
-	if (self->priv->date == NULL) {
-		item = gtk_menu_item_new_with_label("No date yet...");
-		gtk_widget_set_sensitive (GTK_WIDGET (item), FALSE);
-		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
-		self->priv->date = GTK_MENU_ITEM (item);
-		update_label(self);
+	if (self->priv->menu == NULL) {
+		self->priv->menu = dbusmenu_gtkmenu_new(SERVICE_NAME, MENU_OBJ);
 	}
 
-	if (self->priv->calendar == NULL) {
-		item = gtk_menu_item_new_with_label(_("Open Calendar"));
-		/* insensitive until we check for available apps */
-		gtk_widget_set_sensitive (GTK_WIDGET (item), FALSE);
-		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
-		self->priv->calendar = GTK_MENU_ITEM (item);
-	}
- 
-	gtk_menu_shell_append (GTK_MENU_SHELL (menu),
-						   gtk_separator_menu_item_new ());
-
-	GtkWidget *settings_mi = gtk_menu_item_new_with_label (_("Set Time and Date..."));
-	g_signal_connect (GTK_MENU_ITEM (settings_mi), "activate",
-					  G_CALLBACK (activate_cb), "time-admin");
-	gtk_menu_shell_append (GTK_MENU_SHELL(menu), settings_mi);
-	gtk_widget_show(settings_mi);
-
-	/* show_all to reveal the separator */
-	gtk_widget_show_all(menu);
-
-	/* Note: maybe should move that to an idle loop if that helps with
-	   boot performance	*/
-	check_for_calendar_application (self);
-
-	return GTK_MENU(menu);
+	return GTK_MENU(self->priv->menu);
 }

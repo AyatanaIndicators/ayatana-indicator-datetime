@@ -1,11 +1,11 @@
 
-AC_INIT(indicator-datetime, 0.0.3, ted@canonical.com)
-AC_COPYRIGHT([Copyright 2009 Canonical])
+AC_INIT(indicator-datetime, 0.0.4, ted@canonical.com)
+AC_COPYRIGHT([Copyright 2009,2010 Canonical])
 
 AC_PREREQ(2.53)
 
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(indicator-datetime, 0.0.3)
+AM_INIT_AUTOMAKE(indicator-datetime, 0.0.4)
 
 AM_MAINTAINER_MODE
 
@@ -34,9 +34,11 @@ PKG_PROG_PKG_CONFIG
 
 INDICATOR_REQUIRED_VERSION=0.3.0
 DBUSMENUGLIB_REQUIRED_VERSION=0.1.1
+DBUSMENUGTK_REQUIRED_VERSION=0.1.1
 
 PKG_CHECK_MODULES(INDICATOR, indicator >= $INDICATOR_REQUIRED_VERSION
-                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION)
+                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
+                             dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION)
 
 AC_SUBST(INDICATOR_CFLAGS)
 AC_SUBST(INDICATOR_LIBS)
