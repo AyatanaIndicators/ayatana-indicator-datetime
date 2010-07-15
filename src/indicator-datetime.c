@@ -93,10 +93,10 @@ enum {
 #define PROP_CUSTOM_TIME_FORMAT_S       "custom-time-format"
 
 #define SETTINGS_INTERFACE              "org.ayatana.indicator.datetime"
-#define SETTINGS_TIME_FORMAT            "time-format"
-#define SETTINGS_SHOW_SECONDS           "show-seconds"
-#define SETTINGS_SHOW_DAY               "show-day"
-#define SETTINGS_SHOW_DATE              "show-date"
+#define SETTINGS_TIME_FORMAT_S          "time-format"
+#define SETTINGS_SHOW_SECONDS_S         "show-seconds"
+#define SETTINGS_SHOW_DAY_S             "show-day"
+#define SETTINGS_SHOW_DATE_S            "show-date"
 #define SETTINGS_CUSTOM_TIME_FORMAT_S   "custom-time-format"
 
 enum {
@@ -207,6 +207,26 @@ indicator_datetime_init (IndicatorDatetime *self)
 
 	self->priv->settings = g_settings_new(SETTINGS_INTERFACE);
 	if (self->priv->settings != NULL) {
+		g_settings_bind(self->priv->settings,
+		                SETTINGS_TIME_FORMAT_S,
+		                self,
+		                PROP_TIME_FORMAT_S,
+		                G_SETTINGS_BIND_DEFAULT);
+		g_settings_bind(self->priv->settings,
+		                SETTINGS_SHOW_SECONDS_S,
+		                self,
+		                PROP_SHOW_SECONDS_S,
+		                G_SETTINGS_BIND_DEFAULT);
+		g_settings_bind(self->priv->settings,
+		                SETTINGS_SHOW_DAY_S,
+		                self,
+		                PROP_SHOW_DAY_S,
+		                G_SETTINGS_BIND_DEFAULT);
+		g_settings_bind(self->priv->settings,
+		                SETTINGS_SHOW_DATE_S,
+		                self,
+		                PROP_SHOW_DATE_S,
+		                G_SETTINGS_BIND_DEFAULT);
 		g_settings_bind(self->priv->settings,
 		                SETTINGS_CUSTOM_TIME_FORMAT_S,
 		                self,
