@@ -79,10 +79,12 @@ struct _IndicatorDatetimePrivate {
    found and looked up. */
 enum {
 	PROP_0,
-	PROP_TIME_FORMAT
+	PROP_TIME_FORMAT,
+	PROP_CUSTOM_TIME_FORMAT
 };
 
 #define PROP_TIME_FORMAT_S    "time-format"
+#define PROP_CUSTOM_TIME_FORMAT_S    "time-format"
 
 #define SETTINGS_INTERFACE              "org.ayatana.indicator.datetime"
 #define SETTINGS_TIME_FORMAT            "time-format"
@@ -141,13 +143,13 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 	io_class->get_menu  = get_menu;
 
 	/**
-		IndicatorDatetime:time-format:
+		IndicatorDatetime:custom-time-format:
 		
 		The format that is used to show the time on the panel.
 	*/
 	g_object_class_install_property (object_class,
-	                                 PROP_TIME_FORMAT,
-	                                 g_param_spec_string(PROP_TIME_FORMAT_S,
+	                                 PROP_CUSTOM_TIME_FORMAT,
+	                                 g_param_spec_string(PROP_CUSTOM_TIME_FORMAT_S,
 	                                                     "The format that is used to show the time on the panel.",
 	                                                     "A format string in the form used to pass to strftime to make a string for displaying on the panel.",
 	                                                     DEFAULT_TIME_FORMAT,
@@ -177,7 +179,7 @@ indicator_datetime_init (IndicatorDatetime *self)
 		g_settings_bind(self->priv->settings,
 		                SETTINGS_CUSTOM_TIME_FORMAT_S,
 		                self,
-		                PROP_TIME_FORMAT_S,
+		                PROP_CUSTOM_TIME_FORMAT_S,
 		                G_SETTINGS_BIND_DEFAULT);
 	} else {
 		g_warning("Unable to get settings for '" SETTINGS_INTERFACE "'");
@@ -244,7 +246,7 @@ indicator_datetime_finalize (GObject *object)
 static void
 set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec)
 {
-	g_return_if_fail(prop_id == PROP_TIME_FORMAT);
+	g_return_if_fail(prop_id == PROP_CUSTOM_TIME_FORMAT);
 	IndicatorDatetime * self = INDICATOR_DATETIME(object);
 
 	if (self->priv->time_format != NULL) {
@@ -261,7 +263,7 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 static void
 get_property (GObject * object, guint prop_id, GValue * value, GParamSpec * pspec)
 {
-	g_return_if_fail(prop_id == PROP_TIME_FORMAT);
+	g_return_if_fail(prop_id == PROP_CUSTOM_TIME_FORMAT);
 	IndicatorDatetime * self = INDICATOR_DATETIME(object);
 
 	g_value_set_string(value, self->priv->time_format);
