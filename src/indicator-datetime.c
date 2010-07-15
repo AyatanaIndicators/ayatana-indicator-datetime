@@ -314,28 +314,12 @@ indicator_datetime_finalize (GObject *object)
 static void
 set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec)
 {
-	g_return_if_fail(prop_id == PROP_CUSTOM_TIME_FORMAT);
-	IndicatorDatetime * self = INDICATOR_DATETIME(object);
-
-	if (self->priv->time_format != NULL) {
-		g_free(self->priv->time_format);
-		self->priv->time_format = NULL;
-	}
-
-	self->priv->time_format = g_value_dup_string(value);
-	g_debug("Changing time format to '%s'", self->priv->time_format);
-
 	return;
 }
 
 static void
 get_property (GObject * object, guint prop_id, GValue * value, GParamSpec * pspec)
 {
-	g_return_if_fail(prop_id == PROP_CUSTOM_TIME_FORMAT);
-	IndicatorDatetime * self = INDICATOR_DATETIME(object);
-
-	g_value_set_string(value, self->priv->time_format);
-
 	return;
 }
 
@@ -381,7 +365,7 @@ update_label (IndicatorDatetime * io)
 		return;
 	}
 
-	strftime(longstr, 128, self->priv->time_format, ltime);
+	strftime(longstr, 128, self->priv->time_string, ltime);
 	
 	gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
 	gtk_label_set_label(self->priv->label, utf8);
