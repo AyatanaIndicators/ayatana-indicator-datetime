@@ -382,6 +382,7 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 			self->priv->show_seconds = !self->priv->show_seconds;
 			if (self->priv->time_mode != SETTINGS_TIME_CUSTOM) {
 				update = TRUE;
+				setup_timer(self);
 			}
 		}
 		break;
@@ -411,6 +412,7 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 			self->priv->custom_string = g_strdup(newstr);
 			if (self->priv->time_mode == SETTINGS_TIME_CUSTOM) {
 				update = TRUE;
+				setup_timer(self);
 			}
 		}
 		break;
@@ -552,6 +554,11 @@ timer_func (gpointer user_data)
 static void
 setup_timer (IndicatorDatetime * self)
 {
+	if (self->priv->timer != 0) {
+		g_source_remove(self->priv->timer);
+		self->priv->timer = 0;
+	}
+
 	self->priv->timer = g_timeout_add_seconds(60, timer_func, self);
 	return;
 }
