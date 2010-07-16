@@ -64,7 +64,13 @@ struct _IndicatorDatetimePrivate {
 	GtkLabel * label;
 	guint timer;
 
-	gchar * time_format;
+	gchar * time_string;
+
+	gint time_mode;
+	gboolean show_seconds;
+	gboolean show_date;
+	gboolean show_day;
+	gchar * custom_string;
 
 	guint idle_measure;
 	gint  max_width;
@@ -79,15 +85,36 @@ struct _IndicatorDatetimePrivate {
    found and looked up. */
 enum {
 	PROP_0,
-	PROP_TIME_FORMAT
+	PROP_TIME_FORMAT,
+	PROP_SHOW_SECONDS,
+	PROP_SHOW_DAY,
+	PROP_SHOW_DATE,
+	PROP_CUSTOM_TIME_FORMAT
 };
 
-#define PROP_TIME_FORMAT_S    "time-format"
+#define PROP_TIME_FORMAT_S              "time-format"
+#define PROP_SHOW_SECONDS_S             "show-seconds"
+#define PROP_SHOW_DAY_S                 "show-day"
+#define PROP_SHOW_DATE_S                "show-date"
+#define PROP_CUSTOM_TIME_FORMAT_S       "custom-time-format"
 
-#define SETTING_INTERFACE     "org.ayatana.indicator.datetime"
-#define SETTING_TIME_FORMAT_S "indicator-time-format"
+#define SETTINGS_INTERFACE              "org.ayatana.indicator.datetime"
+#define SETTINGS_TIME_FORMAT_S          "time-format"
+#define SETTINGS_SHOW_SECONDS_S         "show-seconds"
+#define SETTINGS_SHOW_DAY_S             "show-day"
+#define SETTINGS_SHOW_DATE_S            "show-date"
+#define SETTINGS_CUSTOM_TIME_FORMAT_S   "custom-time-format"
 
-#define DEFAULT_TIME_FORMAT   "%l:%M %p"
+enum {
+	SETTINGS_TIME_LOCALE = 0,
+	SETTINGS_TIME_12_HOUR = 1,
+	SETTINGS_TIME_24_HOUR = 2,
+	SETTINGS_TIME_CUSTOM = 3
+};
+
+#define DEFAULT_TIME_12_FORMAT   "%l:%M %p"
+#define DEFAULT_TIME_24_FORMAT   "%H:%M"
+#define DEFAULT_TIME_FORMAT      DEFAULT_TIME_12_FORMAT
 
 #define INDICATOR_DATETIME_GET_PRIVATE(o) \
 (G_TYPE_INSTANCE_GET_PRIVATE ((o), INDICATOR_DATETIME_TYPE, IndicatorDatetimePrivate))
@@ -127,14 +154,39 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 	io_class->get_label = get_label;
 	io_class->get_menu  = get_menu;
 
-	/**
-		IndicatorDatetime:time-format:
-		
-		The format that is used to show the time on the panel.
-	*/
 	g_object_class_install_property (object_class,
 	                                 PROP_TIME_FORMAT,
-	                                 g_param_spec_string(PROP_TIME_FORMAT_S,
+	                                 g_param_spec_int(PROP_TIME_FORMAT_S,
+	                                                  "A choice of which format should be used on the panel",
+	                                                  "Chooses between letting the locale choose the time, 12-hour time, 24-time or using the custom string passed to strftime().",
+	                                                  SETTINGS_TIME_LOCALE, /* min */
+	                                                  SETTINGS_TIME_CUSTOM, /* max */
+	                                                  SETTINGS_TIME_LOCALE, /* default */
+	                                                  G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (object_class,
+	                                 PROP_SHOW_SECONDS,
+	                                 g_param_spec_boolean(PROP_SHOW_SECONDS_S,
+	                                                      "Whether to show seconds in the indicator.",
+	                                                      "Shows seconds along with the time in the indicator.  Also effects refresh interval.",
+	                                                      FALSE, /* default */
+	                                                      G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (object_class,
+	                                 PROP_SHOW_DAY,
+	                                 g_param_spec_boolean(PROP_SHOW_DAY_S,
+	                                                      "Whether to show the day of the week in the indicator.",
+	                                                      "Shows the day of the week along with the time in the indicator.",
+	                                                      FALSE, /* default */
+	                                                      G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (object_class,
+	                                 PROP_SHOW_DATE,
+	                                 g_param_spec_boolean(PROP_SHOW_DATE_S,
+	                                                      "Whether to show the day and month in the indicator.",
+	                                                      "Shows the day and month along with the time in the indicator.",
+	                                                      FALSE, /* default */
+	                                                      G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (object_class,
+	                                 PROP_CUSTOM_TIME_FORMAT,
+	                                 g_param_spec_string(PROP_CUSTOM_TIME_FORMAT_S,
 	                                                     "The format that is used to show the time on the panel.",
 	                                                     "A format string in the form used to pass to strftime to make a string for displaying on the panel.",
 	                                                     DEFAULT_TIME_FORMAT,
@@ -154,20 +206,46 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv->idle_measure = 0;
 	self->priv->max_width = 0;
 
-	self->priv->time_format = g_strdup(DEFAULT_TIME_FORMAT);
+	self->priv->time_string = g_strdup(DEFAULT_TIME_FORMAT);
+
+	self->priv->time_mode = SETTINGS_TIME_LOCALE;
+	self->priv->show_seconds = FALSE;
+	self->priv->show_date = FALSE;
+	self->priv->show_day = FALSE;
+	self->priv->custom_string = g_strdup(DEFAULT_TIME_FORMAT);
 
 	self->priv->sm = NULL;
 	self->priv->menu = NULL;
 
-	self->priv->settings = g_settings_new(SETTING_INTERFACE);
+	self->priv->settings = g_settings_new(SETTINGS_INTERFACE);
 	if (self->priv->settings != NULL) {
 		g_settings_bind(self->priv->settings,
-		                SETTING_TIME_FORMAT_S,
+		                SETTINGS_TIME_FORMAT_S,
 		                self,
 		                PROP_TIME_FORMAT_S,
 		                G_SETTINGS_BIND_DEFAULT);
+		g_settings_bind(self->priv->settings,
+		                SETTINGS_SHOW_SECONDS_S,
+		                self,
+		                PROP_SHOW_SECONDS_S,
+		                G_SETTINGS_BIND_DEFAULT);
+		g_settings_bind(self->priv->settings,
+		                SETTINGS_SHOW_DAY_S,
+		                self,
+		                PROP_SHOW_DAY_S,
+		                G_SETTINGS_BIND_DEFAULT);
+		g_settings_bind(self->priv->settings,
+		                SETTINGS_SHOW_DATE_S,
+		                self,
+		                PROP_SHOW_DATE_S,
+		                G_SETTINGS_BIND_DEFAULT);
+		g_settings_bind(self->priv->settings,
+		                SETTINGS_CUSTOM_TIME_FORMAT_S,
+		                self,
+		                PROP_CUSTOM_TIME_FORMAT_S,
+		                G_SETTINGS_BIND_DEFAULT);
 	} else {
-		g_warning("Unable to get settings for '" SETTING_INTERFACE "'");
+		g_warning("Unable to get settings for '" SETTINGS_INTERFACE "'");
 	}
 
 	self->priv->sm = indicator_service_manager_new_version(SERVICE_NAME, SERVICE_VERSION);
@@ -219,9 +297,14 @@ indicator_datetime_finalize (GObject *object)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(object);
 
-	if (self->priv->time_format != NULL) {
-		g_free(self->priv->time_format);
-		self->priv->time_format = NULL;
+	if (self->priv->time_string != NULL) {
+		g_free(self->priv->time_string);
+		self->priv->time_string = NULL;
+	}
+
+	if (self->priv->custom_string != NULL) {
+		g_free(self->priv->custom_string);
+		self->priv->custom_string = NULL;
 	}
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->finalize (object);
@@ -231,28 +314,12 @@ indicator_datetime_finalize (GObject *object)
 static void
 set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec)
 {
-	g_return_if_fail(prop_id == PROP_TIME_FORMAT);
-	IndicatorDatetime * self = INDICATOR_DATETIME(object);
-
-	if (self->priv->time_format != NULL) {
-		g_free(self->priv->time_format);
-		self->priv->time_format = NULL;
-	}
-
-	self->priv->time_format = g_value_dup_string(value);
-	g_debug("Changing time format to '%s'", self->priv->time_format);
-
 	return;
 }
 
 static void
 get_property (GObject * object, guint prop_id, GValue * value, GParamSpec * pspec)
 {
-	g_return_if_fail(prop_id == PROP_TIME_FORMAT);
-	IndicatorDatetime * self = INDICATOR_DATETIME(object);
-
-	g_value_set_string(value, self->priv->time_format);
-
 	return;
 }
 
@@ -298,7 +365,7 @@ update_label (IndicatorDatetime * io)
 		return;
 	}
 
-	strftime(longstr, 128, self->priv->time_format, ltime);
+	strftime(longstr, 128, self->priv->time_string, ltime);
 	
 	gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
 	gtk_label_set_label(self->priv->label, utf8);

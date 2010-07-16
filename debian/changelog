@@ -1,3 +1,11 @@
+indicator-datetime (0.0.3-0ubuntu2~ppa1~confmat3) UNRELEASED; urgency=low
+
+  * Upstream Merge
+    * Moving around the preferences to have something more flexible
+      and updating code.
+
+ -- Ted Gould <ted@ubuntu.com>  Thu, 15 Jul 2010 21:25:40 -0500
+
 indicator-datetime (0.0.3-0ubuntu2~ppa1~confmat2) lucid; urgency=low
 
   * Rebuilding for new glib
