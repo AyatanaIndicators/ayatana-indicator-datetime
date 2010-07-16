@@ -631,8 +631,9 @@ static gint
 generate_strftime_bitmask (IndicatorDatetime * self)
 {
 	gint retval = 0;
-	glong strlength = g_utf8_strlen(self->priv->time_string, 0);
+	glong strlength = g_utf8_strlen(self->priv->time_string, -1);
 	gint i;
+	g_debug("Evaluating bitmask for '%s'", self->priv->time_string);
 
 	for (i = 0; i < strlength; i++) {
 		if (self->priv->time_string[i] == '%' && i + 1 < strlength) {
