@@ -738,6 +738,7 @@ guess_label_size (IndicatorDatetime * self)
 	GArray * timevals = g_array_new(FALSE, TRUE, sizeof(struct tm));
 	build_timeval_array(timevals, posibilitymask);
 
+	g_debug("Checking against %d posible times", timevals->len);
 	gint check_time;
 	for (check_time = 0; check_time < timevals->len; check_time++) {
 		gchar longstr[128];
