@@ -624,6 +624,43 @@ const static strftime_type_t strftime_type[] = {
 
 #define FAT_NUMBER 8
 
+/* Looks through the characters in the format string to
+   ensure that we can figure out which of the things we
+   need to check in determining the length. */
+static gint
+generate_strftime_bitmask (IndicatorDatetime * self)
+{
+	gint retval = 0;
+	glong strlength = g_utf8_strlen(self->priv->time_string, 0);
+	gint i;
+
+	for (i = 0; i < strlength; i++) {
+		if (self->priv->time_string[i] == '%' && i + 1 < strlength) {
+			gchar evalchar = self->priv->time_string[i + 1];
+
+			/* If we're using alternate formats we need to skip those characters */
+			if (evalchar == 'E' || evalchar == 'O') {
+				if (i + 2 < strlength) {
+					evalchar = self->priv->time_string[i + 2];
+				} else {
+					continue;
+				}
+			}
+
+			/* Let's look at that character in the table */
+			int j;
+			for (j = 0; strftime_type[j].character != 0; j++) {
+				if (strftime_type[j].character == evalchar) {
+					retval |= strftime_type[j].mask;
+					break;
+				}
+			}
+		}
+	}
+
+	return retval;
+}
+
 /* Try to get a good guess at what a maximum width of the entire
    string would be. */
 static void
