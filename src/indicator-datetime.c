@@ -316,18 +316,45 @@ indicator_datetime_finalize (GObject *object)
 	return;
 }
 
+/* Turns the int value into a string GVariant */
 static GVariant *
 bind_enum_set (const GValue * value, const GVariantType * type, gpointer user_data)
 {
-
-	return NULL;
+	switch (g_value_get_int(value)) {
+	case SETTINGS_TIME_LOCALE:
+		return g_variant_new_string("locale-default");
+	case SETTINGS_TIME_12_HOUR:
+		return g_variant_new_string("12-hour");
+	case SETTINGS_TIME_24_HOUR:
+		return g_variant_new_string("24-hour");
+	case SETTINGS_TIME_CUSTOM:
+		return g_variant_new_string("custom");
+	default:
+		return NULL;
+	}
 }
 
+/* Turns a string GVariant into an int value */
 static gboolean
 bind_enum_get (GValue * value, GVariant * variant, gpointer user_data)
 {
+	const gchar * str = g_variant_get_string(variant, NULL);
+	gint output = 0;
 
-	return FALSE;
+	if (g_strcmp0(str, "locale-default") == 0) {
+		output = SETTINGS_TIME_LOCALE;
+	} else if (g_strcmp0(str, "12-hour") == 0) {
+		output = SETTINGS_TIME_12_HOUR;
+	} else if (g_strcmp0(str, "24-hour") == 0) {
+		output = SETTINGS_TIME_24_HOUR;
+	} else if (g_strcmp0(str, "custom") == 0) {
+		output = SETTINGS_TIME_CUSTOM;
+	} else {
+		return FALSE;
+	}
+
+	g_value_set_int(value, output);
+	return TRUE;
 }
 
 static void
