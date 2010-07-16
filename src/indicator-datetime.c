@@ -134,6 +134,7 @@ static gboolean bind_enum_get             (GValue * value, GVariant * variant, g
 static gchar * generate_format_string     (IndicatorDatetime * self);
 static void update_label                  (IndicatorDatetime * io);
 static void guess_label_size              (IndicatorDatetime * self);
+static void setup_timer                   (IndicatorDatetime * self);
 
 /* Indicator Module Config */
 INDICATOR_SET_VERSION
@@ -533,19 +534,26 @@ update_label (IndicatorDatetime * io)
 
 /* Runs every minute and updates the time */
 gboolean
-minute_timer_func (gpointer user_data)
+timer_func (gpointer user_data)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
+	self->priv->timer = 0;
+	setup_timer(self);
 
 	if (self->priv->label != NULL) {
 		update_label(self);
-		return TRUE;
-	} else {
-		self->priv->timer = 0;
 		return FALSE;
 	}
 
 	return FALSE;
+}
+
+/* Configure the timer to run the next time through */
+static void
+setup_timer (IndicatorDatetime * self)
+{
+	self->priv->timer = g_timeout_add_seconds(60, timer_func, self);
+	return;
 }
 
 /* Does a quick meausre of how big the string is in
@@ -878,7 +886,7 @@ get_label (IndicatorObject * io)
 	}
 
 	if (self->priv->timer == 0) {
-		self->priv->timer = g_timeout_add_seconds(60, minute_timer_func, self);
+		setup_timer(self);
 	}
 
 	return self->priv->label;
