@@ -698,7 +698,19 @@ guess_label_size (IndicatorDatetime * self)
 	GArray * timevals = g_array_new(FALSE, TRUE, sizeof(struct tm));
 	build_timeval_array(timevals, posibilitymask);
 
-	/* TODO: Check 'em all */
+	gint check_time;
+	for (check_time = 0; check_time < timevals->len; check_time++) {
+		gchar longstr[128];
+		strftime(longstr, 128, self->priv->time_string, &(g_array_index(timevals, struct tm, check_time)));
+		
+		gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
+		gint length = measure_string(style, context, utf8);
+		g_free(utf8);
+
+		if (length > *max_width) {
+			*max_width = length;
+		}
+	}
 
 	g_array_free(timevals, TRUE);
 
