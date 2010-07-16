@@ -1,9 +1,9 @@
-indicator-datetime (0.0.3-0ubuntu2~ppa1~confmat4) UNRELEASED; urgency=low
+indicator-datetime (0.0.3-0ubuntu2~ppa1~confmat4) lucid; urgency=low
 
   * Upstream Merge
     * Whew.  Now it does everything, just choose your format!
 
- -- Ted Gould <ted@ubuntu.com>  Fri, 16 Jul 2010 17:00:50 -0500
+ -- Ted Gould <ted@ubuntu.com>  Fri, 16 Jul 2010 17:03:43 -0500
 
 indicator-datetime (0.0.3-0ubuntu2~ppa1~confmat3) lucid; urgency=low
 
