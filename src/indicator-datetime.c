@@ -357,15 +357,56 @@ bind_enum_get (GValue * value, GVariant * variant, gpointer user_data)
 	return TRUE;
 }
 
+/* Sets a property on the object */
 static void
 set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec)
 {
+	switch(prop_id) {
+	case PROP_TIME_FORMAT:
+		break;
+	case PROP_SHOW_SECONDS:
+		break;
+	case PROP_SHOW_DAY:
+		break;
+	case PROP_SHOW_DATE:
+		break;
+	case PROP_CUSTOM_TIME_FORMAT:
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+		return;
+	}
+
 	return;
 }
 
+/* Gets a property from the object */
 static void
 get_property (GObject * object, guint prop_id, GValue * value, GParamSpec * pspec)
 {
+	IndicatorDatetime * self = INDICATOR_DATETIME(object);
+
+	switch(prop_id) {
+	case PROP_TIME_FORMAT:
+		g_value_set_int(value, self->priv->time_mode);
+		break;
+	case PROP_SHOW_SECONDS:
+		g_value_set_boolean(value, self->priv->show_seconds);
+		break;
+	case PROP_SHOW_DAY:
+		g_value_set_boolean(value, self->priv->show_day);
+		break;
+	case PROP_SHOW_DATE:
+		g_value_set_boolean(value, self->priv->show_date);
+		break;
+	case PROP_CUSTOM_TIME_FORMAT:
+		g_value_set_string(value, self->priv->custom_string);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+		return;
+	}
+
 	return;
 }
 
