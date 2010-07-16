@@ -730,6 +730,9 @@ build_timeval_array (GArray * timevals, gint mask)
 static void
 guess_label_size (IndicatorDatetime * self)
 {
+	/* This is during startup. */
+	if (self->priv->label == NULL) return;
+
 	GtkStyle * style = gtk_widget_get_style(GTK_WIDGET(self->priv->label));
 	PangoContext * context = gtk_widget_get_pango_context(GTK_WIDGET(self->priv->label));
 	gint * max_width = &(self->priv->max_width);
