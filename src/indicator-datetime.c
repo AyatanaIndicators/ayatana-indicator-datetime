@@ -134,7 +134,7 @@ static gboolean bind_enum_get             (GValue * value, GVariant * variant, g
 static gchar * generate_format_string     (IndicatorDatetime * self);
 static void update_label                  (IndicatorDatetime * io);
 static void guess_label_size              (IndicatorDatetime * self);
-static void setup_timer                   (IndicatorDatetime * self);
+static void setup_timer                   (IndicatorDatetime * self, struct tm * ltime);
 
 /* Indicator Module Config */
 INDICATOR_SET_VERSION
@@ -382,7 +382,7 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 			self->priv->show_seconds = !self->priv->show_seconds;
 			if (self->priv->time_mode != SETTINGS_TIME_CUSTOM) {
 				update = TRUE;
-				setup_timer(self);
+				setup_timer(self, NULL);
 			}
 		}
 		break;
@@ -412,7 +412,7 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 			self->priv->custom_string = g_strdup(newstr);
 			if (self->priv->time_mode == SETTINGS_TIME_CUSTOM) {
 				update = TRUE;
-				setup_timer(self);
+				setup_timer(self, NULL);
 			}
 		}
 		break;
@@ -540,7 +540,7 @@ timer_func (gpointer user_data)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
 	self->priv->timer = 0;
-	setup_timer(self);
+	setup_timer(self, NULL);
 
 	if (self->priv->label != NULL) {
 		update_label(self);
@@ -552,7 +552,7 @@ timer_func (gpointer user_data)
 
 /* Configure the timer to run the next time through */
 static void
-setup_timer (IndicatorDatetime * self)
+setup_timer (IndicatorDatetime * self, struct tm * ltime)
 {
 	if (self->priv->timer != 0) {
 		g_source_remove(self->priv->timer);
@@ -562,11 +562,11 @@ setup_timer (IndicatorDatetime * self)
 	if (self->priv->show_seconds) {
 		self->priv->timer = g_timeout_add_seconds(1, timer_func, self);
 	} else {
-		time_t t;
-		struct tm *ltime;
-
-		t = time(NULL);
-		ltime = localtime(&t);
+		if (ltime == NULL) {
+			time_t t;
+			t = time(NULL);
+			ltime = localtime(&t);
+		}
 
 		/* Plus 2 so we're just after the minute, don't want to be early. */
 		self->priv->timer = g_timeout_add_seconds(60 - ltime->tm_sec + 2, timer_func, self);
@@ -905,7 +905,7 @@ get_label (IndicatorObject * io)
 	}
 
 	if (self->priv->timer == 0) {
-		setup_timer(self);
+		setup_timer(self, NULL);
 	}
 
 	return self->priv->label;
