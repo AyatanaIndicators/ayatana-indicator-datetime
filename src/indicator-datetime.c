@@ -661,6 +661,29 @@ generate_strftime_bitmask (IndicatorDatetime * self)
 	return retval;
 }
 
+/* Build an array up of all the time values that we want to check
+   for length to ensure we're in a good place */
+static void
+build_timeval_array (GArray * timevals, gint mask)
+{
+	struct tm mytm = {0};
+
+	/* Sun 12/28/8888 00:00 */
+	mytm.tm_hour = 0;
+	mytm.tm_mday = 28;
+	mytm.tm_mon = 11;
+	mytm.tm_year = 8888 - 1900;
+	mytm.tm_wday = 0;
+	mytm.tm_yday = 363;
+	g_array_append_val(timevals, mytm);
+
+	/* Sun 12/28/8888 12:00 */
+	mytm.tm_hour = 12;
+	g_array_append_val(timevals, mytm);
+
+	return;
+}
+
 /* Try to get a good guess at what a maximum width of the entire
    string would be. */
 static void
@@ -668,24 +691,18 @@ guess_label_size (IndicatorDatetime * self)
 {
 	GtkStyle * style = gtk_widget_get_style(GTK_WIDGET(self->priv->label));
 	PangoContext * context = gtk_widget_get_pango_context(GTK_WIDGET(self->priv->label));
+	gint * max_width = &(self->priv->max_width);
+	gint posibilitymask = generate_strftime_bitmask(self);
 
-	/* TRANSLATORS: This string is used for measuring the size of
-	   the font used for showing the time and is not shown to the
-	   user anywhere. */
-	gchar * am_str = g_strdup_printf(_("%d%d:%d%d AM"), FAT_NUMBER, FAT_NUMBER, FAT_NUMBER, FAT_NUMBER);
-	gint am_width = measure_string(style, context, am_str);
-	g_free(am_str);
+	/* Build the array of possibilities that we want to test */
+	GArray * timevals = g_array_new(FALSE, TRUE, sizeof(struct tm));
+	build_timeval_array(timevals, posibilitymask);
 
-	/* TRANSLATORS: This string is used for measuring the size of
-	   the font used for showing the time and is not shown to the
-	   user anywhere. */
-	gchar * pm_str = g_strdup_printf(_("%d%d:%d%d PM"), FAT_NUMBER, FAT_NUMBER, FAT_NUMBER, FAT_NUMBER);
-	gint pm_width = measure_string(style, context, pm_str);
-	g_free(pm_str);
+	/* TODO: Check 'em all */
 
-	self->priv->max_width = MAX(am_width, pm_width);
+	g_array_free(timevals, TRUE);
+
 	gtk_widget_set_size_request(GTK_WIDGET(self->priv->label), self->priv->max_width, -1);
-
 	g_debug("Guessing max time width: %d", self->priv->max_width);
 
 	return;
