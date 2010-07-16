@@ -379,19 +379,25 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 	case PROP_SHOW_SECONDS:
 		if (g_value_get_boolean(value) != self->priv->show_seconds) {
 			self->priv->show_seconds = !self->priv->show_seconds;
-			update = TRUE;
+			if (self->priv->time_mode != SETTINGS_TIME_CUSTOM) {
+				update = TRUE;
+			}
 		}
 		break;
 	case PROP_SHOW_DAY:
 		if (g_value_get_boolean(value) != self->priv->show_day) {
 			self->priv->show_day = !self->priv->show_day;
-			update = TRUE;
+			if (self->priv->time_mode != SETTINGS_TIME_CUSTOM) {
+				update = TRUE;
+			}
 		}
 		break;
 	case PROP_SHOW_DATE:
 		if (g_value_get_boolean(value) != self->priv->show_date) {
 			self->priv->show_date = !self->priv->show_date;
-			update = TRUE;
+			if (self->priv->time_mode != SETTINGS_TIME_CUSTOM) {
+				update = TRUE;
+			}
 		}
 		break;
 	case PROP_CUSTOM_TIME_FORMAT: {
