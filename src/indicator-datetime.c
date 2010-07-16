@@ -361,21 +361,60 @@ bind_enum_get (GValue * value, GVariant * variant, gpointer user_data)
 static void
 set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec)
 {
+	IndicatorDatetime * self = INDICATOR_DATETIME(object);
+	gboolean update = FALSE;
+
 	switch(prop_id) {
-	case PROP_TIME_FORMAT:
+	case PROP_TIME_FORMAT: {
+		gint newval = g_value_get_int(value);
+		if (newval != self->priv->time_mode) {
+			update = TRUE;
+			self->priv->time_mode = newval;
+		}
 		break;
+	}
 	case PROP_SHOW_SECONDS:
+		if (g_value_get_boolean(value) != self->priv->show_seconds) {
+			self->priv->show_seconds = !self->priv->show_seconds;
+			update = TRUE;
+		}
 		break;
 	case PROP_SHOW_DAY:
+		if (g_value_get_boolean(value) != self->priv->show_day) {
+			self->priv->show_day = !self->priv->show_day;
+			update = TRUE;
+		}
 		break;
 	case PROP_SHOW_DATE:
+		if (g_value_get_boolean(value) != self->priv->show_date) {
+			self->priv->show_date = !self->priv->show_date;
+			update = TRUE;
+		}
 		break;
-	case PROP_CUSTOM_TIME_FORMAT:
+	case PROP_CUSTOM_TIME_FORMAT: {
+		const gchar * newstr = g_value_get_string(value);
+		if (g_strcmp0(newstr, self->priv->custom_string) != 0) {
+			if (self->priv->custom_string != NULL) {
+				g_free(self->priv->custom_string);
+				self->priv->custom_string = NULL;
+			}
+			self->priv->custom_string = g_strdup(newstr);
+			if (self->priv->time_mode == SETTINGS_TIME_CUSTOM) {
+				update = TRUE;
+			}
+		}
 		break;
+	}
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
 		return;
 	}
+
+	if (!update) {
+		return;
+	}
+
+	g_debug("Updating format string");
 
 	return;
 }
