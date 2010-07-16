@@ -132,6 +132,8 @@ static GtkMenu *  get_menu                (IndicatorObject * io);
 static GVariant * bind_enum_set           (const GValue * value, const GVariantType * type, gpointer user_data);
 static gboolean bind_enum_get             (GValue * value, GVariant * variant, gpointer user_data);
 static gchar * generate_format_string     (IndicatorDatetime * self);
+static void update_label                  (IndicatorDatetime * io);
+static void guess_label_size              (IndicatorDatetime * self);
 
 /* Indicator Module Config */
 INDICATOR_SET_VERSION
@@ -432,7 +434,8 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 	self->priv->time_string = newformat;
 
 	/* And update everything */
-	/* TODO: Update everything */
+	update_label(self);
+	guess_label_size(self);
 
 	return;
 }
