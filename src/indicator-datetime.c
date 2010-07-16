@@ -563,6 +563,65 @@ measure_string (GtkStyle * style, PangoContext * context, const gchar * string)
 	return width;
 }
 
+/* Format for the table of strftime() modifiers to what
+   we need to check when determining the length */
+typedef struct _strftime_type_t strftime_type_t;
+struct _strftime_type_t {
+	char character;
+	gint mask;
+};
+
+enum {
+	STRFTIME_MASK_NONE    = 0,      /* Hours or minutes as we always test those */
+	STRFTIME_MASK_SECONDS = 1 << 0, /* Seconds count */
+	STRFTIME_MASK_AMPM    = 1 << 1, /* AM/PM counts */
+	STRFTIME_MASK_WEEK    = 1 << 2, /* Day of the week maters (Sat, Sun, etc.) */
+	STRFTIME_MASK_DAY     = 1 << 3, /* Day of the month counts (Feb 1st) */
+	STRFTIME_MASK_MONTH   = 1 << 4, /* Which month matters */
+	STRFTIME_MASK_YEAR    = 1 << 5, /* Which year matters */
+	/* Last entry, combines all previous */
+	STRFTIME_MASK_ALL     = (STRFTIME_MASK_SECONDS | STRFTIME_MASK_AMPM | STRFTIME_MASK_WEEK | STRFTIME_MASK_DAY | STRFTIME_MASK_MONTH | STRFTIME_MASK_YEAR)
+};
+
+/* A table taken from the man page of strftime to what the different
+   characters can effect.  These are worst case in that we need to
+   test the length based on all these things to ensure that we have
+   a reasonable string lenght measurement. */
+const static strftime_type_t strftime_type[] = {
+	{'a', STRFTIME_MASK_WEEK},
+	{'A', STRFTIME_MASK_WEEK},
+	{'b', STRFTIME_MASK_MONTH},
+	{'B', STRFTIME_MASK_MONTH},
+	{'c', STRFTIME_MASK_ALL}, /* We don't know, so we have to assume all */
+	{'C', STRFTIME_MASK_YEAR},
+	{'d', STRFTIME_MASK_MONTH},
+	{'D', STRFTIME_MASK_MONTH | STRFTIME_MASK_YEAR | STRFTIME_MASK_DAY},
+	{'e', STRFTIME_MASK_DAY},
+	{'F', STRFTIME_MASK_MONTH | STRFTIME_MASK_YEAR | STRFTIME_MASK_DAY},
+	{'G', STRFTIME_MASK_YEAR},
+	{'g', STRFTIME_MASK_YEAR},
+	{'h', STRFTIME_MASK_MONTH},
+	{'j', STRFTIME_MASK_DAY},
+	{'m', STRFTIME_MASK_MONTH},
+	{'p', STRFTIME_MASK_AMPM},
+	{'P', STRFTIME_MASK_AMPM},
+	{'r', STRFTIME_MASK_AMPM},
+	{'s', STRFTIME_MASK_SECONDS},
+	{'S', STRFTIME_MASK_SECONDS},
+	{'T', STRFTIME_MASK_SECONDS},
+	{'u', STRFTIME_MASK_WEEK},
+	{'U', STRFTIME_MASK_DAY | STRFTIME_MASK_MONTH},
+	{'V', STRFTIME_MASK_DAY | STRFTIME_MASK_MONTH},
+	{'w', STRFTIME_MASK_DAY},
+	{'W', STRFTIME_MASK_DAY | STRFTIME_MASK_MONTH},
+	{'x', STRFTIME_MASK_YEAR | STRFTIME_MASK_MONTH | STRFTIME_MASK_DAY | STRFTIME_MASK_WEEK},
+	{'X', STRFTIME_MASK_SECONDS},
+	{'y', STRFTIME_MASK_YEAR},
+	{'Y', STRFTIME_MASK_YEAR},
+	/* Last one */
+	{0, 0}
+};
+
 #define FAT_NUMBER 8
 
 /* Try to get a good guess at what a maximum width of the entire
