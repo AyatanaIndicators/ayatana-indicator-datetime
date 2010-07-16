@@ -677,9 +677,49 @@ build_timeval_array (GArray * timevals, gint mask)
 	mytm.tm_yday = 363;
 	g_array_append_val(timevals, mytm);
 
-	/* Sun 12/28/8888 12:00 */
-	mytm.tm_hour = 12;
-	g_array_append_val(timevals, mytm);
+	if (mask & STRFTIME_MASK_AMPM) {
+		/* Sun 12/28/8888 12:00 */
+		mytm.tm_hour = 12;
+		g_array_append_val(timevals, mytm);
+	}
+
+	/* NOTE: Ignoring year 8888 should handle it */
+
+	if (mask & STRFTIME_MASK_MONTH) {
+		gint oldlen = timevals->len;
+		gint i, j;
+		for (i = 0; i < oldlen; i++) {
+			for (j = 0; j < 11; j++) {
+				struct tm localval = g_array_index(timevals, struct tm, i);
+				localval.tm_mon = j;
+				/* Not sure if I need to adjust yday & wday, hope not */
+				g_array_append_val(timevals, localval);
+			}
+		}
+	}
+
+	/* Doing these together as it seems like just slightly more
+	   coverage on the numerical days, but worth it. */
+	if (mask & (STRFTIME_MASK_WEEK | STRFTIME_MASK_DAY)) {
+		gint oldlen = timevals->len;
+		gint i, j;
+		for (i = 0; i < oldlen; i++) {
+			for (j = 22; j < 28; j++) {
+				struct tm localval = g_array_index(timevals, struct tm, i);
+
+				gint diff = 28 - j;
+
+				localval.tm_mday = j;
+				localval.tm_wday = localval.tm_wday - diff;
+				if (localval.tm_wday < 0) {
+					localval.tm_wday += 7;
+				}
+				localval.tm_yday = localval.tm_yday - diff;
+
+				g_array_append_val(timevals, localval);
+			}
+		}
+	}
 
 	return;
 }
