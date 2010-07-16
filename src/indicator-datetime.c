@@ -129,6 +129,8 @@ static void indicator_datetime_dispose    (GObject *object);
 static void indicator_datetime_finalize   (GObject *object);
 static GtkLabel * get_label               (IndicatorObject * io);
 static GtkMenu *  get_menu                (IndicatorObject * io);
+static GVariant * bind_enum_set           (const GValue * value, const GVariantType * type, gpointer user_data);
+static gboolean bind_enum_get             (GValue * value, GVariant * variant, gpointer user_data);
 
 /* Indicator Module Config */
 INDICATOR_SET_VERSION
@@ -219,11 +221,14 @@ indicator_datetime_init (IndicatorDatetime *self)
 
 	self->priv->settings = g_settings_new(SETTINGS_INTERFACE);
 	if (self->priv->settings != NULL) {
-		g_settings_bind(self->priv->settings,
+		g_settings_bind_with_mapping(self->priv->settings,
 		                SETTINGS_TIME_FORMAT_S,
 		                self,
 		                PROP_TIME_FORMAT_S,
-		                G_SETTINGS_BIND_DEFAULT);
+		                G_SETTINGS_BIND_DEFAULT,
+		                bind_enum_get,
+		                bind_enum_set,
+		                NULL, NULL); /* Userdata and destroy func */
 		g_settings_bind(self->priv->settings,
 		                SETTINGS_SHOW_SECONDS_S,
 		                self,
@@ -309,6 +314,20 @@ indicator_datetime_finalize (GObject *object)
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->finalize (object);
 	return;
+}
+
+static GVariant *
+bind_enum_set (const GValue * value, const GVariantType * type, gpointer user_data)
+{
+
+	return NULL;
+}
+
+static gboolean
+bind_enum_get (GValue * value, GVariant * variant, gpointer user_data)
+{
+
+	return FALSE;
 }
 
 static void
