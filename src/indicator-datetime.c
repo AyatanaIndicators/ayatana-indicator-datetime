@@ -660,9 +660,34 @@ generate_format_string (IndicatorDatetime * self)
 	/* Checkpoint, let's not fail */
 	g_return_val_if_fail(time_string != NULL, g_strdup(DEFAULT_TIME_FORMAT));
 
-	/* TODO: Date */
+	/* If there's no date or day let's just leave now and
+	   not worry about the rest of this code */
+	if (!self->priv->show_date && !self->priv->show_day) {
+		return g_strdup(time_string);
+	}
 
-	return g_strdup(time_string);
+	const gchar * date_string = NULL;
+	if (self->priv->show_date && self->priv->show_day) {
+		/* TRANSLATORS:  This is a format string passed to strftime to represent
+		   the day of the week, the month and the day of the month. */
+		date_string = _("%a %b %e");
+	} else if (self->priv->show_date) {
+		/* TRANSLATORS:  This is a format string passed to strftime to represent
+		   the month and the day of the month. */
+		date_string = _("%b %e");
+	} else if (self->priv->show_day) {
+		/* TRANSLATORS:  This is a format string passed to strftime to represent
+		   the day of the week. */
+		date_string = _("%a");
+	}
+
+	/* Check point, we should have a date string */
+	g_return_val_if_fail(date_string != NULL, g_strdup(time_string));
+
+	/* TRANSLATORS: This is a format string passed to strftime to combine the
+	   date and the time.  The value of "%s, %s" would result in a string like
+	   this in US English 12-hour time: 'Fri Jul 16, 11:50 AM' */
+	return g_strdup_printf(_("%s, %s"), date_string, time_string);
 }
 
 /* Grabs the label.  Creates it if it doesn't
