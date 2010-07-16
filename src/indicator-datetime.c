@@ -558,8 +558,20 @@ setup_timer (IndicatorDatetime * self)
 		g_source_remove(self->priv->timer);
 		self->priv->timer = 0;
 	}
+	
+	if (self->priv->show_seconds) {
+		self->priv->timer = g_timeout_add_seconds(1, timer_func, self);
+	} else {
+		time_t t;
+		struct tm *ltime;
 
-	self->priv->timer = g_timeout_add_seconds(60, timer_func, self);
+		t = time(NULL);
+		ltime = localtime(&t);
+
+		/* Plus 2 so we're just after the minute, don't want to be early. */
+		self->priv->timer = g_timeout_add_seconds(60 - ltime->tm_sec + 2, timer_func, self);
+	}
+
 	return;
 }
 
