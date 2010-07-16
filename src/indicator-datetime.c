@@ -540,13 +540,8 @@ timer_func (gpointer user_data)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
 	self->priv->timer = 0;
-	setup_timer(self, NULL);
-
-	if (self->priv->label != NULL) {
-		update_label(self);
-		return FALSE;
-	}
-
+	struct tm * ltime = update_label(self);
+	setup_timer(self, ltime);
 	return FALSE;
 }
 
