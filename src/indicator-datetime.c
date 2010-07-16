@@ -132,7 +132,7 @@ static GtkMenu *  get_menu                (IndicatorObject * io);
 static GVariant * bind_enum_set           (const GValue * value, const GVariantType * type, gpointer user_data);
 static gboolean bind_enum_get             (GValue * value, GVariant * variant, gpointer user_data);
 static gchar * generate_format_string     (IndicatorDatetime * self);
-static void update_label                  (IndicatorDatetime * io);
+static struct tm * update_label           (IndicatorDatetime * io);
 static void guess_label_size              (IndicatorDatetime * self);
 static void setup_timer                   (IndicatorDatetime * self, struct tm * ltime);
 
@@ -502,12 +502,12 @@ idle_measure (gpointer data)
 }
 
 /* Updates the label to be the current time. */
-static void
+static struct tm *
 update_label (IndicatorDatetime * io)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(io);
 
-	if (self->priv->label == NULL) return;
+	if (self->priv->label == NULL) return NULL;
 
 	gchar longstr[128];
 	time_t t;
@@ -518,7 +518,7 @@ update_label (IndicatorDatetime * io)
 	if (ltime == NULL) {
 		g_debug("Error getting local time");
 		gtk_label_set_label(self->priv->label, _("Error getting time"));
-		return;
+		return NULL;
 	}
 
 	strftime(longstr, 128, self->priv->time_string, ltime);
@@ -531,7 +531,7 @@ update_label (IndicatorDatetime * io)
 		self->priv->idle_measure = g_idle_add(idle_measure, io);
 	}
 
-	return;
+	return ltime;
 }
 
 /* Runs every minute and updates the time */
