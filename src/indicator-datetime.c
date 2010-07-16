@@ -131,6 +131,7 @@ static GtkLabel * get_label               (IndicatorObject * io);
 static GtkMenu *  get_menu                (IndicatorObject * io);
 static GVariant * bind_enum_set           (const GValue * value, const GVariantType * type, gpointer user_data);
 static gboolean bind_enum_get             (GValue * value, GVariant * variant, gpointer user_data);
+static gchar * generate_format_string     (IndicatorDatetime * self);
 
 /* Indicator Module Config */
 INDICATOR_SET_VERSION
@@ -414,7 +415,24 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 		return;
 	}
 
-	g_debug("Updating format string");
+	/* Get the new format string */
+	gchar * newformat = generate_format_string(self);
+
+	/* check to ensure the format really changed */
+	if (g_strcmp0(self->priv->time_string, newformat) == 0) {
+		g_free(newformat);
+		return;
+	}
+
+	/* Okay now process the change */
+	if (self->priv->time_string != NULL) {
+		g_free(self->priv->time_string);
+		self->priv->time_string = NULL;
+	}
+	self->priv->time_string = newformat;
+
+	/* And update everything */
+	/* TODO: Update everything */
 
 	return;
 }
@@ -578,6 +596,64 @@ style_changed (GtkWidget * widget, GtkStyle * oldstyle, gpointer data)
 	guess_label_size(self);
 	update_label(self);
 	return;
+}
+
+/* Tries to figure out what our format string should be.  Lots
+   of translator comments in here. */
+static gchar *
+generate_format_string (IndicatorDatetime * self)
+{
+	if (self->priv->time_mode == SETTINGS_TIME_CUSTOM) {
+		return g_strdup(self->priv->custom_string);
+	}
+
+	gboolean twelvehour = TRUE;
+
+	if (self->priv->time_mode == SETTINGS_TIME_LOCALE) {
+		/* TRANSLATORS: This string is used to determine the default
+		   clock style for your locale.  If it is the string '12' then
+		   the default will be a 12-hour clock using AM/PM string.  If
+		   it is '24' then it will be a 24-hour clock.  Users may over
+		   ride this setting so it's still important to translate the
+		   other strings no matter how this is set. */
+		const gchar * locale_default = _("12");
+
+		if (g_strcmp0(locale_default, "24") == 0) {
+			twelvehour = FALSE;
+		}
+	} else if (self->priv->time_mode == SETTINGS_TIME_24_HOUR) {
+		twelvehour = FALSE;
+	}
+
+	const gchar * time_string = NULL;
+	if (twelvehour) {
+		if (self->priv->show_seconds) {
+			/* TRANSLATORS: A format string for the strftime function for
+			   a clock showing 12-hour time with seconds. */
+			time_string = _("%l:%M:%S %p");
+		} else {
+			/* TRANSLATORS: A format string for the strftime function for
+			   a clock showing 12-hour time. */
+			time_string = _(DEFAULT_TIME_12_FORMAT);
+		}
+	} else {
+		if (self->priv->show_seconds) {
+			/* TRANSLATORS: A format string for the strftime function for
+			   a clock showing 24-hour time with seconds. */
+			time_string = _("%H:%M:%S");
+		} else {
+			/* TRANSLATORS: A format string for the strftime function for
+			   a clock showing 24-hour time. */
+			time_string = _(DEFAULT_TIME_24_FORMAT);
+		}
+	}
+	
+	/* Checkpoint, let's not fail */
+	g_return_val_if_fail(time_string != NULL, g_strdup(DEFAULT_TIME_FORMAT));
+
+	/* TODO: Date */
+
+	return g_strdup(time_string);
 }
 
 /* Grabs the label.  Creates it if it doesn't
