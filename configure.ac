@@ -35,13 +35,21 @@ PKG_PROG_PKG_CONFIG
 INDICATOR_REQUIRED_VERSION=0.3.0
 DBUSMENUGLIB_REQUIRED_VERSION=0.1.1
 DBUSMENUGTK_REQUIRED_VERSION=0.1.1
+GIO_REQUIRED_VERSION=2.25.0
 
 PKG_CHECK_MODULES(INDICATOR, indicator >= $INDICATOR_REQUIRED_VERSION
                              dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
-                             dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION)
+                             dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION
+                             gio-2.0 >= $GIO_REQUIRED_VERSION)
 
 AC_SUBST(INDICATOR_CFLAGS)
 AC_SUBST(INDICATOR_LIBS)
+
+###########################
+# Grab the GSettings Macros
+###########################
+
+GLIB_GSETTINGS
 
 ###########################
 # Check to see if we're local
