@@ -141,7 +141,8 @@ build_menus (DbusmenuMenuitem * root)
 
 	if (calendar == NULL) {
 		calendar = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set     (calendar, DBUSMENU_MENUITEM_PROP_LABEL, _("Open Calendar"));
+		/* dbusmenu_menuitem_property_set (calendar, DBUSMENU_MENUITEM_PROP_LABEL, _("Open Calendar")); */
+		dbusmenu_menuitem_property_set (calendar, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CALENDAR_MENUITEM_TYPE);
 		/* insensitive until we check for available apps */
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 		g_signal_connect (G_OBJECT(calendar), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
