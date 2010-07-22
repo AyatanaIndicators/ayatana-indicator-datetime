@@ -36,6 +36,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /* DBusMenu */
 #include <libdbusmenu-gtk/menu.h>
+#include <libido/idocalendarmenuitem.h>
 
 #include "dbus-shared.h"
 
@@ -77,6 +78,8 @@ struct _IndicatorDatetimePrivate {
 
 	IndicatorServiceManager * sm;
 	DbusmenuGtkMenu * menu;
+
+	IdoCalendarMenuItem *ido_calendar;
 
 	GSettings * settings;
 };
@@ -882,6 +885,32 @@ generate_format_string (IndicatorDatetime * self)
 	return g_strdup_printf(_("%s, %s"), date_string, time_string);
 }
 
+static gboolean
+new_calendar_item (DbusmenuMenuitem * newitem,
+				   DbusmenuMenuitem * parent,
+				   DbusmenuClient   * client)
+{
+	g_return_val_if_fail(DBUSMENU_IS_MENUITEM(newitem), FALSE);
+	g_return_val_if_fail(DBUSMENU_IS_GTKCLIENT(client), FALSE);
+	/* Note: not checking parent, it's reasonable for it to be NULL */
+
+	IndicatorObject *io = g_object_get_data (G_OBJECT (client), "indicator");
+	if (io == NULL) {
+		g_warning ("found no indicator to attach the caledar to");
+		return FALSE;
+	}
+
+	IndicatorDatetime *self = INDICATOR_DATETIME(io);
+	self->priv = INDICATOR_DATETIME_GET_PRIVATE(self);
+	
+	IdoCalendarMenuItem *ido = IDO_CALENDAR_MENU_ITEM (ido_calendar_menu_item_new ());
+	self->priv->ido_calendar = ido;
+
+	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(ido), parent);
+
+	return TRUE;
+}
+
 /* Grabs the label.  Creates it if it doesn't
    exist already */
 static GtkLabel *
@@ -914,6 +943,11 @@ get_menu (IndicatorObject * io)
 	if (self->priv->menu == NULL) {
 		self->priv->menu = dbusmenu_gtkmenu_new(SERVICE_NAME, MENU_OBJ);
 	}
+
+	DbusmenuGtkClient *client = dbusmenu_gtkmenu_get_client(self->priv->menu);
+	g_object_set_data (G_OBJECT (client), "indicator", io);
+
+	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), DBUSMENU_CALENDAR_MENUITEM_TYPE, new_calendar_item);
 
 	return GTK_MENU(self->priv->menu);
 }
