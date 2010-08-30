@@ -6,6 +6,13 @@
 #include "datetime-service-server.h"
 #include "dbus-shared.h"
 
+enum {
+	UPDATE_TIME,
+	LAST_SIGNAL
+};
+
+static guint signals[LAST_SIGNAL] = { 0 };
+
 static void datetime_interface_class_init (DatetimeInterfaceClass *klass);
 static void datetime_interface_init       (DatetimeInterface *self);
 static void datetime_interface_dispose    (GObject *object);
@@ -20,6 +27,14 @@ datetime_interface_class_init (DatetimeInterfaceClass *klass)
 
 	object_class->dispose = datetime_interface_dispose;
 	object_class->finalize = datetime_interface_finalize;
+
+	signals[UPDATE_TIME] =  g_signal_new("update-time",
+	                                      G_TYPE_FROM_CLASS(klass),
+	                                      G_SIGNAL_RUN_LAST,
+	                                      G_STRUCT_OFFSET (DatetimeInterfaceClass, update_time),
+	                                      NULL, NULL,
+	                                      g_cclosure_marshal_VOID__VOID,
+	                                      G_TYPE_NONE, 0, G_TYPE_NONE);
 
 	dbus_g_object_type_install_info(DATETIME_INTERFACE_TYPE, &dbus_glib__datetime_service_server_object_info);
 
