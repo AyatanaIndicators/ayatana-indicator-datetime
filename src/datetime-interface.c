@@ -67,3 +67,11 @@ datetime_interface_finalize (GObject *object)
 	G_OBJECT_CLASS (datetime_interface_parent_class)->finalize (object);
 	return;
 }
+
+void
+datetime_interface_update (DatetimeInterface *self)
+{
+	g_return_if_fail(IS_DATETIME_INTERFACE(self));
+	g_signal_emit(G_OBJECT(self), signals[UPDATE_TIME], 0, TRUE);
+	return;
+}

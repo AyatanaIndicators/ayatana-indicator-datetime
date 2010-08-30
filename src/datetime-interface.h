@@ -26,7 +26,8 @@ struct _DatetimeInterface {
 	GObject parent;
 };
 
-GType datetime_interface_get_type (void);
+GType              datetime_interface_get_type       (void);
+void               datetime_interface_update         (DatetimeInterface *self);
 
 G_END_DECLS
 
