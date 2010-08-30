@@ -3,6 +3,8 @@
 #endif
 
 #include "datetime-interface.h"
+#include "datetime-service-server.h"
+#include "dbus-shared.h"
 
 static void datetime_interface_class_init (DatetimeInterfaceClass *klass);
 static void datetime_interface_init       (DatetimeInterface *self);
@@ -19,12 +21,18 @@ datetime_interface_class_init (DatetimeInterfaceClass *klass)
 	object_class->dispose = datetime_interface_dispose;
 	object_class->finalize = datetime_interface_finalize;
 
+	dbus_g_object_type_install_info(DATETIME_INTERFACE_TYPE, &dbus_glib__datetime_service_server_object_info);
+
 	return;
 }
 
 static void
 datetime_interface_init (DatetimeInterface *self)
 {
+	DBusGConnection * connection = dbus_g_bus_get(DBUS_BUS_SESSION, NULL);
+	dbus_g_connection_register_g_object(connection,
+	                                    SERVICE_OBJ,
+	                                    G_OBJECT(self));
 
 	return;
 }
