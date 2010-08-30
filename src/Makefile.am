@@ -2,6 +2,8 @@
 libexec_PROGRAMS = indicator-datetime-service
 
 indicator_datetime_service_SOURCES = \
+	datetime-interface.c \
+	datetime-interface.h \
 	datetime-server.h \
 	datetime-service.c \
 	dbus-shared.h
