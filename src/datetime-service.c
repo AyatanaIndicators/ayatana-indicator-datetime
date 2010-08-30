@@ -23,6 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libindicator/indicator-service.h>
 
 #include <glib/gi18n.h>
+#include <gio/gio.h>
 
 #include <libdbusmenu-glib/server.h>
 #include <libdbusmenu-glib/client.h>
@@ -168,6 +169,30 @@ build_menus (DbusmenuMenuitem * root)
 	return;
 }
 
+/* Run when the timezone file changes */
+static void
+timezone_changed (GFileMonitor * monitor, GFile * file, GFile * otherfile, GFileMonitorEvent event, gpointer user_data)
+{
+	datetime_interface_update(DATETIME_INTERFACE(user_data));
+	update_datetime(NULL);
+	return;
+}
+
+/* Set up monitoring the timezone file */
+static void
+build_timezone (DatetimeInterface * dbus)
+{
+	GFile * timezonefile = g_file_new_for_path(TIMEZONE_FILE);
+	GFileMonitor * monitor = g_file_monitor_file(timezonefile, G_FILE_MONITOR_NONE, NULL, NULL);
+	if (monitor != NULL) {
+		g_signal_connect(G_OBJECT(monitor), "changed", G_CALLBACK(timezone_changed), dbus);
+		g_debug("Monitoring timezone file: '" TIMEZONE_FILE "'");
+	} else {
+		g_warning("Unable to monitor timezone file: '" TIMEZONE_FILE "'");
+	}
+	return;
+}
+
 /* Repsonds to the service object saying it's time to shutdown.
    It stops the mainloop. */
 static void 
@@ -200,7 +225,11 @@ main (int argc, char ** argv)
 	dbusmenu_server_set_root(server, root);
 	build_menus(root);
 
+	/* Setup dbus interface */
 	dbus = g_object_new(DATETIME_INTERFACE_TYPE, NULL);
+
+	/* Setup timezone watch */
+	build_timezone(dbus);
 
 	mainloop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(mainloop);
