@@ -28,12 +28,14 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libdbusmenu-glib/client.h>
 #include <libdbusmenu-glib/menuitem.h>
 
+#include "datetime-interface.h"
 #include "dbus-shared.h"
 
 static IndicatorService * service = NULL;
 static GMainLoop * mainloop = NULL;
 static DbusmenuServer * server = NULL;
 static DbusmenuMenuitem * root = NULL;
+static DatetimeInterface * dbus = NULL;
 
 /* Global Items */
 static DbusmenuMenuitem * date = NULL;
@@ -197,6 +199,8 @@ main (int argc, char ** argv)
 	root = dbusmenu_menuitem_new();
 	dbusmenu_server_set_root(server, root);
 	build_menus(root);
+
+	dbus = g_object_new(DATETIME_INTERFACE_TYPE, NULL);
 
 	mainloop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(mainloop);
