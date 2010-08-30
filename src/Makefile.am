@@ -7,7 +7,8 @@ indicator_datetime_service_SOURCES = \
 indicator_datetime_service_CFLAGS = \
 	-Wall \
 	-Werror \
-	$(INDICATOR_CFLAGS)
+	$(INDICATOR_CFLAGS) \
+	-DTIMEZONE_FILE="\"/etc/timezone\""
 indicator_datetime_service_LDADD = \
 	$(INDICATOR_LIBS)
 
