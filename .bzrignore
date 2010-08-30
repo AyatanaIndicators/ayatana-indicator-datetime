@@ -7,3 +7,5 @@ po/indicator-datetime.pot
 indicator-datetime-[0-9].[0-9].[0-9].tar.gz
 data/indicator-datetime.service
 data/org.ayatana.indicator.datetime.gschema.valid
+src/datetime-service-client.h
+src/datetime-service-server.h
