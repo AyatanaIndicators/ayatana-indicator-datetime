@@ -176,6 +176,7 @@ timezone_changed (GFileMonitor * monitor, GFile * file, GFile * otherfile, GFile
 {
 	datetime_interface_update(DATETIME_INTERFACE(user_data));
 	update_datetime(NULL);
+	setup_timer();
 	return;
 }
 
