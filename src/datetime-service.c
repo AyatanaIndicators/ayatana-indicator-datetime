@@ -32,6 +32,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "datetime-interface.h"
 #include "dbus-shared.h"
 
+static void setup_timer (void);
+
 static IndicatorService * service = NULL;
 static GMainLoop * mainloop = NULL;
 static DbusmenuServer * server = NULL;
@@ -139,7 +141,6 @@ build_menus (DbusmenuMenuitem * root)
 		dbusmenu_menuitem_child_append(root, date);
 
 		g_idle_add(update_datetime, NULL);
-		/* TODO: Set up updating daily */
 	}
 
 	if (calendar == NULL) {
@@ -193,6 +194,43 @@ build_timezone (DatetimeInterface * dbus)
 	return;
 }
 
+/* Source ID for the timer */
+static guint timer = 0;
+
+/* Execute at a given time, update and setup a new
+   timer to go again.  */
+static gboolean
+timer_func (gpointer user_data)
+{
+	timer = 0;
+	/* Reset up each time to reduce error */
+	setup_timer();
+	update_datetime(NULL);
+	return FALSE;
+}
+
+/* Sets up the time to launch the timer to update the
+   date in the datetime entry */
+static void
+setup_timer (void)
+{
+	if (timer != 0) {
+		g_source_remove(timer);
+		timer = 0;
+	}
+
+	time_t t;
+	t = time(NULL);
+	struct tm * ltime = localtime(&t);
+
+	timer = g_timeout_add_seconds(((23 - ltime->tm_hour) * 60 * 60) +
+	                              ((59 - ltime->tm_min) * 60) +
+	                              ((60 - ltime->tm_sec)) + 60 /* one minute past */,
+	                              timer_func, NULL);
+
+	return;
+}
+
 /* Repsonds to the service object saying it's time to shutdown.
    It stops the mainloop. */
 static void 
@@ -231,9 +269,13 @@ main (int argc, char ** argv)
 	/* Setup timezone watch */
 	build_timezone(dbus);
 
+	/* Setup the timer */
+	setup_timer();
+
 	mainloop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(mainloop);
 
+	g_object_unref(G_OBJECT(dbus));
 	g_object_unref(G_OBJECT(service));
 	g_object_unref(G_OBJECT(server));
 	g_object_unref(G_OBJECT(root));
