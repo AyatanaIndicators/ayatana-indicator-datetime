@@ -140,6 +140,7 @@ static gchar * generate_format_string     (IndicatorDatetime * self);
 static struct tm * update_label           (IndicatorDatetime * io);
 static void guess_label_size              (IndicatorDatetime * self);
 static void setup_timer                   (IndicatorDatetime * self, struct tm * ltime);
+static void update_time                   (DBusGProxy * proxy, gpointer user_data);
 
 /* Indicator Module Config */
 INDICATOR_SET_VERSION
@@ -273,7 +274,12 @@ indicator_datetime_init (IndicatorDatetime *self)
 		                                                      SERVICE_OBJ,
 		                                                      SERVICE_IFACE);
 
-		/* TODO: Add signal handler */
+		dbus_g_proxy_add_signal(self->priv->service_proxy, "UpdateTime", G_TYPE_INVALID);
+		dbus_g_proxy_connect_signal(self->priv->service_proxy,
+		                            "UpdateTime",
+		                            G_CALLBACK(update_time),
+		                            self,
+		                            NULL);
 	}
 
 	return;
@@ -554,6 +560,17 @@ update_label (IndicatorDatetime * io)
 	}
 
 	return ltime;
+}
+
+/* Recieves the signal from the service that we should update
+   the time right now.  Usually from a timezone switch. */
+static void
+update_time (DBusGProxy * proxy, gpointer user_data)
+{
+	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
+	struct tm * ltime = update_label(self);
+	setup_timer(self, ltime);
+	return;
 }
 
 /* Runs every minute and updates the time */
