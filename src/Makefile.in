@@ -39,7 +39,10 @@ libexec_PROGRAMS = indicator-datetime-service$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/intltool.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
+	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
+	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -83,6 +86,7 @@ libdatetime_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(LDFLAGS) -o $@
 PROGRAMS = $(libexec_PROGRAMS)
 am_indicator_datetime_service_OBJECTS =  \
+	indicator_datetime_service-calendar-menu-item.$(OBJEXT) \
 	indicator_datetime_service-datetime-service.$(OBJEXT)
 indicator_datetime_service_OBJECTS =  \
 	$(am_indicator_datetime_service_OBJECTS)
@@ -154,12 +158,14 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+GLIB_COMPILE_SCHEMAS = @GLIB_COMPILE_SCHEMAS@
 GLIB_GENMARSHAL = @GLIB_GENMARSHAL@
 GLIB_MKENUMS = @GLIB_MKENUMS@
 GMOFILES = @GMOFILES@
 GMSGFMT = @GMSGFMT@
 GNOMELOCALEDIR = @GNOMELOCALEDIR@
 GREP = @GREP@
+GSETTINGS_DISABLE_SCHEMAS_COMPILE = @GSETTINGS_DISABLE_SCHEMAS_COMPILE@
 INDICATORDIR = @INDICATORDIR@
 INDICATORICONSDIR = @INDICATORICONSDIR@
 INDICATOR_CFLAGS = @INDICATOR_CFLAGS@
@@ -240,6 +246,7 @@ datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+gsettingsschemadir = @gsettingsschemadir@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
@@ -270,6 +277,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 indicator_datetime_service_SOURCES = \
+	calendar-menu-item.c \
+	calendar-menu-item.h \
 	datetime-service.c \
 	dbus-shared.h
 
@@ -419,6 +428,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_service-calendar-menu-item.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_service-datetime-service.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdatetime_la-indicator-datetime.Plo@am__quote@
 
@@ -453,6 +463,22 @@ libdatetime_la-indicator-datetime.lo: indicator-datetime.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='indicator-datetime.c' object='libdatetime_la-indicator-datetime.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdatetime_la_CFLAGS) $(CFLAGS) -c -o libdatetime_la-indicator-datetime.lo `test -f 'indicator-datetime.c' || echo '$(srcdir)/'`indicator-datetime.c
+
+indicator_datetime_service-calendar-menu-item.o: calendar-menu-item.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -MT indicator_datetime_service-calendar-menu-item.o -MD -MP -MF $(DEPDIR)/indicator_datetime_service-calendar-menu-item.Tpo -c -o indicator_datetime_service-calendar-menu-item.o `test -f 'calendar-menu-item.c' || echo '$(srcdir)/'`calendar-menu-item.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_service-calendar-menu-item.Tpo $(DEPDIR)/indicator_datetime_service-calendar-menu-item.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='calendar-menu-item.c' object='indicator_datetime_service-calendar-menu-item.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -c -o indicator_datetime_service-calendar-menu-item.o `test -f 'calendar-menu-item.c' || echo '$(srcdir)/'`calendar-menu-item.c
+
+indicator_datetime_service-calendar-menu-item.obj: calendar-menu-item.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -MT indicator_datetime_service-calendar-menu-item.obj -MD -MP -MF $(DEPDIR)/indicator_datetime_service-calendar-menu-item.Tpo -c -o indicator_datetime_service-calendar-menu-item.obj `if test -f 'calendar-menu-item.c'; then $(CYGPATH_W) 'calendar-menu-item.c'; else $(CYGPATH_W) '$(srcdir)/calendar-menu-item.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_service-calendar-menu-item.Tpo $(DEPDIR)/indicator_datetime_service-calendar-menu-item.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='calendar-menu-item.c' object='indicator_datetime_service-calendar-menu-item.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -c -o indicator_datetime_service-calendar-menu-item.obj `if test -f 'calendar-menu-item.c'; then $(CYGPATH_W) 'calendar-menu-item.c'; else $(CYGPATH_W) '$(srcdir)/calendar-menu-item.c'; fi`
 
 indicator_datetime_service-datetime-service.o: datetime-service.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -MT indicator_datetime_service-datetime-service.o -MD -MP -MF $(DEPDIR)/indicator_datetime_service-datetime-service.Tpo -c -o indicator_datetime_service-datetime-service.o `test -f 'datetime-service.c' || echo '$(srcdir)/'`datetime-service.c
