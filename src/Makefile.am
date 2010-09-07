@@ -4,7 +4,7 @@ libexec_PROGRAMS = indicator-datetime-service
 indicator_datetime_service_SOURCES = \
 	datetime-interface.c \
 	datetime-interface.h \
-	datetime-server.h \
+	datetime-service-server.h \
 	calendar-menu-item.c \
 	calendar-menu-item.h \
 	datetime-service.c \
@@ -20,7 +20,7 @@ indicator_datetime_service_LDADD = \
 datetimelibdir = $(INDICATORDIR)
 datetimelib_LTLIBRARIES = libdatetime.la
 libdatetime_la_SOURCES = \
-	datetime-client.h \
+	datetime-service-client.h \
 	dbus-shared.h \
 	indicator-datetime.c
 libdatetime_la_CFLAGS = \

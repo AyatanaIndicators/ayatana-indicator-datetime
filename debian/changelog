@@ -3,8 +3,10 @@ indicator-datetime (0.0.5-0ubuntu3~ppa1) UNRELEASED; urgency=low
   * Upstream Merge
     * Refresh times on timezone change
     * Update the date daily (lp: #614529)
+    * Fixing distcheck
+  * Autogen
 
- -- Ted Gould <ted@ubuntu.com>  Tue, 07 Sep 2010 12:48:44 -0500
+ -- Ted Gould <ted@ubuntu.com>  Tue, 07 Sep 2010 12:59:13 -0500
 
 indicator-datetime (0.0.5-0ubuntu2) maverick; urgency=low
 
