@@ -27,3 +27,5 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define  MENU_OBJ      "/org/ayatana/indicator/datetime/menu"
 
+#define  DBUSMENU_CALENDAR_MENUITEM_TYPE "x-canonical-calendar-item"
+

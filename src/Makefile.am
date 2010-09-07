@@ -5,6 +5,8 @@ indicator_datetime_service_SOURCES = \
 	datetime-interface.c \
 	datetime-interface.h \
 	datetime-server.h \
+	calendar-menu-item.c \
+	calendar-menu-item.h \
 	datetime-service.c \
 	dbus-shared.h
 indicator_datetime_service_CFLAGS = \
