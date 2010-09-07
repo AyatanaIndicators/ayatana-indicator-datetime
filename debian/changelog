@@ -1,3 +1,11 @@
+indicator-datetime (0.0.5-0ubuntu3~ppa1) UNRELEASED; urgency=low
+
+  * Upstream Merge
+    * Refresh times on timezone change
+    * Update the date daily
+
+ -- Ted Gould <ted@ubuntu.com>  Tue, 07 Sep 2010 12:45:14 -0500
+
 indicator-datetime (0.0.5-0ubuntu2) maverick; urgency=low
 
   * debian/rules: use gnome.mk so a translation template is built (lp: #612540)
