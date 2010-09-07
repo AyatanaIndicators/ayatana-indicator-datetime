@@ -1,3 +1,9 @@
+indicator-datetime (0.0.5-0ubuntu1) UNRELEASED; urgency=low
+
+  * New upstream release.
+
+ -- Ted Gould <ted@ubuntu.com>  Tue, 07 Sep 2010 12:34:12 -0500
+
 indicator-datetime (0.0.4-0ubuntu2~ppa1) lucid; urgency=low
 
   * Upstream Merge

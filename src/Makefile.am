@@ -2,6 +2,8 @@
 libexec_PROGRAMS = indicator-datetime-service
 
 indicator_datetime_service_SOURCES = \
+	calendar-menu-item.c \
+	calendar-menu-item.h \
 	datetime-service.c \
 	dbus-shared.h
 indicator_datetime_service_CFLAGS = \
