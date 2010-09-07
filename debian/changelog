@@ -1,3 +1,22 @@
+indicator-datetime (0.0.5-0ubuntu2) maverick; urgency=low
+
+  * debian/rules: use gnome.mk so a translation template is built (lp: #612540)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Tue, 03 Aug 2010 12:41:08 +0200
+
+indicator-datetime (0.0.5-0ubuntu1) maverick; urgency=low
+
+  * New version update
+
+  [ Ted Gould ]
+  * Upstream Merge
+    * Making time format configurable via translations and
+      gsettings.
+  * debian/control: Adding in a glib dependency to get gsettings
+  * Autogen update
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Thu, 22 Jul 2010 21:41:12 +0200
+
 indicator-datetime (0.0.4-0ubuntu1) maverick; urgency=low
 
   * New upstream release.

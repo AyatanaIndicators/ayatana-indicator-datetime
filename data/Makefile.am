@@ -1,5 +1,9 @@
 #SUBDIRS = icons
 
+gsettings_SCHEMAS = \
+	org.ayatana.indicator.datetime.gschema.xml
+@GSETTINGS_RULES@
+
 dbus_servicesdir = $(DBUSSERVICEDIR)
 dbus_services_DATA = indicator-datetime.service
 
