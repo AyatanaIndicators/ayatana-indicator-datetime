@@ -39,10 +39,7 @@ libexec_PROGRAMS = indicator-datetime-service$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/intltool.m4 \
-	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
-	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
-	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -86,6 +83,7 @@ libdatetime_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(LDFLAGS) -o $@
 PROGRAMS = $(libexec_PROGRAMS)
 am_indicator_datetime_service_OBJECTS =  \
+	indicator_datetime_service-datetime-interface.$(OBJEXT) \
 	indicator_datetime_service-calendar-menu-item.$(OBJEXT) \
 	indicator_datetime_service-datetime-service.$(OBJEXT)
 indicator_datetime_service_OBJECTS =  \
@@ -211,6 +209,8 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
+PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
+PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 POFILES = @POFILES@
 POSUB = @POSUB@
 PO_IN_DATADIR_FALSE = @PO_IN_DATADIR_FALSE@
@@ -277,6 +277,9 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 indicator_datetime_service_SOURCES = \
+	datetime-interface.c \
+	datetime-interface.h \
+	datetime-service-server.h \
 	calendar-menu-item.c \
 	calendar-menu-item.h \
 	datetime-service.c \
@@ -285,7 +288,8 @@ indicator_datetime_service_SOURCES = \
 indicator_datetime_service_CFLAGS = \
 	-Wall \
 	-Werror \
-	$(INDICATOR_CFLAGS)
+	$(INDICATOR_CFLAGS) \
+	-DTIMEZONE_FILE="\"/etc/timezone\""
 
 indicator_datetime_service_LDADD = \
 	$(INDICATOR_LIBS)
@@ -293,6 +297,7 @@ indicator_datetime_service_LDADD = \
 datetimelibdir = $(INDICATORDIR)
 datetimelib_LTLIBRARIES = libdatetime.la
 libdatetime_la_SOURCES = \
+	datetime-service-client.h \
 	dbus-shared.h \
 	indicator-datetime.c
 
@@ -307,8 +312,18 @@ libdatetime_la_LDFLAGS = \
 	-module \
 	-avoid-version
 
-EXTRA_DIST = $(libdatetime_la_SOURCES)
-all: all-am
+BUILT_SOURCES = \
+	datetime-service-client.h \
+	datetime-service-server.h
+
+CLEANFILES = \
+	$(BUILT_SOURCES)
+
+EXTRA_DIST = \
+	datetime-service.xml
+
+all: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
 .SUFFIXES: .c .lo .o .obj
@@ -429,6 +444,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_service-calendar-menu-item.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_service-datetime-interface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_service-datetime-service.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdatetime_la-indicator-datetime.Plo@am__quote@
 
@@ -463,6 +479,22 @@ libdatetime_la-indicator-datetime.lo: indicator-datetime.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='indicator-datetime.c' object='libdatetime_la-indicator-datetime.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdatetime_la_CFLAGS) $(CFLAGS) -c -o libdatetime_la-indicator-datetime.lo `test -f 'indicator-datetime.c' || echo '$(srcdir)/'`indicator-datetime.c
+
+indicator_datetime_service-datetime-interface.o: datetime-interface.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -MT indicator_datetime_service-datetime-interface.o -MD -MP -MF $(DEPDIR)/indicator_datetime_service-datetime-interface.Tpo -c -o indicator_datetime_service-datetime-interface.o `test -f 'datetime-interface.c' || echo '$(srcdir)/'`datetime-interface.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_service-datetime-interface.Tpo $(DEPDIR)/indicator_datetime_service-datetime-interface.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='datetime-interface.c' object='indicator_datetime_service-datetime-interface.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -c -o indicator_datetime_service-datetime-interface.o `test -f 'datetime-interface.c' || echo '$(srcdir)/'`datetime-interface.c
+
+indicator_datetime_service-datetime-interface.obj: datetime-interface.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -MT indicator_datetime_service-datetime-interface.obj -MD -MP -MF $(DEPDIR)/indicator_datetime_service-datetime-interface.Tpo -c -o indicator_datetime_service-datetime-interface.obj `if test -f 'datetime-interface.c'; then $(CYGPATH_W) 'datetime-interface.c'; else $(CYGPATH_W) '$(srcdir)/datetime-interface.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_service-datetime-interface.Tpo $(DEPDIR)/indicator_datetime_service-datetime-interface.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='datetime-interface.c' object='indicator_datetime_service-datetime-interface.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -c -o indicator_datetime_service-datetime-interface.obj `if test -f 'datetime-interface.c'; then $(CYGPATH_W) 'datetime-interface.c'; else $(CYGPATH_W) '$(srcdir)/datetime-interface.c'; fi`
 
 indicator_datetime_service-calendar-menu-item.o: calendar-menu-item.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -MT indicator_datetime_service-calendar-menu-item.o -MD -MP -MF $(DEPDIR)/indicator_datetime_service-calendar-menu-item.Tpo -c -o indicator_datetime_service-calendar-menu-item.o `test -f 'calendar-menu-item.c' || echo '$(srcdir)/'`calendar-menu-item.c
@@ -585,13 +617,15 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
-check: check-am
+check: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) check-am
 all-am: Makefile $(LTLIBRARIES) $(PROGRAMS)
 installdirs:
 	for dir in "$(DESTDIR)$(datetimelibdir)" "$(DESTDIR)$(libexecdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
-install: install-am
+install: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) install-am
 install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
@@ -608,6 +642,7 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
@@ -616,6 +651,7 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
 clean-am: clean-datetimelibLTLIBRARIES clean-generic \
@@ -688,7 +724,7 @@ ps-am:
 uninstall-am: uninstall-datetimelibLTLIBRARIES \
 	uninstall-libexecPROGRAMS
 
-.MAKE: install-am install-strip
+.MAKE: all check install install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean \
 	clean-datetimelibLTLIBRARIES clean-generic \
@@ -707,6 +743,20 @@ uninstall-am: uninstall-datetimelibLTLIBRARIES \
 	uninstall-am uninstall-datetimelibLTLIBRARIES \
 	uninstall-libexecPROGRAMS
 
+
+datetime-service-client.h: $(srcdir)/datetime-service.xml
+	dbus-binding-tool \
+		--prefix=_datetime_service_client \
+		--mode=glib-client \
+		--output=datetime-service-client.h \
+		$(srcdir)/datetime-service.xml
+
+datetime-service-server.h: $(srcdir)/datetime-service.xml
+	dbus-binding-tool \
+		--prefix=_datetime_service_server \
+		--mode=glib-server \
+		--output=datetime-service-server.h \
+		$(srcdir)/datetime-service.xml
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
