@@ -8,7 +8,8 @@ Build-Depends: cdbs,
                libindicator-dev (>= 0.3.0),
                libdbusmenu-glib-dev (>= 0.1.1),
                libdbusmenu-gtk-dev (>= 0.1.1),
-               libglib2.0-dev (>= 2.25.0)
+               libglib2.0-dev (>= 2.25.0),
+               libido-0.1-dev (>= 0.1.10)
 Standards-Version: 3.8.4
 Homepage: https://launchpad.net/indicator-datetime
 

@@ -1,3 +1,12 @@
+indicator-datetime (0.0.6-0ubuntu1) maverick; urgency=low
+
+  * New upstream release.
+    * Refresh times on timezone change
+    * Update the date daily (lp: #614529)
+    * Fixing distcheck
+
+ -- Ted Gould <ted@ubuntu.com>  Thu, 09 Sep 2010 13:10:10 -0500
+
 indicator-datetime (0.0.5-0ubuntu2) maverick; urgency=low
 
   * debian/rules: use gnome.mk so a translation template is built (lp: #612540)

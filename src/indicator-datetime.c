@@ -29,6 +29,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib/gi18n-lib.h>
 #include <gio/gio.h>
 
+/* DBus Stuff */
+#include <dbus/dbus-glib.h>
+
 /* Indicator Stuff */
 #include <libindicator/indicator.h>
 #include <libindicator/indicator-object.h>
@@ -36,6 +39,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /* DBusMenu */
 #include <libdbusmenu-gtk/menu.h>
+#include <libido/idocalendarmenuitem.h>
 
 #include "dbus-shared.h"
 
@@ -77,6 +81,9 @@ struct _IndicatorDatetimePrivate {
 
 	IndicatorServiceManager * sm;
 	DbusmenuGtkMenu * menu;
+
+	DBusGProxy * service_proxy;
+	IdoCalendarMenuItem *ido_calendar;
 
 	GSettings * settings;
 };
@@ -135,6 +142,7 @@ static gchar * generate_format_string     (IndicatorDatetime * self);
 static struct tm * update_label           (IndicatorDatetime * io);
 static void guess_label_size              (IndicatorDatetime * self);
 static void setup_timer                   (IndicatorDatetime * self, struct tm * ltime);
+static void update_time                   (DBusGProxy * proxy, gpointer user_data);
 
 /* Indicator Module Config */
 INDICATOR_SET_VERSION
@@ -220,6 +228,8 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv->show_day = FALSE;
 	self->priv->custom_string = g_strdup(DEFAULT_TIME_FORMAT);
 
+	self->priv->service_proxy = NULL;
+
 	self->priv->sm = NULL;
 	self->priv->menu = NULL;
 
@@ -259,6 +269,21 @@ indicator_datetime_init (IndicatorDatetime *self)
 
 	self->priv->sm = indicator_service_manager_new_version(SERVICE_NAME, SERVICE_VERSION);
 
+	DBusGConnection * session = dbus_g_bus_get(DBUS_BUS_SESSION, NULL);
+	if (session != NULL) {
+		self->priv->service_proxy = dbus_g_proxy_new_for_name(session,
+		                                                      SERVICE_NAME,
+		                                                      SERVICE_OBJ,
+		                                                      SERVICE_IFACE);
+
+		dbus_g_proxy_add_signal(self->priv->service_proxy, "UpdateTime", G_TYPE_INVALID);
+		dbus_g_proxy_connect_signal(self->priv->service_proxy,
+		                            "UpdateTime",
+		                            G_CALLBACK(update_time),
+		                            self,
+		                            NULL);
+	}
+
 	return;
 }
 
@@ -295,6 +320,11 @@ indicator_datetime_dispose (GObject *object)
 	if (self->priv->settings != NULL) {
 		g_object_unref(G_OBJECT(self->priv->settings));
 		self->priv->settings = NULL;
+	}
+
+	if (self->priv->service_proxy != NULL) {
+		g_object_unref(self->priv->service_proxy);
+		self->priv->service_proxy = NULL;
 	}
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->dispose (object);
@@ -532,6 +562,17 @@ update_label (IndicatorDatetime * io)
 	}
 
 	return ltime;
+}
+
+/* Recieves the signal from the service that we should update
+   the time right now.  Usually from a timezone switch. */
+static void
+update_time (DBusGProxy * proxy, gpointer user_data)
+{
+	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
+	struct tm * ltime = update_label(self);
+	setup_timer(self, ltime);
+	return;
 }
 
 /* Runs every minute and updates the time */
@@ -882,6 +923,32 @@ generate_format_string (IndicatorDatetime * self)
 	return g_strdup_printf(_("%s, %s"), date_string, time_string);
 }
 
+static gboolean
+new_calendar_item (DbusmenuMenuitem * newitem,
+				   DbusmenuMenuitem * parent,
+				   DbusmenuClient   * client)
+{
+	g_return_val_if_fail(DBUSMENU_IS_MENUITEM(newitem), FALSE);
+	g_return_val_if_fail(DBUSMENU_IS_GTKCLIENT(client), FALSE);
+	/* Note: not checking parent, it's reasonable for it to be NULL */
+
+	IndicatorObject *io = g_object_get_data (G_OBJECT (client), "indicator");
+	if (io == NULL) {
+		g_warning ("found no indicator to attach the caledar to");
+		return FALSE;
+	}
+
+	IndicatorDatetime *self = INDICATOR_DATETIME(io);
+	self->priv = INDICATOR_DATETIME_GET_PRIVATE(self);
+	
+	IdoCalendarMenuItem *ido = IDO_CALENDAR_MENU_ITEM (ido_calendar_menu_item_new ());
+	self->priv->ido_calendar = ido;
+
+	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(ido), parent);
+
+	return TRUE;
+}
+
 /* Grabs the label.  Creates it if it doesn't
    exist already */
 static GtkLabel *
@@ -914,6 +981,11 @@ get_menu (IndicatorObject * io)
 	if (self->priv->menu == NULL) {
 		self->priv->menu = dbusmenu_gtkmenu_new(SERVICE_NAME, MENU_OBJ);
 	}
+
+	DbusmenuGtkClient *client = dbusmenu_gtkmenu_get_client(self->priv->menu);
+	g_object_set_data (G_OBJECT (client), "indicator", io);
+
+	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), DBUSMENU_CALENDAR_MENUITEM_TYPE, new_calendar_item);
 
 	return GTK_MENU(self->priv->menu);
 }

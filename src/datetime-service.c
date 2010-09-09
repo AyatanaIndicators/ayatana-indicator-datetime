@@ -23,17 +23,22 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libindicator/indicator-service.h>
 
 #include <glib/gi18n.h>
+#include <gio/gio.h>
 
 #include <libdbusmenu-glib/server.h>
 #include <libdbusmenu-glib/client.h>
 #include <libdbusmenu-glib/menuitem.h>
 
+#include "datetime-interface.h"
 #include "dbus-shared.h"
+
+static void setup_timer (void);
 
 static IndicatorService * service = NULL;
 static GMainLoop * mainloop = NULL;
 static DbusmenuServer * server = NULL;
 static DbusmenuMenuitem * root = NULL;
+static DatetimeInterface * dbus = NULL;
 
 /* Global Items */
 static DbusmenuMenuitem * date = NULL;
@@ -136,12 +141,11 @@ build_menus (DbusmenuMenuitem * root)
 		dbusmenu_menuitem_child_append(root, date);
 
 		g_idle_add(update_datetime, NULL);
-		/* TODO: Set up updating daily */
 	}
 
 	if (calendar == NULL) {
 		calendar = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set     (calendar, DBUSMENU_MENUITEM_PROP_LABEL, _("Open Calendar"));
+		dbusmenu_menuitem_property_set (calendar, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CALENDAR_MENUITEM_TYPE);
 		/* insensitive until we check for available apps */
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 		g_signal_connect (G_OBJECT(calendar), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
@@ -156,12 +160,74 @@ build_menus (DbusmenuMenuitem * root)
 	dbusmenu_menuitem_child_append(root, separator);
 
 	settings = dbusmenu_menuitem_new();
-	dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Set Time and Date..."));
+	dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Time & Date Settings..."));
 	/* insensitive until we check for available apps */
 	dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 	g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "time-admin");
 	dbusmenu_menuitem_child_append(root, settings);
 	g_idle_add(check_for_timeadmin, NULL);
+
+	return;
+}
+
+/* Run when the timezone file changes */
+static void
+timezone_changed (GFileMonitor * monitor, GFile * file, GFile * otherfile, GFileMonitorEvent event, gpointer user_data)
+{
+	datetime_interface_update(DATETIME_INTERFACE(user_data));
+	update_datetime(NULL);
+	setup_timer();
+	return;
+}
+
+/* Set up monitoring the timezone file */
+static void
+build_timezone (DatetimeInterface * dbus)
+{
+	GFile * timezonefile = g_file_new_for_path(TIMEZONE_FILE);
+	GFileMonitor * monitor = g_file_monitor_file(timezonefile, G_FILE_MONITOR_NONE, NULL, NULL);
+	if (monitor != NULL) {
+		g_signal_connect(G_OBJECT(monitor), "changed", G_CALLBACK(timezone_changed), dbus);
+		g_debug("Monitoring timezone file: '" TIMEZONE_FILE "'");
+	} else {
+		g_warning("Unable to monitor timezone file: '" TIMEZONE_FILE "'");
+	}
+	return;
+}
+
+/* Source ID for the timer */
+static guint timer = 0;
+
+/* Execute at a given time, update and setup a new
+   timer to go again.  */
+static gboolean
+timer_func (gpointer user_data)
+{
+	timer = 0;
+	/* Reset up each time to reduce error */
+	setup_timer();
+	update_datetime(NULL);
+	return FALSE;
+}
+
+/* Sets up the time to launch the timer to update the
+   date in the datetime entry */
+static void
+setup_timer (void)
+{
+	if (timer != 0) {
+		g_source_remove(timer);
+		timer = 0;
+	}
+
+	time_t t;
+	t = time(NULL);
+	struct tm * ltime = localtime(&t);
+
+	timer = g_timeout_add_seconds(((23 - ltime->tm_hour) * 60 * 60) +
+	                              ((59 - ltime->tm_min) * 60) +
+	                              ((60 - ltime->tm_sec)) + 60 /* one minute past */,
+	                              timer_func, NULL);
 
 	return;
 }
@@ -198,9 +264,19 @@ main (int argc, char ** argv)
 	dbusmenu_server_set_root(server, root);
 	build_menus(root);
 
+	/* Setup dbus interface */
+	dbus = g_object_new(DATETIME_INTERFACE_TYPE, NULL);
+
+	/* Setup timezone watch */
+	build_timezone(dbus);
+
+	/* Setup the timer */
+	setup_timer();
+
 	mainloop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(mainloop);
 
+	g_object_unref(G_OBJECT(dbus));
 	g_object_unref(G_OBJECT(service));
 	g_object_unref(G_OBJECT(server));
 	g_object_unref(G_OBJECT(root));
