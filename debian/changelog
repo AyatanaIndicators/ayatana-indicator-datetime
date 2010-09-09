@@ -1,12 +1,11 @@
-indicator-datetime (0.0.5-0ubuntu3~ppa1) maverick; urgency=low
+indicator-datetime (0.0.6-0ubuntu1~ppa1) UNRELEASED; urgency=low
 
-  * Upstream Merge
+  * New upstream release.
     * Refresh times on timezone change
     * Update the date daily (lp: #614529)
     * Fixing distcheck
-  * Autogen
 
- -- Ted Gould <ted@ubuntu.com>  Tue, 07 Sep 2010 13:00:25 -0500
+ -- Ted Gould <ted@ubuntu.com>  Thu, 09 Sep 2010 12:59:51 -0500
 
 indicator-datetime (0.0.5-0ubuntu2) maverick; urgency=low
 
