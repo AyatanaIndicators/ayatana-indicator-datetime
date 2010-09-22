@@ -1,3 +1,10 @@
+indicator-datetime (0.0.6-0ubuntu2) UNRELEASED; urgency=low
+
+  * Rebuild for libindicator ABI change (LP: #637692)
+  * debian/control: depends on latest libindicator-dev
+
+ -- Didier Roche <didrocks@ubuntu.com>  Wed, 22 Sep 2010 11:05:15 +0200
+
 indicator-datetime (0.0.6-0ubuntu1) maverick; urgency=low
 
   * New upstream release.
