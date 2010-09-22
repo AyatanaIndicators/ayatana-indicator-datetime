@@ -1,4 +1,4 @@
-indicator-datetime (0.0.6-0ubuntu2) libindicator; urgency=low
+indicator-datetime (0.0.6-0ubuntu2) maverick; urgency=low
 
   * Rebuild for libindicator ABI change (LP: #637692)
   * debian/control: depends on latest libindicator-dev
