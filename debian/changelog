@@ -1,9 +1,9 @@
-indicator-datetime (0.0.6-0ubuntu3) UNRELEASED; urgency=low
+indicator-datetime (0.0.6-0ubuntu3) maverick; urgency=low
 
   * Cherry-picked from upstream:
     - Fix date string format (12/24h) not taken from translation (LP: #579134)
 
- -- Didier Roche <didrocks@ubuntu.com>  Thu, 30 Sep 2010 16:08:19 +0200
+ -- Didier Roche <didrocks@ubuntu.com>  Thu, 30 Sep 2010 16:09:41 +0200
 
 indicator-datetime (0.0.6-0ubuntu2) maverick; urgency=low
 
