@@ -21,6 +21,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <config.h>
 #include <libindicator/indicator-service.h>
+#include <locale.h>
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
