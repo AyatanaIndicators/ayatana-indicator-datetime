@@ -30,6 +30,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libdbusmenu-glib/client.h>
 #include <libdbusmenu-glib/menuitem.h>
 
+#include <geoclue/geoclue-master.h>
+#include <geoclue/geoclue-master-client.h>
+
 #include "datetime-interface.h"
 #include "dbus-shared.h"
 
@@ -45,6 +48,10 @@ static DatetimeInterface * dbus = NULL;
 static DbusmenuMenuitem * date = NULL;
 static DbusmenuMenuitem * calendar = NULL;
 static DbusmenuMenuitem * settings = NULL;
+
+/* Geoclue trackers */
+static GeoclueMasterClient * geo_master = NULL;
+static GeoclueAddress * geo_address = NULL;
 
 /* Updates the label in the date menuitem */
 static gboolean
@@ -233,6 +240,15 @@ setup_timer (void)
 	return;
 }
 
+/* Callback from creating the client */
+static void
+geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data)
+{
+
+
+	return;
+}
+
 /* Repsonds to the service object saying it's time to shutdown.
    It stops the mainloop. */
 static void 
@@ -265,6 +281,10 @@ main (int argc, char ** argv)
 	dbusmenu_server_set_root(server, root);
 	build_menus(root);
 
+	/* Setup geoclue */
+	GeoclueMaster * master = geoclue_master_get_default();
+	geoclue_master_create_client_async(master, geo_create_client, NULL);
+
 	/* Setup dbus interface */
 	dbus = g_object_new(DATETIME_INTERFACE_TYPE, NULL);
 
@@ -277,6 +297,7 @@ main (int argc, char ** argv)
 	mainloop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(mainloop);
 
+	g_object_unref(G_OBJECT(master));
 	g_object_unref(G_OBJECT(dbus));
 	g_object_unref(G_OBJECT(service));
 	g_object_unref(G_OBJECT(server));
