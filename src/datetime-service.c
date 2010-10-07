@@ -43,6 +43,7 @@ static GMainLoop * mainloop = NULL;
 static DbusmenuServer * server = NULL;
 static DbusmenuMenuitem * root = NULL;
 static DatetimeInterface * dbus = NULL;
+static gchar * current_timezone = NULL;
 
 /* Global Items */
 static DbusmenuMenuitem * date = NULL;
@@ -53,6 +54,38 @@ static DbusmenuMenuitem * tzchange = NULL;
 /* Geoclue trackers */
 static GeoclueMasterClient * geo_master = NULL;
 static GeoclueAddress * geo_address = NULL;
+
+/* Update the current timezone */
+static void
+update_current_timezone (void) {
+	/* Clear old data */
+	if (current_timezone != NULL) {
+		g_free(current_timezone);
+		current_timezone = NULL;
+	}
+
+	GError * error = NULL;
+	gchar * tempzone = NULL;
+	if (!g_file_get_contents(TIMEZONE_FILE, &tempzone, NULL, &error)) {
+		g_warning("Unable to read timezone file '" TIMEZONE_FILE "': %s", error->message);
+		g_error_free(error);
+		return;
+	}
+
+	/* This shouldn't happen, so let's make it a big boom! */
+	g_return_if_fail(tempzone != NULL);
+
+	/* Note: this really makes sense as strstrip works in place
+	   so we end up with something a little odd without the dup
+	   so we have the dup to make sure everything is as expected
+	   for everyone else. */
+	current_timezone = g_strdup(g_strstrip(tempzone));
+	g_free(tempzone);
+
+	g_debug("System timezone is: %s", current_timezone);
+
+	return;
+}
 
 /* Updates the label in the date menuitem */
 static gboolean
@@ -327,6 +360,9 @@ main (int argc, char ** argv)
 	setlocale (LC_ALL, "");
 	bindtextdomain (GETTEXT_PACKAGE, GNOMELOCALEDIR);
 	textdomain (GETTEXT_PACKAGE);
+
+	/* Cache the timezone */
+	update_current_timezone();
 
 	/* Building the base menu */
 	server = dbusmenu_server_new(MENU_OBJ);
