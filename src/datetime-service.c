@@ -21,6 +21,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <config.h>
 #include <libindicator/indicator-service.h>
+#include <locale.h>
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
@@ -28,6 +29,11 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libdbusmenu-glib/server.h>
 #include <libdbusmenu-glib/client.h>
 #include <libdbusmenu-glib/menuitem.h>
+
+#include <geoclue/geoclue-master.h>
+#include <geoclue/geoclue-master-client.h>
+
+#include <oobs/oobs-timeconfig.h>
 
 #include "datetime-interface.h"
 #include "dbus-shared.h"
@@ -39,11 +45,122 @@ static GMainLoop * mainloop = NULL;
 static DbusmenuServer * server = NULL;
 static DbusmenuMenuitem * root = NULL;
 static DatetimeInterface * dbus = NULL;
+static gchar * current_timezone = NULL;
 
 /* Global Items */
 static DbusmenuMenuitem * date = NULL;
 static DbusmenuMenuitem * calendar = NULL;
 static DbusmenuMenuitem * settings = NULL;
+static DbusmenuMenuitem * tzchange = NULL;
+
+/* Geoclue trackers */
+static GeoclueMasterClient * geo_master = NULL;
+static GeoclueAddress * geo_address = NULL;
+static gchar * geo_timezone = NULL;
+
+/* Check to see if our timezones are the same */
+static void
+check_timezone_sync (void) {
+	gboolean in_sync = FALSE;
+
+	if (geo_timezone == NULL) {
+		in_sync = TRUE;
+	}
+
+	if (current_timezone == NULL) {
+		in_sync = TRUE;
+	}
+
+	if (!in_sync && g_strcmp0(geo_timezone, current_timezone) == 0) {
+		in_sync = TRUE;
+	}
+
+	if (in_sync) {
+		g_debug("Timezones in sync");
+	} else {
+		g_debug("Timezones are different");
+	}
+
+	if (tzchange != NULL) {
+		if (in_sync) {
+			dbusmenu_menuitem_property_set_bool(tzchange, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		} else {
+			gchar * label = g_strdup_printf(_("Change timezone to: %s"), geo_timezone);
+
+			dbusmenu_menuitem_property_set(tzchange, DBUSMENU_MENUITEM_PROP_LABEL, label);
+			dbusmenu_menuitem_property_set_bool(tzchange, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+
+			g_free(label);
+		}
+	}
+
+	return;
+}
+
+/* Update the current timezone */
+static void
+update_current_timezone (void) {
+	/* Clear old data */
+	if (current_timezone != NULL) {
+		g_free(current_timezone);
+		current_timezone = NULL;
+	}
+
+	GError * error = NULL;
+	gchar * tempzone = NULL;
+	if (!g_file_get_contents(TIMEZONE_FILE, &tempzone, NULL, &error)) {
+		g_warning("Unable to read timezone file '" TIMEZONE_FILE "': %s", error->message);
+		g_error_free(error);
+		return;
+	}
+
+	/* This shouldn't happen, so let's make it a big boom! */
+	g_return_if_fail(tempzone != NULL);
+
+	/* Note: this really makes sense as strstrip works in place
+	   so we end up with something a little odd without the dup
+	   so we have the dup to make sure everything is as expected
+	   for everyone else. */
+	current_timezone = g_strdup(g_strstrip(tempzone));
+	g_free(tempzone);
+
+	g_debug("System timezone is: %s", current_timezone);
+
+	check_timezone_sync();
+
+	return;
+}
+
+/* See how our timezone setting went */
+static void
+quick_set_tz_cb (OobsObject * obj, OobsResult result, gpointer user_data)
+{
+	if (result == OOBS_RESULT_OK) {
+		g_debug("Timezone set");
+	} else {
+		g_warning("Unable to quick set timezone");
+	}
+	return;
+}
+
+/* Set the timezone to the Geoclue discovered one */
+static void
+quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
+{
+	g_debug("Quick setting timezone to: %s", geo_timezone);
+
+	g_return_if_fail(geo_timezone != NULL);
+
+	OobsObject * obj = oobs_time_config_get();
+	g_return_if_fail(obj != NULL);
+
+	OobsTimeConfig * timeconfig = OOBS_TIME_CONFIG(obj);
+	oobs_time_config_set_timezone(timeconfig, geo_timezone);
+
+	oobs_object_commit_async(obj, quick_set_tz_cb, NULL);
+
+	return;
+}
 
 /* Updates the label in the date menuitem */
 static gboolean
@@ -159,6 +276,13 @@ build_menus (DbusmenuMenuitem * root)
 	dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
 	dbusmenu_menuitem_child_append(root, separator);
 
+	tzchange = dbusmenu_menuitem_new();
+	dbusmenu_menuitem_property_set(tzchange, DBUSMENU_MENUITEM_PROP_LABEL, "Set specific timezone");
+	dbusmenu_menuitem_property_set_bool(tzchange, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+	g_signal_connect(G_OBJECT(tzchange), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
+	dbusmenu_menuitem_child_append(root, tzchange);
+	check_timezone_sync();
+
 	settings = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Time & Date Settings..."));
 	/* insensitive until we check for available apps */
@@ -174,6 +298,7 @@ build_menus (DbusmenuMenuitem * root)
 static void
 timezone_changed (GFileMonitor * monitor, GFile * file, GFile * otherfile, GFileMonitorEvent event, gpointer user_data)
 {
+	update_current_timezone();
 	datetime_interface_update(DATETIME_INTERFACE(user_data));
 	update_datetime(NULL);
 	setup_timer();
@@ -232,6 +357,75 @@ setup_timer (void)
 	return;
 }
 
+/* Callback from getting the address */
+static void
+geo_address_cb (GeoclueAddress * address, int timestamp, GHashTable * addy_data, GeoclueAccuracy * accuracy, GError * error, gpointer user_data)
+{
+	if (error != NULL) {
+		g_warning("Unable to get Geoclue address: %s", error->message);
+		return;
+	}
+
+	g_debug("Geoclue timezone is: %s", (gchar *)g_hash_table_lookup(addy_data, "timezone"));
+
+	if (geo_timezone != NULL) {
+		g_free(geo_timezone);
+		geo_timezone = NULL;
+	}
+
+	gpointer tz_hash = g_hash_table_lookup(addy_data, "timezone");
+	if (tz_hash != NULL) {
+		geo_timezone = g_strdup((gchar *)tz_hash);
+	}
+
+	check_timezone_sync();
+
+	return;
+}
+
+/* Callback from creating the address */
+static void
+geo_create_address (GeoclueMasterClient * master, GeoclueAddress * address, GError * error, gpointer user_data)
+{
+	if (error != NULL) {
+		g_warning("Unable to create GeoClue address: %s", error->message);
+		return;
+	}
+
+	g_debug("Created Geoclue Address");
+	geo_address = address;
+
+	geoclue_address_get_address_async(geo_address, geo_address_cb, NULL);
+
+	return;
+}
+
+/* Callback from setting requirements */
+static void
+geo_req_set (GeoclueMasterClient * master, GError * error, gpointer user_data)
+{
+	if (error != NULL) {
+		g_warning("Unable to set Geoclue requirements: %s", error->message);
+	}
+	return;
+}
+
+/* Callback from creating the client */
+static void
+geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data)
+{
+	g_debug("Created Geoclue client at: %s", path);
+
+	geo_master = client;
+
+	geoclue_master_client_set_requirements_async(geo_master, GEOCLUE_ACCURACY_LEVEL_REGION, 0,
+	FALSE, GEOCLUE_RESOURCE_ALL, geo_req_set, NULL);
+
+	geoclue_master_client_create_address_async(geo_master, geo_create_address, NULL);
+
+	return;
+}
+
 /* Repsonds to the service object saying it's time to shutdown.
    It stops the mainloop. */
 static void 
@@ -258,11 +452,18 @@ main (int argc, char ** argv)
 	bindtextdomain (GETTEXT_PACKAGE, GNOMELOCALEDIR);
 	textdomain (GETTEXT_PACKAGE);
 
+	/* Cache the timezone */
+	update_current_timezone();
+
 	/* Building the base menu */
 	server = dbusmenu_server_new(MENU_OBJ);
 	root = dbusmenu_menuitem_new();
 	dbusmenu_server_set_root(server, root);
 	build_menus(root);
+
+	/* Setup geoclue */
+	GeoclueMaster * master = geoclue_master_get_default();
+	geoclue_master_create_client_async(master, geo_create_client, NULL);
 
 	/* Setup dbus interface */
 	dbus = g_object_new(DATETIME_INTERFACE_TYPE, NULL);
@@ -276,6 +477,7 @@ main (int argc, char ** argv)
 	mainloop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(mainloop);
 
+	g_object_unref(G_OBJECT(master));
 	g_object_unref(G_OBJECT(dbus));
 	g_object_unref(G_OBJECT(service));
 	g_object_unref(G_OBJECT(server));
