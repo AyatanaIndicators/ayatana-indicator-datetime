@@ -48,6 +48,7 @@ static DatetimeInterface * dbus = NULL;
 static DbusmenuMenuitem * date = NULL;
 static DbusmenuMenuitem * calendar = NULL;
 static DbusmenuMenuitem * settings = NULL;
+static DbusmenuMenuitem * tzchange = NULL;
 
 /* Geoclue trackers */
 static GeoclueMasterClient * geo_master = NULL;
@@ -166,6 +167,11 @@ build_menus (DbusmenuMenuitem * root)
 	DbusmenuMenuitem * separator = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
 	dbusmenu_menuitem_child_append(root, separator);
+
+	tzchange = dbusmenu_menuitem_new();
+	dbusmenu_menuitem_property_set(tzchange, DBUSMENU_MENUITEM_PROP_LABEL, "Set specific timezone");
+	dbusmenu_menuitem_property_set_bool(tzchange, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+	dbusmenu_menuitem_child_append(root, tzchange);
 
 	settings = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Time & Date Settings..."));
