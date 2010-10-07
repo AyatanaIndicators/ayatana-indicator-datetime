@@ -38,12 +38,14 @@ DBUSMENUGTK_REQUIRED_VERSION=0.1.1
 GIO_REQUIRED_VERSION=2.25.11
 # Note: the GIO check below also ensures the proper glib with gsettings support is present
 INDICATOR_DISPLAY_OBJECTS=0.1.10
+GEOCLUE_REQUIRED_VERSION=0.12.0
 
 PKG_CHECK_MODULES(INDICATOR, indicator >= $INDICATOR_REQUIRED_VERSION
                              dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
                              dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION
                              libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
-                             gio-2.0 >= $GIO_REQUIRED_VERSION)
+                             gio-2.0 >= $GIO_REQUIRED_VERSION
+                             geoclue >= $GEOCLUE_REQUIRED_VERSION)
 
 AC_SUBST(INDICATOR_CFLAGS)
 AC_SUBST(INDICATOR_LIBS)
