@@ -54,6 +54,7 @@ static DbusmenuMenuitem * tzchange = NULL;
 /* Geoclue trackers */
 static GeoclueMasterClient * geo_master = NULL;
 static GeoclueAddress * geo_address = NULL;
+static gchar * geo_timezone = NULL;
 
 /* Update the current timezone */
 static void
@@ -290,6 +291,17 @@ geo_address_cb (GeoclueAddress * address, int timestamp, GHashTable * addy_data,
 	}
 
 	g_debug("Geoclue timezone is: %s", (gchar *)g_hash_table_lookup(addy_data, "timezone"));
+
+	if (geo_timezone != NULL) {
+		g_free(geo_timezone);
+		geo_timezone = NULL;
+	}
+
+	gpointer tz_hash = g_hash_table_lookup(addy_data, "timezone");
+	if (tz_hash != NULL) {
+		geo_timezone = g_strdup((gchar *)tz_hash);
+	}
+
 	return;
 }
 
