@@ -240,11 +240,23 @@ setup_timer (void)
 	return;
 }
 
+/* Callback from getting the address */
+static void
+geo_address_cb (GeoclueAddress * address, int timestamp, GHashTable * addy_data, GeoclueAccuracy * accuracy, GError * error, gpointer user_data)
+{
+	g_debug("Geoclue timezone is: %s", (gchar *)g_hash_table_lookup(addy_data, "timezone"));
+	return;
+}
+
 /* Callback from creating the address */
 static void
 geo_create_address (GeoclueMasterClient * master, GeoclueAddress * address, GError * error, gpointer user_data)
 {
+	g_debug("Created Geoclue Address");
 	geo_address = address;
+
+	geoclue_address_get_address_async(geo_address, geo_address_cb, NULL);
+
 	return;
 }
 
