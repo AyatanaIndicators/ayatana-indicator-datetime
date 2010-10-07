@@ -129,6 +129,14 @@ update_current_timezone (void) {
 	return;
 }
 
+/* Set the timezone to the Geoclue discovered one */
+static void
+quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
+{
+
+
+}
+
 /* Updates the label in the date menuitem */
 static gboolean
 update_datetime (gpointer user_data)
@@ -246,6 +254,7 @@ build_menus (DbusmenuMenuitem * root)
 	tzchange = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set(tzchange, DBUSMENU_MENUITEM_PROP_LABEL, "Set specific timezone");
 	dbusmenu_menuitem_property_set_bool(tzchange, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+	g_signal_connect(G_OBJECT(tzchange), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
 	dbusmenu_menuitem_child_append(root, tzchange);
 	check_timezone_sync();
 
