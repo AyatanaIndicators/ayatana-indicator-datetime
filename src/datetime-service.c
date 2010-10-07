@@ -240,11 +240,22 @@ setup_timer (void)
 	return;
 }
 
+/* Callback from creating the address */
+static void
+geo_create_address (GeoclueMasterClient * master, GeoclueAddress * address, GError * error, gpointer user_data)
+{
+	geo_address = address;
+	return;
+}
+
 /* Callback from creating the client */
 static void
 geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data)
 {
+	g_debug("Created Geoclue client at: %s", path);
 
+	geo_master = client;
+	geoclue_master_client_create_address_async(geo_master, geo_create_address, NULL);
 
 	return;
 }
