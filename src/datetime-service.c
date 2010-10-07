@@ -221,6 +221,7 @@ build_menus (DbusmenuMenuitem * root)
 static void
 timezone_changed (GFileMonitor * monitor, GFile * file, GFile * otherfile, GFileMonitorEvent event, gpointer user_data)
 {
+	update_current_timezone();
 	datetime_interface_update(DATETIME_INTERFACE(user_data));
 	update_datetime(NULL);
 	setup_timer();
