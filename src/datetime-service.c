@@ -75,15 +75,21 @@ check_timezone_sync (void) {
 
 	if (in_sync) {
 		g_debug("Timezones in sync");
-		dbusmenu_menuitem_property_set_bool(tzchange, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 	} else {
 		g_debug("Timezones are different");
-		gchar * label = g_strdup_printf(_("Change timezone to: %s"), geo_timezone);
+	}
 
-		dbusmenu_menuitem_property_set(tzchange, DBUSMENU_MENUITEM_PROP_LABEL, label);
-		dbusmenu_menuitem_property_set_bool(tzchange, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+	if (tzchange != NULL) {
+		if (in_sync) {
+			dbusmenu_menuitem_property_set_bool(tzchange, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		} else {
+			gchar * label = g_strdup_printf(_("Change timezone to: %s"), geo_timezone);
 
-		g_free(label);
+			dbusmenu_menuitem_property_set(tzchange, DBUSMENU_MENUITEM_PROP_LABEL, label);
+			dbusmenu_menuitem_property_set_bool(tzchange, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+
+			g_free(label);
+		}
 	}
 
 	return;
@@ -241,6 +247,7 @@ build_menus (DbusmenuMenuitem * root)
 	dbusmenu_menuitem_property_set(tzchange, DBUSMENU_MENUITEM_PROP_LABEL, "Set specific timezone");
 	dbusmenu_menuitem_property_set_bool(tzchange, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 	dbusmenu_menuitem_child_append(root, tzchange);
+	check_timezone_sync();
 
 	settings = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Time & Date Settings..."));
