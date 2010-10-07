@@ -56,6 +56,39 @@ static GeoclueMasterClient * geo_master = NULL;
 static GeoclueAddress * geo_address = NULL;
 static gchar * geo_timezone = NULL;
 
+/* Check to see if our timezones are the same */
+static void
+check_timezone_sync (void) {
+	gboolean in_sync = FALSE;
+
+	if (geo_timezone == NULL) {
+		in_sync = TRUE;
+	}
+
+	if (current_timezone == NULL) {
+		in_sync = TRUE;
+	}
+
+	if (!in_sync && g_strcmp0(geo_timezone, current_timezone) == 0) {
+		in_sync = TRUE;
+	}
+
+	if (in_sync) {
+		g_debug("Timezones in sync");
+		dbusmenu_menuitem_property_set_bool(tzchange, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+	} else {
+		g_debug("Timezones are different");
+		gchar * label = g_strdup_printf(_("Change timezone to: %s"), geo_timezone);
+
+		dbusmenu_menuitem_property_set(tzchange, DBUSMENU_MENUITEM_PROP_LABEL, label);
+		dbusmenu_menuitem_property_set_bool(tzchange, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+
+		g_free(label);
+	}
+
+	return;
+}
+
 /* Update the current timezone */
 static void
 update_current_timezone (void) {
@@ -84,6 +117,8 @@ update_current_timezone (void) {
 	g_free(tempzone);
 
 	g_debug("System timezone is: %s", current_timezone);
+
+	check_timezone_sync();
 
 	return;
 }
@@ -301,6 +336,8 @@ geo_address_cb (GeoclueAddress * address, int timestamp, GHashTable * addy_data,
 	if (tz_hash != NULL) {
 		geo_timezone = g_strdup((gchar *)tz_hash);
 	}
+
+	check_timezone_sync();
 
 	return;
 }
