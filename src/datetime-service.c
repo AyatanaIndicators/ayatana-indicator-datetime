@@ -270,6 +270,16 @@ geo_create_address (GeoclueMasterClient * master, GeoclueAddress * address, GErr
 	return;
 }
 
+/* Callback from setting requirements */
+static void
+geo_req_set (GeoclueMasterClient * master, GError * error, gpointer user_data)
+{
+	if (error != NULL) {
+		g_warning("Unable to set Geoclue requirements: %s", error->message);
+	}
+	return;
+}
+
 /* Callback from creating the client */
 static void
 geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data)
@@ -277,6 +287,10 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 	g_debug("Created Geoclue client at: %s", path);
 
 	geo_master = client;
+
+	geoclue_master_client_set_requirements_async(geo_master, GEOCLUE_ACCURACY_LEVEL_REGION, 0,
+	FALSE, GEOCLUE_RESOURCE_ALL, geo_req_set, NULL);
+
 	geoclue_master_client_create_address_async(geo_master, geo_create_address, NULL);
 
 	return;
