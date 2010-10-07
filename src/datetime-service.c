@@ -33,6 +33,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <geoclue/geoclue-master.h>
 #include <geoclue/geoclue-master-client.h>
 
+#include <oobs/oobs-timeconfig.h>
+
 #include "datetime-interface.h"
 #include "dbus-shared.h"
 
@@ -133,8 +135,10 @@ update_current_timezone (void) {
 static void
 quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
 {
-
-
+	OobsTimeConfig * timeconfig = OOBS_TIME_CONFIG(oobs_time_config_get());
+	oobs_time_config_set_timezone(timeconfig, geo_timezone);
+	g_object_unref(G_OBJECT(timeconfig));
+	return;
 }
 
 /* Updates the label in the date menuitem */
