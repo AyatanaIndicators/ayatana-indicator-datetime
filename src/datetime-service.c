@@ -244,6 +244,11 @@ setup_timer (void)
 static void
 geo_address_cb (GeoclueAddress * address, int timestamp, GHashTable * addy_data, GeoclueAccuracy * accuracy, GError * error, gpointer user_data)
 {
+	if (error != NULL) {
+		g_warning("Unable to get Geoclue address: %s", error->message);
+		return;
+	}
+
 	g_debug("Geoclue timezone is: %s", (gchar *)g_hash_table_lookup(addy_data, "timezone"));
 	return;
 }
@@ -252,6 +257,11 @@ geo_address_cb (GeoclueAddress * address, int timestamp, GHashTable * addy_data,
 static void
 geo_create_address (GeoclueMasterClient * master, GeoclueAddress * address, GError * error, gpointer user_data)
 {
+	if (error != NULL) {
+		g_warning("Unable to create GeoClue address: %s", error->message);
+		return;
+	}
+
 	g_debug("Created Geoclue Address");
 	geo_address = address;
 
