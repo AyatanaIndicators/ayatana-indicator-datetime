@@ -131,13 +131,34 @@ update_current_timezone (void) {
 	return;
 }
 
+/* See how our timezone setting went */
+static void
+quick_set_tz_cb (OobsObject * obj, OobsResult result, gpointer user_data)
+{
+	if (result == OOBS_RESULT_OK) {
+		g_debug("Timezone set");
+	} else {
+		g_warning("Unable to quick set timezone");
+	}
+	return;
+}
+
 /* Set the timezone to the Geoclue discovered one */
 static void
 quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
 {
-	OobsTimeConfig * timeconfig = OOBS_TIME_CONFIG(oobs_time_config_get());
+	g_debug("Quick setting timezone to: %s", geo_timezone);
+
+	g_return_if_fail(geo_timezone != NULL);
+
+	OobsObject * obj = oobs_time_config_get();
+	g_return_if_fail(obj != NULL);
+
+	OobsTimeConfig * timeconfig = OOBS_TIME_CONFIG(obj);
 	oobs_time_config_set_timezone(timeconfig, geo_timezone);
-	g_object_unref(G_OBJECT(timeconfig));
+
+	oobs_object_commit_async(obj, quick_set_tz_cb, NULL);
+
 	return;
 }
 
