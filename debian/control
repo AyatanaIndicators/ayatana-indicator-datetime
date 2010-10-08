@@ -9,6 +9,8 @@ Build-Depends: cdbs,
                libdbusmenu-glib-dev (>= 0.1.1),
                libdbusmenu-gtk-dev (>= 0.1.1),
                libglib2.0-dev (>= 2.25.0)
+               libgeoclue-dev,
+               liboobs-1-dev
 Standards-Version: 3.8.4
 Homepage: https://launchpad.net/indicator-datetime
 
