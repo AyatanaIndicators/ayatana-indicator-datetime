@@ -1,8 +1,8 @@
-indicator-datetime (0.0.6-0ubuntu1~ppa2~geo2) UNRELEASED; urgency=low
+indicator-datetime (0.0.6-0ubuntu1~ppa2~geo2) maverick; urgency=low
 
   * debian/control: Add recommends for ubuntu-geoip
 
- -- Ted Gould <ted@ubuntu.com>  Fri, 08 Oct 2010 16:01:40 -0600
+ -- Ted Gould <ted@ubuntu.com>  Fri, 08 Oct 2010 16:04:40 -0600
 
 indicator-datetime (0.0.6-0ubuntu1~ppa2~geo1) maverick; urgency=low
 
