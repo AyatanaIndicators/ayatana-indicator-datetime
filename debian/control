@@ -8,7 +8,7 @@ Build-Depends: cdbs,
                libindicator-dev (>= 0.3.0),
                libdbusmenu-glib-dev (>= 0.1.1),
                libdbusmenu-gtk-dev (>= 0.1.1),
-               libglib2.0-dev (>= 2.25.0)
+               libglib2.0-dev (>= 2.25.0),
                libgeoclue-dev,
                liboobs-1-dev
 Standards-Version: 3.8.4
