@@ -2,8 +2,9 @@ indicator-datetime (0.0.6-0ubuntu1~ppa2~geo1) UNRELEASED; urgency=low
 
   * Upstream Merge
     * Add in Geoclue support for setting proper timezone
+  * Autogen
 
- -- Ted Gould <ted@ubuntu.com>  Thu, 07 Oct 2010 15:56:49 -0600
+ -- Ted Gould <ted@ubuntu.com>  Fri, 08 Oct 2010 15:17:25 -0600
 
 indicator-datetime (0.0.6-0ubuntu1~ppa1) maverick; urgency=low
 
