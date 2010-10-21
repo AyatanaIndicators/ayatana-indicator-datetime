@@ -418,8 +418,13 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 
 	geo_master = client;
 
-	geoclue_master_client_set_requirements_async(geo_master, GEOCLUE_ACCURACY_LEVEL_REGION, 0,
-	FALSE, GEOCLUE_RESOURCE_ALL, geo_req_set, NULL);
+	geoclue_master_client_set_requirements_async(geo_master,
+	                                             GEOCLUE_ACCURACY_LEVEL_REGION,
+	                                             0,
+	                                             FALSE,
+	                                             GEOCLUE_RESOURCE_ALL,
+	                                             geo_req_set,
+	                                             NULL);
 
 	geoclue_master_client_create_address_async(geo_master, geo_create_address, NULL);
 
