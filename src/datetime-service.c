@@ -399,6 +399,8 @@ geo_create_address (GeoclueMasterClient * master, GeoclueAddress * address, GErr
 
 	geoclue_address_get_address_async(geo_address, geo_address_cb, NULL);
 
+	g_signal_connect(G_OBJECT(address), "address-changed", G_CALLBACK(geo_address_cb), NULL);
+
 	return;
 }
 
