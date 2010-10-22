@@ -410,6 +410,23 @@ geo_req_set (GeoclueMasterClient * master, GError * error, gpointer user_data)
 	return;
 }
 
+/* Client is killing itself rather oddly */
+static void
+geo_client_invalid (GeoclueMasterClient * client, gpointer user_data)
+{
+
+	return;
+}
+
+/* Address provider changed, we need to get that one */
+static void
+geo_address_change (GeoclueMasterClient * client, gchar * a, gchar * b, gchar * c, gchar * d, gpointer user_data)
+{
+
+
+	return;
+}
+
 /* Callback from creating the client */
 static void
 geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data)
@@ -427,6 +444,9 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 	                                             NULL);
 
 	geoclue_master_client_create_address_async(geo_master, geo_create_address, NULL);
+
+	g_signal_connect(G_OBJECT(client), "invalidated", G_CALLBACK(geo_client_invalid), NULL);
+	g_signal_connect(G_OBJECT(client), "address-provider-changed", G_CALLBACK(geo_address_change), NULL);
 
 	return;
 }
