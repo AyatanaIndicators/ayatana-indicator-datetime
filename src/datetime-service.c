@@ -38,6 +38,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "datetime-interface.h"
 #include "dbus-shared.h"
 
+static void geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data);
 static void setup_timer (void);
 
 static IndicatorService * service = NULL;
@@ -394,8 +395,11 @@ geo_create_address (GeoclueMasterClient * master, GeoclueAddress * address, GErr
 
 	g_debug("Created Geoclue Address");
 	geo_address = address;
+	g_object_ref(G_OBJECT(geo_address));
 
 	geoclue_address_get_address_async(geo_address, geo_address_cb, NULL);
+
+	g_signal_connect(G_OBJECT(address), "address-changed", G_CALLBACK(geo_address_cb), NULL);
 
 	return;
 }
@@ -410,6 +414,53 @@ geo_req_set (GeoclueMasterClient * master, GError * error, gpointer user_data)
 	return;
 }
 
+/* Client is killing itself rather oddly */
+static void
+geo_client_invalid (GeoclueMasterClient * client, gpointer user_data)
+{
+	g_warning("Master client invalid, rebuilding.");
+
+	if (geo_master != NULL) {
+		g_object_unref(G_OBJECT(geo_master));
+	}
+	geo_master = NULL;
+
+	GeoclueMaster * master = geoclue_master_get_default();
+	geoclue_master_create_client_async(master, geo_create_client, NULL);
+
+	if (geo_timezone != NULL) {
+		g_free(geo_timezone);
+		geo_timezone = NULL;
+	}
+
+	check_timezone_sync();
+
+	return;
+}
+
+/* Address provider changed, we need to get that one */
+static void
+geo_address_change (GeoclueMasterClient * client, gchar * a, gchar * b, gchar * c, gchar * d, gpointer user_data)
+{
+	g_warning("Address provider changed.  Let's change");
+
+	if (geo_address != NULL) {
+		g_object_unref(G_OBJECT(geo_address));
+	}
+	geo_address = NULL;
+
+	geoclue_master_client_create_address_async(geo_master, geo_create_address, NULL);
+
+	if (geo_timezone != NULL) {
+		g_free(geo_timezone);
+		geo_timezone = NULL;
+	}
+
+	check_timezone_sync();
+
+	return;
+}
+
 /* Callback from creating the client */
 static void
 geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data)
@@ -417,11 +468,20 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 	g_debug("Created Geoclue client at: %s", path);
 
 	geo_master = client;
+	g_object_ref(G_OBJECT(geo_master));
 
-	geoclue_master_client_set_requirements_async(geo_master, GEOCLUE_ACCURACY_LEVEL_REGION, 0,
-	FALSE, GEOCLUE_RESOURCE_ALL, geo_req_set, NULL);
+	geoclue_master_client_set_requirements_async(geo_master,
+	                                             GEOCLUE_ACCURACY_LEVEL_REGION,
+	                                             0,
+	                                             FALSE,
+	                                             GEOCLUE_RESOURCE_ALL,
+	                                             geo_req_set,
+	                                             NULL);
 
 	geoclue_master_client_create_address_async(geo_master, geo_create_address, NULL);
+
+	g_signal_connect(G_OBJECT(client), "invalidated", G_CALLBACK(geo_client_invalid), NULL);
+	g_signal_connect(G_OBJECT(client), "address-provider-changed", G_CALLBACK(geo_address_change), NULL);
 
 	return;
 }

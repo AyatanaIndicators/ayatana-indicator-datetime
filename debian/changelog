@@ -1,3 +1,10 @@
+indicator-datetime (0.0.6-0ubuntu1~ppa2~geo3) UNRELEASED; urgency=low
+
+  * Upstream Merge
+    * Cleaning up whitespace and callbacks
+
+ -- Ted Gould <ted@ubuntu.com>  Fri, 22 Oct 2010 11:34:13 -0400
+
 indicator-datetime (0.0.6-0ubuntu1~ppa2~geo2) maverick; urgency=low
 
   * debian/control: Add recommends for ubuntu-geoip
