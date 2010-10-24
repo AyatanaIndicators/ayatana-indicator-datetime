@@ -220,13 +220,13 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv->idle_measure = 0;
 	self->priv->max_width = 0;
 
-	self->priv->time_string = g_strdup(DEFAULT_TIME_FORMAT);
-
 	self->priv->time_mode = SETTINGS_TIME_LOCALE;
 	self->priv->show_seconds = FALSE;
 	self->priv->show_date = FALSE;
 	self->priv->show_day = FALSE;
 	self->priv->custom_string = g_strdup(DEFAULT_TIME_FORMAT);
+
+	self->priv->time_string = generate_format_string(self);
 
 	self->priv->service_proxy = NULL;
 
