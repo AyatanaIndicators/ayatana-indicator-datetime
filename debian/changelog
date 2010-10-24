@@ -1,20 +1,28 @@
-indicator-datetime (0.0.6-0ubuntu1~ppa3) UNRELEASED; urgency=low
+indicator-datetime (0.0.6-0ubuntu4~ppa1) maverick; urgency=low
 
   * Upstream Merge
     * Generate the format string at init
-
- -- Ted Gould <ted@ubuntu.com>  Sun, 24 Oct 2010 13:40:05 -0400
-
-indicator-datetime (0.0.6-0ubuntu1~ppa2) maverick; urgency=low
-
-  * Upstream Merge
     * Add in Geoclue support for setting proper timezone
   * debian/control: Add recommends for ubuntu-geoip
   * debian/control: Adding dependencies on Geoclue and OOBS
 
- -- Ted Gould <ted@ubuntu.com>  Sun, 24 Oct 2010 13:34:17 -0400
+ -- Ted Gould <ted@ubuntu.com>  Sun, 24 Oct 2010 13:44:05 -0400
 
-indicator-datetime (0.0.6-0ubuntu1~ppa1) maverick; urgency=low
+indicator-datetime (0.0.6-0ubuntu3) maverick; urgency=low
+
+  * Cherry-picked from upstream:
+    - Fix date string format (12/24h) not taken from translation (LP: #579134)
+
+ -- Didier Roche <didrocks@ubuntu.com>  Thu, 30 Sep 2010 16:09:41 +0200
+
+indicator-datetime (0.0.6-0ubuntu2) maverick; urgency=low
+
+  * Rebuild for libindicator ABI change (LP: #637692)
+  * debian/control: depends on latest libindicator-dev
+
+ -- Didier Roche <didrocks@ubuntu.com>  Wed, 22 Sep 2010 18:21:26 +0200
+
+indicator-datetime (0.0.6-0ubuntu1) maverick; urgency=low
 
   * New upstream release.
     * Refresh times on timezone change
