@@ -8,7 +8,9 @@ Build-Depends: cdbs,
                libindicator-dev (>= 0.3.0),
                libdbusmenu-glib-dev (>= 0.1.1),
                libdbusmenu-gtk-dev (>= 0.1.1),
-               libglib2.0-dev (>= 2.25.0)
+               libglib2.0-dev (>= 2.25.0),
+               libgeoclue-dev,
+               liboobs-1-dev
 Standards-Version: 3.8.4
 Homepage: https://launchpad.net/indicator-datetime
 
@@ -16,7 +18,7 @@ Package: indicator-datetime
 Architecture: any
 Depends: ${shlibs:Depends}, 
          ${misc:Depends}
-Recommends: indicator-applet | indicator-renderer
+Recommends: indicator-applet | indicator-renderer, ubuntu-geoip
 Description: A very, very simple clock
  A simple clock appearing in the indicator bar
 

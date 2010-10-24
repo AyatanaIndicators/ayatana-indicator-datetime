@@ -12171,6 +12171,8 @@ DBUSMENUGTK_REQUIRED_VERSION=0.1.1
 GIO_REQUIRED_VERSION=2.25.11
 # Note: the GIO check below also ensures the proper glib with gsettings support is present
 INDICATOR_DISPLAY_OBJECTS=0.1.10
+GEOCLUE_REQUIRED_VERSION=0.12.0
+OOBS_REQUIRED_VERSION=2.31.0
 
 
 pkg_failed=no
@@ -12185,12 +12187,16 @@ if test -n "$INDICATOR_CFLAGS"; then
                              dbusmenu-glib >= \$DBUSMENUGLIB_REQUIRED_VERSION
                              dbusmenu-gtk >= \$DBUSMENUGTK_REQUIRED_VERSION
                              libido-0.1 >= \$INDICATOR_DISPLAY_OBJECTS
-                             gio-2.0 >= \$GIO_REQUIRED_VERSION\""; } >&5
+                             gio-2.0 >= \$GIO_REQUIRED_VERSION
+                             geoclue >= \$GEOCLUE_REQUIRED_VERSION
+                             liboobs-1 >= \$OOBS_REQUIRED_VERSION\""; } >&5
   ($PKG_CONFIG --exists --print-errors "indicator >= $INDICATOR_REQUIRED_VERSION
                              dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
                              dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION
                              libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
-                             gio-2.0 >= $GIO_REQUIRED_VERSION") 2>&5
+                             gio-2.0 >= $GIO_REQUIRED_VERSION
+                             geoclue >= $GEOCLUE_REQUIRED_VERSION
+                             liboobs-1 >= $OOBS_REQUIRED_VERSION") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
@@ -12198,7 +12204,9 @@ if test -n "$INDICATOR_CFLAGS"; then
                              dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
                              dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION
                              libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
-                             gio-2.0 >= $GIO_REQUIRED_VERSION" 2>/dev/null`
+                             gio-2.0 >= $GIO_REQUIRED_VERSION
+                             geoclue >= $GEOCLUE_REQUIRED_VERSION
+                             liboobs-1 >= $OOBS_REQUIRED_VERSION" 2>/dev/null`
 else
   pkg_failed=yes
 fi
@@ -12213,12 +12221,16 @@ if test -n "$INDICATOR_LIBS"; then
                              dbusmenu-glib >= \$DBUSMENUGLIB_REQUIRED_VERSION
                              dbusmenu-gtk >= \$DBUSMENUGTK_REQUIRED_VERSION
                              libido-0.1 >= \$INDICATOR_DISPLAY_OBJECTS
-                             gio-2.0 >= \$GIO_REQUIRED_VERSION\""; } >&5
+                             gio-2.0 >= \$GIO_REQUIRED_VERSION
+                             geoclue >= \$GEOCLUE_REQUIRED_VERSION
+                             liboobs-1 >= \$OOBS_REQUIRED_VERSION\""; } >&5
   ($PKG_CONFIG --exists --print-errors "indicator >= $INDICATOR_REQUIRED_VERSION
                              dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
                              dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION
                              libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
-                             gio-2.0 >= $GIO_REQUIRED_VERSION") 2>&5
+                             gio-2.0 >= $GIO_REQUIRED_VERSION
+                             geoclue >= $GEOCLUE_REQUIRED_VERSION
+                             liboobs-1 >= $OOBS_REQUIRED_VERSION") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
@@ -12226,7 +12238,9 @@ if test -n "$INDICATOR_LIBS"; then
                              dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
                              dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION
                              libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
-                             gio-2.0 >= $GIO_REQUIRED_VERSION" 2>/dev/null`
+                             gio-2.0 >= $GIO_REQUIRED_VERSION
+                             geoclue >= $GEOCLUE_REQUIRED_VERSION
+                             liboobs-1 >= $OOBS_REQUIRED_VERSION" 2>/dev/null`
 else
   pkg_failed=yes
 fi
@@ -12250,13 +12264,17 @@ fi
                              dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
                              dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION
                              libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
-                             gio-2.0 >= $GIO_REQUIRED_VERSION" 2>&1`
+                             gio-2.0 >= $GIO_REQUIRED_VERSION
+                             geoclue >= $GEOCLUE_REQUIRED_VERSION
+                             liboobs-1 >= $OOBS_REQUIRED_VERSION" 2>&1`
         else
 	        INDICATOR_PKG_ERRORS=`$PKG_CONFIG --print-errors "indicator >= $INDICATOR_REQUIRED_VERSION
                              dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
                              dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION
                              libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
-                             gio-2.0 >= $GIO_REQUIRED_VERSION" 2>&1`
+                             gio-2.0 >= $GIO_REQUIRED_VERSION
+                             geoclue >= $GEOCLUE_REQUIRED_VERSION
+                             liboobs-1 >= $OOBS_REQUIRED_VERSION" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$INDICATOR_PKG_ERRORS" >&5
@@ -12265,7 +12283,9 @@ fi
                              dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
                              dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION
                              libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
-                             gio-2.0 >= $GIO_REQUIRED_VERSION) were not met:
+                             gio-2.0 >= $GIO_REQUIRED_VERSION
+                             geoclue >= $GEOCLUE_REQUIRED_VERSION
+                             liboobs-1 >= $OOBS_REQUIRED_VERSION) were not met:
 
 $INDICATOR_PKG_ERRORS
 
