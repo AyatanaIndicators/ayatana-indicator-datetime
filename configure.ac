@@ -49,8 +49,19 @@ PKG_CHECK_MODULES(INDICATOR, indicator >= $INDICATOR_REQUIRED_VERSION
                              geoclue >= $GEOCLUE_REQUIRED_VERSION
                              liboobs-1 >= $OOBS_REQUIRED_VERSION)
 
+PKG_CHECK_MODULES(SERVICE,   indicator >= $INDICATOR_REQUIRED_VERSION
+                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
+                             dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION
+                             libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
+                             gio-2.0 >= $GIO_REQUIRED_VERSION
+                             geoclue >= $GEOCLUE_REQUIRED_VERSION
+                             liboobs-1 >= $OOBS_REQUIRED_VERSION)
+
 AC_SUBST(INDICATOR_CFLAGS)
 AC_SUBST(INDICATOR_LIBS)
+
+AC_SUBST(SERVICE_CFLAGS)
+AC_SUBST(SERVICE_LIBS)
 
 ###########################
 # Grab the GSettings Macros
