@@ -23,10 +23,29 @@ AC_CONFIG_MACRO_DIR([m4])
 
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
+AC_ARG_ENABLE([deprecations],
+  [AS_HELP_STRING([--enable-deprecations],
+    [allow deprecated API usage @<:@default=yes@:>@])],
+  [],
+  [enable_deprecations=yes])
+AS_IF([test "x$enable_deprecations" = xno],
+  [CFLAGS="$CFLAGS -DG_DISABLE_DEPRECATED -DGDK_DISABLE_DEPRECATED -DGDK_PIXBUF_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED -DGSEAL_ENABLE -DGTK_DISABLE_SINGLE_INCLUDES"]
+)
+
 AC_PATH_PROG([GLIB_MKENUMS], [glib-mkenums])
 AC_PATH_PROG([GLIB_GENMARSHAL], [glib-genmarshal])
 
 PKG_PROG_PKG_CONFIG
+
+###########################
+# GTK+ version option
+###########################
+
+AC_ARG_WITH([gtk],
+  [AS_HELP_STRING([--with-gtk],
+    [Which version of gtk to use @<:@default=2@:>@])],
+  [],
+  [with_gtk=2])
 
 ###########################
 # Dependencies
@@ -41,10 +60,20 @@ INDICATOR_DISPLAY_OBJECTS=0.1.10
 GEOCLUE_REQUIRED_VERSION=0.12.0
 OOBS_REQUIRED_VERSION=2.31.0
 
-PKG_CHECK_MODULES(INDICATOR, indicator >= $INDICATOR_REQUIRED_VERSION
-                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
-                             dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION
-                             libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS)
+AS_IF([test "x$with_gtk" = x3],
+    [PKG_CHECK_MODULES(INDICATOR, indicator3 >= $INDICATOR_REQUIRED_VERSION
+                                  dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
+                                  dbusmenu-gtk3 >= $DBUSMENUGTK_REQUIRED_VERSION
+                                  libido3-0.1 >= $INDICATOR_DISPLAY_OBJECTS)
+        ],
+      [test "x$with_gtk" = x2],
+    [PKG_CHECK_MODULES(INDICATOR, indicator >= $INDICATOR_REQUIRED_VERSION
+                                  dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
+                                  dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION
+                                  libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS)
+        ],
+    [AC_MSG_FAILURE([Value for --with-gtk was neither 2 nor 3])]
+)
 
 PKG_CHECK_MODULES(SERVICE,   indicator >= $INDICATOR_REQUIRED_VERSION
                              dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
@@ -76,13 +105,21 @@ AC_ARG_ENABLE(localinstall, AS_HELP_STRING([--enable-localinstall], [install all
 # Indicator Info
 ###########################
 
-if test "x$with_localinstall" = "xyes"; then
+AS_IF([test "x$with_localinstall" = "xyes"],
+	[
 	INDICATORDIR="${libdir}/indicators/2/"
 	INDICATORICONSDIR="${datadir}/libindicate/icons/"
-else
-	INDICATORDIR=`$PKG_CONFIG --variable=indicatordir indicator`
-	INDICATORICONSDIR=`$PKG_CONFIG --variable=iconsdir indicator`
-fi
+	],
+	[AS_IF([test "x$with_gtk" = "x2"],
+		[
+		INDICATORDIR=`$PKG_CONFIG --variable=indicatordir indicator`
+		INDICATORICONSDIR=`$PKG_CONFIG --variable=iconsdir indicator`
+		],
+		[
+		INDICATORDIR=`$PKG_CONFIG --variable=indicatordir indicator3`
+		INDICATORICONSDIR=`$PKG_CONFIG --variable=iconsdir indicator3`
+		])])
+
 AC_SUBST(INDICATORDIR)
 AC_SUBST(INDICATORICONSDIR)
 
