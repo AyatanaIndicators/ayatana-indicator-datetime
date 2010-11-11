@@ -44,14 +44,10 @@ OOBS_REQUIRED_VERSION=2.31.0
 PKG_CHECK_MODULES(INDICATOR, indicator >= $INDICATOR_REQUIRED_VERSION
                              dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
                              dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION
-                             libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
-                             gio-2.0 >= $GIO_REQUIRED_VERSION
-                             geoclue >= $GEOCLUE_REQUIRED_VERSION
-                             liboobs-1 >= $OOBS_REQUIRED_VERSION)
+                             libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS)
 
 PKG_CHECK_MODULES(SERVICE,   indicator >= $INDICATOR_REQUIRED_VERSION
                              dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
-                             dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION
                              libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
                              gio-2.0 >= $GIO_REQUIRED_VERSION
                              geoclue >= $GEOCLUE_REQUIRED_VERSION
