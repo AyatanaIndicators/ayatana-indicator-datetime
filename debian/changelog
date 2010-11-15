@@ -1,3 +1,10 @@
+indicator-datetime (0.0.6-0ubuntu4~ppa2) UNRELEASED; urgency=low
+
+  * debian/control: Adjusting requirement from ubuntu-geoip to
+    geoclue-ubuntu-geoip to match distro change.
+
+ -- Ted Gould <ted@ubuntu.com>  Mon, 15 Nov 2010 11:38:01 -0600
+
 indicator-datetime (0.0.6-0ubuntu4~ppa1) maverick; urgency=low
 
   * Upstream Merge
