@@ -1,19 +1,13 @@
-indicator-datetime (0.0.6-0ubuntu4~ppa2) maverick; urgency=low
+indicator-datetime (0.1.90-0ubuntu1~ppa1) UNRELEASED; urgency=low
 
-  * debian/control: Adjusting requirement from ubuntu-geoip to
-    geoclue-ubuntu-geoip to match distro change.
-
- -- Ted Gould <ted@ubuntu.com>  Mon, 15 Nov 2010 11:41:50 -0600
-
-indicator-datetime (0.0.6-0ubuntu4~ppa1) maverick; urgency=low
-
-  * Upstream Merge
+  * New upstream release.
     * Generate the format string at init
     * Add in Geoclue support for setting proper timezone
-  * debian/control: Add recommends for ubuntu-geoip
+    * Add support for building GTK2 and GTK3 versions
+  * debian/control: Add recommends for geoclue-ubuntu-geoip
   * debian/control: Adding dependencies on Geoclue and OOBS
 
- -- Ted Gould <ted@ubuntu.com>  Sun, 24 Oct 2010 13:44:05 -0400
+ -- Ted Gould <ted@ubuntu.com>  Fri, 03 Dec 2010 13:37:34 -0600
 
 indicator-datetime (0.0.6-0ubuntu3) maverick; urgency=low
 
