@@ -1,4 +1,4 @@
-indicator-datetime (0.1.90-0ubuntu1~ppa1) UNRELEASED; urgency=low
+indicator-datetime (0.1.90-0ubuntu1~ppa1) maverick; urgency=low
 
   * New upstream release.
     * Generate the format string at init
@@ -7,7 +7,7 @@ indicator-datetime (0.1.90-0ubuntu1~ppa1) UNRELEASED; urgency=low
   * debian/control: Add recommends for geoclue-ubuntu-geoip
   * debian/control: Adding dependencies on Geoclue and OOBS
 
- -- Ted Gould <ted@ubuntu.com>  Fri, 03 Dec 2010 13:37:34 -0600
+ -- Ted Gould <ted@ubuntu.com>  Fri, 03 Dec 2010 13:46:32 -0600
 
 indicator-datetime (0.0.6-0ubuntu3) maverick; urgency=low
 
