@@ -12,10 +12,10 @@ indicator_datetime_service_SOURCES = \
 indicator_datetime_service_CFLAGS = \
 	-Wall \
 	-Werror \
-	$(INDICATOR_CFLAGS) \
+	$(SERVICE_CFLAGS) \
 	-DTIMEZONE_FILE="\"/etc/timezone\""
 indicator_datetime_service_LDADD = \
-	$(INDICATOR_LIBS)
+	$(SERVICE_LIBS)
 
 datetimelibdir = $(INDICATORDIR)
 datetimelib_LTLIBRARIES = libdatetime.la
