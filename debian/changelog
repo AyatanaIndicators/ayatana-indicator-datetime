@@ -1,3 +1,14 @@
+indicator-datetime (0.1.90-0ubuntu1) natty; urgency=low
+
+  * New upstream release.
+    * Generate the format string at init
+    * Add in Geoclue support for setting proper timezone
+    * Add support for building GTK2 and GTK3 versions
+  * debian/control: Add recommends for geoclue-ubuntu-geoip
+  * debian/control: Adding dependencies on Geoclue and OOBS
+
+ -- Ted Gould <ted@ubuntu.com>  Fri, 03 Dec 2010 13:46:32 -0600
+
 indicator-datetime (0.0.6-0ubuntu3) maverick; urgency=low
 
   * Cherry-picked from upstream:
