@@ -1,3 +1,10 @@
+indicator-datetime (0.1.90-0ubuntu2) natty; urgency=low
+
+  * debian/control
+    - Bump build depends for libdbusmenu-* to >= 0.3.90
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Thu, 09 Dec 2010 11:46:00 -0500
+
 indicator-datetime (0.1.90-0ubuntu1) natty; urgency=low
 
   * New upstream release.
