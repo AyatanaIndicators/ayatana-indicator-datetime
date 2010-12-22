@@ -808,6 +808,9 @@ guess_label_size (IndicatorDatetime * self)
 	gint * max_width = &(self->priv->max_width);
 	gint posibilitymask = generate_strftime_bitmask(self->priv->time_string);
 
+	/* Reset max width */
+	*max_width = 0;
+
 	/* Build the array of possibilities that we want to test */
 	GArray * timevals = g_array_new(FALSE, TRUE, sizeof(struct tm));
 	build_timeval_array(timevals, posibilitymask);
