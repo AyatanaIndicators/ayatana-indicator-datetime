@@ -847,6 +847,22 @@ style_changed (GtkWidget * widget, GtkStyle * oldstyle, gpointer data)
 	return;
 }
 
+
+static void
+update_text_gravity (GtkWidget *widget, GdkScreen *previous_screen, gpointer data)
+{
+	IndicatorDatetime * self = INDICATOR_DATETIME(data);
+	if (self->priv->label == NULL) return;
+
+	PangoLayout  *layout;
+	PangoContext *context;
+
+	layout = gtk_label_get_layout (GTK_LABEL(self->priv->label));
+	context = pango_layout_get_context(layout);
+	pango_context_set_base_gravity(context, PANGO_GRAVITY_AUTO);
+}
+
+
 /* Tries to figure out what our format string should be.  Lots
    of translator comments in here. */
 static gchar *
@@ -966,8 +982,10 @@ get_label (IndicatorObject * io)
 	/* If there's not a label, we'll build ourselves one */
 	if (self->priv->label == NULL) {
 		self->priv->label = GTK_LABEL(gtk_label_new("Time"));
+		gtk_label_set_justify (GTK_LABEL(self->priv->label), GTK_JUSTIFY_CENTER);
 		g_object_ref(G_OBJECT(self->priv->label));
 		g_signal_connect(G_OBJECT(self->priv->label), "style-set", G_CALLBACK(style_changed), self);
+		g_signal_connect(G_OBJECT(self->priv->label), "screen-changed", G_CALLBACK(update_text_gravity), self);
 		guess_label_size(self);
 		update_label(self);
 		gtk_widget_show(GTK_WIDGET(self->priv->label));
