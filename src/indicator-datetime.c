@@ -557,9 +557,10 @@ update_label (IndicatorDatetime * io)
 
 	if (self->priv->label == NULL) return NULL;
 
-	gchar longstr[128];
+	gchar longstr[256];
 	time_t t;
 	struct tm *ltime;
+	gboolean use_markup;
 
 	t = time(NULL);
 	ltime = localtime(&t);
@@ -569,10 +570,18 @@ update_label (IndicatorDatetime * io)
 		return NULL;
 	}
 
-	strftime(longstr, 128, self->priv->time_string, ltime);
+	strftime(longstr, 256, self->priv->time_string, ltime);
 	
 	gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
-	gtk_label_set_label(self->priv->label, utf8);
+
+	if (pango_parse_markup(utf8, -1, 0, NULL, NULL, NULL, NULL))
+		use_markup = TRUE;
+
+	if (use_markup)
+		gtk_label_set_markup(self->priv->label, utf8);
+	else
+		gtk_label_set_text(self->priv->label, utf8);
+
 	g_free(utf8);
 
 	if (self->priv->idle_measure == 0) {
@@ -636,7 +645,12 @@ static gint
 measure_string (GtkStyle * style, PangoContext * context, const gchar * string)
 {
 	PangoLayout * layout = pango_layout_new(context);
-	pango_layout_set_text(layout, string, -1);
+
+	if (pango_parse_markup(string, -1, 0, NULL, NULL, NULL, NULL))
+		pango_layout_set_markup(layout, string, -1);
+	else
+		pango_layout_set_text(layout, string, -1);
+
 	pango_layout_set_font_description(layout, style->font_desc);
 
 	gint width;
@@ -818,9 +832,9 @@ guess_label_size (IndicatorDatetime * self)
 	g_debug("Checking against %d posible times", timevals->len);
 	gint check_time;
 	for (check_time = 0; check_time < timevals->len; check_time++) {
-		gchar longstr[128];
-		strftime(longstr, 128, self->priv->time_string, &(g_array_index(timevals, struct tm, check_time)));
-		
+		gchar longstr[256];
+		strftime(longstr, 256, self->priv->time_string, &(g_array_index(timevals, struct tm, check_time)));
+
 		gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
 		gint length = measure_string(style, context, utf8);
 		g_free(utf8);
