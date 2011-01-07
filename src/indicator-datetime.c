@@ -23,6 +23,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "config.h"
 #endif
 
+#include <locale.h>
+#include <langinfo.h>
+#include <string.h>
+
 /* GStuff */
 #include <glib.h>
 #include <glib-object.h>
@@ -119,8 +123,14 @@ enum {
 	SETTINGS_TIME_CUSTOM = 3
 };
 
-#define DEFAULT_TIME_12_FORMAT   "%l:%M %p"
-#define DEFAULT_TIME_24_FORMAT   "%H:%M"
+/* TRANSLATORS: A format string for the strftime function for
+   a clock showing 12-hour time without seconds. */
+#define DEFAULT_TIME_12_FORMAT   N_("%l:%M %p")
+
+/* TRANSLATORS: A format string for the strftime function for
+   a clock showing 24-hour time without seconds. */
+#define DEFAULT_TIME_24_FORMAT   N_("%H:%M")
+
 #define DEFAULT_TIME_FORMAT      DEFAULT_TIME_12_FORMAT
 
 #define INDICATOR_DATETIME_GET_PRIVATE(o) \
@@ -840,6 +850,53 @@ style_changed (GtkWidget * widget, GtkStyle * oldstyle, gpointer data)
 	return;
 }
 
+/* Translate msg according to the locale specified by LC_TIME */
+static char *
+T_(const char *msg)
+{
+	/* General strategy here is to make sure LANGUAGE is empty (since that
+	   trumps all LC_* vars) and then to temporarily swap LC_TIME and
+	   LC_MESSAGES.  Then have gettext translate msg.
+
+	   We strdup the strings because the setlocale & *env functions do not
+	   guarantee anything about the storage used for the string, and thus
+	   the string may not be portably safe after multiple calls.
+
+	   Note that while you might think g_dcgettext would do the trick here,
+	   that actually looks in /usr/share/locale/XX/LC_TIME, not the
+	   LC_MESSAGES directory, so we won't find any translation there.
+	*/
+	char *message_locale = g_strdup(setlocale(LC_MESSAGES, NULL));
+	char *time_locale = g_strdup(setlocale(LC_TIME, NULL));
+	char *language = g_strdup(g_getenv("LANGUAGE"));
+	char *rv;
+	g_unsetenv("LANGUAGE");
+	setlocale(LC_MESSAGES, time_locale);
+
+	/* Get the LC_TIME version */
+	rv = _(msg);
+
+	/* Put everything back the way it was */
+	setlocale(LC_MESSAGES, message_locale);
+	g_setenv("LANGUAGE", language, 1);
+	g_free(message_locale);
+	g_free(time_locale);
+	g_free(language);
+	return rv;
+}
+
+static gboolean
+is_locale_12h()
+{
+	static const char *formats_24h[] = {"%H", "%R", "%T", "%OH", "%k", NULL};
+        const char *t_fmt = nl_langinfo(T_FMT);
+        int i;
+        for (i = 0; formats_24h[i]; ++i)
+                if (strstr(t_fmt, formats_24h[i]))
+                        return FALSE;
+        return TRUE;
+}
+
 /* Tries to figure out what our format string should be.  Lots
    of translator comments in here. */
 static gchar *
@@ -852,17 +909,7 @@ generate_format_string (IndicatorDatetime * self)
 	gboolean twelvehour = TRUE;
 
 	if (self->priv->time_mode == SETTINGS_TIME_LOCALE) {
-		/* TRANSLATORS: This string is used to determine the default
-		   clock style for your locale.  If it is the string '12' then
-		   the default will be a 12-hour clock using AM/PM string.  If
-		   it is '24' then it will be a 24-hour clock.  Users may over
-		   ride this setting so it's still important to translate the
-		   other strings no matter how this is set. */
-		const gchar * locale_default = _("12");
-
-		if (g_strcmp0(locale_default, "24") == 0) {
-			twelvehour = FALSE;
-		}
+		twelvehour = is_locale_12h();
 	} else if (self->priv->time_mode == SETTINGS_TIME_24_HOUR) {
 		twelvehour = FALSE;
 	}
@@ -872,21 +919,17 @@ generate_format_string (IndicatorDatetime * self)
 		if (self->priv->show_seconds) {
 			/* TRANSLATORS: A format string for the strftime function for
 			   a clock showing 12-hour time with seconds. */
-			time_string = _("%l:%M:%S %p");
+			time_string = T_("%l:%M:%S %p");
 		} else {
-			/* TRANSLATORS: A format string for the strftime function for
-			   a clock showing 12-hour time. */
-			time_string = _(DEFAULT_TIME_12_FORMAT);
+			time_string = T_(DEFAULT_TIME_12_FORMAT);
 		}
 	} else {
 		if (self->priv->show_seconds) {
 			/* TRANSLATORS: A format string for the strftime function for
 			   a clock showing 24-hour time with seconds. */
-			time_string = _("%H:%M:%S");
+			time_string = T_("%H:%M:%S");
 		} else {
-			/* TRANSLATORS: A format string for the strftime function for
-			   a clock showing 24-hour time. */
-			time_string = _(DEFAULT_TIME_24_FORMAT);
+			time_string = T_(DEFAULT_TIME_24_FORMAT);
 		}
 	}
 	
@@ -903,15 +946,15 @@ generate_format_string (IndicatorDatetime * self)
 	if (self->priv->show_date && self->priv->show_day) {
 		/* TRANSLATORS:  This is a format string passed to strftime to represent
 		   the day of the week, the month and the day of the month. */
-		date_string = _("%a %b %e");
+		date_string = T_("%a %b %e");
 	} else if (self->priv->show_date) {
 		/* TRANSLATORS:  This is a format string passed to strftime to represent
 		   the month and the day of the month. */
-		date_string = _("%b %e");
+		date_string = T_("%b %e");
 	} else if (self->priv->show_day) {
 		/* TRANSLATORS:  This is a format string passed to strftime to represent
 		   the day of the week. */
-		date_string = _("%a");
+		date_string = T_("%a");
 	}
 
 	/* Check point, we should have a date string */
@@ -920,7 +963,7 @@ generate_format_string (IndicatorDatetime * self)
 	/* TRANSLATORS: This is a format string passed to strftime to combine the
 	   date and the time.  The value of "%s, %s" would result in a string like
 	   this in US English 12-hour time: 'Fri Jul 16, 11:50 AM' */
-	return g_strdup_printf(_("%s, %s"), date_string, time_string);
+	return g_strdup_printf(T_("%s, %s"), date_string, time_string);
 }
 
 static gboolean
