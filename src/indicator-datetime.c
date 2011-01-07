@@ -878,23 +878,29 @@ T_(const char *msg)
 
 	/* Put everything back the way it was */
 	setlocale(LC_MESSAGES, message_locale);
-	g_setenv("LANGUAGE", language, 1);
+	g_setenv("LANGUAGE", language, TRUE);
 	g_free(message_locale);
 	g_free(time_locale);
 	g_free(language);
 	return rv;
 }
 
+/* Check the system locale setting to see if the format is 24-hour
+   time or 12-hour time */
 static gboolean
 is_locale_12h()
 {
 	static const char *formats_24h[] = {"%H", "%R", "%T", "%OH", "%k", NULL};
-        const char *t_fmt = nl_langinfo(T_FMT);
-        int i;
-        for (i = 0; formats_24h[i]; ++i)
-                if (strstr(t_fmt, formats_24h[i]))
-                        return FALSE;
-        return TRUE;
+	const char *t_fmt = nl_langinfo(T_FMT);
+	int i;
+
+	for (i = 0; formats_24h[i]; ++i) {
+		if (strstr(t_fmt, formats_24h[i])) {
+			return FALSE;
+		}
+	}
+
+	return TRUE;
 }
 
 /* Tries to figure out what our format string should be.  Lots
