@@ -45,16 +45,9 @@ struct _DatetimeInterfacePrivate {
 
 #define DATETIME_INTERFACE_GET_PRIVATE(o) (DATETIME_INTERFACE(o)->priv)
 
-enum {
-	UPDATE_TIME,
-	LAST_SIGNAL
-};
-
 /* GDBus Stuff */
 static GDBusNodeInfo *      node_info = NULL;
 static GDBusInterfaceInfo * interface_info = NULL;
-
-static guint signals[LAST_SIGNAL] = { 0 };
 
 static void datetime_interface_class_init (DatetimeInterfaceClass *klass);
 static void datetime_interface_init       (DatetimeInterface *self);
@@ -73,14 +66,6 @@ datetime_interface_class_init (DatetimeInterfaceClass *klass)
 
 	object_class->dispose = datetime_interface_dispose;
 	object_class->finalize = datetime_interface_finalize;
-
-	signals[UPDATE_TIME] =  g_signal_new("update-time",
-	                                      G_TYPE_FROM_CLASS(klass),
-	                                      G_SIGNAL_RUN_LAST,
-	                                      G_STRUCT_OFFSET (DatetimeInterfaceClass, update_time),
-	                                      NULL, NULL,
-	                                      g_cclosure_marshal_VOID__VOID,
-	                                      G_TYPE_NONE, 0, G_TYPE_NONE);
 
 	/* Setting up the DBus interfaces */
 	if (node_info == NULL) {
@@ -145,7 +130,7 @@ bus_get_cb (GObject * object, GAsyncResult * res, gpointer user_data)
 	}
 
 	/* Now register our object on our new connection */
-	priv->dbus_registration = g_dbus_connection_register_object(connection,
+	priv->dbus_registration = g_dbus_connection_register_object(priv->bus,
 	                                                            SERVICE_OBJ,
 	                                                            interface_info,
 	                                                            NULL,
@@ -200,6 +185,23 @@ void
 datetime_interface_update (DatetimeInterface *self)
 {
 	g_return_if_fail(IS_DATETIME_INTERFACE(self));
-	g_signal_emit(G_OBJECT(self), signals[UPDATE_TIME], 0, TRUE);
+
+	DatetimeInterfacePrivate * priv = DATETIME_INTERFACE_GET_PRIVATE(self);
+	GError * error = NULL;
+
+	g_dbus_connection_emit_signal (priv->bus,
+	                               NULL,
+	                               SERVICE_OBJ,
+	                               SERVICE_IFACE,
+	                               "UpdateTime",
+	                               NULL,
+	                               &error);
+
+	if (error != NULL) {
+		g_error("Unable to send UpdateTime signal: %s", error->message);
+		g_error_free(error);
+		return;
+	}
+
 	return;
 }

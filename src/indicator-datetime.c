@@ -151,7 +151,7 @@ static struct tm * update_label           (IndicatorDatetime * io);
 static void guess_label_size              (IndicatorDatetime * self);
 static void setup_timer                   (IndicatorDatetime * self, struct tm * ltime);
 static void update_time                   (IndicatorDatetime * self);
-static void receive_signal                (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name, GVariant parameters, gpointer user_data);
+static void receive_signal                (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name, GVariant * parameters, gpointer user_data);
 static void service_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data);
 
 /* Indicator Module Config */
@@ -315,7 +315,7 @@ service_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
 	}
 
 	if (error != NULL) {
-		g_warning("Could not grab DBus proxy for %s: %s", SERVICE_NAME, error->message);
+		g_error("Could not grab DBus proxy for %s: %s", SERVICE_NAME, error->message);
 		g_error_free(error);
 		return;
 	}
@@ -618,7 +618,7 @@ update_time (IndicatorDatetime * self)
 /* Receives all signals from the service, routed to the appropriate functions */
 static void
 receive_signal (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name,
-                GVariant parameters, gpointer user_data)
+                GVariant * parameters, gpointer user_data)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
 
