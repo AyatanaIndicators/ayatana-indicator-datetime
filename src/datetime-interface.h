@@ -34,8 +34,9 @@ G_BEGIN_DECLS
 #define IS_DATETIME_INTERFACE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), DATETIME_INTERFACE_TYPE))
 #define DATETIME_INTERFACE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), DATETIME_INTERFACE_TYPE, DatetimeInterfaceClass))
 
-typedef struct _DatetimeInterface      DatetimeInterface;
-typedef struct _DatetimeInterfaceClass DatetimeInterfaceClass;
+typedef struct _DatetimeInterface        DatetimeInterface;
+typedef struct _DatetimeInterfacePrivate DatetimeInterfacePrivate;
+typedef struct _DatetimeInterfaceClass   DatetimeInterfaceClass;
 
 struct _DatetimeInterfaceClass {
 	GObjectClass parent_class;
@@ -45,6 +46,7 @@ struct _DatetimeInterfaceClass {
 
 struct _DatetimeInterface {
 	GObject parent;
+	DatetimeInterfacePrivate * priv;
 };
 
 GType              datetime_interface_get_type       (void);
