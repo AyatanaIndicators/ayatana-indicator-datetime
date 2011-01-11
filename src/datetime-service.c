@@ -236,9 +236,19 @@ check_for_calendar (gpointer user_data)
 }
 
 /* Populate the menu with todays, next 5 appointments. We probably want to shift this off to an idle-add
+ * the problem is the inserting order of items and updating them might be difficult. 
+ * we should hook into the ABOUT TO SHOW signal and use that to update the appointments. 
  */
 static gboolean
-update_calendar_menu_items (gpointer user_data) {
+update_appointment_menu_items (gpointer user_data) {
+	
+	time_t t1, t2;
+	gchar *query, *is, *ie;
+	GList *objects = NULL, *l;
+	GError *gerror = NULL;
+	DbusmenuMenuitem * item = NULL;
+	gint i;
+	
 	ecal = e_cal_new_system_calendar();
 	if (!ecal) {
 		g_debug("e_cal_new_system_calendar failed");
@@ -261,13 +271,6 @@ update_calendar_menu_items (gpointer user_data) {
 	
 	ecal_timezone = icaltimezone_get_tzid(tzone);
 	
-	time_t t1, t2;
-	gchar *query, *is, *ie;
-	GList *objects = NULL, *l;
-	GError *gerror = NULL;
-	DbusmenuMenuitem * item = NULL;
-	gint i;
-	
 	// TODO: Remove all the existing menu items which are appointments.
 	
 	time(&t1);
@@ -283,7 +286,7 @@ update_calendar_menu_items (gpointer user_data) {
 		g_debug("Failed to get objects\n");
 		g_free(ecal);
 		ecal = NULL;
-		return TRUE;
+		return FALSE;
 	}
 	i = 0;
 	gint width, height;
@@ -293,7 +296,7 @@ update_calendar_menu_items (gpointer user_data) {
 		icalcomponent *icalcomp = l->data;
 		icalproperty* p;
 		icalvalue *v;
-		gchar *name, due;
+		gchar *name, *due, *uri;
 		p = icalcomponent_get_first_property(icalcomp, ICAL_NAME_PROPERTY);
 		v = icalproperty_get_value(p);
 		name = icalvalue_get_string(v);
@@ -301,7 +304,6 @@ update_calendar_menu_items (gpointer user_data) {
 		p = icalcomponent_get_first_property(icalcomp, ICAL_DUE_PROPERTY);
 		v = icalproperty_get_value(p);
 		due = icalvalue_get_string(v);
-		
 		
 		// TODO: now we pull out the URI for the calendar event and try to create a URI that'll work when we execute evolution
 		
@@ -321,10 +323,14 @@ update_calendar_menu_items (gpointer user_data) {
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 		dbusmenu_menuitem_child_append       (root, item);
+		//g_signal_connect (G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
+		//				  G_CALLBACK (activate_cb), "evolution %s", uri);
 		
 		if (i == 4) break; // See above FIXME regarding query result limit
 		i++;
 	}
+	g_free(ecal); // Really we should do the setup somewhere where we know it'll only run once, right now, we'll do it every time and free it.
+	return TRUE;
 }
 
 /* Looks for the time and date admin application and enables the
@@ -374,8 +380,17 @@ build_menus (DbusmenuMenuitem * root)
 
 		g_idle_add(check_for_calendar, NULL);
 	}
+	DbusmenuMenuitem * separator;
+	
+	separator = dbusmenu_menuitem_new();
+	dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
+	dbusmenu_menuitem_child_append(root, separator);
 
-	DbusmenuMenuitem * separator = dbusmenu_menuitem_new();
+	// This just populates the items on startup later we want to be able to update the appointments before
+	// presenting the menu. 
+	update_appointment_menu_items(NULL);
+
+	separator = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
 	dbusmenu_menuitem_child_append(root, separator);
 
