@@ -923,6 +923,83 @@ generate_format_string (IndicatorDatetime * self)
 	return g_strdup_printf(_("%s, %s"), date_string, time_string);
 }
 
+/* We have a small little menuitem type that handles all
+   of the fun stuff for indicators.  Mostly this is the
+   shifting over and putting the icon in with some right
+   side text that'll be determined by the service.  
+   Copied verbatim from an old revision (including comments) of indicator-messages   
+*/
+static gboolean
+new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, DbusmenuClient * client)
+{
+	g_return_val_if_fail(DBUSMENU_IS_MENUITEM(newitem), FALSE);
+	g_return_val_if_fail(DBUSMENU_IS_GTKCLIENT(client), FALSE);
+	/* Note: not checking parent, it's reasonable for it to be NULL */
+
+	indicator_item_t * mi_data = g_new0(indicator_item_t, 1);
+
+	GtkMenuItem * gmi = GTK_MENU_ITEM(gtk_menu_item_new());
+
+	GtkWidget * hbox = gtk_hbox_new(FALSE, 4);
+
+	/* Icon, probably someone's face or avatar on an IM */
+	mi_data->icon = gtk_image_new();
+	GdkPixbuf * pixbuf = dbusmenu_menuitem_property_get_image(newitem, INDICATOR_MENUITEM_PROP_ICON);
+
+	if (pixbuf != NULL) {
+		/* If we've got a pixbuf we need to make sure it's of a reasonable
+		   size to fit in the menu.  If not, rescale it. */
+		GdkPixbuf * resized_pixbuf;
+		gint width, height;
+		gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
+		if (gdk_pixbuf_get_width(pixbuf) > width ||
+		        gdk_pixbuf_get_height(pixbuf) > height) {
+			g_debug("Resizing icon from %dx%d to %dx%d", gdk_pixbuf_get_width(pixbuf), gdk_pixbuf_get_height(pixbuf), width, height);
+			resized_pixbuf = gdk_pixbuf_scale_simple(pixbuf,
+			                                         width,
+			                                         height,
+			                                         GDK_INTERP_BILINEAR);
+		} else {
+			g_debug("Happy with icon sized %dx%d", gdk_pixbuf_get_width(pixbuf), gdk_pixbuf_get_height(pixbuf));
+			resized_pixbuf = pixbuf;
+		}
+  
+		gtk_image_set_from_pixbuf(GTK_IMAGE(mi_data->icon), resized_pixbuf);
+
+		/* The other pixbuf should be free'd by the dbusmenu. */
+		if (resized_pixbuf != pixbuf) {
+			g_object_unref(resized_pixbuf);
+		}
+	}
+	gtk_misc_set_alignment(GTK_MISC(mi_data->icon), 0.0, 0.5);
+	gtk_box_pack_start(GTK_BOX(hbox), mi_data->icon, FALSE, FALSE, 0);
+	gtk_widget_show(mi_data->icon);
+
+	/* Label, probably a username, chat room or mailbox name */
+	mi_data->label = gtk_label_new(dbusmenu_menuitem_property_get(newitem, INDICATOR_MENUITEM_PROP_LABEL));
+	gtk_misc_set_alignment(GTK_MISC(mi_data->label), 0.0, 0.5);
+	gtk_box_pack_start(GTK_BOX(hbox), mi_data->label, TRUE, TRUE, 0);
+	gtk_widget_show(mi_data->label);
+
+	/* Usually either the time or the count on the individual
+	   item. */
+	mi_data->right = gtk_label_new(dbusmenu_menuitem_property_get(newitem, INDICATOR_MENUITEM_PROP_RIGHT));
+	gtk_size_group_add_widget(indicator_right_group, mi_data->right);
+	gtk_misc_set_alignment(GTK_MISC(mi_data->right), 1.0, 0.5);
+	gtk_box_pack_start(GTK_BOX(hbox), mi_data->right, FALSE, FALSE, 0);
+	gtk_widget_show(mi_data->right);
+
+	gtk_container_add(GTK_CONTAINER(gmi), hbox);
+	gtk_widget_show(hbox);
+
+	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, gmi, parent);
+
+	g_signal_connect(G_OBJECT(newitem), DBUSMENU_MENUITEM_SIGNAL_PROPERTY_CHANGED, G_CALLBACK(indicator_prop_change_cb), mi_data);
+	g_signal_connect(G_OBJECT(newitem), "destroyed", G_CALLBACK(g_free), mi_data);
+
+	return TRUE;
+}
+
 static gboolean
 new_calendar_item (DbusmenuMenuitem * newitem,
 				   DbusmenuMenuitem * parent,
@@ -986,6 +1063,7 @@ get_menu (IndicatorObject * io)
 	g_object_set_data (G_OBJECT (client), "indicator", io);
 
 	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), DBUSMENU_CALENDAR_MENUITEM_TYPE, new_calendar_item);
+	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), APPOINTMENT_MENUITEM_TYPE, new_indicator_item);
 
 	return GTK_MENU(self->priv->menu);
 }

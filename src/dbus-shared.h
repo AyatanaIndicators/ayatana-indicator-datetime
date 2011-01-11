@@ -29,3 +29,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define  DBUSMENU_CALENDAR_MENUITEM_TYPE "x-canonical-calendar-item"
 
+#define APPOINTMENT_MENUITEM_TYPE          "indicator-item"	
+#define APPOINTMENT_MENUITEM_PROP_LABEL    "indicator-label"
+#define APPOINTMENT_MENUITEM_PROP_ICON     "indicator-icon"
+#define APPOINTMENT_MENUITEM_PROP_RIGHT    "right-side-text"

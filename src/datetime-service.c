@@ -33,6 +33,13 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <geoclue/geoclue-master.h>
 #include <geoclue/geoclue-master-client.h>
 
+#include <time.h>
+#include <libecal/e-cal.h>
+#include <libical/ical.h>
+// Other users of ecal seem to also include these, not sure why they should be included by the above
+#include <libecal/e-cal-time-util.h>
+#include <libical/icaltime.h>
+
 #include <oobs/oobs-timeconfig.h>
 
 #include "datetime-interface.h"
@@ -53,6 +60,9 @@ static DbusmenuMenuitem * date = NULL;
 static DbusmenuMenuitem * calendar = NULL;
 static DbusmenuMenuitem * settings = NULL;
 static DbusmenuMenuitem * tzchange = NULL;
+static GList			* appointments = NULL;
+static ECal				* ecal = NULL;
+static gchar			* ecal_timezone = NULL;
 
 /* Geoclue trackers */
 static GeoclueMasterClient * geo_master = NULL;
@@ -223,6 +233,98 @@ check_for_calendar (gpointer user_data)
 	}
 
 	return FALSE;
+}
+
+/* Populate the menu with todays, next 5 appointments. We probably want to shift this off to an idle-add
+ */
+static gboolean
+update_calendar_menu_items (gpointer user_data) {
+	ecal = e_cal_new_system_calendar();
+	if (!ecal) {
+		g_debug("e_cal_new_system_calendar failed");
+		ecal = NULL;
+		return FALSE;
+	}
+	if (!e_cal_open(ecal, FALSE, &gerror) ) {
+		g_debug("e_cal_open: %s\n", gerror->message);
+		g_free(ecal);
+		ecal = NULL;
+		return FALSE;
+	}
+	
+	if (!e_cal_get_timezone(ecal, "UTC", &tzone, &gerror) {
+		g_debug("failed to get time zone\n");
+		g_free(ecal);
+		ecal = NULL;
+		return FALSE;
+	}
+	
+	ecal_timezone = icaltimezone_get_tzid(tzone);
+	
+	time_t t1, t2;
+	gchar *query, *is, *ie;
+	GList *objects = NULL, *l;
+	GError *gerror = NULL;
+	DbusmenuMenuitem * item = NULL;
+	gint i;
+	
+	// TODO: Remove all the existing menu items which are appointments.
+	
+	time(&t1);
+	time(&t2);
+	t2 += (time_t) (24 * 60 * 60); /* 1 day ahead of now */
+
+	is = isodate_from_time_t(t1);
+	ie = isodate_from_time_t(t2);
+	// FIXME can we put a limit on the number of results?
+	query = g_strdup_printf("(occur-in-time-range? (make-time\"%s\") (make-time\"%s\"))", is, ie);
+
+	if (!e_cal_get_object_list(ecal, query, &objects, &gerror);) {
+		g_debug("Failed to get objects\n");
+		g_free(ecal);
+		ecal = NULL;
+		return TRUE;
+	}
+	i = 0;
+	gint width, height;
+	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
+	
+	for (l = objects; l; l = l->next) {
+		icalcomponent *icalcomp = l->data;
+		icalproperty* p;
+		icalvalue *v;
+		gchar *name, due;
+		p = icalcomponent_get_first_property(icalcomp, ICAL_NAME_PROPERTY);
+		v = icalproperty_get_value(p);
+		name = icalvalue_get_string(v);
+		
+		p = icalcomponent_get_first_property(icalcomp, ICAL_DUE_PROPERTY);
+		v = icalproperty_get_value(p);
+		due = icalvalue_get_string(v);
+		
+		
+		// TODO: now we pull out the URI for the calendar event and try to create a URI that'll work when we execute evolution
+		
+		//cairo_surface_t *cs = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
+		//cairo_t *cr = cairo_create(cs);
+
+		// TODO: Draw the correct icon for the appointment type and then tint it using mask fill.
+
+		//GdkPixbuf * pixbuf = gdk_pixbuf_get_from_drawable(NULL, (GdkDrawable*)cs, 0,0,0,0, width, height);
+		
+		// TODO: Create a menu item for each of them, try to include helpful metadata e.g. colours, due time
+		item = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set       (item, "type", INDICATOR_MENUITEM_TYPE);
+		dbusmenu_menuitem_property_set       (item, APPOINTMENT_MENUITEM_PROP_LABEL, name);
+		//dbusmenu_menuitem_property_set_image (item, APPOINTMENT_MENUITEM_PROP_ICON, pixbuf);
+		dbusmenu_menuitem_property_set       (item, APPOINTMENT_MENUITEM_PROP_RIGHT, due);
+		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+		dbusmenu_menuitem_child_append       (root, item);
+		
+		if (i == 4) break; // See above FIXME regarding query result limit
+		i++;
+	}
 }
 
 /* Looks for the time and date admin application and enables the
