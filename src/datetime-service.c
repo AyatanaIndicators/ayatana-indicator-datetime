@@ -296,7 +296,7 @@ update_appointment_menu_items (gpointer user_data) {
 		icalcomponent *icalcomp = l->data;
 		icalproperty* p;
 		icalvalue *v;
-		gchar *name, *due, *uri;
+		gchar *name, *due, *uri, *cmd;
 		p = icalcomponent_get_first_property(icalcomp, ICAL_NAME_PROPERTY);
 		v = icalproperty_get_value(p);
 		name = icalvalue_get_string(v);
@@ -306,6 +306,11 @@ update_appointment_menu_items (gpointer user_data) {
 		due = icalvalue_get_string(v);
 		
 		// TODO: now we pull out the URI for the calendar event and try to create a URI that'll work when we execute evolution
+		// not sure if the ical URL property is actually an evolution compatible URI and no real way to tell other than testing
+		p = icalcomponent_get_first_property(icalcomp, ICAL_URL_PROPERTY);
+		v = icalproperty_get_value(p);
+		uri = icalvalue_get_string(v);
+		cmd = g_strconcat("evolution ", uri, NULL);
 		
 		//cairo_surface_t *cs = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
 		//cairo_t *cr = cairo_create(cs);
@@ -323,8 +328,8 @@ update_appointment_menu_items (gpointer user_data) {
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 		dbusmenu_menuitem_child_append       (root, item);
-		//g_signal_connect (G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
-		//				  G_CALLBACK (activate_cb), "evolution %s", uri);
+		g_signal_connect (G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
+						  G_CALLBACK (activate_cb), cmd);
 		
 		if (i == 4) break; // See above FIXME regarding query result limit
 		i++;
