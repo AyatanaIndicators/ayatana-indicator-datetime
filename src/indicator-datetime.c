@@ -40,6 +40,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 /* DBusMenu */
 #include <libdbusmenu-gtk/menu.h>
 #include <libido/idocalendarmenuitem.h>
+#include <libdbusmenu-gtk/menuitem.h>
 
 #include "dbus-shared.h"
 
@@ -99,6 +100,13 @@ enum {
 	PROP_CUSTOM_TIME_FORMAT
 };
 
+typedef struct _indicator_item_t indicator_item_t;
+struct _indicator_item_t {
+	GtkWidget * icon;
+	GtkWidget * label;
+	GtkWidget * right;
+};
+
 #define PROP_TIME_FORMAT_S              "time-format"
 #define PROP_SHOW_SECONDS_S             "show-seconds"
 #define PROP_SHOW_DAY_S                 "show-day"
@@ -149,6 +157,8 @@ INDICATOR_SET_VERSION
 INDICATOR_SET_TYPE(INDICATOR_DATETIME_TYPE)
 
 G_DEFINE_TYPE (IndicatorDatetime, indicator_datetime, INDICATOR_OBJECT_TYPE);
+
+static GtkSizeGroup * indicator_right_group = NULL;
 
 static void
 indicator_datetime_class_init (IndicatorDatetimeClass *klass)
@@ -923,6 +933,51 @@ generate_format_string (IndicatorDatetime * self)
 	return g_strdup_printf(_("%s, %s"), date_string, time_string);
 }
 
+/* Whenever we have a property change on a DbusmenuMenuitem
+   we need to be responsive to that. */
+static void
+indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, gchar * value, indicator_item_t * mi_data)
+{
+	if (!g_strcmp0(prop, APPOINTMENT_MENUITEM_PROP_LABEL)) {
+		/* Set the main label */
+		gtk_label_set_text(GTK_LABEL(mi_data->label), value);
+	} else if (!g_strcmp0(prop, APPOINTMENT_MENUITEM_PROP_RIGHT)) {
+		/* Set the right label */
+		gtk_label_set_text(GTK_LABEL(mi_data->right), value);
+	} else if (!g_strcmp0(prop, APPOINTMENT_MENUITEM_PROP_ICON)) {
+		/* We don't use the value here, which is probably less efficient, 
+		   but it's easier to use the easy function.  And since th value
+		   is already cached, shouldn't be a big deal really.  */
+		GdkPixbuf * pixbuf = dbusmenu_menuitem_property_get_image(mi, APPOINTMENT_MENUITEM_PROP_ICON);
+		if (pixbuf != NULL) {
+			/* If we've got a pixbuf we need to make sure it's of a reasonable
+			   size to fit in the menu.  If not, rescale it. */
+			GdkPixbuf * resized_pixbuf;
+			gint width, height;
+			gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
+			if (gdk_pixbuf_get_width(pixbuf) > width ||
+					gdk_pixbuf_get_height(pixbuf) > height) {
+				g_debug("Resizing icon from %dx%d to %dx%d", gdk_pixbuf_get_width(pixbuf), gdk_pixbuf_get_height(pixbuf), width, height);
+				resized_pixbuf = gdk_pixbuf_scale_simple(pixbuf,
+				                                         width,
+				                                         height,
+				                                         GDK_INTERP_BILINEAR);
+			} else {
+				g_debug("Happy with icon sized %dx%d", gdk_pixbuf_get_width(pixbuf), gdk_pixbuf_get_height(pixbuf));
+				resized_pixbuf = pixbuf;
+			}
+			gtk_image_set_from_pixbuf(GTK_IMAGE(mi_data->icon), resized_pixbuf);
+			/* The other pixbuf should be free'd by the dbusmenu. */
+			if (resized_pixbuf != pixbuf) {
+				g_object_unref(resized_pixbuf);
+			}
+		}
+	} else {
+		g_warning("Indicator Item property '%s' unknown", prop);
+	}
+	return;
+}
+
 /* We have a small little menuitem type that handles all
    of the fun stuff for indicators.  Mostly this is the
    shifting over and putting the icon in with some right
@@ -944,7 +999,7 @@ new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, Dbu
 
 	/* Icon, probably someone's face or avatar on an IM */
 	mi_data->icon = gtk_image_new();
-	GdkPixbuf * pixbuf = dbusmenu_menuitem_property_get_image(newitem, INDICATOR_MENUITEM_PROP_ICON);
+	GdkPixbuf * pixbuf = dbusmenu_menuitem_property_get_image(newitem, APPOINTMENT_MENUITEM_PROP_ICON);
 
 	if (pixbuf != NULL) {
 		/* If we've got a pixbuf we need to make sure it's of a reasonable
@@ -976,14 +1031,14 @@ new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, Dbu
 	gtk_widget_show(mi_data->icon);
 
 	/* Label, probably a username, chat room or mailbox name */
-	mi_data->label = gtk_label_new(dbusmenu_menuitem_property_get(newitem, INDICATOR_MENUITEM_PROP_LABEL));
+	mi_data->label = gtk_label_new(dbusmenu_menuitem_property_get(newitem, APPOINTMENT_MENUITEM_PROP_LABEL));
 	gtk_misc_set_alignment(GTK_MISC(mi_data->label), 0.0, 0.5);
 	gtk_box_pack_start(GTK_BOX(hbox), mi_data->label, TRUE, TRUE, 0);
 	gtk_widget_show(mi_data->label);
 
 	/* Usually either the time or the count on the individual
 	   item. */
-	mi_data->right = gtk_label_new(dbusmenu_menuitem_property_get(newitem, INDICATOR_MENUITEM_PROP_RIGHT));
+	mi_data->right = gtk_label_new(dbusmenu_menuitem_property_get(newitem, APPOINTMENT_MENUITEM_PROP_RIGHT));
 	gtk_size_group_add_widget(indicator_right_group, mi_data->right);
 	gtk_misc_set_alignment(GTK_MISC(mi_data->right), 1.0, 0.5);
 	gtk_box_pack_start(GTK_BOX(hbox), mi_data->right, FALSE, FALSE, 0);
@@ -1063,7 +1118,7 @@ get_menu (IndicatorObject * io)
 	g_object_set_data (G_OBJECT (client), "indicator", io);
 
 	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), DBUSMENU_CALENDAR_MENUITEM_TYPE, new_calendar_item);
-	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), APPOINTMENT_MENUITEM_TYPE, new_indicator_item);
+	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), APPOINTMENT_MENUITEM_TYPE, new_appointment_item);
 
 	return GTK_MENU(self->priv->menu);
 }

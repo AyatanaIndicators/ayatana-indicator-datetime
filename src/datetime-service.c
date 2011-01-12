@@ -307,6 +307,7 @@ update_appointment_menu_items (gpointer user_data) {
 		
 		// TODO: now we pull out the URI for the calendar event and try to create a URI that'll work when we execute evolution
 		// not sure if the ical URL property is actually an evolution compatible URI and no real way to tell other than testing
+		// We may need to change this to ecalcomponenets to get something closer to the evolution URI
 		p = icalcomponent_get_first_property(icalcomp, ICAL_URL_PROPERTY);
 		v = icalproperty_get_value(p);
 		uri = icalvalue_get_string(v);
