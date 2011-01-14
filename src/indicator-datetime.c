@@ -79,6 +79,7 @@ struct _IndicatorDatetimePrivate {
 	gboolean show_date;
 	gboolean show_day;
 	gchar * custom_string;
+	gboolean custom_show_seconds;
 
 	guint idle_measure;
 	gint  max_width;
@@ -136,6 +137,18 @@ enum {
 #define INDICATOR_DATETIME_GET_PRIVATE(o) \
 (G_TYPE_INSTANCE_GET_PRIVATE ((o), INDICATOR_DATETIME_TYPE, IndicatorDatetimePrivate))
 
+enum {
+	STRFTIME_MASK_NONE    = 0,      /* Hours or minutes as we always test those */
+	STRFTIME_MASK_SECONDS = 1 << 0, /* Seconds count */
+	STRFTIME_MASK_AMPM    = 1 << 1, /* AM/PM counts */
+	STRFTIME_MASK_WEEK    = 1 << 2, /* Day of the week maters (Sat, Sun, etc.) */
+	STRFTIME_MASK_DAY     = 1 << 3, /* Day of the month counts (Feb 1st) */
+	STRFTIME_MASK_MONTH   = 1 << 4, /* Which month matters */
+	STRFTIME_MASK_YEAR    = 1 << 5, /* Which year matters */
+	/* Last entry, combines all previous */
+	STRFTIME_MASK_ALL     = (STRFTIME_MASK_SECONDS | STRFTIME_MASK_AMPM | STRFTIME_MASK_WEEK | STRFTIME_MASK_DAY | STRFTIME_MASK_MONTH | STRFTIME_MASK_YEAR)
+};
+
 GType indicator_datetime_get_type (void);
 
 static void indicator_datetime_class_init (IndicatorDatetimeClass *klass);
@@ -153,6 +166,7 @@ static struct tm * update_label           (IndicatorDatetime * io);
 static void guess_label_size              (IndicatorDatetime * self);
 static void setup_timer                   (IndicatorDatetime * self, struct tm * ltime);
 static void update_time                   (DBusGProxy * proxy, gpointer user_data);
+static gint generate_strftime_bitmask     (const char *time_str);
 
 /* Indicator Module Config */
 INDICATOR_SET_VERSION
@@ -235,6 +249,7 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv->show_date = FALSE;
 	self->priv->show_day = FALSE;
 	self->priv->custom_string = g_strdup(DEFAULT_TIME_FORMAT);
+	self->priv->custom_show_seconds = FALSE;
 
 	self->priv->time_string = generate_format_string(self);
 
@@ -414,6 +429,7 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 		if (newval != self->priv->time_mode) {
 			update = TRUE;
 			self->priv->time_mode = newval;
+			setup_timer(self, NULL);			
 		}
 		break;
 	}
@@ -450,6 +466,8 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 				self->priv->custom_string = NULL;
 			}
 			self->priv->custom_string = g_strdup(newstr);
+			gint time_mask = generate_strftime_bitmask(newstr);
+			self->priv->custom_show_seconds = (time_mask & STRFTIME_MASK_SECONDS);
 			if (self->priv->time_mode == SETTINGS_TIME_CUSTOM) {
 				update = TRUE;
 				setup_timer(self, NULL);
@@ -549,9 +567,10 @@ update_label (IndicatorDatetime * io)
 
 	if (self->priv->label == NULL) return NULL;
 
-	gchar longstr[128];
+	gchar longstr[256];
 	time_t t;
 	struct tm *ltime;
+	gboolean use_markup;
 
 	t = time(NULL);
 	ltime = localtime(&t);
@@ -561,10 +580,18 @@ update_label (IndicatorDatetime * io)
 		return NULL;
 	}
 
-	strftime(longstr, 128, self->priv->time_string, ltime);
+	strftime(longstr, 256, self->priv->time_string, ltime);
 	
 	gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
-	gtk_label_set_label(self->priv->label, utf8);
+
+	if (pango_parse_markup(utf8, -1, 0, NULL, NULL, NULL, NULL))
+		use_markup = TRUE;
+
+	if (use_markup)
+		gtk_label_set_markup(self->priv->label, utf8);
+	else
+		gtk_label_set_text(self->priv->label, utf8);
+
 	g_free(utf8);
 
 	if (self->priv->idle_measure == 0) {
@@ -605,7 +632,8 @@ setup_timer (IndicatorDatetime * self, struct tm * ltime)
 		self->priv->timer = 0;
 	}
 	
-	if (self->priv->show_seconds) {
+	if (self->priv->show_seconds ||
+		(self->priv->time_mode == SETTINGS_TIME_CUSTOM && self->priv->custom_show_seconds)) {
 		self->priv->timer = g_timeout_add_seconds(1, timer_func, self);
 	} else {
 		if (ltime == NULL) {
@@ -627,7 +655,12 @@ static gint
 measure_string (GtkStyle * style, PangoContext * context, const gchar * string)
 {
 	PangoLayout * layout = pango_layout_new(context);
-	pango_layout_set_text(layout, string, -1);
+
+	if (pango_parse_markup(string, -1, 0, NULL, NULL, NULL, NULL))
+		pango_layout_set_markup(layout, string, -1);
+	else
+		pango_layout_set_text(layout, string, -1);
+
 	pango_layout_set_font_description(layout, style->font_desc);
 
 	gint width;
@@ -642,18 +675,6 @@ typedef struct _strftime_type_t strftime_type_t;
 struct _strftime_type_t {
 	char character;
 	gint mask;
-};
-
-enum {
-	STRFTIME_MASK_NONE    = 0,      /* Hours or minutes as we always test those */
-	STRFTIME_MASK_SECONDS = 1 << 0, /* Seconds count */
-	STRFTIME_MASK_AMPM    = 1 << 1, /* AM/PM counts */
-	STRFTIME_MASK_WEEK    = 1 << 2, /* Day of the week maters (Sat, Sun, etc.) */
-	STRFTIME_MASK_DAY     = 1 << 3, /* Day of the month counts (Feb 1st) */
-	STRFTIME_MASK_MONTH   = 1 << 4, /* Which month matters */
-	STRFTIME_MASK_YEAR    = 1 << 5, /* Which year matters */
-	/* Last entry, combines all previous */
-	STRFTIME_MASK_ALL     = (STRFTIME_MASK_SECONDS | STRFTIME_MASK_AMPM | STRFTIME_MASK_WEEK | STRFTIME_MASK_DAY | STRFTIME_MASK_MONTH | STRFTIME_MASK_YEAR)
 };
 
 /* A table taken from the man page of strftime to what the different
@@ -701,21 +722,21 @@ const static strftime_type_t strftime_type[] = {
    ensure that we can figure out which of the things we
    need to check in determining the length. */
 static gint
-generate_strftime_bitmask (IndicatorDatetime * self)
+generate_strftime_bitmask (const char *time_str)
 {
 	gint retval = 0;
-	glong strlength = g_utf8_strlen(self->priv->time_string, -1);
+	glong strlength = g_utf8_strlen(time_str, -1);
 	gint i;
-	g_debug("Evaluating bitmask for '%s'", self->priv->time_string);
+	g_debug("Evaluating bitmask for '%s'", time_str);
 
 	for (i = 0; i < strlength; i++) {
-		if (self->priv->time_string[i] == '%' && i + 1 < strlength) {
-			gchar evalchar = self->priv->time_string[i + 1];
+		if (time_str[i] == '%' && i + 1 < strlength) {
+			gchar evalchar = time_str[i + 1];
 
 			/* If we're using alternate formats we need to skip those characters */
 			if (evalchar == 'E' || evalchar == 'O') {
 				if (i + 2 < strlength) {
-					evalchar = self->priv->time_string[i + 2];
+					evalchar = time_str[i + 2];
 				} else {
 					continue;
 				}
@@ -809,7 +830,10 @@ guess_label_size (IndicatorDatetime * self)
 	GtkStyle * style = gtk_widget_get_style(GTK_WIDGET(self->priv->label));
 	PangoContext * context = gtk_widget_get_pango_context(GTK_WIDGET(self->priv->label));
 	gint * max_width = &(self->priv->max_width);
-	gint posibilitymask = generate_strftime_bitmask(self);
+	gint posibilitymask = generate_strftime_bitmask(self->priv->time_string);
+
+	/* Reset max width */
+	*max_width = 0;
 
 	/* Build the array of possibilities that we want to test */
 	GArray * timevals = g_array_new(FALSE, TRUE, sizeof(struct tm));
@@ -818,9 +842,9 @@ guess_label_size (IndicatorDatetime * self)
 	g_debug("Checking against %d posible times", timevals->len);
 	gint check_time;
 	for (check_time = 0; check_time < timevals->len; check_time++) {
-		gchar longstr[128];
-		strftime(longstr, 128, self->priv->time_string, &(g_array_index(timevals, struct tm, check_time)));
-		
+		gchar longstr[256];
+		strftime(longstr, 256, self->priv->time_string, &(g_array_index(timevals, struct tm, check_time)));
+
 		gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
 		gint length = measure_string(style, context, utf8);
 		g_free(utf8);
@@ -901,6 +925,21 @@ is_locale_12h()
 	}
 
 	return TRUE;
+}
+
+/* Respond to changes in the screen to update the text gravity */
+static void
+update_text_gravity (GtkWidget *widget, GdkScreen *previous_screen, gpointer data)
+{
+	IndicatorDatetime * self = INDICATOR_DATETIME(data);
+	if (self->priv->label == NULL) return;
+
+	PangoLayout  *layout;
+	PangoContext *context;
+
+	layout = gtk_label_get_layout (GTK_LABEL(self->priv->label));
+	context = pango_layout_get_context(layout);
+	pango_context_set_base_gravity(context, PANGO_GRAVITY_AUTO);
 }
 
 /* Tries to figure out what our format string should be.  Lots
@@ -1008,8 +1047,10 @@ get_label (IndicatorObject * io)
 	/* If there's not a label, we'll build ourselves one */
 	if (self->priv->label == NULL) {
 		self->priv->label = GTK_LABEL(gtk_label_new("Time"));
+		gtk_label_set_justify (GTK_LABEL(self->priv->label), GTK_JUSTIFY_CENTER);
 		g_object_ref(G_OBJECT(self->priv->label));
 		g_signal_connect(G_OBJECT(self->priv->label), "style-set", G_CALLBACK(style_changed), self);
+		g_signal_connect(G_OBJECT(self->priv->label), "screen-changed", G_CALLBACK(update_text_gravity), self);
 		guess_label_size(self);
 		update_label(self);
 		gtk_widget_show(GTK_WIDGET(self->priv->label));
