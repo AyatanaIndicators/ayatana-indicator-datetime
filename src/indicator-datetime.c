@@ -33,9 +33,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib/gi18n-lib.h>
 #include <gio/gio.h>
 
-/* DBus Stuff */
-#include <dbus/dbus-glib.h>
-
 /* Indicator Stuff */
 #include <libindicator/indicator.h>
 #include <libindicator/indicator-object.h>
@@ -87,7 +84,8 @@ struct _IndicatorDatetimePrivate {
 	IndicatorServiceManager * sm;
 	DbusmenuGtkMenu * menu;
 
-	DBusGProxy * service_proxy;
+	GCancellable * service_proxy_cancel;
+	GDBusProxy * service_proxy;
 	IdoCalendarMenuItem *ido_calendar;
 
 	GSettings * settings;
@@ -165,7 +163,9 @@ static gchar * generate_format_string     (IndicatorDatetime * self);
 static struct tm * update_label           (IndicatorDatetime * io);
 static void guess_label_size              (IndicatorDatetime * self);
 static void setup_timer                   (IndicatorDatetime * self, struct tm * ltime);
-static void update_time                   (DBusGProxy * proxy, gpointer user_data);
+static void update_time                   (IndicatorDatetime * self);
+static void receive_signal                (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name, GVariant * parameters, gpointer user_data);
+static void service_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data);
 static gint generate_strftime_bitmask     (const char *time_str);
 
 /* Indicator Module Config */
@@ -294,20 +294,52 @@ indicator_datetime_init (IndicatorDatetime *self)
 
 	self->priv->sm = indicator_service_manager_new_version(SERVICE_NAME, SERVICE_VERSION);
 
-	DBusGConnection * session = dbus_g_bus_get(DBUS_BUS_SESSION, NULL);
-	if (session != NULL) {
-		self->priv->service_proxy = dbus_g_proxy_new_for_name(session,
-		                                                      SERVICE_NAME,
-		                                                      SERVICE_OBJ,
-		                                                      SERVICE_IFACE);
+	self->priv->service_proxy_cancel = g_cancellable_new();
 
-		dbus_g_proxy_add_signal(self->priv->service_proxy, "UpdateTime", G_TYPE_INVALID);
-		dbus_g_proxy_connect_signal(self->priv->service_proxy,
-		                            "UpdateTime",
-		                            G_CALLBACK(update_time),
-		                            self,
-		                            NULL);
+	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION,
+		                  G_DBUS_PROXY_FLAGS_NONE,
+		                  NULL,
+		                  SERVICE_NAME,
+		                  SERVICE_OBJ,
+		                  SERVICE_IFACE,
+		                  self->priv->service_proxy_cancel,
+		                  service_proxy_cb,
+                                  self);
+
+	return;
+}
+
+/* Callback from trying to create the proxy for the serivce, this
+   could include starting the service.  Sometime it'll fail and
+   we'll try to start that dang service again! */
+static void
+service_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
+{
+	GError * error = NULL;
+
+	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
+	g_return_if_fail(self != NULL);
+
+	GDBusProxy * proxy = g_dbus_proxy_new_for_bus_finish(res, &error);
+
+	IndicatorDatetimePrivate * priv = INDICATOR_DATETIME_GET_PRIVATE(self);
+
+	if (priv->service_proxy_cancel != NULL) {
+		g_object_unref(priv->service_proxy_cancel);
+		priv->service_proxy_cancel = NULL;
 	}
+
+	if (error != NULL) {
+		g_error("Could not grab DBus proxy for %s: %s", SERVICE_NAME, error->message);
+		g_error_free(error);
+		return;
+	}
+
+	/* Okay, we're good to grab the proxy at this point, we're
+	sure that it's ours. */
+	priv->service_proxy = proxy;
+
+	g_signal_connect(proxy, "g-signal", G_CALLBACK(receive_signal), self);
 
 	return;
 }
@@ -601,14 +633,26 @@ update_label (IndicatorDatetime * io)
 	return ltime;
 }
 
-/* Recieves the signal from the service that we should update
-   the time right now.  Usually from a timezone switch. */
+/* Update the time right now.  Usually the result of a timezone switch. */
 static void
-update_time (DBusGProxy * proxy, gpointer user_data)
+update_time (IndicatorDatetime * self)
 {
-	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
 	struct tm * ltime = update_label(self);
 	setup_timer(self, ltime);
+	return;
+}
+
+/* Receives all signals from the service, routed to the appropriate functions */
+static void
+receive_signal (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name,
+                GVariant * parameters, gpointer user_data)
+{
+	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
+
+	if (g_strcmp0(signal_name, "UpdateTime") == 0) {
+		update_time(self);
+	}
+
 	return;
 }
 

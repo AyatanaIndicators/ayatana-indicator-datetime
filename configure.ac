@@ -62,21 +62,21 @@ OOBS_REQUIRED_VERSION=2.31.0
 
 AS_IF([test "x$with_gtk" = x3],
     [PKG_CHECK_MODULES(INDICATOR, indicator3 >= $INDICATOR_REQUIRED_VERSION
-                                  dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
-                                  dbusmenu-gtk3 >= $DBUSMENUGTK_REQUIRED_VERSION
+                                  dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
+                                  dbusmenu-gtk3-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
                                   libido3-0.1 >= $INDICATOR_DISPLAY_OBJECTS)
         ],
       [test "x$with_gtk" = x2],
     [PKG_CHECK_MODULES(INDICATOR, indicator >= $INDICATOR_REQUIRED_VERSION
-                                  dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
-                                  dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION
+                                  dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
+                                  dbusmenu-gtk-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
                                   libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS)
         ],
     [AC_MSG_FAILURE([Value for --with-gtk was neither 2 nor 3])]
 )
 
 PKG_CHECK_MODULES(SERVICE,   indicator >= $INDICATOR_REQUIRED_VERSION
-                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
+                             dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
                              libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
                              gio-2.0 >= $GIO_REQUIRED_VERSION
                              geoclue >= $GEOCLUE_REQUIRED_VERSION
