@@ -82,7 +82,7 @@ AS_IF([test "x$with_gtk" = x3],
 )
 
 PKG_CHECK_MODULES(SERVICE,   indicator >= $INDICATOR_REQUIRED_VERSION
-                             dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
+                             dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
                              libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
                              gio-2.0 >= $GIO_REQUIRED_VERSION
                              geoclue >= $GEOCLUE_REQUIRED_VERSION

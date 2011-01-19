@@ -4,7 +4,7 @@ libexec_PROGRAMS = indicator-datetime-service
 indicator_datetime_service_SOURCES = \
 	datetime-interface.c \
 	datetime-interface.h \
-	datetime-service-server.h \
+	gen-datetime-service.xml.c \
 	calendar-menu-item.c \
 	calendar-menu-item.h \
 	datetime-service.c \
@@ -20,7 +20,7 @@ indicator_datetime_service_LDADD = \
 datetimelibdir = $(INDICATORDIR)
 datetimelib_LTLIBRARIES = libdatetime.la
 libdatetime_la_SOURCES = \
-	datetime-service-client.h \
+	gen-datetime-service.xml.h \
 	dbus-shared.h \
 	indicator-datetime.c
 libdatetime_la_CFLAGS = \
@@ -32,23 +32,20 @@ libdatetime_la_LDFLAGS = \
 	-module \
 	-avoid-version
 
-datetime-service-client.h: $(srcdir)/datetime-service.xml
-	dbus-binding-tool \
-		--prefix=_datetime_service_client \
-		--mode=glib-client \
-		--output=datetime-service-client.h \
-		$(srcdir)/datetime-service.xml
+gen-%.xml.c: %.xml
+	@echo "Building $@ from $<"
+	@echo "const char * _$(subst -,_,$(subst .,_,$(basename $<))) = " > $@
+	@sed -e "s:\":\\\\\":g" -e s:^:\": -e s:\$$:\\\\n\": $< >> $@
+	@echo ";" >> $@
 
-datetime-service-server.h: $(srcdir)/datetime-service.xml
-	dbus-binding-tool \
-		--prefix=_datetime_service_server \
-		--mode=glib-server \
-		--output=datetime-service-server.h \
-		$(srcdir)/datetime-service.xml
+gen-%.xml.h: %.xml
+	@echo "Building $@ from $<"
+	@echo "extern const char * _$(subst -,_,$(subst .,_,$(basename $<)));" > $@
 
 BUILT_SOURCES = \
-	datetime-service-client.h \
-	datetime-service-server.h
+	gen-datetime-service.xml.c \
+	gen-datetime-service.xml.h
+
 
 CLEANFILES = \
 	$(BUILT_SOURCES)
