@@ -1081,6 +1081,16 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 	return TRUE;
 }
 
+static gboolean
+new_timezone_item(DbusmenuMenuitem * newitem,
+				   DbusmenuMenuitem * parent,
+				   DbusmenuClient   * client)
+{
+	// Menu item with a radio button and a right aligned time
+  
+  return TRUE;
+}
+
 /* Grabs the label.  Creates it if it doesn't
    exist already */
 static GtkLabel *

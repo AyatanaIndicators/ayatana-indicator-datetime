@@ -36,9 +36,13 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <time.h>
 #include <libecal/e-cal.h>
 #include <libical/ical.h>
+#include <e-util/e-time-utils.h>
+#include <libecal/e-cal-time-util.h>
+#include <libedataserver/e-source.h>
 // Other users of ecal seem to also include these, not sure why they should be included by the above
 #include <libecal/e-cal-time-util.h>
 #include <libical/icaltime.h>
+
 
 #include <oobs/oobs-timeconfig.h>
 
@@ -235,21 +239,37 @@ check_for_calendar (gpointer user_data)
 	return FALSE;
 }
 
-/* Populate the menu with todays, next 5 appointments. We probably want to shift this off to an idle-add
- * the problem is the inserting order of items and updating them might be difficult. 
- * we should hook into the ABOUT TO SHOW signal and use that to update the appointments. 
+static gboolean
+timezone_clicked_cb() {
+
+  return FALSE;
+}
+
+static gboolean
+update_timezone_menu_items(gpointer user_data) {
+
+	return FALSE;
+}
+
+/* Populate the menu with todays, next 5 appointments. 
+ * we should hook into the ABOUT TO SHOW signal and use that to update the appointments.
+ * Experience has shown that caldav's and webcals can be slow to load from eds
+ * this is a problem mainly on the EDS side of things, not ours. 
  */
 static gboolean
 update_appointment_menu_items (gpointer user_data) {
-	
+	// FFR: we should take into account short term timers, for instance
+	// tea timers, pomodoro timers etc... that people may add, this is hinted to in the spec.
 	time_t t1, t2;
 	gchar *query, *is, *ie;
 	GList *objects = NULL, *l;
 	GError *gerror = NULL;
 	DbusmenuMenuitem * item = NULL;
 	gint i;
+	gint width, height;
 	
 	ecal = e_cal_new_system_calendar();
+	
 	if (!ecal) {
 		g_debug("e_cal_new_system_calendar failed");
 		ecal = NULL;
@@ -269,50 +289,119 @@ update_appointment_menu_items (gpointer user_data) {
 		return FALSE;
 	}
 	
+	/* This timezone represents the timezone of the calendar, this might be different to the current UTC offset.
+	 * this means we'll have some geoclue interaction going on, and possibly the user will be involved in setting
+	 * their location manually, case in point: trains have satellite links which often geoclue to sweden,
+	 * this shouldn't automatically set the location and mess up all the appointments for the user.
+	 */
 	ecal_timezone = icaltimezone_get_tzid(tzone);
-	
-	// TODO: Remove all the existing menu items which are appointments.
 	
 	time(&t1);
 	time(&t2);
-	t2 += (time_t) (24 * 60 * 60); /* 1 day ahead of now */
+	t2 += (time_t) (7 * 24 * 60 * 60); /* 7 days ahead of now */
 
 	is = isodate_from_time_t(t1);
 	ie = isodate_from_time_t(t2);
-	// FIXME can we put a limit on the number of results?
+	// FIXME can we put a limit on the number of results? Or if not complete, or is event/todo?
 	query = g_strdup_printf("(occur-in-time-range? (make-time\"%s\") (make-time\"%s\"))", is, ie);
 
-	if (!e_cal_get_object_list(ecal, query, &objects, &gerror);) {
+	if (!e_cal_get_object_list_as_comp(ecal, query, &objects, &gerror);) {
 		g_debug("Failed to get objects\n");
 		g_free(ecal);
 		ecal = NULL;
 		return FALSE;
 	}
-	i = 0;
-	gint width, height;
 	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
 	
+	if (appointments != NULL) {
+		for (l = appointments; l; l = l->next) {
+			item =  l->data;
+			// TODO: Remove all the existing menu items which are in appointments.
+			
+			// pop it out of the dbus menu
+			// remove it from the appointments glist
+			// free it
+		}
+		appointments = NULL;
+	}
+
+	i = 0;
 	for (l = objects; l; l = l->next) {
-		icalcomponent *icalcomp = l->data;
-		icalproperty* p;
-		icalvalue *v;
-		gchar *name, *due, *uri, *cmd;
-		p = icalcomponent_get_first_property(icalcomp, ICAL_NAME_PROPERTY);
-		v = icalproperty_get_value(p);
-		name = icalvalue_get_string(v);
+		ECalComponent *ecalcomp = l->data;
+		ECalComponentText valuetext;
+		ECalComponentDateTime datetime;
+		icaltimezone *appointment_zone;
+		time_t appointment_time, ti;
+		icalproperty_status status;
+		gchar *summary, right[20], *cmd;
+		const gchar *uri;
+		struct tm *tmp_tm, *tm_today;
 		
-		p = icalcomponent_get_first_property(icalcomp, ICAL_DUE_PROPERTY);
-		v = icalproperty_get_value(p);
-		due = icalvalue_get_string(v);
+		vtype = e_cal_component_get_vtype (comp);
+
+		// See above FIXME regarding query result
+		// If it's not an event or todo, continue no-increment
+        if (vtype != E_CAL_COMPONENT_EVENT || vtype != E_CAL_COMPONENT_TODO)
+			continue;
+
+		// See above FIXME regarding query result
+		// if the status is completed, continue no-increment
+		e_cal_component_get_status (ecalcomp, &status);
+		if (status == ICAL_STATUS_COMPLETED || status == ICAL_STATUS_CANCELLED)
+			continue;
+
+		// INPROGRESS: Create a menu item for each of them, try to include helpful metadata e.g. colours, due time
+		item = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set       (item, "type", INDICATOR_MENUITEM_TYPE);
+		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 		
-		// TODO: now we pull out the URI for the calendar event and try to create a URI that'll work when we execute evolution
-		// not sure if the ical URL property is actually an evolution compatible URI and no real way to tell other than testing
-		// We may need to change this to ecalcomponenets to get something closer to the evolution URI
-		p = icalcomponent_get_first_property(icalcomp, ICAL_URL_PROPERTY);
-		v = icalproperty_get_value(p);
-		uri = icalvalue_get_string(v);
+        // Label text        
+		e_cal_component_get_summary (ecalcomp, &valuetext);
+		summary = g_strdup (valuetext.value);
+		e_cal_component_free_text (&valuetext);
+		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_LABEL, summary);
+		g_free (summary);
+		
+		// Due text
+		if (vtype == E_CAL_COMPONENT_EVENT)
+			e_cal_component_get_dtstart (ecalcomp, &datetime);
+		else
+		    e_cal_component_get_due (ecalcomp, &datetime);
+		
+		if (datetime.value) {
+			appointment_zone = get_zone_from_tzid (client, datetime.tzid);
+			if (!appointment_zone || datetime.value->is_date)
+				appointment_zone = ecal_timezone;
+			appointment_time = icaltime_as_timet_with_zone (*datetime.value, appointment_zone);
+		}
+		e_cal_component_free_datetime (&datetime);
+		tmp_tm = convert_timet_to_struct_tm (appointment_time, appointment_zone);
+		
+		// Get today
+		time(&ti);
+		tm_today = convert_timet_to_struct_tm (ti, appointment_zone);
+		if (tm_today->mday == tmp_tm->mday && tm_today->mon == tmp_tm->mon && tm_today->year == tmp_tm->year)
+			strftime(&right, sizeof(right), "%X", tmp_tm);
+		else
+			strftime(&right, sizeof(right), "%a %X", tmp_tm);
+		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, &right);
+		
+		// Now we pull out the URI for the calendar event and try to create a URI that'll work when we execute evolution
+		e_cal_component_get_url(ecalcomp, &uri);
 		cmd = g_strconcat("evolution ", uri, NULL);
+		g_signal_connect (G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
+						  G_CALLBACK (activate_cb), cmd);
 		
+		// Get the colour E_CAL_COMPONENT_FIELD_COLOR
+		// Get the icon, either EVENT or MEMO or TODO?
+		gdouble red, blue, green;
+        ECalSource *source = e_cal_get_source (ecalcomp->client);
+        if (!ecalcomp->color && e_source_get_color (source, &source_color)) {
+			g_free (comp_data->color);
+			ecalcomp->color = g_strdup_printf ("#%06x", source_color & 0xffffff);
+        }
+             
 		//cairo_surface_t *cs = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
 		//cairo_t *cr = cairo_create(cs);
 
@@ -320,17 +409,10 @@ update_appointment_menu_items (gpointer user_data) {
 
 		//GdkPixbuf * pixbuf = gdk_pixbuf_get_from_drawable(NULL, (GdkDrawable*)cs, 0,0,0,0, width, height);
 		
-		// TODO: Create a menu item for each of them, try to include helpful metadata e.g. colours, due time
-		item = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set       (item, "type", INDICATOR_MENUITEM_TYPE);
-		dbusmenu_menuitem_property_set       (item, APPOINTMENT_MENUITEM_PROP_LABEL, name);
 		//dbusmenu_menuitem_property_set_image (item, APPOINTMENT_MENUITEM_PROP_ICON, pixbuf);
-		dbusmenu_menuitem_property_set       (item, APPOINTMENT_MENUITEM_PROP_RIGHT, due);
-		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
-		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+		
 		dbusmenu_menuitem_child_append       (root, item);
-		g_signal_connect (G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
-						  G_CALLBACK (activate_cb), cmd);
+		appointments = g_list_append(appointments, item); // Keep track of the items here to make them east to remove
 		
 		if (i == 4) break; // See above FIXME regarding query result limit
 		i++;
@@ -395,7 +477,19 @@ build_menus (DbusmenuMenuitem * root)
 	// This just populates the items on startup later we want to be able to update the appointments before
 	// presenting the menu. 
 	update_appointment_menu_items(NULL);
-
+	if (calendar != NULL) {
+		// TODO Create "Add appointment" menu item
+	}
+	// TODO Create FFR? "Add timer" menu item
+	
+	separator = dbusmenu_menuitem_new();
+	dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
+	dbusmenu_menuitem_child_append(root, separator);
+	
+	update_timezone_menu_items(NULL);
+	// TODO Create "detected location" menu item? (defaults to the geoclue location)
+	// TODO Create "Add location" menu item
+	
 	separator = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
 	dbusmenu_menuitem_child_append(root, separator);
