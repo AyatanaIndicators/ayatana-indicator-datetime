@@ -64,16 +64,16 @@ ICAL_REQUIRED_VERSION=0.44
 
 AS_IF([test "x$with_gtk" = x3],
     [PKG_CHECK_MODULES(INDICATOR, indicator3 >= $INDICATOR_REQUIRED_VERSION
-                                  dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
-                                  dbusmenu-gtk3 >= $DBUSMENUGTK_REQUIRED_VERSION
+                                  dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
+                                  dbusmenu-gtk3-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
                                   libido3-0.1 >= $INDICATOR_DISPLAY_OBJECTS
                                   libecal >= $ECAL_REQUIRED_VERSION
                                   libical >= $ICAL_REQUIRED_VERSION)
         ],
       [test "x$with_gtk" = x2],
     [PKG_CHECK_MODULES(INDICATOR, indicator >= $INDICATOR_REQUIRED_VERSION
-                                  dbusmenu-glib >= $DBUSMENUGLIB_REQUIRED_VERSION
-                                  dbusmenu-gtk >= $DBUSMENUGTK_REQUIRED_VERSION
+                                  dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
+                                  dbusmenu-gtk-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
                                   libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
                                   libecal >= $ECAL_REQUIRED_VERSION
                                   libical >= $ICAL_REQUIRED_VERSION)
