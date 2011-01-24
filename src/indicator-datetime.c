@@ -1263,6 +1263,7 @@ get_menu (IndicatorObject * io)
 
 	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), DBUSMENU_CALENDAR_MENUITEM_TYPE, new_calendar_item);
 	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), APPOINTMENT_MENUITEM_TYPE, new_appointment_item);
+	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), TIMEZONE_MENUITEM_TYPE, new_timezone_item);
 
 	return GTK_MENU(self->priv->menu);
 }

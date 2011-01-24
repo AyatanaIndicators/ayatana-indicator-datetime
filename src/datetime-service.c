@@ -23,6 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libindicator/indicator-service.h>
 #include <locale.h>
 
+#include <gtk/gtk.h>
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 
@@ -36,11 +37,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <time.h>
 #include <libecal/e-cal.h>
 #include <libical/ical.h>
-#include <e-util/e-time-utils.h>
 #include <libecal/e-cal-time-util.h>
 #include <libedataserver/e-source.h>
 // Other users of ecal seem to also include these, not sure why they should be included by the above
-#include <libecal/e-cal-time-util.h>
 #include <libical/icaltime.h>
 
 
@@ -66,7 +65,7 @@ static DbusmenuMenuitem * settings = NULL;
 static DbusmenuMenuitem * tzchange = NULL;
 static GList			* appointments = NULL;
 static ECal				* ecal = NULL;
-static gchar			* ecal_timezone = NULL;
+static const gchar		* ecal_timezone = NULL;
 
 /* Geoclue trackers */
 static GeoclueMasterClient * geo_master = NULL;
@@ -240,14 +239,8 @@ check_for_calendar (gpointer user_data)
 }
 
 static gboolean
-timezone_clicked_cb() {
-
-  return FALSE;
-}
-
-static gboolean
 update_timezone_menu_items(gpointer user_data) {
-
+	// Get the location preferences and the current location, highlight the current location somehow
 	return FALSE;
 }
 
@@ -261,6 +254,7 @@ update_appointment_menu_items (gpointer user_data) {
 	// FFR: we should take into account short term timers, for instance
 	// tea timers, pomodoro timers etc... that people may add, this is hinted to in the spec.
 	time_t t1, t2;
+	icaltimezone *tzone;
 	gchar *query, *is, *ie;
 	GList *objects = NULL, *l;
 	GError *gerror = NULL;
@@ -268,7 +262,8 @@ update_appointment_menu_items (gpointer user_data) {
 	gint i;
 	gint width, height;
 	
-	ecal = e_cal_new_system_calendar();
+	if (!ecal)
+		ecal = e_cal_new_system_calendar();
 	
 	if (!ecal) {
 		g_debug("e_cal_new_system_calendar failed");
@@ -282,7 +277,7 @@ update_appointment_menu_items (gpointer user_data) {
 		return FALSE;
 	}
 	
-	if (!e_cal_get_timezone(ecal, "UTC", &tzone, &gerror) {
+	if (!e_cal_get_timezone(ecal, "UTC", &tzone, &gerror)) {
 		g_debug("failed to get time zone\n");
 		g_free(ecal);
 		ecal = NULL;
@@ -305,22 +300,20 @@ update_appointment_menu_items (gpointer user_data) {
 	// FIXME can we put a limit on the number of results? Or if not complete, or is event/todo?
 	query = g_strdup_printf("(occur-in-time-range? (make-time\"%s\") (make-time\"%s\"))", is, ie);
 
-	if (!e_cal_get_object_list_as_comp(ecal, query, &objects, &gerror);) {
+	if (!e_cal_get_object_list_as_comp(ecal, query, &objects, &gerror)) {
 		g_debug("Failed to get objects\n");
 		g_free(ecal);
 		ecal = NULL;
 		return FALSE;
 	}
 	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
-	
 	if (appointments != NULL) {
 		for (l = appointments; l; l = l->next) {
 			item =  l->data;
-			// TODO: Remove all the existing menu items which are in appointments.
-			
-			// pop it out of the dbus menu
-			// remove it from the appointments glist
-			// free it
+			// Remove all the existing menu items which are in appointments.
+			dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(item));
+			appointments = g_list_remove(appointments, item);
+			g_free(item);
 		}
 		appointments = NULL;
 	}
@@ -330,14 +323,13 @@ update_appointment_menu_items (gpointer user_data) {
 		ECalComponent *ecalcomp = l->data;
 		ECalComponentText valuetext;
 		ECalComponentDateTime datetime;
-		icaltimezone *appointment_zone;
-		time_t appointment_time, ti;
+		icaltimezone *appointment_zone = NULL;
 		icalproperty_status status;
 		gchar *summary, right[20], *cmd;
 		const gchar *uri;
-		struct tm *tmp_tm, *tm_today;
-		
-		vtype = e_cal_component_get_vtype (comp);
+		struct tm tmp_tm;
+
+		ECalComponentVType vtype = e_cal_component_get_vtype (ecalcomp);
 
 		// See above FIXME regarding query result
 		// If it's not an event or todo, continue no-increment
@@ -352,15 +344,16 @@ update_appointment_menu_items (gpointer user_data) {
 
 		// INPROGRESS: Create a menu item for each of them, try to include helpful metadata e.g. colours, due time
 		item = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set       (item, "type", INDICATOR_MENUITEM_TYPE);
+		dbusmenu_menuitem_property_set       (item, "type", APPOINTMENT_MENUITEM_TYPE);
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 		
         // Label text        
 		e_cal_component_get_summary (ecalcomp, &valuetext);
 		summary = g_strdup (valuetext.value);
-		e_cal_component_free_text (&valuetext);
+
 		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_LABEL, summary);
+		
 		g_free (summary);
 		
 		// Due text
@@ -369,23 +362,26 @@ update_appointment_menu_items (gpointer user_data) {
 		else
 		    e_cal_component_get_due (ecalcomp, &datetime);
 		
-		if (datetime.value) {
-			appointment_zone = get_zone_from_tzid (client, datetime.tzid);
-			if (!appointment_zone || datetime.value->is_date)
-				appointment_zone = ecal_timezone;
-			appointment_time = icaltime_as_timet_with_zone (*datetime.value, appointment_zone);
+		// FIXME need to get the timezone of the above datetime, 
+		// and get the icaltimezone of the geoclue timezone/selected timezone (whichever is preferred)
+		if (!datetime.value) {
+			g_free(item);
+			continue;
 		}
+		
+		if (!appointment_zone || datetime.value->is_date) { // If it's today put in the current timezone?
+			appointment_zone = tzone;
+		}
+		tmp_tm = icaltimetype_to_tm_with_zone (datetime.value, appointment_zone, tzone);
+		
 		e_cal_component_free_datetime (&datetime);
-		tmp_tm = convert_timet_to_struct_tm (appointment_time, appointment_zone);
 		
 		// Get today
-		time(&ti);
-		tm_today = convert_timet_to_struct_tm (ti, appointment_zone);
-		if (tm_today->mday == tmp_tm->mday && tm_today->mon == tmp_tm->mon && tm_today->year == tmp_tm->year)
-			strftime(&right, sizeof(right), "%X", tmp_tm);
+		if (datetime.value->is_date)
+			strftime(right, sizeof(right), "%X", &tmp_tm);
 		else
-			strftime(&right, sizeof(right), "%a %X", tmp_tm);
-		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, &right);
+			strftime(right, sizeof(right), "%a %X", &tmp_tm);
+		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, right);
 		
 		// Now we pull out the URI for the calendar event and try to create a URI that'll work when we execute evolution
 		e_cal_component_get_url(ecalcomp, &uri);
@@ -395,12 +391,13 @@ update_appointment_menu_items (gpointer user_data) {
 		
 		// Get the colour E_CAL_COMPONENT_FIELD_COLOR
 		// Get the icon, either EVENT or MEMO or TODO?
-		gdouble red, blue, green;
+		/*gdouble red, blue, green;
         ECalSource *source = e_cal_get_source (ecalcomp->client);
         if (!ecalcomp->color && e_source_get_color (source, &source_color)) {
 			g_free (comp_data->color);
 			ecalcomp->color = g_strdup_printf ("#%06x", source_color & 0xffffff);
-        }
+        }*/
+        
              
 		//cairo_surface_t *cs = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
 		//cairo_t *cr = cairo_create(cs);
@@ -412,7 +409,7 @@ update_appointment_menu_items (gpointer user_data) {
 		//dbusmenu_menuitem_property_set_image (item, APPOINTMENT_MENUITEM_PROP_ICON, pixbuf);
 		
 		dbusmenu_menuitem_child_append       (root, item);
-		appointments = g_list_append(appointments, item); // Keep track of the items here to make them east to remove
+		appointments = g_list_append         (appointments, item); // Keep track of the items here to make them east to remove
 		
 		if (i == 4) break; // See above FIXME regarding query result limit
 		i++;
@@ -487,7 +484,6 @@ build_menus (DbusmenuMenuitem * root)
 	dbusmenu_menuitem_child_append(root, separator);
 	
 	update_timezone_menu_items(NULL);
-	// TODO Create "detected location" menu item? (defaults to the geoclue location)
 	// TODO Create "Add location" menu item
 	
 	separator = dbusmenu_menuitem_new();
