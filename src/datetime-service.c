@@ -415,6 +415,7 @@ update_appointment_menu_items (gpointer user_data) {
 		i++;
 	}
 	g_free(ecal); // Really we should do the setup somewhere where we know it'll only run once, right now, we'll do it every time and free it.
+	ecal = NULL;
 	return TRUE;
 }
 
