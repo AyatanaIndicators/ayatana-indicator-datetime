@@ -5,7 +5,7 @@
 		<value nick="24-hour" value="2" />
 		<value nick="custom" value="3" />
 	</enum>
-	<schema id="org.ayatana.indicator.datetime" path="/apps/indicators/datetime/" gettext-domain="indicator-datetime">
+	<schema id="com.canonical.indicator.datetime" path="/com/canonical/indicator/datetime/" gettext-domain="indicator-datetime">
 		<key name="time-format" enum="time-enum">
 			<default>'locale-default'</default>
 			<summary>What the time format should be</summary>
@@ -13,7 +13,7 @@
 			  Controls the time format that is displayed in the indicator.  For almost
 			  all users this should be the default for their locale.  If you think the
 			  setting is wrong for your locale please join or talk to the translation
-			  team for your langauge.  If you just want something different you can
+			  team for your language.  If you just want something different you can
 			  adjust this to be either 12 or 24 time.  Or, you can use a custom format
 			  string and set the custom-time-format setting.
 			</description>
