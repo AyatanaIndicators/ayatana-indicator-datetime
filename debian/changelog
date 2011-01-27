@@ -1,3 +1,15 @@
+indicator-datetime (0.1.91-0ubuntu1~ppa1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    * Change to canonical.com for naming
+    * Fixing a type callback
+    * Switching to GDbus and dbusmenu-0.4
+    * Supporting a wider range of custom strings for time and support
+      seconds in the custom time strings.
+    * Fixing to take time settings from LC_TIME
+
+ -- Ted Gould <ted@ubuntu.com>  Thu, 27 Jan 2011 16:43:14 -0600
+
 indicator-datetime (0.1.90-0ubuntu2) natty; urgency=low
 
   * debian/control
