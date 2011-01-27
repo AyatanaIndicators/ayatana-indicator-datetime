@@ -1058,7 +1058,8 @@ generate_format_string (IndicatorDatetime * self)
 static gboolean
 new_calendar_item (DbusmenuMenuitem * newitem,
 				   DbusmenuMenuitem * parent,
-				   DbusmenuClient   * client)
+				   DbusmenuClient   * client,
+				   gpointer           user_data)
 {
 	g_return_val_if_fail(DBUSMENU_IS_MENUITEM(newitem), FALSE);
 	g_return_val_if_fail(DBUSMENU_IS_GTKCLIENT(client), FALSE);
