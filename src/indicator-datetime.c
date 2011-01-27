@@ -108,7 +108,7 @@ enum {
 #define PROP_SHOW_DATE_S                "show-date"
 #define PROP_CUSTOM_TIME_FORMAT_S       "custom-time-format"
 
-#define SETTINGS_INTERFACE              "org.ayatana.indicator.datetime"
+#define SETTINGS_INTERFACE              "com.canonical.indicator.datetime"
 #define SETTINGS_TIME_FORMAT_S          "time-format"
 #define SETTINGS_SHOW_SECONDS_S         "show-seconds"
 #define SETTINGS_SHOW_DAY_S             "show-day"
