@@ -1,7 +1,7 @@
 #SUBDIRS = icons
 
 gsettings_SCHEMAS = \
-	org.ayatana.indicator.datetime.gschema.xml
+	com.canonical.indicator.datetime.gschema.xml
 @GSETTINGS_RULES@
 
 dbus_servicesdir = $(DBUSSERVICEDIR)

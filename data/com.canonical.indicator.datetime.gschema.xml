@@ -5,7 +5,7 @@
 		<value nick="24-hour" value="2" />
 		<value nick="custom" value="3" />
 	</enum>
-	<schema id="org.ayatana.indicator.datetime" path="/apps/indicators/datetime/" gettext-domain="indicator-datetime">
+	<schema id="com.canonical.indicator.datetime" path="/com/canonical/indicator/datetime/" gettext-domain="indicator-datetime">
 		<key name="time-format" enum="time-enum">
 			<default>'locale-default'</default>
 			<summary>What the time format should be</summary>

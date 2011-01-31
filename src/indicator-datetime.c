@@ -116,7 +116,7 @@ struct _indicator_item_t {
 #define PROP_SHOW_DATE_S                "show-date"
 #define PROP_CUSTOM_TIME_FORMAT_S       "custom-time-format"
 
-#define SETTINGS_INTERFACE              "org.ayatana.indicator.datetime"
+#define SETTINGS_INTERFACE              "com.canonical.indicator.datetime"
 #define SETTINGS_TIME_FORMAT_S          "time-format"
 #define SETTINGS_SHOW_SECONDS_S         "show-seconds"
 #define SETTINGS_SHOW_DAY_S             "show-day"
@@ -1190,7 +1190,8 @@ new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, Dbu
 static gboolean
 new_calendar_item (DbusmenuMenuitem * newitem,
 				   DbusmenuMenuitem * parent,
-				   DbusmenuClient   * client)
+				   DbusmenuClient   * client,
+				   gpointer           user_data)
 {
 	g_return_val_if_fail(DBUSMENU_IS_MENUITEM(newitem), FALSE);
 	g_return_val_if_fail(DBUSMENU_IS_GTKCLIENT(client), FALSE);
@@ -1216,7 +1217,8 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 static gboolean
 new_timezone_item(DbusmenuMenuitem * newitem,
 				   DbusmenuMenuitem * parent,
-				   DbusmenuClient   * client)
+				   DbusmenuClient   * client,
+				   gpointer           user_data)
 {
 	// Menu item with a radio button and a right aligned time
   

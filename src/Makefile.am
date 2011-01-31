@@ -13,7 +13,8 @@ indicator_datetime_service_CFLAGS = \
 	-Wall \
 	-Werror \
 	$(SERVICE_CFLAGS) \
-	-DTIMEZONE_FILE="\"/etc/timezone\""
+	-DTIMEZONE_FILE="\"/etc/timezone\"" \
+	-DG_LOG_DOMAIN=\"Indicator-Datetime\"
 indicator_datetime_service_LDADD = \
 	$(SERVICE_LIBS)
 
@@ -25,7 +26,8 @@ libdatetime_la_SOURCES = \
 	indicator-datetime.c
 libdatetime_la_CFLAGS = \
 	$(INDICATOR_CFLAGS) \
-	-Wall -Werror
+	-Wall -Werror \
+	-DG_LOG_DOMAIN=\"Indicator-Datetime\"
 libdatetime_la_LIBADD = \
 	$(INDICATOR_LIBS)
 libdatetime_la_LDFLAGS = \
