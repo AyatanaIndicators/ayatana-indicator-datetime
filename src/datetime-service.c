@@ -393,6 +393,8 @@ geo_create_address (GeoclueMasterClient * master, GeoclueAddress * address, GErr
 		return;
 	}
 
+	g_warn_if_fail(geo_address == NULL);
+
 	g_debug("Created Geoclue Address");
 	geo_address = address;
 	g_object_ref(G_OBJECT(geo_address));
@@ -420,6 +422,13 @@ geo_client_invalid (GeoclueMasterClient * client, gpointer user_data)
 {
 	g_warning("Master client invalid, rebuilding.");
 
+	/* Client changes we can assume the address is invalid */
+	if (geo_address != NULL) {
+		g_object_unref(G_OBJECT(geo_address));
+	}
+	geo_address = NULL;
+
+	/* And our master client is invalid */
 	if (geo_master != NULL) {
 		g_object_unref(G_OBJECT(geo_master));
 	}
@@ -469,6 +478,12 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 
 	geo_master = client;
 	g_object_ref(G_OBJECT(geo_master));
+
+	/* New client, make sure we don't have an address hanging on */
+	if (geo_address != NULL) {
+		g_object_unref(G_OBJECT(geo_address));
+	}
+	geo_address = NULL;
 
 	geoclue_master_client_set_requirements_async(geo_master,
 	                                             GEOCLUE_ACCURACY_LEVEL_REGION,
