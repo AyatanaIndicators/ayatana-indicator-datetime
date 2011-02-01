@@ -401,6 +401,24 @@ geo_address_clean (void)
 	return;
 }
 
+/* Clean up and remove all signal handlers from the client as we
+   unreference it as well. */
+static void
+geo_client_clean (void)
+{
+	if (geo_master == NULL) {
+		return;
+	}
+
+	g_signal_handlers_disconnect_by_func(G_OBJECT(geo_master), geo_client_invalid, NULL);
+	g_signal_handlers_disconnect_by_func(G_OBJECT(geo_master), geo_address_change, NULL);
+	g_object_unref(G_OBJECT(geo_master));
+
+	geo_master = NULL;
+
+	return;
+}
+
 /* Callback from creating the address */
 static void
 geo_create_address (GeoclueMasterClient * master, GeoclueAddress * address, GError * error, gpointer user_data)
@@ -448,10 +466,7 @@ geo_client_invalid (GeoclueMasterClient * client, gpointer user_data)
 	geo_address_clean();
 
 	/* And our master client is invalid */
-	if (geo_master != NULL) {
-		g_object_unref(G_OBJECT(geo_master));
-	}
-	geo_master = NULL;
+	geo_client_clean();
 
 	GeoclueMaster * master = geoclue_master_get_default();
 	geoclue_master_create_client_async(master, geo_create_client, NULL);
