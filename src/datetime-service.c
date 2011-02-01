@@ -40,6 +40,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 static void geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data);
 static void setup_timer (void);
+static void geo_client_invalid (GeoclueMasterClient * client, gpointer user_data);
+static void geo_address_change (GeoclueMasterClient * client, gchar * a, gchar * b, gchar * c, gchar * d, gpointer user_data);
 
 static IndicatorService * service = NULL;
 static GMainLoop * mainloop = NULL;
