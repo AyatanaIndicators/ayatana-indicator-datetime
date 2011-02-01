@@ -330,7 +330,7 @@ service_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
 	}
 
 	if (error != NULL) {
-		g_error("Could not grab DBus proxy for %s: %s", SERVICE_NAME, error->message);
+		g_warning("Could not grab DBus proxy for %s: %s", SERVICE_NAME, error->message);
 		g_error_free(error);
 		return;
 	}
