@@ -582,6 +582,9 @@ main (int argc, char ** argv)
 	mainloop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(mainloop);
 
+	geo_address_clean();
+	geo_client_clean();
+
 	g_object_unref(G_OBJECT(master));
 	g_object_unref(G_OBJECT(dbus));
 	g_object_unref(G_OBJECT(service));
