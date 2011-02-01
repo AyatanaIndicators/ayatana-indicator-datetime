@@ -393,6 +393,9 @@ geo_create_address (GeoclueMasterClient * master, GeoclueAddress * address, GErr
 		return;
 	}
 
+	/* We shouldn't have created a new address if we already had one
+	   so this is a warning.  But, it really is only a mem-leak so we
+	   don't need to error out. */
 	g_warn_if_fail(geo_address == NULL);
 
 	g_debug("Created Geoclue Address");
@@ -422,7 +425,8 @@ geo_client_invalid (GeoclueMasterClient * client, gpointer user_data)
 {
 	g_warning("Master client invalid, rebuilding.");
 
-	/* Client changes we can assume the address is invalid */
+	/* Client changes we can assume the address is now invalid so we
+	   need to unreference the one we had. */
 	if (geo_address != NULL) {
 		g_object_unref(G_OBJECT(geo_address));
 	}
@@ -453,6 +457,8 @@ geo_address_change (GeoclueMasterClient * client, gchar * a, gchar * b, gchar * 
 {
 	g_warning("Address provider changed.  Let's change");
 
+	/* If the address is supposed to have changed we need to drop the old
+	   address before starting to get the new one. */
 	if (geo_address != NULL) {
 		g_object_unref(G_OBJECT(geo_address));
 	}
