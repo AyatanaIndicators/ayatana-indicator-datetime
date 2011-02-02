@@ -261,6 +261,7 @@ update_appointment_menu_items (gpointer user_data) {
 	DbusmenuMenuitem * item = NULL;
 	gint i;
 	gint width, height;
+	
 	g_debug("Setting up ecal.");
 	if (!ecal)
 		ecal = e_cal_new_system_calendar();
@@ -309,7 +310,7 @@ update_appointment_menu_items (gpointer user_data) {
 	}
 	g_debug("Number of objects returned: %d", g_list_length(objects));
 	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
-	/*if (appointments != NULL) {
+	if (appointments != NULL) {
 		for (l = appointments; l; l = l->next) {
 			item =  l->data;
 			// Remove all the existing menu items which are in appointments.
@@ -318,8 +319,8 @@ update_appointment_menu_items (gpointer user_data) {
 			g_free(item);
 		}
 		appointments = NULL;
-	}*/
-
+	}
+	
 	i = 0;
 	for (l = objects; l; l = l->next) {
 		ECalComponent *ecalcomp = l->data;
@@ -328,6 +329,7 @@ update_appointment_menu_items (gpointer user_data) {
 		icaltimezone *appointment_zone = NULL;
 		icalproperty_status status;
 		gchar *summary, *cmd;
+		char right[20];
 		const gchar *uri;
 		struct tm tmp_tm;
 
@@ -345,17 +347,19 @@ update_appointment_menu_items (gpointer user_data) {
 			continue;
 
 		// INPROGRESS: Create a menu item for each of them, try to include helpful metadata e.g. colours, due time
+
 		item = dbusmenu_menuitem_new();
-		//dbusmenu_menuitem_property_set       (item, "type", APPOINTMENT_MENUITEM_TYPE);
+		dbusmenu_menuitem_property_set       (item, DBUSMENU_MENUITEM_PROP_TYPE, APPOINTMENT_MENUITEM_TYPE);
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
-		
+	
+		g_debug("Start Object");
         // Label text        
-		g_debug("Label Summary.");
 		e_cal_component_get_summary (ecalcomp, &valuetext);
 		summary = g_strdup (valuetext.value);
 
-		dbusmenu_menuitem_property_set (item, DBUSMENU_MENUITEM_PROP_LABEL, summary);
+		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_LABEL, summary);
+		g_debug("Summary: %s", summary);
 		g_free (summary);
 		
 		// Due text
@@ -367,35 +371,39 @@ update_appointment_menu_items (gpointer user_data) {
 		// FIXME need to get the timezone of the above datetime, 
 		// and get the icaltimezone of the geoclue timezone/selected timezone (whichever is preferred)
 		
-		g_debug("Check for a datetime."); // Should always have one
+		//g_debug("Check for a datetime."); // Should always have one
 		if (!datetime.value) {
 			g_free(item);
 			continue;
 		}
 		
-		g_debug("Set appointment zone."); 
+		//g_debug("Set appointment zone."); 
 		if (!appointment_zone || datetime.value->is_date) { // If it's today put in the current timezone?
 			appointment_zone = tzone;
 		}
 		tmp_tm = icaltimetype_to_tm_with_zone (datetime.value, appointment_zone, tzone);
 		
-		g_debug("Free datetime.");
-		e_cal_component_free_datetime (&datetime);
 		
 		// Get today
-		/*g_debug("Generate strings");
-		if (datetime.value->is_date)
-			strftime(right, sizeof(right), "%X", &tmp_tm);
+		g_debug("Generate strings");
+		if (datetime.value->is_date) // Is today - not working :/
+			strftime(right, 20, "%l:%M %P", &tmp_tm);
 		else
-			strftime(right, sizeof(right), "%a %X", &tmp_tm);*/
-		//dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, right);
+			strftime(right, 20, "%a %l:%M %P", &tmp_tm);
+			
+		g_debug("Appointment time: %s", right);
+		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, right);
 		
-		g_debug("Set callback");
+		//g_debug("Free datetime.");
+		e_cal_component_free_datetime (&datetime);
+		
 		// Now we pull out the URI for the calendar event and try to create a URI that'll work when we execute evolution
-		e_cal_component_get_url(ecalcomp, &uri);
-		cmd = g_strconcat("evolution ", uri, NULL);
+		e_cal_component_get_uid(ecalcomp, &uri);
+		cmd = g_strconcat("evolution calendar://", uri, NULL);
 		g_signal_connect (G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
 						  G_CALLBACK (activate_cb), cmd);
+		
+		g_debug("Command to Execute: %s", cmd);
 		
 		// Get the colour E_CAL_COMPONENT_FIELD_COLOR
 		// Get the icon, either EVENT or MEMO or TODO?
@@ -415,14 +423,14 @@ update_appointment_menu_items (gpointer user_data) {
 		//GdkPixbuf * pixbuf = gdk_pixbuf_get_from_drawable(NULL, (GdkDrawable*)cs, 0,0,0,0, width, height);
 		
 		//dbusmenu_menuitem_property_set_image (item, APPOINTMENT_MENUITEM_PROP_ICON, pixbuf);
-		g_debug("Add to menu.");
+		
 		dbusmenu_menuitem_child_append       (root, item);
 		appointments = g_list_append         (appointments, item); // Keep track of the items here to make them east to remove
 		
 		if (i == 4) break; // See above FIXME regarding query result limit
 		i++;
 	}
-	g_debug("Free-ing ecal.");
+	g_debug("End of objects");
 	if (ecal) {
 		//g_free(ecal); // Really we should do the setup somewhere where we know it'll only run once, right now, we'll do it every time and free it.
 	}

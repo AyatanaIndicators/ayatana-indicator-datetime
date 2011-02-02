@@ -182,7 +182,7 @@ INDICATOR_SET_TYPE(INDICATOR_DATETIME_TYPE)
 
 G_DEFINE_TYPE (IndicatorDatetime, indicator_datetime, INDICATOR_OBJECT_TYPE);
 
-//static GtkSizeGroup * indicator_right_group = NULL;
+static GtkSizeGroup * indicator_right_group = NULL;
 
 static void
 indicator_datetime_class_init (IndicatorDatetimeClass *klass)
@@ -1067,7 +1067,48 @@ generate_format_string (IndicatorDatetime * self)
 
 /* Whenever we have a property change on a DbusmenuMenuitem
    we need to be responsive to that. */
-// indicator prop changed removed
+static void
+indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, gchar * value, indicator_item_t * mi_data)
+{
+	if (!g_strcmp0(prop, APPOINTMENT_MENUITEM_PROP_LABEL)) {
+		/* Set the main label */
+		gtk_label_set_text(GTK_LABEL(mi_data->label), value);
+	} else if (!g_strcmp0(prop, APPOINTMENT_MENUITEM_PROP_RIGHT)) {
+		/* Set the right label */
+		gtk_label_set_text(GTK_LABEL(mi_data->right), value);
+	} else if (!g_strcmp0(prop, APPOINTMENT_MENUITEM_PROP_ICON)) {
+		/* We don't use the value here, which is probably less efficient, 
+		   but it's easier to use the easy function.  And since th value
+		   is already cached, shouldn't be a big deal really.  */
+		GdkPixbuf * pixbuf = dbusmenu_menuitem_property_get_image(mi, APPOINTMENT_MENUITEM_PROP_ICON);
+		if (pixbuf != NULL) {
+			/* If we've got a pixbuf we need to make sure it's of a reasonable
+			   size to fit in the menu.  If not, rescale it. */
+			GdkPixbuf * resized_pixbuf;
+			gint width, height;
+			gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
+			if (gdk_pixbuf_get_width(pixbuf) > width ||
+					gdk_pixbuf_get_height(pixbuf) > height) {
+				g_debug("Resizing icon from %dx%d to %dx%d", gdk_pixbuf_get_width(pixbuf), gdk_pixbuf_get_height(pixbuf), width, height);
+				resized_pixbuf = gdk_pixbuf_scale_simple(pixbuf,
+				                                         width,
+				                                         height,
+				                                         GDK_INTERP_BILINEAR);
+			} else {
+				g_debug("Happy with icon sized %dx%d", gdk_pixbuf_get_width(pixbuf), gdk_pixbuf_get_height(pixbuf));
+				resized_pixbuf = pixbuf;
+			}
+			gtk_image_set_from_pixbuf(GTK_IMAGE(mi_data->icon), resized_pixbuf);
+			/* The other pixbuf should be free'd by the dbusmenu. */
+			if (resized_pixbuf != pixbuf) {
+				g_object_unref(resized_pixbuf);
+			}
+		}
+	} else {
+		g_warning("Indicator Item property '%s' unknown", prop);
+	}
+	return;
+}
 
 /* We have a small little menuitem type that handles all
    of the fun stuff for indicators.  Mostly this is the
@@ -1075,7 +1116,76 @@ generate_format_string (IndicatorDatetime * self)
    side text that'll be determined by the service.  
    Copied verbatim from an old revision (including comments) of indicator-messages   
 */
-// new appointment item removed
+static gboolean
+new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, DbusmenuClient * client, gpointer user_data)
+{
+	g_return_val_if_fail(DBUSMENU_IS_MENUITEM(newitem), FALSE);
+	g_return_val_if_fail(DBUSMENU_IS_GTKCLIENT(client), FALSE);
+	/* Note: not checking parent, it's reasonable for it to be NULL */
+
+	indicator_item_t * mi_data = g_new0(indicator_item_t, 1);
+
+	GtkMenuItem * gmi = GTK_MENU_ITEM(gtk_menu_item_new());
+
+	GtkWidget * hbox = gtk_hbox_new(FALSE, 4);
+
+	/* Icon, probably someone's face or avatar on an IM */
+	mi_data->icon = gtk_image_new();
+	GdkPixbuf * pixbuf = dbusmenu_menuitem_property_get_image(newitem, APPOINTMENT_MENUITEM_PROP_ICON);
+
+	if (pixbuf != NULL) {
+		/* If we've got a pixbuf we need to make sure it's of a reasonable
+		   size to fit in the menu.  If not, rescale it. */
+		GdkPixbuf * resized_pixbuf;
+		gint width, height;
+		gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
+		if (gdk_pixbuf_get_width(pixbuf) > width ||
+		        gdk_pixbuf_get_height(pixbuf) > height) {
+			g_debug("Resizing icon from %dx%d to %dx%d", gdk_pixbuf_get_width(pixbuf), gdk_pixbuf_get_height(pixbuf), width, height);
+			resized_pixbuf = gdk_pixbuf_scale_simple(pixbuf,
+			                                         width,
+			                                         height,
+			                                         GDK_INTERP_BILINEAR);
+		} else {
+			g_debug("Happy with icon sized %dx%d", gdk_pixbuf_get_width(pixbuf), gdk_pixbuf_get_height(pixbuf));
+			resized_pixbuf = pixbuf;
+		}
+  
+		gtk_image_set_from_pixbuf(GTK_IMAGE(mi_data->icon), resized_pixbuf);
+
+		/* The other pixbuf should be free'd by the dbusmenu. */
+		if (resized_pixbuf != pixbuf) {
+			g_object_unref(resized_pixbuf);
+		}
+	}
+	gtk_misc_set_alignment(GTK_MISC(mi_data->icon), 0.0, 0.5);
+	gtk_box_pack_start(GTK_BOX(hbox), mi_data->icon, FALSE, FALSE, 0);
+	gtk_widget_show(mi_data->icon);
+
+	/* Label, probably a username, chat room or mailbox name */
+	mi_data->label = gtk_label_new(dbusmenu_menuitem_property_get(newitem, APPOINTMENT_MENUITEM_PROP_LABEL));
+	gtk_misc_set_alignment(GTK_MISC(mi_data->label), 0.0, 0.5);
+	gtk_box_pack_start(GTK_BOX(hbox), mi_data->label, TRUE, TRUE, 0);
+	gtk_widget_show(mi_data->label);
+
+	/* Usually either the time or the count on the individual
+	   item. */
+	mi_data->right = gtk_label_new(dbusmenu_menuitem_property_get(newitem, APPOINTMENT_MENUITEM_PROP_RIGHT));
+	gtk_size_group_add_widget(indicator_right_group, mi_data->right);
+	gtk_misc_set_alignment(GTK_MISC(mi_data->right), 1.0, 0.5);
+	gtk_box_pack_start(GTK_BOX(hbox), mi_data->right, FALSE, FALSE, 0);
+	gtk_widget_show(mi_data->right);
+
+	gtk_container_add(GTK_CONTAINER(gmi), hbox);
+	gtk_widget_show(hbox);
+
+	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, gmi, parent);
+
+	g_signal_connect(G_OBJECT(newitem), DBUSMENU_MENUITEM_SIGNAL_PROPERTY_CHANGED, G_CALLBACK(indicator_prop_change_cb), mi_data);
+	g_signal_connect_swapped(G_OBJECT(newitem), "destroyed", G_CALLBACK(g_free), mi_data);
+
+	return TRUE;
+}
 
 
 static gboolean
@@ -1104,7 +1214,7 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 
 	return TRUE;
 }
-/*
+
 static gboolean
 new_timezone_item(DbusmenuMenuitem * newitem,
 				   DbusmenuMenuitem * parent,
@@ -1115,7 +1225,6 @@ new_timezone_item(DbusmenuMenuitem * newitem,
   
   return TRUE;
 }
-*/
 
 /* Grabs the label.  Creates it if it doesn't
    exist already */
@@ -1156,8 +1265,8 @@ get_menu (IndicatorObject * io)
 	g_object_set_data (G_OBJECT (client), "indicator", io);
 
 	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), DBUSMENU_CALENDAR_MENUITEM_TYPE, new_calendar_item);
-	//dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), APPOINTMENT_MENUITEM_TYPE, new_appointment_item);
-	//dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), TIMEZONE_MENUITEM_TYPE, new_timezone_item);
+	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), APPOINTMENT_MENUITEM_TYPE, new_appointment_item);
+	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), TIMEZONE_MENUITEM_TYPE, new_timezone_item);
 
 	return GTK_MENU(self->priv->menu);
 }
