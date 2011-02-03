@@ -1,3 +1,23 @@
+indicator-datetime (0.1.92-0ubuntu1~ppa1) natty; urgency=low
+
+  * New upstream release.
+    * Increase robustness of GeoClue error handling
+    * Remove g_error()'s from the .so
+
+ -- Ted Gould <ted@ubuntu.com>  Thu, 03 Feb 2011 15:10:43 -0600
+
+indicator-datetime (0.1.91-0ubuntu1~ppa1) natty; urgency=low
+
+  * New upstream release.
+    * Change to canonical.com for naming
+    * Fixing a type callback
+    * Switching to GDbus and dbusmenu-0.4
+    * Supporting a wider range of custom strings for time and support
+      seconds in the custom time strings.
+    * Fixing to take time settings from LC_TIME
+
+ -- Ted Gould <ted@ubuntu.com>  Thu, 27 Jan 2011 16:48:48 -0600
+
 indicator-datetime (0.1.90-0ubuntu2) natty; urgency=low
 
   * debian/control
