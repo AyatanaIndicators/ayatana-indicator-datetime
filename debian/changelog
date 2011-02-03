@@ -1,3 +1,11 @@
+indicator-datetime (0.1.92-0ubuntu1~ppa1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    * Increase robustness of GeoClue error handling
+    * Remove g_error()'s from the .so
+
+ -- Ted Gould <ted@ubuntu.com>  Thu, 03 Feb 2011 15:09:32 -0600
+
 indicator-datetime (0.1.91-0ubuntu1~ppa1) natty; urgency=low
 
   * New upstream release.
