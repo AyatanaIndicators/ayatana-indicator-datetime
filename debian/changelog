@@ -1,4 +1,4 @@
-indicator-datetime (0.1.92-0ubuntu1~ppa1) natty; urgency=low
+indicator-datetime (0.1.92-0ubuntu1) natty; urgency=low
 
   * New upstream release.
     * Increase robustness of GeoClue error handling
@@ -35,6 +35,24 @@ indicator-datetime (0.1.90-0ubuntu1) natty; urgency=low
   * debian/control: Adding dependencies on Geoclue and OOBS
 
  -- Ted Gould <ted@ubuntu.com>  Fri, 03 Dec 2010 13:46:32 -0600
+
+indicator-datetime (0.1.90.is.0.0.6-0ubuntu2) natty; urgency=low
+
+  * Merged gdbus and dbusmenu-glib-0.4 port
+  * debian/control
+    - Added build depends for dh-autoreconf
+    - bumped dbusmenu build depends to >= 0.3.91
+  * debian/rules
+    - Added autoreconf.mk
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Thu, 13 Jan 2011 20:48:31 -0600
+
+indicator-datetime (0.1.90.is.0.0.6-0ubuntu1) natty; urgency=low
+
+  * Uploading 0.0.6 again to superceed 0.1.90 which is still blocked on
+    MIR
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Mon, 13 Dec 2010 11:30:25 -0500
 
 indicator-datetime (0.0.6-0ubuntu3) maverick; urgency=low
 
