@@ -1,9 +1,9 @@
-indicator-datetime (0.1.92-0ubuntu2~ppa1~apnt3) UNRELEASED; urgency=low
+indicator-datetime (0.1.92-0ubuntu2~ppa1~apnt3) natty; urgency=low
 
   * Upstream Merge
     * Debugging statements and cleaning code a bit
 
- -- Ted Gould <ted@ubuntu.com>  Fri, 04 Feb 2011 15:51:57 -0600
+ -- Ted Gould <ted@ubuntu.com>  Fri, 04 Feb 2011 15:53:05 -0600
 
 indicator-datetime (0.1.92-0ubuntu2~ppa1~apnt2) natty; urgency=low
 
