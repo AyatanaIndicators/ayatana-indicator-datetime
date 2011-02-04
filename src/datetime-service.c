@@ -24,9 +24,12 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <locale.h>
 
 #include <gtk/gtk.h>
+#include <gdk/gdk.h>
 #include <glib/gi18n.h>
 #include <gio/gio.h>
+#include <math.h>
 
+#include <libdbusmenu-gtk/menuitem.h>
 #include <libdbusmenu-glib/server.h>
 #include <libdbusmenu-glib/client.h>
 #include <libdbusmenu-glib/menuitem.h>
@@ -41,6 +44,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libedataserver/e-source.h>
 // Other users of ecal seem to also include these, not sure why they should be included by the above
 #include <libical/icaltime.h>
+#include <cairo/cairo.h>
 
 
 #include <oobs/oobs-timeconfig.h>
@@ -417,28 +421,29 @@ update_appointment_menu_items (gpointer user_data) {
 		
 		g_debug("Command to Execute: %s", cmd);
 		
-		// Get the colour E_CAL_COMPONENT_FIELD_COLOR
-		// Get the icon, either EVENT or MEMO or TODO?
-		// needs EDS, ecal component colours are broken...
-		//gdouble red, blue, green;
-        //ECalSource *source = e_cal_get_source (ecalcomp->client);
-        //if (!ecalcomp->color && e_source_get_color (source, &source_color)) {
-			//g_free (comp_data->color);
-			//ecalcomp->color = g_strdup_printf ("#%06x", source_color & 0xffffff);
-        //}
-        //g_debug("Colour to use: %s", ecalcomp->color);
-             
-		//cairo_surface_t *cs = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
-		//cairo_t *cr = cairo_create(cs);
-
-		// TODO: Draw the correct icon for the appointment type and then tint it using mask fill.
+		ESource *source = e_cal_get_source (ecal);
+        //e_source_get_color (source, &source_color); api has been changed
+        const gchar *color_spec = e_source_peek_color_spec(source);
+        GdkColor color;
+        g_debug("Colour to use: %s", color_spec);
+			
+		// Draw the correct icon for the appointment type and then tint it using mask fill.
 		// For now we'll create a circle
+        if (color_spec != NULL) {
+        	gdk_color_parse (color_spec, &color);
+        	
+			cairo_surface_t *cs = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
+			cairo_t *cr = cairo_create(cs);
+			cairo_arc (cr, width/2, height/2, width/2, 0, 2 * M_PI);
+			gdk_cairo_set_source_color(cr, &color);
+			cairo_fill(cr);
 		
-		
-		//GdkPixbuf * pixbuf = gdk_pixbuf_get_from_drawable(NULL, (GdkDrawable*)cs, 0,0,0,0, width, height);
-		
-		//dbusmenu_menuitem_property_set_image (item, APPOINTMENT_MENUITEM_PROP_ICON, pixbuf);
-		
+			GdkPixbuf * pixbuf = gdk_pixbuf_get_from_drawable(NULL, (GdkDrawable*)cs, 
+				gdk_colormap_new(gdk_drawable_get_visual((GdkDrawable*)cs), TRUE), 0,0,0,0, width, height);
+			cairo_destroy(cr);
+			
+			dbusmenu_menuitem_property_set_image (item, APPOINTMENT_MENUITEM_PROP_ICON, pixbuf);
+		}
 		dbusmenu_menuitem_child_add_position (root, item, 4+i);
 		appointments = g_list_append         (appointments, item); // Keep track of the items here to make them east to remove
 		
