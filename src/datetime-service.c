@@ -325,6 +325,7 @@ update_appointment_menu_items (gpointer user_data) {
 			appointments = g_list_remove(appointments, item);
 			dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(item));
 			//g_free(item); freeing makes it crash :/ is that a double free from child delete?
+			g_object_unref(G_OBJECT(item));
 			item = NULL;
 		}
 		appointments = NULL;
