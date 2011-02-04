@@ -59,6 +59,8 @@ GIO_REQUIRED_VERSION=2.25.11
 INDICATOR_DISPLAY_OBJECTS=0.1.10
 GEOCLUE_REQUIRED_VERSION=0.12.0
 OOBS_REQUIRED_VERSION=2.31.0
+ECAL_REQUIRED_VERSION=2.30
+ICAL_REQUIRED_VERSION=0.44
 
 AS_IF([test "x$with_gtk" = x3],
     [PKG_CHECK_MODULES(INDICATOR, indicator3 >= $INDICATOR_REQUIRED_VERSION
@@ -80,7 +82,9 @@ PKG_CHECK_MODULES(SERVICE,   indicator >= $INDICATOR_REQUIRED_VERSION
                              libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
                              gio-2.0 >= $GIO_REQUIRED_VERSION
                              geoclue >= $GEOCLUE_REQUIRED_VERSION
-                             liboobs-1 >= $OOBS_REQUIRED_VERSION)
+                             liboobs-1 >= $OOBS_REQUIRED_VERSION
+                             libecal-1.2 >= $ECAL_REQUIRED_VERSION
+                             libical >= $ICAL_REQUIRED_VERSION)
 
 AC_SUBST(INDICATOR_CFLAGS)
 AC_SUBST(INDICATOR_LIBS)
