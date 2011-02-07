@@ -53,6 +53,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "dbus-shared.h"
 
 static void geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data);
+static gboolean update_appointment_menu_items (gpointer user_data);
 static void setup_timer (void);
 
 static IndicatorService * service = NULL;
@@ -67,6 +68,8 @@ static DbusmenuMenuitem * date = NULL;
 static DbusmenuMenuitem * calendar = NULL;
 static DbusmenuMenuitem * settings = NULL;
 static DbusmenuMenuitem * tzchange = NULL;
+static DbusmenuMenuitem * add_appointment = NULL;
+static DbusmenuMenuitem * add_location = NULL;
 static GList			* appointments = NULL;
 static ECal				* ecal = NULL;
 static const gchar		* ecal_timezone = NULL;
@@ -234,10 +237,47 @@ check_for_calendar (gpointer user_data)
 		g_debug("Found the calendar application: %s", evo);
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+
+		GError *gerror = NULL;
+		// TODO: In reality we should iterate sources of calendar, but getting the local one doens't lag for > a minute
+		g_debug("Setting up ecal.");
+		if (!ecal)
+			ecal = e_cal_new_system_calendar();
+	
+		if (!ecal) {
+			g_debug("e_cal_new_system_calendar failed");
+			ecal = NULL;
+		}
+		g_debug("Open calendar.");
+		if (!e_cal_open(ecal, FALSE, &gerror) ) {
+			g_debug("e_cal_open: %s\n", gerror->message);
+			g_free(ecal);
+			ecal = NULL;
+		}
+		g_debug("Get calendar timezone.");
+		if (!e_cal_get_timezone(ecal, "UTC", &tzone, &gerror)) {
+			g_debug("failed to get time zone\n");
+			g_free(ecal);
+			ecal = NULL;
+		}
+	
+		/* This timezone represents the timezone of the calendar, this might be different to the current UTC offset.
+		 * this means we'll have some geoclue interaction going on, and possibly the user will be involved in setting
+		 * their location manually, case in point: trains have satellite links which often geoclue to sweden,
+		 * this shouldn't automatically set the location and mess up all the appointments for the user.
+		 */
+		if (ecal) ecal_timezone = icaltimezone_get_tzid(tzone);
+	
+		update_appointment_menu_items(NULL);
+		g_signal_connect(root, DBUSMENU_MENUITEM_SIGNAL_ABOUT_TO_SHOW, G_CALLBACK(update_appointment_menu_items), NULL);		
+
 		g_free(evo);
 	} else {
 		g_debug("Unable to find calendar app.");
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 	}
 
 	return FALSE;
@@ -245,7 +285,12 @@ check_for_calendar (gpointer user_data)
 
 static gboolean
 update_timezone_menu_items(gpointer user_data) {
-	// Get the location preferences and the current location, highlight the current location somehow
+	// Get the current location as specified by the user as a place name and time and add it,
+	// Get the location from geoclue as a place and time and add it,
+	// Get the evolution calendar timezone as a place and time and add it,
+	// Get the current timezone that the clock uses and select that
+	// Iterate over configured places and add any which aren't already listed
+	// Hook up each of these to setting the time/current timezone
 	return FALSE;
 }
 
@@ -508,51 +553,12 @@ build_menus (DbusmenuMenuitem * root)
 	dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
 	dbusmenu_menuitem_child_append(root, separator);
 
-	// This just populates the items on startup later we want to be able to update the appointments before
-	// presenting the menu. 
-	if (calendar != NULL) {
-		GError *gerror = NULL;
-		// TODO: In reality we should iterate sources of calendar, but getting the local one doens't lag for > a minute
-		g_debug("Setting up ecal.");
-		if (!ecal)
-			ecal = e_cal_new_system_calendar();
-	
-		if (!ecal) {
-			g_debug("e_cal_new_system_calendar failed");
-			ecal = NULL;
-		}
-		g_debug("Open calendar.");
-		if (!e_cal_open(ecal, FALSE, &gerror) ) {
-			g_debug("e_cal_open: %s\n", gerror->message);
-			g_free(ecal);
-			ecal = NULL;
-		}
-		g_debug("Get calendar timezone.");
-		if (!e_cal_get_timezone(ecal, "UTC", &tzone, &gerror)) {
-			g_debug("failed to get time zone\n");
-			g_free(ecal);
-			ecal = NULL;
-		}
-	
-		/* This timezone represents the timezone of the calendar, this might be different to the current UTC offset.
-		 * this means we'll have some geoclue interaction going on, and possibly the user will be involved in setting
-		 * their location manually, case in point: trains have satellite links which often geoclue to sweden,
-		 * this shouldn't automatically set the location and mess up all the appointments for the user.
-		 */
-		if (ecal) ecal_timezone = icaltimezone_get_tzid(tzone);
-	
-		g_signal_connect(root, DBUSMENU_MENUITEM_SIGNAL_ABOUT_TO_SHOW, G_CALLBACK(update_appointment_menu_items), NULL);
-		update_appointment_menu_items(NULL);
-		// TODO Create "Add appointment" menu item
-	}
-	// TODO Create FFR? "Add timer" menu item
-	
-	separator = dbusmenu_menuitem_new();
-	dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
-	dbusmenu_menuitem_child_append(root, separator);
-	
-	update_timezone_menu_items(NULL);
-	// TODO Create "Add location" menu item
+	add_appointment = dbusmenu_menuitem_new();
+	dbusmenu_menuitem_property_set     (add_appointment, DBUSMENU_MENUITEM_PROP_LABEL, _("Add Appointment"));
+	dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+	dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+	g_signal_connect(G_OBJECT(add_appointment), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "evolution -c calendar");
+	dbusmenu_menuitem_child_add_position (root, add_appointment, 4);
 	
 	separator = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
@@ -564,6 +570,10 @@ build_menus (DbusmenuMenuitem * root)
 	g_signal_connect(G_OBJECT(tzchange), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
 	dbusmenu_menuitem_child_append(root, tzchange);
 	check_timezone_sync();
+
+	separator = dbusmenu_menuitem_new();
+	dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
+	dbusmenu_menuitem_child_append(root, separator);
 
 	settings = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Time & Date Settings..."));

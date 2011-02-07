@@ -1236,9 +1236,9 @@ new_timezone_item(DbusmenuMenuitem * newitem,
 
 	mi_data->radio = gtk_radio_button_new(location_group);
 	if (location_group == NULL)
-		location_group = gtk_radio_button_get_group(mi_data->radio);
+		location_group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(mi_data->radio));
 	
-	gtk_toggle_button_set_active(mi_data->radio,
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(mi_data->radio),
 		dbusmenu_menuitem_property_get_bool(newitem, TIMEZONE_MENUITEM_PROP_RADIO));
   
 	gtk_box_pack_start(GTK_BOX(hbox), mi_data->radio, FALSE, FALSE, 0);
