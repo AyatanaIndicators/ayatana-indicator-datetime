@@ -512,6 +512,9 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 	g_debug("Created Geoclue client at: %s", path);
 
 	geo_master = client;
+
+	g_return_if_fail(geo_master != NULL);
+
 	g_object_ref(G_OBJECT(geo_master));
 
 	/* New client, make sure we don't have an address hanging on */
