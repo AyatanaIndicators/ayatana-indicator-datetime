@@ -71,7 +71,7 @@ static DbusmenuMenuitem * calendar = NULL;
 static DbusmenuMenuitem * settings = NULL;
 static DbusmenuMenuitem * tzchange = NULL;
 static DbusmenuMenuitem * add_appointment = NULL;
-static DbusmenuMenuitem * add_location = NULL;
+//static DbusmenuMenuitem * add_location = NULL;
 static GList			* appointments = NULL;
 static ECal				* ecal = NULL;
 static const gchar		* ecal_timezone = NULL;
@@ -285,6 +285,7 @@ check_for_calendar (gpointer user_data)
 	return FALSE;
 }
 
+/*
 static gboolean
 update_timezone_menu_items(gpointer user_data) {
 	// Get the current location as specified by the user as a place name and time and add it,
@@ -295,6 +296,7 @@ update_timezone_menu_items(gpointer user_data) {
 	// Hook up each of these to setting the time/current timezone
 	return FALSE;
 }
+*/
 
 // Compare function for g_list_sort of ECalComponent objects
 static gint 
