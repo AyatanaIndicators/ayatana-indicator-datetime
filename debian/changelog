@@ -1,3 +1,10 @@
+indicator-datetime (0.1.92-0ubuntu4) natty; urgency=low
+
+  * debian/source/format
+    - Source format v1 instead of v3
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Tue, 08 Feb 2011 13:59:35 -0500
+
 indicator-datetime (0.1.92-0ubuntu3) natty; urgency=low
 
   * debian/control
