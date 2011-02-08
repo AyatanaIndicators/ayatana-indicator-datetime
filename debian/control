@@ -18,8 +18,9 @@ Homepage: https://launchpad.net/indicator-datetime
 Package: indicator-datetime
 Architecture: any
 Depends: ${shlibs:Depends}, 
-         ${misc:Depends}
-Recommends: indicator-applet | indicator-renderer, geoclue-ubuntu-geoip
+         ${misc:Depends},
+         geoclue-ubuntu-geoip | geoclue-provider
+Recommends: indicator-applet | indicator-renderer
 Description: A very, very simple clock
  A simple clock appearing in the indicator bar
 
