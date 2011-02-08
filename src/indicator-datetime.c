@@ -105,6 +105,7 @@ enum {
 
 typedef struct _indicator_item_t indicator_item_t;
 struct _indicator_item_t {
+	GtkWidget * radio;
 	GtkWidget * icon;
 	GtkWidget * label;
 	GtkWidget * right;
@@ -175,6 +176,7 @@ static void update_time                   (IndicatorDatetime * self);
 static void receive_signal                (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name, GVariant * parameters, gpointer user_data);
 static void service_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data);
 static gint generate_strftime_bitmask     (const char *time_str);
+static GSList *location_group = NULL;
 
 /* Indicator Module Config */
 INDICATOR_SET_VERSION
@@ -1221,9 +1223,50 @@ new_timezone_item(DbusmenuMenuitem * newitem,
 				   DbusmenuClient   * client,
 				   gpointer           user_data)
 {
+	g_return_val_if_fail(DBUSMENU_IS_MENUITEM(newitem), FALSE);
+	g_return_val_if_fail(DBUSMENU_IS_GTKCLIENT(client), FALSE);
+	/* Note: not checking parent, it's reasonable for it to be NULL */
+	
 	// Menu item with a radio button and a right aligned time
+	indicator_item_t * mi_data = g_new0(indicator_item_t, 1);
+
+	GtkMenuItem * gmi = GTK_MENU_ITEM(gtk_menu_item_new());
+
+	GtkWidget * hbox = gtk_hbox_new(FALSE, 4);
+
+	mi_data->radio = gtk_radio_button_new(location_group);
+	if (location_group == NULL)
+		location_group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(mi_data->radio));
+	
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(mi_data->radio),
+		dbusmenu_menuitem_property_get_bool(newitem, TIMEZONE_MENUITEM_PROP_RADIO));
   
-  return TRUE;
+	gtk_box_pack_start(GTK_BOX(hbox), mi_data->radio, FALSE, FALSE, 0);
+	gtk_widget_show(mi_data->radio);
+	
+  	/* Label, probably a username, chat room or mailbox name */
+	mi_data->label = gtk_label_new(dbusmenu_menuitem_property_get(newitem, APPOINTMENT_MENUITEM_PROP_LABEL));
+	gtk_misc_set_alignment(GTK_MISC(mi_data->label), 0.0, 0.5);
+	gtk_box_pack_start(GTK_BOX(hbox), mi_data->label, TRUE, TRUE, 0);
+	gtk_widget_show(mi_data->label);
+
+	/* Usually either the time or the count on the individual
+	   item. */
+	mi_data->right = gtk_label_new(dbusmenu_menuitem_property_get(newitem, APPOINTMENT_MENUITEM_PROP_RIGHT));
+	gtk_size_group_add_widget(indicator_right_group, mi_data->right);
+	gtk_misc_set_alignment(GTK_MISC(mi_data->right), 1.0, 0.5);
+	gtk_box_pack_start(GTK_BOX(hbox), mi_data->right, FALSE, FALSE, 0);
+	gtk_widget_show(mi_data->right);
+
+	gtk_container_add(GTK_CONTAINER(gmi), hbox);
+	gtk_widget_show(hbox);
+
+	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, gmi, parent);
+
+	g_signal_connect(G_OBJECT(newitem), DBUSMENU_MENUITEM_SIGNAL_PROPERTY_CHANGED, G_CALLBACK(indicator_prop_change_cb), mi_data);
+	g_signal_connect_swapped(G_OBJECT(newitem), "destroyed", G_CALLBACK(g_free), mi_data);
+
+	return TRUE;
 }
 
 /* Grabs the label.  Creates it if it doesn't
