@@ -513,7 +513,10 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 
 	geo_master = client;
 
-	g_return_if_fail(geo_master != NULL);
+	if (geo_master != NULL) {
+		g_warning("Unable to get a GeoClue client!  Geolocation based timezone support will not be available.");
+		return;
+	}
 
 	g_object_ref(G_OBJECT(geo_master));
 
