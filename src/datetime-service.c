@@ -342,7 +342,6 @@ update_appointment_menu_items (gpointer user_data) {
 	time_t t1, t2;
 	gchar *query, *is, *ie, *ad;
 	GList *objects = NULL, *l;
-	DbusmenuMenuitem * item = NULL;
 	GError *gerror = NULL;
 	gint i;
 	gint width, height;
@@ -365,18 +364,18 @@ update_appointment_menu_items (gpointer user_data) {
 	}
 	g_debug("Number of objects returned: %d", g_list_length(objects));
 	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
+
+	/* Remove all of the previous appointments */
 	if (appointments != NULL) {
 		g_debug("Freeing old appointments");
-		for (l = appointments; l; l = l->next) {
-			g_debug("Freeing old appointment");
-			item =  l->data;
+		while (appointments != NULL) {
+			DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(appointments->data);
+			g_debug("Freeing old appointment: %p", litem);
 			// Remove all the existing menu items which are in appointments.
-			appointments = g_list_remove(appointments, item);
-			dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(item));
-			//g_free(item); freeing makes it crash :/ is that a double free from child delete?
-			item = NULL;
+			appointments = g_list_remove(appointments, litem);
+			dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(litem));
+			g_object_unref(G_OBJECT(litem));
 		}
-		appointments = NULL;
 	}
 	
 	// Sort the list see above FIXME regarding queries
@@ -392,6 +391,7 @@ update_appointment_menu_items (gpointer user_data) {
 		char right[20];
 		//const gchar *uri;
 		struct tm tmp_tm;
+		DbusmenuMenuitem * item;
 
 		ECalComponentVType vtype = e_cal_component_get_vtype (ecalcomp);
 
@@ -491,6 +491,7 @@ update_appointment_menu_items (gpointer user_data) {
 		}
 		dbusmenu_menuitem_child_add_position (root, item, 4+i);
 		appointments = g_list_append         (appointments, item); // Keep track of the items here to make them east to remove
+		g_debug("Adding appointment: %p", item);
 		
 		if (i == 4) break; // See above FIXME regarding query result limit
 		i++;
