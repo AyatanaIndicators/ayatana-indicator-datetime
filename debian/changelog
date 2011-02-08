@@ -1,9 +1,9 @@
-indicator-datetime (0.1.92-0ubuntu2~ppa1~apnt4) UNRELEASED; urgency=low
+indicator-datetime (0.1.92-0ubuntu2~ppa1~apnt4) natty; urgency=low
 
   * Upstream Merge
     * Adding some color support along with times
 
- -- Ted Gould <ted@ubuntu.com>  Tue, 08 Feb 2011 14:18:05 -0600
+ -- Ted Gould <ted@ubuntu.com>  Tue, 08 Feb 2011 14:26:28 -0600
 
 indicator-datetime (0.1.92-0ubuntu2~ppa1~apnt3) natty; urgency=low
 
