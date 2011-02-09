@@ -1,10 +1,10 @@
-indicator-datetime (0.1.93-0ubuntu1) UNRELEASED; urgency=low
+indicator-datetime (0.1.93-0ubuntu1~ppa1) natty; urgency=low
 
   * New upstream release.
     * Merging in first EDS branch
   * debian/rules: Adding in autoreconf 
 
- -- Ted Gould <ted@ubuntu.com>  Wed, 09 Feb 2011 13:23:03 -0600
+ -- Ted Gould <ted@ubuntu.com>  Wed, 09 Feb 2011 13:25:57 -0600
 
 indicator-datetime (0.1.92-0ubuntu4+r41) UNRELEASED; urgency=low
 
