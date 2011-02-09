@@ -1,3 +1,12 @@
+indicator-datetime (0.1.92-0ubuntu4+r41) UNRELEASED; urgency=low
+
+  * New upstream snapshot
+  * debian/control
+    - New build deps for eds integration, libecal1.2-dev, libical-dev, 
+      libgtk2.0-dev, libcairo2-dev, libedataserver1.2-dev
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Wed, 09 Feb 2011 12:11:45 -0500
+
 indicator-datetime (0.1.92-0ubuntu4) natty; urgency=low
 
   * debian/source/format
