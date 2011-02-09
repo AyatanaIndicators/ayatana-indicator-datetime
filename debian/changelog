@@ -1,3 +1,11 @@
+indicator-datetime (0.1.92-0ubuntu5~ppa1) UNRELEASED; urgency=low
+
+  * Upstream Merge
+    * Merging in first EDS branch
+  * debian/rules: Adding in autoreconf 
+
+ -- Ted Gould <ted@ubuntu.com>  Tue, 08 Feb 2011 22:21:14 -0600
+
 indicator-datetime (0.1.92-0ubuntu4) natty; urgency=low
 
   * debian/source/format
