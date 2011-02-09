@@ -1,3 +1,28 @@
+indicator-datetime (0.1.92-0ubuntu4) natty; urgency=low
+
+  * debian/source/format
+    - Source format v1 instead of v3
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Tue, 08 Feb 2011 13:59:35 -0500
+
+indicator-datetime (0.1.92-0ubuntu3) natty; urgency=low
+
+  * debian/control
+    - Bump standards version to 3.9.1
+    - Set Vcs-Bzr
+  * +debian/source/format
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Tue, 08 Feb 2011 11:14:02 -0500
+
+indicator-datetime (0.1.92-0ubuntu2) natty; urgency=low
+
+  * debian/control
+    - Depend on geoclue-ubuntu-geoip | geoclue-provider (LP: #714763)
+  * src/datetime-service.c
+    - Don't crash if we can get a geoclue provider (LP: #714763)
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Tue, 08 Feb 2011 11:02:31 -0500
+
 indicator-datetime (0.1.92-0ubuntu1) natty; urgency=low
 
   * New upstream release.

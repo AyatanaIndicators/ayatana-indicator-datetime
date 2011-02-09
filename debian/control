@@ -12,14 +12,16 @@ Build-Depends: cdbs,
                libido-0.1-dev (>= 0.1.10),
                libgeoclue-dev (>= 0.12.0),
                liboobs-1-dev (>= 2.31.0)
-Standards-Version: 3.8.4
+Standards-Version: 3.9.1
 Homepage: https://launchpad.net/indicator-datetime
+Vcs-Bzr: http://bazaar.launchpad.net/~ubuntu-desktop/indicator-datetime/ubuntu
 
 Package: indicator-datetime
 Architecture: any
 Depends: ${shlibs:Depends}, 
-         ${misc:Depends}
-Recommends: indicator-applet | indicator-renderer, geoclue-ubuntu-geoip
+         ${misc:Depends},
+         geoclue-ubuntu-geoip | geoclue-provider
+Recommends: indicator-applet | indicator-renderer
 Description: A very, very simple clock
  A simple clock appearing in the indicator bar
 
