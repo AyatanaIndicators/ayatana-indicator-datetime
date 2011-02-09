@@ -1,11 +1,11 @@
 
-AC_INIT(indicator-datetime, 0.1.92, ted@canonical.com)
+AC_INIT(indicator-datetime, 0.1.93, ted@canonical.com)
 AC_COPYRIGHT([Copyright 2009,2010 Canonical])
 
 AC_PREREQ(2.53)
 
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(indicator-datetime, 0.1.92)
+AM_INIT_AUTOMAKE(indicator-datetime, 0.1.93)
 
 AM_MAINTAINER_MODE
 
@@ -59,6 +59,11 @@ GIO_REQUIRED_VERSION=2.25.11
 INDICATOR_DISPLAY_OBJECTS=0.1.10
 GEOCLUE_REQUIRED_VERSION=0.12.0
 OOBS_REQUIRED_VERSION=2.31.0
+ECAL_REQUIRED_VERSION=2.30
+EDS_REQUIRED_VERSION=2.30
+ICAL_REQUIRED_VERSION=0.44
+CAIRO_REQUIRED_VERSION=1.10
+GDK_REQUIRED_VERSION=2.22
 
 AS_IF([test "x$with_gtk" = x3],
     [PKG_CHECK_MODULES(INDICATOR, indicator3 >= $INDICATOR_REQUIRED_VERSION
@@ -75,13 +80,36 @@ AS_IF([test "x$with_gtk" = x3],
     [AC_MSG_FAILURE([Value for --with-gtk was neither 2 nor 3])]
 )
 
-PKG_CHECK_MODULES(SERVICE,   indicator >= $INDICATOR_REQUIRED_VERSION
-                             dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
-                             libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
-                             gio-2.0 >= $GIO_REQUIRED_VERSION
-                             geoclue >= $GEOCLUE_REQUIRED_VERSION
-                             liboobs-1 >= $OOBS_REQUIRED_VERSION)
-
+AS_IF([test "x$with_gtk" = x3],
+	[PKG_CHECK_MODULES(SERVICE,  indicator >= $INDICATOR_REQUIRED_VERSION
+	                             dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
+                                 dbusmenu-gtk3-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
+	                             libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
+	                             gio-2.0 >= $GIO_REQUIRED_VERSION
+	                             geoclue >= $GEOCLUE_REQUIRED_VERSION
+	                             liboobs-1 >= $OOBS_REQUIRED_VERSION
+	                             libecal-1.2 >= $ECAL_REQUIRED_VERSION
+	                             libical >= $ICAL_REQUIRED_VERSION
+	                             libedataserver-1.2 >= EDS_REQUIRED_VERSION
+	                             cairo >= CAIRO_REQUIRED_VERSION
+	                             gdk-2.0 >= GDK_REQUIRED_VERSION)
+		],
+      [test "x$with_gtk" = x2],
+	[PKG_CHECK_MODULES(SERVICE,  indicator >= $INDICATOR_REQUIRED_VERSION
+	                             dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
+                                 dbusmenu-gtk-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
+	                             libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
+	                             gio-2.0 >= $GIO_REQUIRED_VERSION
+	                             geoclue >= $GEOCLUE_REQUIRED_VERSION
+	                             liboobs-1 >= $OOBS_REQUIRED_VERSION
+	                             libecal-1.2 >= $ECAL_REQUIRED_VERSION
+	                             libical >= $ICAL_REQUIRED_VERSION
+	                             libedataserver-1.2 >= EDS_REQUIRED_VERSION
+	                             cairo >= CAIRO_REQUIRED_VERSION
+	                             gdk-2.0 >= GDK_REQUIRED_VERSION)
+        ],
+    [AC_MSG_FAILURE([Value for --with-gtk was neither 2 nor 3])]
+)
 AC_SUBST(INDICATOR_CFLAGS)
 AC_SUBST(INDICATOR_LIBS)
 
