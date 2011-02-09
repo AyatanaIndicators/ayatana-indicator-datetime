@@ -806,6 +806,12 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 	g_debug("Created Geoclue client at: %s", path);
 
 	geo_master = client;
+
+	if (geo_master != NULL) {
+		g_warning(_("Unable to get a GeoClue client!  Geolocation based timezone support will not be available."));
+		return;
+	}
+
 	g_object_ref(G_OBJECT(geo_master));
 
 	/* New client, make sure we don't have an address hanging on */
