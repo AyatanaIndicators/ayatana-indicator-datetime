@@ -1,11 +1,15 @@
-indicator-datetime (0.1.92-0ubuntu4+r41) UNRELEASED; urgency=low
+indicator-datetime (0.1.93-0ubuntu1) natty; urgency=low
 
-  * New upstream snapshot
+  * New upstream release.
+    * Merging in first EDS branch
+  * debian/rules: Adding in autoreconf 
+
+  [ Ken VanDine ]
   * debian/control
     - New build deps for eds integration, libecal1.2-dev, libical-dev, 
       libgtk2.0-dev, libcairo2-dev, libedataserver1.2-dev
 
- -- Ken VanDine <ken.vandine@canonical.com>  Wed, 09 Feb 2011 12:11:45 -0500
+ -- Ted Gould <ted@ubuntu.com>  Wed, 09 Feb 2011 13:25:57 -0600
 
 indicator-datetime (0.1.92-0ubuntu4) natty; urgency=low
 
@@ -52,24 +56,6 @@ indicator-datetime (0.1.91-0ubuntu1~ppa1) natty; urgency=low
 
  -- Ted Gould <ted@ubuntu.com>  Thu, 27 Jan 2011 16:48:48 -0600
 
-indicator-datetime (0.1.90-0ubuntu2) natty; urgency=low
-
-  * debian/control
-    - Bump build depends for libdbusmenu-* to >= 0.3.90
-
- -- Ken VanDine <ken.vandine@canonical.com>  Thu, 09 Dec 2010 11:46:00 -0500
-
-indicator-datetime (0.1.90-0ubuntu1) natty; urgency=low
-
-  * New upstream release.
-    * Generate the format string at init
-    * Add in Geoclue support for setting proper timezone
-    * Add support for building GTK2 and GTK3 versions
-  * debian/control: Add recommends for geoclue-ubuntu-geoip
-  * debian/control: Adding dependencies on Geoclue and OOBS
-
- -- Ted Gould <ted@ubuntu.com>  Fri, 03 Dec 2010 13:46:32 -0600
-
 indicator-datetime (0.1.90.is.0.0.6-0ubuntu2) natty; urgency=low
 
   * Merged gdbus and dbusmenu-glib-0.4 port
@@ -87,6 +73,24 @@ indicator-datetime (0.1.90.is.0.0.6-0ubuntu1) natty; urgency=low
     MIR
 
  -- Ken VanDine <ken.vandine@canonical.com>  Mon, 13 Dec 2010 11:30:25 -0500
+
+indicator-datetime (0.1.90-0ubuntu2) natty; urgency=low
+
+  * debian/control
+    - Bump build depends for libdbusmenu-* to >= 0.3.90
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Thu, 09 Dec 2010 11:46:00 -0500
+
+indicator-datetime (0.1.90-0ubuntu1) natty; urgency=low
+
+  * New upstream release.
+    * Generate the format string at init
+    * Add in Geoclue support for setting proper timezone
+    * Add support for building GTK2 and GTK3 versions
+  * debian/control: Add recommends for geoclue-ubuntu-geoip
+  * debian/control: Adding dependencies on Geoclue and OOBS
+
+ -- Ted Gould <ted@ubuntu.com>  Fri, 03 Dec 2010 13:46:32 -0600
 
 indicator-datetime (0.0.6-0ubuntu3) maverick; urgency=low
 
