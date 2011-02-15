@@ -233,9 +233,13 @@ static void
 quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, gpointer user_data)
 {
 	const gchar * tz = dbusmenu_menuitem_property_get(menuitem, TIMEZONE_MENUITEM_PROP_LABEL);
+
 	g_debug("Quick setting timezone to: %s", tz);
 
 	g_return_if_fail(tz != NULL);
+
+	if (g_strcmp0(tz, current_timezone) == 0)
+		return;
 
 	OobsObject * obj = oobs_time_config_get();
 	g_return_if_fail(obj != NULL);
