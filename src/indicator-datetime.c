@@ -105,7 +105,6 @@ enum {
 
 typedef struct _indicator_item_t indicator_item_t;
 struct _indicator_item_t {
-	GtkWidget * radio;
 	GtkWidget * icon;
 	GtkWidget * label;
 	GtkWidget * right;
@@ -176,7 +175,6 @@ static void update_time                   (IndicatorDatetime * self);
 static void receive_signal                (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name, GVariant * parameters, gpointer user_data);
 static void service_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data);
 static gint generate_strftime_bitmask     (const char *time_str);
-static GSList *location_group = NULL;
 
 /* Indicator Module Config */
 INDICATOR_SET_VERSION
@@ -1238,20 +1236,14 @@ new_timezone_item(DbusmenuMenuitem * newitem,
 	// Menu item with a radio button and a right aligned time
 	indicator_item_t * mi_data = g_new0(indicator_item_t, 1);
 
-	GtkMenuItem * gmi = GTK_MENU_ITEM(gtk_menu_item_new());
+	GtkMenuItem * gmi = GTK_MENU_ITEM(gtk_check_menu_item_new());
+
+	gtk_check_menu_item_set_draw_as_radio(GTK_CHECK_MENU_ITEM(gmi), TRUE);
+	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(gmi),
+		dbusmenu_menuitem_property_get_bool(newitem, TIMEZONE_MENUITEM_PROP_RADIO));
 
 	GtkWidget * hbox = gtk_hbox_new(FALSE, 4);
 
-	mi_data->radio = gtk_radio_button_new(location_group);
-	if (location_group == NULL)
-		location_group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(mi_data->radio));
-	
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(mi_data->radio),
-		dbusmenu_menuitem_property_get_bool(newitem, TIMEZONE_MENUITEM_PROP_RADIO));
-  
-	gtk_box_pack_start(GTK_BOX(hbox), mi_data->radio, FALSE, FALSE, 0);
-	gtk_widget_show(mi_data->radio);
-	
   	/* Label, probably a username, chat room or mailbox name */
 	mi_data->label = gtk_label_new(dbusmenu_menuitem_property_get(newitem, TIMEZONE_MENUITEM_PROP_LABEL));
 	gtk_misc_set_alignment(GTK_MISC(mi_data->label), 0.0, 0.5);
