@@ -1224,6 +1224,22 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 	return TRUE;
 }
 
+static void
+timezone_toggled_cb (GtkCheckMenuItem *checkmenuitem, DbusmenuMenuitem * dbusitem)
+{
+	/* Make sure that the displayed radio-active setting is always 
+	   consistent with the dbus menuitem */
+	gtk_check_menu_item_set_active(checkmenuitem,
+		dbusmenu_menuitem_property_get_bool(dbusitem, TIMEZONE_MENUITEM_PROP_RADIO));
+}
+
+static void
+timezone_destroyed_cb (DbusmenuMenuitem * dbusitem, indicator_item_t * mi_data)
+{
+	g_signal_handlers_disconnect_by_func(G_OBJECT(mi_data->gmi), G_CALLBACK(timezone_toggled_cb), dbusitem);
+	g_free(mi_data);
+}
+
 static gboolean
 new_timezone_item(DbusmenuMenuitem * newitem,
 				   DbusmenuMenuitem * parent,
@@ -1264,8 +1280,9 @@ new_timezone_item(DbusmenuMenuitem * newitem,
 
 	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(mi_data->gmi), parent);
 
+	g_signal_connect(G_OBJECT(mi_data->gmi), "toggled", G_CALLBACK(timezone_toggled_cb), newitem);
 	g_signal_connect(G_OBJECT(newitem), DBUSMENU_MENUITEM_SIGNAL_PROPERTY_CHANGED, G_CALLBACK(indicator_prop_change_cb), mi_data);
-	g_signal_connect_swapped(G_OBJECT(newitem), "destroyed", G_CALLBACK(g_free), mi_data);
+	g_signal_connect_swapped(G_OBJECT(newitem), "destroyed", G_CALLBACK(timezone_destroyed_cb), mi_data);
 
 	return TRUE;
 }
