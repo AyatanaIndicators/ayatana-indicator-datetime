@@ -364,7 +364,7 @@ update_timezone_menu_items(gpointer user_data) {
 	} 
 	guint len = g_strv_length(locations);
 	DbusmenuMenuitem *item;
-	gint i;
+	gint i, offset;
 	
 	/* Remove all of the previous locations */
 	if (dconflocations != NULL) {
@@ -390,6 +390,7 @@ update_timezone_menu_items(gpointer user_data) {
 		return FALSE;
 	}
 	
+	offset = dbusmenu_menuitem_get_position (current_location, root)+1;
 	for (i = 0; i < len; i++) {
 		// Iterate over configured places and add any which aren't already listed
 		if (g_strcmp0(locations[i], current_timezone) != 0 &&
@@ -402,8 +403,7 @@ update_timezone_menu_items(gpointer user_data) {
 			dbusmenu_menuitem_property_set_bool (item, TIMEZONE_MENUITEM_PROP_RADIO, FALSE);
 			dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 			dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
-			dbusmenu_menuitem_child_add_position (root, item, 
-				dbusmenu_menuitem_get_position (locations_separator, root)+3);
+			dbusmenu_menuitem_child_add_position (root, item, offset++);
 			//g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
 			dconflocations = g_list_append(dconflocations, item);
 		}
