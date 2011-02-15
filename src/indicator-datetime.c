@@ -1282,7 +1282,7 @@ new_timezone_item(DbusmenuMenuitem * newitem,
 
 	g_signal_connect(G_OBJECT(mi_data->gmi), "toggled", G_CALLBACK(timezone_toggled_cb), newitem);
 	g_signal_connect(G_OBJECT(newitem), DBUSMENU_MENUITEM_SIGNAL_PROPERTY_CHANGED, G_CALLBACK(indicator_prop_change_cb), mi_data);
-	g_signal_connect_swapped(G_OBJECT(newitem), "destroyed", G_CALLBACK(timezone_destroyed_cb), mi_data);
+	g_signal_connect(G_OBJECT(newitem), "destroyed", G_CALLBACK(timezone_destroyed_cb), mi_data);
 
 	return TRUE;
 }
