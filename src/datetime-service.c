@@ -148,6 +148,7 @@ check_timezone_sync (void) {
 				dbusmenu_menuitem_property_set (current_location, TIMEZONE_MENUITEM_PROP_LABEL, label);
 				// TODO work out the current time at that location 
 				dbusmenu_menuitem_property_set (current_location, TIMEZONE_MENUITEM_PROP_RIGHT, "+tzone");
+				dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 			} else {
 				g_debug("Label for current location is null, this shouldn't happen");
 			}
@@ -156,6 +157,7 @@ check_timezone_sync (void) {
 				dbusmenu_menuitem_property_set (geo_location, TIMEZONE_MENUITEM_PROP_LABEL, geo_timezone);
 				// TODO work out the current time at that location 
 				dbusmenu_menuitem_property_set (geo_location, TIMEZONE_MENUITEM_PROP_RIGHT, "+tzone");
+				dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 			}
 		} else {
 			// TODO work out the geo location name in a nice way
