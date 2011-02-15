@@ -1068,14 +1068,14 @@ generate_format_string (IndicatorDatetime * self)
 /* Whenever we have a property change on a DbusmenuMenuitem
    we need to be responsive to that. */
 static void
-indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, gchar * value, indicator_item_t * mi_data)
+indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, indicator_item_t * mi_data)
 {
 	if (!g_strcmp0(prop, APPOINTMENT_MENUITEM_PROP_LABEL)) {
 		/* Set the main label */
-		gtk_label_set_text(GTK_LABEL(mi_data->label), value);
+		gtk_label_set_text(GTK_LABEL(mi_data->label), g_variant_get_string(value, NULL));
 	} else if (!g_strcmp0(prop, APPOINTMENT_MENUITEM_PROP_RIGHT)) {
 		/* Set the right label */
-		gtk_label_set_text(GTK_LABEL(mi_data->right), value);
+		gtk_label_set_text(GTK_LABEL(mi_data->right), g_variant_get_string(value, NULL));
 	} else if (!g_strcmp0(prop, APPOINTMENT_MENUITEM_PROP_ICON)) {
 		/* We don't use the value here, which is probably less efficient, 
 		   but it's easier to use the easy function.  And since th value
@@ -1106,12 +1106,12 @@ indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, gchar * value, in
 		}
 	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_LABEL)) {
 		/* Set the main label */
-		gtk_label_set_text(GTK_LABEL(mi_data->label), value);
+		gtk_label_set_text(GTK_LABEL(mi_data->label), g_variant_get_string(value, NULL));
 	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_RIGHT)) {
 		/* Set the right label */
-		gtk_label_set_text(GTK_LABEL(mi_data->right), value);
+		gtk_label_set_text(GTK_LABEL(mi_data->right), g_variant_get_string(value, NULL));
 	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_RADIO)) {
-		//gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(mi_data->radio), value);
+		//gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(mi_data->radio), g_variant_get_boolean(value));
 	} else {
 		g_warning("Indicator Item property '%s' unknown", prop);
 	}
