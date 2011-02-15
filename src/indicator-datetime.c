@@ -105,6 +105,7 @@ enum {
 
 typedef struct _indicator_item_t indicator_item_t;
 struct _indicator_item_t {
+	GtkWidget * gmi;
 	GtkWidget * icon;
 	GtkWidget * label;
 	GtkWidget * right;
@@ -1111,7 +1112,7 @@ indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, 
 		/* Set the right label */
 		gtk_label_set_text(GTK_LABEL(mi_data->right), g_variant_get_string(value, NULL));
 	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_RADIO)) {
-		//gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(mi_data->radio), g_variant_get_boolean(value));
+		gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(mi_data->gmi), g_variant_get_boolean(value));
 	} else {
 		g_warning("Indicator Item property '%s' unknown", prop);
 	}
@@ -1133,7 +1134,7 @@ new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, Dbu
 
 	indicator_item_t * mi_data = g_new0(indicator_item_t, 1);
 
-	GtkMenuItem * gmi = GTK_MENU_ITEM(gtk_menu_item_new());
+	mi_data->gmi = gtk_menu_item_new();
 
 	GtkWidget * hbox = gtk_hbox_new(FALSE, 4);
 
@@ -1184,10 +1185,10 @@ new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, Dbu
 	gtk_box_pack_start(GTK_BOX(hbox), mi_data->right, FALSE, FALSE, 0);
 	gtk_widget_show(mi_data->right);
 
-	gtk_container_add(GTK_CONTAINER(gmi), hbox);
+	gtk_container_add(GTK_CONTAINER(mi_data->gmi), hbox);
 	gtk_widget_show(hbox);
 
-	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, gmi, parent);
+	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(mi_data->gmi), parent);
 
 	g_signal_connect(G_OBJECT(newitem), DBUSMENU_MENUITEM_SIGNAL_PROPERTY_CHANGED, G_CALLBACK(indicator_prop_change_cb), mi_data);
 	g_signal_connect_swapped(G_OBJECT(newitem), "destroyed", G_CALLBACK(g_free), mi_data);
@@ -1236,10 +1237,10 @@ new_timezone_item(DbusmenuMenuitem * newitem,
 	// Menu item with a radio button and a right aligned time
 	indicator_item_t * mi_data = g_new0(indicator_item_t, 1);
 
-	GtkMenuItem * gmi = GTK_MENU_ITEM(gtk_check_menu_item_new());
+	mi_data->gmi = gtk_check_menu_item_new();
 
-	gtk_check_menu_item_set_draw_as_radio(GTK_CHECK_MENU_ITEM(gmi), TRUE);
-	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(gmi),
+	gtk_check_menu_item_set_draw_as_radio(GTK_CHECK_MENU_ITEM(mi_data->gmi), TRUE);
+	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(mi_data->gmi),
 		dbusmenu_menuitem_property_get_bool(newitem, TIMEZONE_MENUITEM_PROP_RADIO));
 
 	GtkWidget * hbox = gtk_hbox_new(FALSE, 4);
@@ -1258,10 +1259,10 @@ new_timezone_item(DbusmenuMenuitem * newitem,
 	gtk_box_pack_start(GTK_BOX(hbox), mi_data->right, FALSE, FALSE, 0);
 	gtk_widget_show(mi_data->right);
 
-	gtk_container_add(GTK_CONTAINER(gmi), hbox);
+	gtk_container_add(GTK_CONTAINER(mi_data->gmi), hbox);
 	gtk_widget_show(hbox);
 
-	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, gmi, parent);
+	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(mi_data->gmi), parent);
 
 	g_signal_connect(G_OBJECT(newitem), DBUSMENU_MENUITEM_SIGNAL_PROPERTY_CHANGED, G_CALLBACK(indicator_prop_change_cb), mi_data);
 	g_signal_connect_swapped(G_OBJECT(newitem), "destroyed", G_CALLBACK(g_free), mi_data);
