@@ -367,10 +367,10 @@ update_timezone_menu_items(gpointer user_data) {
 	/* Remove all of the previous locations */
 	if (dconflocations != NULL) {
 		g_debug("Freeing old locations");
-		while (appointments != NULL) {
+		while (dconflocations != NULL) {
 			DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(dconflocations->data);
 			g_debug("Freeing old location: %p", litem);
-			// Remove all the existing menu items which are in appointments.
+			// Remove all the existing menu items which are in dconflocations.
 			dconflocations = g_list_remove(dconflocations, litem);
 			dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(litem));
 			g_object_unref(G_OBJECT(litem));
