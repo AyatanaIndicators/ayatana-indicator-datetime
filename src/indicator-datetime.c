@@ -1106,6 +1106,14 @@ indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, gchar * value, in
 				g_object_unref(resized_pixbuf);
 			}
 		}
+	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_LABEL)) {
+		/* Set the main label */
+		gtk_label_set_text(GTK_LABEL(mi_data->label), value);
+	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_RIGHT)) {
+		/* Set the right label */
+		gtk_label_set_text(GTK_LABEL(mi_data->right), value);
+	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_RADIO)) {
+		//gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(mi_data->radio), value);
 	} else {
 		g_warning("Indicator Item property '%s' unknown", prop);
 	}
