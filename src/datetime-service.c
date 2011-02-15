@@ -149,6 +149,7 @@ check_timezone_sync (void) {
 				// TODO work out the current time at that location 
 				dbusmenu_menuitem_property_set (current_location, TIMEZONE_MENUITEM_PROP_RIGHT, "+tzone");
 				dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+				dbusmenu_menuitem_property_set_bool(current_location, TIMEZONE_MENUITEM_PROP_RADIO, TRUE);
 			} else {
 				g_debug("Label for current location is null, this shouldn't happen");
 			}
