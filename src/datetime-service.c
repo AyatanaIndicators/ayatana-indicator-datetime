@@ -464,6 +464,9 @@ compare_appointment_items (ECalComponent *a,
 	if (a == NULL || b == NULL) return retval;
 
 	ECalComponentVType vtype = e_cal_component_get_vtype (a);
+	
+	if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) return -1;
+	
 	if (vtype == E_CAL_COMPONENT_EVENT)
 		e_cal_component_get_dtstart (a, &datetime_a);
 	else
@@ -472,6 +475,8 @@ compare_appointment_items (ECalComponent *a,
 	t_a = mktime(&tm_a);
 	
 	vtype = e_cal_component_get_vtype (b);
+	if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) return 1;
+	
 	if (vtype == E_CAL_COMPONENT_EVENT)
 		e_cal_component_get_dtstart (b, &datetime_b);
 	else
