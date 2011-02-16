@@ -515,10 +515,11 @@ update_appointment_menu_items (gpointer user_data) {
 			ECal *ecal = e_cal_new(source, E_CAL_SOURCE_TYPE_EVENT);
 			
 			//icaltimezone * tzone;
-
+			
 			if (!e_cal_open(ecal, FALSE, &gerror)) {
 				g_debug("Failed to get ecal sources %s", gerror->message);
 				g_error_free(gerror);
+				gerror = NULL
 				continue;
         	}
 			
@@ -534,7 +535,7 @@ update_appointment_menu_items (gpointer user_data) {
 				allobjects = objects;
 			} else if (objects != NULL) {
 				allobjects = g_list_concat(allobjects, objects);
-				g_list_free(objects);
+				e_cal_free_object_list(objects);
 			}
 		}
 	}
@@ -670,7 +671,7 @@ update_appointment_menu_items (gpointer user_data) {
 		if (i == 4) break; // See above FIXME regarding query result limit
 		i++;
 	}
-	g_list_free(allobjects);
+	e_cal_free_object_list(allobjects);
 	g_debug("End of objects");
 	return TRUE;
 }
