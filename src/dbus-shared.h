@@ -35,6 +35,5 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define APPOINTMENT_MENUITEM_PROP_RIGHT    "appointment-time"
 
 #define TIMEZONE_MENUITEM_TYPE             "timezone-item"	
-#define TIMEZONE_MENUITEM_PROP_LABEL       "timezone-label"
+#define TIMEZONE_MENUITEM_PROP_ZONE        "timezone-zone"
 #define TIMEZONE_MENUITEM_PROP_RADIO       "timezone-radio"
-#define TIMEZONE_MENUITEM_PROP_RIGHT       "timezone-time"
