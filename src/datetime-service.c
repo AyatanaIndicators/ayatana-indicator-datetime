@@ -518,7 +518,7 @@ update_appointment_menu_items (gpointer user_data) {
 
 			if (!e_cal_open(ecal, FALSE, &gerror)) {
 				g_debug("Failed to get ecal sources %s", gerror->message);
-				return FALSE;
+				continue;
         	}
 			
 			g_debug("Getting objects with query: %s", query);
