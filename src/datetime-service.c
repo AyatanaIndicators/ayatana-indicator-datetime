@@ -574,7 +574,7 @@ update_appointment_menu_items (gpointer user_data) {
 				allobjects = objects;
 			} else if (objects != NULL) {
 				allobjects = g_list_concat(allobjects, objects);
-				e_cal_free_object_list(objects);
+				g_object_unref(objects);
 			}
 		}
 	}
