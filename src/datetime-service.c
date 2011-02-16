@@ -636,15 +636,18 @@ update_appointment_menu_items (gpointer user_data) {
 		
 		g_debug("Command to Execute: %s", cmd);
 		
-		ESource *source = e_cal_get_source (ecal);
+		// FIXME This is now more difficult to get right with more sources, as we need to keep track
+		// of which ecal or source goes with each ECalComponent :/
+		
+		//ESource *source = e_cal_get_source (ecal);
         //e_source_get_color (source, &source_color); api has been changed
-        const gchar *color_spec = e_source_peek_color_spec(source);
-        GdkColor color;
+        const gchar *color_spec = NULL; //e_source_peek_color_spec(source);
         g_debug("Colour to use: %s", color_spec);
 			
 		// Draw the correct icon for the appointment type and then tint it using mask fill.
 		// For now we'll create a circle
         if (color_spec != NULL) {
+        	GdkColor color;
         	gdk_color_parse (color_spec, &color);
         	
 			cairo_surface_t *cs = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
