@@ -575,6 +575,7 @@ update_appointment_menu_items (gpointer user_data) {
 	}
 	
 	// Sort the list see above FIXME regarding queries
+	g_debug("Sorting objects list");
 	allobjects = g_list_sort(allobjects, (GCompareFunc) compare_appointment_items);
 	i = 0;
 	for (l = allobjects; l; l = l->next) {
@@ -590,6 +591,7 @@ update_appointment_menu_items (gpointer user_data) {
 		struct tm tmp_tm;
 		DbusmenuMenuitem * item;
 
+		g_debug("Start Object");
 		ECalComponentVType vtype = e_cal_component_get_vtype (ecalcomp);
 
 		// See above FIXME regarding query result
@@ -608,7 +610,6 @@ update_appointment_menu_items (gpointer user_data) {
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 	
-		g_debug("Start Object");
         // Label text        
 		e_cal_component_get_summary (ecalcomp, &valuetext);
 		summary = g_strdup (valuetext.value);
