@@ -42,6 +42,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libical/ical.h>
 #include <libecal/e-cal-time-util.h>
 #include <libedataserver/e-source.h>
+#include <libedataserverui/e-passwords.h>
 // Other users of ecal seem to also include these, not sure why they should be included by the above
 #include <libical/icaltime.h>
 #include <cairo/cairo.h>
@@ -418,6 +419,37 @@ update_timezone_menu_items(gpointer user_data) {
 	return FALSE;
 }
 
+// Authentication function taken from http://git.gnome.org/browse/evolution/tree/calendar/common/authentication.c
+static gchar *
+auth_func_cb (ECal *ecal,
+              const gchar *prompt,
+              const gchar *key,
+              gpointer user_data)
+{
+	gboolean remember;
+	gchar *password, *auth_domain;
+	ESource *source;
+	const gchar *component_name;
+
+	source = e_cal_get_source (ecal);
+	auth_domain = e_source_get_duped_property (source, "auth-domain");
+	component_name = auth_domain ? auth_domain : "Calendar";
+	password = e_passwords_get_password (component_name, key);
+
+	if (!password)
+		password = e_passwords_ask_password (
+			_("Enter password"),
+			component_name, key, prompt,
+			E_PASSWORDS_REMEMBER_FOREVER |
+			E_PASSWORDS_SECRET |
+			E_PASSWORDS_ONLINE,
+			&remember, NULL);
+
+	g_free (auth_domain);
+
+	return password;
+}
+
 
 // Compare function for g_list_sort of ECalComponent objects
 static gint 
@@ -428,7 +460,9 @@ compare_appointment_items (ECalComponent *a,
 	struct tm tm_a, tm_b;
 	time_t t_a, t_b;
 	gint retval = 0;
-	
+
+	if (a == NULL || b == NULL) return retval;
+
 	ECalComponentVType vtype = e_cal_component_get_vtype (a);
 	if (vtype == E_CAL_COMPONENT_EVENT)
 		e_cal_component_get_dtstart (a, &datetime_a);
@@ -513,13 +547,13 @@ update_appointment_menu_items (gpointer user_data) {
 		for (s = e_source_group_peek_sources (group); s; s = s->next) {
 			ESource *source = E_SOURCE (s->data);
 			ECal *ecal = e_cal_new(source, E_CAL_SOURCE_TYPE_EVENT);
-			
+			e_cal_set_auth_func (ecal, (ECalAuthFunc) auth_func_cb, NULL);
 			//icaltimezone * tzone;
 			
 			if (!e_cal_open(ecal, FALSE, &gerror)) {
 				g_debug("Failed to get ecal sources %s", gerror->message);
 				g_error_free(gerror);
-				gerror = NULL
+				gerror = NULL;
 				continue;
         	}
 			

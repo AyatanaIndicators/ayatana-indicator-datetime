@@ -91,6 +91,7 @@ AS_IF([test "x$with_gtk" = x3],
 	                             libecal-1.2 >= $ECAL_REQUIRED_VERSION
 	                             libical >= $ICAL_REQUIRED_VERSION
 	                             libedataserver-1.2 >= EDS_REQUIRED_VERSION
+	                             libedataserverui-1.2 >= EDS_REQUIRED_VERSION
 	                             cairo >= CAIRO_REQUIRED_VERSION
 	                             gdk-2.0 >= GDK_REQUIRED_VERSION)
 		],
@@ -105,6 +106,7 @@ AS_IF([test "x$with_gtk" = x3],
 	                             libecal-1.2 >= $ECAL_REQUIRED_VERSION
 	                             libical >= $ICAL_REQUIRED_VERSION
 	                             libedataserver-1.2 >= EDS_REQUIRED_VERSION
+	                             libedataserverui-1.2 >= EDS_REQUIRED_VERSION
 	                             cairo >= CAIRO_REQUIRED_VERSION
 	                             gdk-2.0 >= GDK_REQUIRED_VERSION)
         ],
