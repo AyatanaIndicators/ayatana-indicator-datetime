@@ -90,9 +90,6 @@ static const gchar		* ecal_timezone = NULL;
 static gchar 			* current_timezone = NULL;
 static gchar 			* geo_timezone = NULL;
 
-static ECal				* ecal = NULL;
-static icaltimezone     * tzone;
-
 /* Check to see if our timezones are the same */
 static void
 check_timezone_sync (void) {
@@ -297,7 +294,7 @@ check_for_calendar (gpointer user_data)
 		g_debug("Found the calendar application: %s", evo);
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
-
+/*
 		GError *gerror = NULL;
 		// TODO: In reality we should iterate sources of calendar, but getting the local one doens't lag for > a minute
 		g_debug("Setting up ecal.");
@@ -321,13 +318,13 @@ check_for_calendar (gpointer user_data)
 			ecal = NULL;
 		}
 	
-		/* This timezone represents the timezone of the calendar, this might be different to the current UTC offset.
+		 This timezone represents the timezone of the calendar, this might be different to the current UTC offset.
 		 * this means we'll have some geoclue interaction going on, and possibly the user will be involved in setting
 		 * their location manually, case in point: trains have satellite links which often geoclue to sweden,
 		 * this shouldn't automatically set the location and mess up all the appointments for the user.
-		 */
+		 
 		if (ecal) ecal_timezone = icaltimezone_get_tzid(tzone);
-		
+		*/
 		DbusmenuMenuitem * separator = dbusmenu_menuitem_new();
 		dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
 		dbusmenu_menuitem_child_add_position(root, separator, 3);
@@ -459,6 +456,7 @@ update_appointment_menu_items (gpointer user_data) {
 	time_t t1, t2;
 	gchar *query, *is, *ie, *ad;
 	GList *objects = NULL, *l;
+	GList *allobjects = NULL;
 	GError *gerror = NULL;
 	gint i;
 	gint width, height;
@@ -470,20 +468,15 @@ update_appointment_menu_items (gpointer user_data) {
 	is = isodate_from_time_t(t1);
 	ie = isodate_from_time_t(t2);
 	
+	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
+	
 	// FIXME can we put a limit on the number of results? Or if not complete, or is event/todo? Or sort it by date?
 	query = g_strdup_printf("(occur-in-time-range? (make-time\"%s\") (make-time\"%s\"))", is, ie);
 	
-	
-	// FIXME iterate the query for all sources, kill global ecal
-	g_debug("Getting objects with query: %s", query);
-	if (!e_cal_get_object_list_as_comp(ecal, query, &objects, &gerror)) {
-		g_debug("Failed to get objects\n");
-		g_free(ecal);
-		ecal = NULL;
+	if (!e_cal_get_sources(&sources, E_CAL_SOURCE_TYPE_EVENT, &gerror)) {
+		g_debug("Failed to get ecal sources\n");
 		return FALSE;
 	}
-	g_debug("Number of objects returned: %d", g_list_length(objects));
-	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
 
 	/* Remove all of the previous appointments */
 	if (appointments != NULL) {
@@ -500,10 +493,43 @@ update_appointment_menu_items (gpointer user_data) {
 	
 	// TODO Remove all highlights from the calendar widget
 	
+	// iterate the query for all sources
+	for (g = e_source_list_peek_groups (sources); g; g = g->next) {
+		ESourceGroup *group = E_SOURCE_GROUP (g->data);
+		GSList *s;
+		
+		for (s = e_source_group_peek_sources (group); s; s = s->next) {
+			ESource *source = E_SOURCE (s->data);
+			ECal *ecal = e_cal_new(source, E_CAL_SOURCE_TYPE_EVENT);
+			
+			icaltimezone * tzone;
+
+			if (!e_cal_open(ecal, FALSE, &gerror)) {
+				g_debug("Failed to get ecal sources %s", gerror->message);
+				return FALSE;
+        	}
+			
+			g_debug("Getting objects with query: %s", query);
+			if (!e_cal_get_object_list_as_comp(ecal, query, &objects, &gerror)) {
+				g_debug("Failed to get objects\n");
+				g_free(ecal);
+				return FALSE;
+			}
+			g_debug("Number of objects returned: %d", g_list_length(objects));
+			
+			if (allobjects == NULL) {
+				allobjects = objects;
+			} else if (objects != NULL) {
+				allobjects = g_list_concat(allobjects, objects);
+				g_list_free(objects);
+			}
+		}
+	}
+	
 	// Sort the list see above FIXME regarding queries
-	objects = g_list_sort(objects, (GCompareFunc) compare_appointment_items);
+	allobjects = g_list_sort(allobjects, (GCompareFunc) compare_appointment_items);
 	i = 0;
-	for (l = objects; l; l = l->next) {
+	for (l = allobjects; l; l = l->next) {
 		ECalComponent *ecalcomp = l->data;
 		ECalComponentText valuetext;
 		ECalComponentDateTime datetime;
@@ -628,7 +654,7 @@ update_appointment_menu_items (gpointer user_data) {
 		if (i == 4) break; // See above FIXME regarding query result limit
 		i++;
 	}
-	g_list_free(objects);
+	g_list_free(allobjects);
 	g_debug("End of objects");
 	return TRUE;
 }
