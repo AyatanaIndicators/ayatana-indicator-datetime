@@ -78,10 +78,6 @@ static DbusmenuMenuitem * geo_location = NULL;
 static DbusmenuMenuitem * current_location = NULL;
 //static DbusmenuMenuitem * ecal_location = NULL;
 static DbusmenuMenuitem * add_appointment = NULL;
-<<<<<<< TREE
-=======
-// static DbusmenuMenuitem * add_location = NULL;
->>>>>>> MERGE-SOURCE
 static GList			* appointments = NULL;
 static GList			* dconflocations = NULL;
 GSettings *conf;
@@ -91,8 +87,7 @@ GSettings *conf;
 static GeoclueMasterClient * geo_master = NULL;
 static GeoclueAddress * geo_address = NULL;
 
-/* Our 3 important timezones */
-static const gchar		* ecal_timezone = NULL;
+/* Our 2 important timezones */
 static gchar 			* current_timezone = NULL;
 static gchar 			* geo_timezone = NULL;
 
@@ -363,7 +358,7 @@ check_for_calendar (gpointer user_data)
 	return FALSE;
 }
 
-/*
+
 static gboolean
 update_timezone_menu_items(gpointer user_data) {
 	g_debug("Updating timezone menu items");
@@ -422,7 +417,7 @@ update_timezone_menu_items(gpointer user_data) {
 	// Get the evolution calendar timezone as a place and time and add it
 	return FALSE;
 }
-*/
+
 
 // Compare function for g_list_sort of ECalComponent objects
 static gint 
@@ -466,16 +461,17 @@ compare_appointment_items (ECalComponent *a,
  */
 static gboolean
 update_appointment_menu_items (gpointer user_data) {
-	if (!ecal) return FALSE;
 	// FFR: we should take into account short term timers, for instance
 	// tea timers, pomodoro timers etc... that people may add, this is hinted to in the spec.
 	time_t t1, t2;
 	gchar *query, *is, *ie, *ad;
 	GList *objects = NULL, *l;
 	GList *allobjects = NULL;
+	GSList *g;
 	GError *gerror = NULL;
 	gint i;
 	gint width, height;
+	ESourceList * sources = NULL;
 	
 	time(&t1);
 	time(&t2);
@@ -485,14 +481,6 @@ update_appointment_menu_items (gpointer user_data) {
 	ie = isodate_from_time_t(t2);
 	
 	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
-	
-	// FIXME can we put a limit on the number of results? Or if not complete, or is event/todo? Or sort it by date?
-	query = g_strdup_printf("(occur-in-time-range? (make-time\"%s\") (make-time\"%s\"))", is, ie);
-	
-	if (!e_cal_get_sources(&sources, E_CAL_SOURCE_TYPE_EVENT, &gerror)) {
-		g_debug("Failed to get ecal sources\n");
-		return FALSE;
-	}
 
 	/* Remove all of the previous appointments */
 	if (appointments != NULL) {
@@ -508,7 +496,15 @@ update_appointment_menu_items (gpointer user_data) {
 	}
 	
 	// TODO Remove all highlights from the calendar widget
+
+	// FIXME can we put a limit on the number of results? Or if not complete, or is event/todo? Or sort it by date?
+	query = g_strdup_printf("(occur-in-time-range? (make-time\"%s\") (make-time\"%s\"))", is, ie);
 	
+	if (!e_cal_get_sources(&sources, E_CAL_SOURCE_TYPE_EVENT, &gerror)) {
+		g_debug("Failed to get ecal sources\n");
+		return FALSE;
+	}
+
 	// iterate the query for all sources
 	for (g = e_source_list_peek_groups (sources); g; g = g->next) {
 		ESourceGroup *group = E_SOURCE_GROUP (g->data);
@@ -518,7 +514,7 @@ update_appointment_menu_items (gpointer user_data) {
 			ESource *source = E_SOURCE (s->data);
 			ECal *ecal = e_cal_new(source, E_CAL_SOURCE_TYPE_EVENT);
 			
-			icaltimezone * tzone;
+			//icaltimezone * tzone;
 
 			if (!e_cal_open(ecal, FALSE, &gerror)) {
 				g_debug("Failed to get ecal sources %s", gerror->message);
@@ -622,7 +618,7 @@ update_appointment_menu_items (gpointer user_data) {
 		g_debug("Appointment time: %s", right);
 		g_debug("Appointment timezone: %s", datetime.tzid);
 		g_debug("Appointment timezone: %s", icaltimezone_get_tzid(appointment_zone)); // These two should be the same
-		g_debug("Calendar timezone: %s", ecal_timezone);
+		//g_debug("Calendar timezone: %s", ecal_timezone);
 		
 		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, right);
 		
