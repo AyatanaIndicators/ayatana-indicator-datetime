@@ -711,7 +711,7 @@ update_appointment_menu_items (gpointer user_data) {
 		if (i == 4) break; // See above FIXME regarding query result limit
 		i++;
 	}
-	e_cal_free_object_list(allobjects);
+	g_object_unref(allobjects);
 	g_debug("End of objects");
 	return TRUE;
 }
