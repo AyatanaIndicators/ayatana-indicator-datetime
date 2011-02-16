@@ -145,6 +145,8 @@ check_timezone_sync (void) {
 				dbusmenu_menuitem_property_set (current_location, TIMEZONE_MENUITEM_PROP_LABEL, label);
 				// TODO work out the current time at that location 
 				dbusmenu_menuitem_property_set (current_location, TIMEZONE_MENUITEM_PROP_RIGHT, "+tzone");
+				dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+				dbusmenu_menuitem_property_set_bool(current_location, TIMEZONE_MENUITEM_PROP_RADIO, TRUE);
 			} else {
 				g_debug("Label for current location is null, this shouldn't happen");
 			}
@@ -153,6 +155,7 @@ check_timezone_sync (void) {
 				dbusmenu_menuitem_property_set (geo_location, TIMEZONE_MENUITEM_PROP_LABEL, geo_timezone);
 				// TODO work out the current time at that location 
 				dbusmenu_menuitem_property_set (geo_location, TIMEZONE_MENUITEM_PROP_RIGHT, "+tzone");
+				dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 			}
 		} else {
 			// TODO work out the geo location name in a nice way
@@ -210,7 +213,7 @@ update_current_timezone (void) {
 	return;
 }
 
-/* See how our timezone setting went 
+/* See how our timezone setting went */
 static void
 quick_set_tz_cb (OobsObject * obj, OobsResult result, gpointer user_data)
 {
@@ -220,26 +223,31 @@ quick_set_tz_cb (OobsObject * obj, OobsResult result, gpointer user_data)
 		g_warning("Unable to quick set timezone");
 	}
 	return;
-}*/
+}
 
-/* Set the timezone to the Geoclue discovered one 
+/* Set the timezone to the Geoclue discovered one */
 static void
-quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
+quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, gpointer user_data)
 {
-	g_debug("Quick setting timezone to: %s", geo_timezone);
+	const gchar * tz = dbusmenu_menuitem_property_get(menuitem, TIMEZONE_MENUITEM_PROP_LABEL);
 
-	g_return_if_fail(geo_timezone != NULL);
+	g_debug("Quick setting timezone to: %s", tz);
+
+	g_return_if_fail(tz != NULL);
+
+	if (g_strcmp0(tz, current_timezone) == 0)
+		return;
 
 	OobsObject * obj = oobs_time_config_get();
 	g_return_if_fail(obj != NULL);
 
 	OobsTimeConfig * timeconfig = OOBS_TIME_CONFIG(obj);
-	oobs_time_config_set_timezone(timeconfig, geo_timezone);
+	oobs_time_config_set_timezone(timeconfig, tz);
 
 	oobs_object_commit_async(obj, quick_set_tz_cb, NULL);
 
 	return;
-}*/
+}
 
 /* Updates the label in the date menuitem */
 static gboolean
@@ -359,15 +367,15 @@ update_timezone_menu_items(gpointer user_data) {
 	} 
 	guint len = g_strv_length(locations);
 	DbusmenuMenuitem *item;
-	gint i;
+	gint i, offset;
 	
 	/* Remove all of the previous locations */
 	if (dconflocations != NULL) {
 		g_debug("Freeing old locations");
-		while (appointments != NULL) {
+		while (dconflocations != NULL) {
 			DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(dconflocations->data);
 			g_debug("Freeing old location: %p", litem);
-			// Remove all the existing menu items which are in appointments.
+			// Remove all the existing menu items which are in dconflocations.
 			dconflocations = g_list_remove(dconflocations, litem);
 			dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(litem));
 			g_object_unref(G_OBJECT(litem));
@@ -385,6 +393,7 @@ update_timezone_menu_items(gpointer user_data) {
 		return FALSE;
 	}
 	
+	offset = dbusmenu_menuitem_get_position (current_location, root)+1;
 	for (i = 0; i < len; i++) {
 		// Iterate over configured places and add any which aren't already listed
 		if (g_strcmp0(locations[i], current_timezone) != 0 &&
@@ -397,9 +406,8 @@ update_timezone_menu_items(gpointer user_data) {
 			dbusmenu_menuitem_property_set_bool (item, TIMEZONE_MENUITEM_PROP_RADIO, FALSE);
 			dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 			dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
-			dbusmenu_menuitem_child_add_position (root, item, 
-				dbusmenu_menuitem_get_position (locations_separator, root)+3);
-			//g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
+			dbusmenu_menuitem_child_add_position (root, item, offset++);
+			g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
 			dconflocations = g_list_append(dconflocations, item);
 		}
 	}
@@ -717,7 +725,7 @@ build_menus (DbusmenuMenuitem * root)
 	dbusmenu_menuitem_property_set		(geo_location, TIMEZONE_MENUITEM_PROP_LABEL, "Updating location information...");
 	dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 	dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
-	//g_signal_connect(G_OBJECT(geo_location), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
+	g_signal_connect(G_OBJECT(geo_location), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
 	dbusmenu_menuitem_child_append(root, geo_location);
 
 	current_location = dbusmenu_menuitem_new();
@@ -725,7 +733,7 @@ build_menus (DbusmenuMenuitem * root)
 	dbusmenu_menuitem_property_set		(current_location, TIMEZONE_MENUITEM_PROP_LABEL, "Current Timezone");
 	dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 	dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-	//g_signal_connect(G_OBJECT(current_location), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
+	g_signal_connect(G_OBJECT(current_location), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
 	dbusmenu_menuitem_child_append(root, current_location);
 	
 	check_timezone_sync();
