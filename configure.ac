@@ -1,11 +1,11 @@
 
-AC_INIT(indicator-datetime, 0.1.93, ted@canonical.com)
+AC_INIT(indicator-datetime, 0.1.94, ted@canonical.com)
 AC_COPYRIGHT([Copyright 2009,2010 Canonical])
 
 AC_PREREQ(2.53)
 
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(indicator-datetime, 0.1.93)
+AM_INIT_AUTOMAKE(indicator-datetime, 0.1.94)
 
 AM_MAINTAINER_MODE
 
@@ -51,7 +51,7 @@ AC_ARG_WITH([gtk],
 # Dependencies
 ###########################
 
-INDICATOR_REQUIRED_VERSION=0.3.0
+INDICATOR_REQUIRED_VERSION=0.3.19
 DBUSMENUGLIB_REQUIRED_VERSION=0.1.1
 DBUSMENUGTK_REQUIRED_VERSION=0.3.94
 GIO_REQUIRED_VERSION=2.25.11
@@ -64,15 +64,18 @@ EDS_REQUIRED_VERSION=2.30
 ICAL_REQUIRED_VERSION=0.44
 CAIRO_REQUIRED_VERSION=1.10
 GDK_REQUIRED_VERSION=2.22
+GLIB_REQUIRED_VERSION=2.26
 
 AS_IF([test "x$with_gtk" = x3],
     [PKG_CHECK_MODULES(INDICATOR, indicator3 >= $INDICATOR_REQUIRED_VERSION
+                                  glib-2.0 >= $GLIB_REQUIRED_VERSION
                                   dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
                                   dbusmenu-gtk3-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
                                   libido3-0.1 >= $INDICATOR_DISPLAY_OBJECTS)
         ],
       [test "x$with_gtk" = x2],
     [PKG_CHECK_MODULES(INDICATOR, indicator >= $INDICATOR_REQUIRED_VERSION
+                                  glib-2.0 >= $GLIB_REQUIRED_VERSION
                                   dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
                                   dbusmenu-gtk-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
                                   libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS)
@@ -82,6 +85,7 @@ AS_IF([test "x$with_gtk" = x3],
 
 AS_IF([test "x$with_gtk" = x3],
 	[PKG_CHECK_MODULES(SERVICE,  indicator >= $INDICATOR_REQUIRED_VERSION
+                                     glib-2.0 >= $GLIB_REQUIRED_VERSION
 	                             dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
                                  dbusmenu-gtk3-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
 	                             libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
@@ -91,11 +95,13 @@ AS_IF([test "x$with_gtk" = x3],
 	                             libecal-1.2 >= $ECAL_REQUIRED_VERSION
 	                             libical >= $ICAL_REQUIRED_VERSION
 	                             libedataserver-1.2 >= EDS_REQUIRED_VERSION
+	                             libedataserverui-1.2 >= EDS_REQUIRED_VERSION
 	                             cairo >= CAIRO_REQUIRED_VERSION
 	                             gdk-2.0 >= GDK_REQUIRED_VERSION)
 		],
       [test "x$with_gtk" = x2],
 	[PKG_CHECK_MODULES(SERVICE,  indicator >= $INDICATOR_REQUIRED_VERSION
+                                     glib-2.0 >= $GLIB_REQUIRED_VERSION
 	                             dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
                                  dbusmenu-gtk-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
 	                             libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
@@ -105,6 +111,7 @@ AS_IF([test "x$with_gtk" = x3],
 	                             libecal-1.2 >= $ECAL_REQUIRED_VERSION
 	                             libical >= $ICAL_REQUIRED_VERSION
 	                             libedataserver-1.2 >= EDS_REQUIRED_VERSION
+	                             libedataserverui-1.2 >= EDS_REQUIRED_VERSION
 	                             cairo >= CAIRO_REQUIRED_VERSION
 	                             gdk-2.0 >= GDK_REQUIRED_VERSION)
         ],
