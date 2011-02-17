@@ -414,24 +414,19 @@ update_timezone_menu_items(gpointer user_data) {
 	return FALSE;
 }
 
-// Authentication function taken from http://git.gnome.org/browse/evolution/tree/calendar/common/authentication.c
+// Authentication function
 static gchar *
-auth_func_cb (ECal *ecal,
-              const gchar *prompt,
-              const gchar *key,
-              gpointer user_data)
-{
-	gboolean remember;
-	gchar *password, *auth_domain;
-	ESource *source;
+auth_func (ECal *ecal, const gchar *prompt, const gchar *key, gpointer user_data) {
+	ESource *source = e_cal_get_source (ecal);
+	gchar *auth_domain = e_source_get_duped_property (source, "auth-domain");
+
 	const gchar *component_name;
+	if (auth_domain) component_name = auth_domain;
+	else component_name = "Calendar";
+	
+	gchar *password = e_passwords_get_password (component_name, key);
 
-	source = e_cal_get_source (ecal);
-	auth_domain = e_source_get_duped_property (source, "auth-domain");
-	component_name = auth_domain ? auth_domain : "Calendar";
-	password = e_passwords_get_password (component_name, key);
-
-	if (!password)
+	if (password == NULL) {
 		password = e_passwords_ask_password (
 			_("Enter password"),
 			component_name, key, prompt,
@@ -439,7 +434,8 @@ auth_func_cb (ECal *ecal,
 			E_PASSWORDS_SECRET |
 			E_PASSWORDS_ONLINE,
 			&remember, NULL);
-
+	}
+	
 	g_free (auth_domain);
 
 	return password;
@@ -548,7 +544,7 @@ update_appointment_menu_items (gpointer user_data) {
 			ESource *source = E_SOURCE (s->data);
 			g_signal_connect (G_OBJECT(source), "changed", G_CALLBACK (update_appointment_menu_items), NULL);
 			ECal *ecal = e_cal_new(source, E_CAL_SOURCE_TYPE_EVENT);
-			e_cal_set_auth_func (ecal, (ECalAuthFunc) auth_func_cb, NULL);
+			e_cal_set_auth_func (ecal, (ECalAuthFunc) auth_func, NULL);
 			//icaltimezone * tzone;
 			
 			if (!e_cal_open(ecal, FALSE, &gerror)) {
