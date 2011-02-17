@@ -546,6 +546,7 @@ update_appointment_menu_items (gpointer user_data) {
 		
 		for (s = e_source_group_peek_sources (group); s; s = s->next) {
 			ESource *source = E_SOURCE (s->data);
+			g_signal_connect (G_OBJECT(source), "changed", G_CALLBACK (update_appointment_menu_items), NULL);
 			ECal *ecal = e_cal_new(source, E_CAL_SOURCE_TYPE_EVENT);
 			e_cal_set_auth_func (ecal, (ECalAuthFunc) auth_func_cb, NULL);
 			//icaltimezone * tzone;
@@ -781,7 +782,6 @@ build_menus (DbusmenuMenuitem * root)
 	dbusmenu_menuitem_child_append(root, current_location);
 	
 	check_timezone_sync();
-	//g_signal_connect(root, DBUSMENU_MENUITEM_SIGNAL_ABOUT_TO_SHOW, G_CALLBACK(update_timezone_menu_items), NULL);
 	
 	DbusmenuMenuitem * separator = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
