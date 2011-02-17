@@ -64,15 +64,18 @@ EDS_REQUIRED_VERSION=2.30
 ICAL_REQUIRED_VERSION=0.44
 CAIRO_REQUIRED_VERSION=1.10
 GDK_REQUIRED_VERSION=2.22
+GLIB_REQUIRED_VERSION=2.26
 
 AS_IF([test "x$with_gtk" = x3],
     [PKG_CHECK_MODULES(INDICATOR, indicator3 >= $INDICATOR_REQUIRED_VERSION
+                                  glib-2.0 >= $GLIB_REQUIRED_VERSION
                                   dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
                                   dbusmenu-gtk3-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
                                   libido3-0.1 >= $INDICATOR_DISPLAY_OBJECTS)
         ],
       [test "x$with_gtk" = x2],
     [PKG_CHECK_MODULES(INDICATOR, indicator >= $INDICATOR_REQUIRED_VERSION
+                                  glib-2.0 >= $GLIB_REQUIRED_VERSION
                                   dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
                                   dbusmenu-gtk-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
                                   libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS)
@@ -82,6 +85,7 @@ AS_IF([test "x$with_gtk" = x3],
 
 AS_IF([test "x$with_gtk" = x3],
 	[PKG_CHECK_MODULES(SERVICE,  indicator >= $INDICATOR_REQUIRED_VERSION
+                                     glib-2.0 >= $GLIB_REQUIRED_VERSION
 	                             dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
                                  dbusmenu-gtk3-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
 	                             libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
@@ -97,6 +101,7 @@ AS_IF([test "x$with_gtk" = x3],
 		],
       [test "x$with_gtk" = x2],
 	[PKG_CHECK_MODULES(SERVICE,  indicator >= $INDICATOR_REQUIRED_VERSION
+                                     glib-2.0 >= $GLIB_REQUIRED_VERSION
 	                             dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
                                  dbusmenu-gtk-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
 	                             libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
