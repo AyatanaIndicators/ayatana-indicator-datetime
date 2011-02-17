@@ -64,6 +64,8 @@ EDS_REQUIRED_VERSION=2.30
 ICAL_REQUIRED_VERSION=0.44
 CAIRO_REQUIRED_VERSION=1.10
 GDK_REQUIRED_VERSION=2.22
+GTK_REQUIRED_VERSION=2.12
+GTK3_REQUIRED_VERSION=3.0
 
 AS_IF([test "x$with_gtk" = x3],
     [PKG_CHECK_MODULES(INDICATOR, indicator3 >= $INDICATOR_REQUIRED_VERSION
@@ -110,11 +112,27 @@ AS_IF([test "x$with_gtk" = x3],
         ],
     [AC_MSG_FAILURE([Value for --with-gtk was neither 2 nor 3])]
 )
+
+AS_IF([test "x$with_gtk" = x3],
+	[PKG_CHECK_MODULES(PREF, gio-2.0 >= $GIO_REQUIRED_VERSION
+	                         gtk+-3.0 >= $GTK3_REQUIRED_VERSION
+                                 unique-3.0)
+		],
+      [test "x$with_gtk" = x2],
+	[PKG_CHECK_MODULES(PREF, gio-2.0 >= $GIO_REQUIRED_VERSION
+	                         gtk+-2.0 >= $GTK_REQUIRED_VERSION
+                                 unique-1.0)
+        ],
+    [AC_MSG_FAILURE([Value for --with-gtk was neither 2 nor 3])]
+)
 AC_SUBST(INDICATOR_CFLAGS)
 AC_SUBST(INDICATOR_LIBS)
 
 AC_SUBST(SERVICE_CFLAGS)
 AC_SUBST(SERVICE_LIBS)
+
+AC_SUBST(PREF_CFLAGS)
+AC_SUBST(PREF_LIBS)
 
 ###########################
 # Grab the GSettings Macros

@@ -23,10 +23,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "config.h"
 #endif
 
-#include <locale.h>
-#include <langinfo.h>
-#include <string.h>
-
 /* GStuff */
 #include <glib.h>
 #include <glib-object.h>
@@ -43,7 +39,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libido/idocalendarmenuitem.h>
 #include <libdbusmenu-gtk/menuitem.h>
 
+#include "utils.h"
 #include "dbus-shared.h"
+#include "settings-shared.h"
 
 
 #define INDICATOR_DATETIME_TYPE            (indicator_datetime_get_type ())
@@ -116,13 +114,6 @@ struct _indicator_item_t {
 #define PROP_SHOW_DAY_S                 "show-day"
 #define PROP_SHOW_DATE_S                "show-date"
 #define PROP_CUSTOM_TIME_FORMAT_S       "custom-time-format"
-
-#define SETTINGS_INTERFACE              "com.canonical.indicator.datetime"
-#define SETTINGS_TIME_FORMAT_S          "time-format"
-#define SETTINGS_SHOW_SECONDS_S         "show-seconds"
-#define SETTINGS_SHOW_DAY_S             "show-day"
-#define SETTINGS_SHOW_DATE_S            "show-date"
-#define SETTINGS_CUSTOM_TIME_FORMAT_S   "custom-time-format"
 
 enum {
 	SETTINGS_TIME_LOCALE = 0,
@@ -962,24 +953,6 @@ T_(const char *msg)
 	g_free(time_locale);
 	g_free(language);
 	return rv;
-}
-
-/* Check the system locale setting to see if the format is 24-hour
-   time or 12-hour time */
-static gboolean
-is_locale_12h()
-{
-	static const char *formats_24h[] = {"%H", "%R", "%T", "%OH", "%k", NULL};
-	const char *t_fmt = nl_langinfo(T_FMT);
-	int i;
-
-	for (i = 0; formats_24h[i]; ++i) {
-		if (strstr(t_fmt, formats_24h[i])) {
-			return FALSE;
-		}
-	}
-
-	return TRUE;
 }
 
 /* Respond to changes in the screen to update the text gravity */

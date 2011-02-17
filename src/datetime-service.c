@@ -51,10 +51,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "datetime-interface.h"
 #include "dbus-shared.h"
+#include "settings-shared.h"
 
-
-#define SETTINGS_INTERFACE "com.canonical.indicator.datetime"
-#define SETTINGS_LOCATIONS "locations"
 
 static void geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data);
 static gboolean update_appointment_menu_items (gpointer user_data);
@@ -363,7 +361,7 @@ check_for_calendar (gpointer user_data)
 static gboolean
 update_timezone_menu_items(gpointer user_data) {
 	g_debug("Updating timezone menu items");
-	gchar ** locations = g_settings_get_strv(conf, SETTINGS_LOCATIONS);
+	gchar ** locations = g_settings_get_strv(conf, SETTINGS_LOCATIONS_S);
 	if (locations == NULL) { 
 		g_debug("No locations configured (NULL)");
 		return FALSE;
@@ -648,13 +646,13 @@ check_for_timeadmin (gpointer user_data)
 {
 	g_return_val_if_fail (settings != NULL, FALSE);
 
-	gchar * timeadmin = g_find_program_in_path("time-admin");
+	gchar * timeadmin = g_find_program_in_path("indicator-datetime-preferences");
 	if (timeadmin != NULL) {
-		g_debug("Found the time-admin application: %s", timeadmin);
+		g_debug("Found the indicator-datetime-preferences application: %s", timeadmin);
 		dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		g_free(timeadmin);
 	} else {
-		g_debug("Unable to find time-admin app.");
+		g_debug("Unable to find indicator-datetime-preferences app.");
 		dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 	}
 
@@ -721,7 +719,7 @@ build_menus (DbusmenuMenuitem * root)
 	dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Time & Date Settings..."));
 	/* insensitive until we check for available apps */
 	dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-	g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "time-admin");
+	g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "indicator-datetime-preferences");
 	dbusmenu_menuitem_child_append(root, settings);
 	g_idle_add(check_for_timeadmin, NULL);
 
