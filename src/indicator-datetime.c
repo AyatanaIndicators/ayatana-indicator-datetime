@@ -610,6 +610,7 @@ static struct tm *
 update_label (IndicatorDatetime * io)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(io);
+	GList * entry = indicator_object_get_entries(INDICATOR_OBJECT(io));
 
 	if (self->priv->label == NULL) return NULL;
 
@@ -623,11 +624,13 @@ update_label (IndicatorDatetime * io)
 	if (ltime == NULL) {
 		g_debug("Error getting local time");
 		gtk_label_set_label(self->priv->label, _("Error getting time"));
+
 		g_signal_emit(G_OBJECT(self),
 		              INDICATOR_OBJECT_SIGNAL_ACCESSIBLE_DESC_UPDATE_ID,
 		              0,
-		              (IndicatorObjectEntry *)indicator_object_get_entries(INDICATOR_OBJECT(self))->data,
+		              entry->data,
 		              TRUE);
+		g_list_free(entry);
 		return NULL;
 	}
 
@@ -652,8 +655,9 @@ update_label (IndicatorDatetime * io)
 	g_signal_emit(G_OBJECT(self),
 	              INDICATOR_OBJECT_SIGNAL_ACCESSIBLE_DESC_UPDATE_ID,
 	              0,
-	              (IndicatorObjectEntry *)indicator_object_get_entries(INDICATOR_OBJECT(self))->data,
+	              entry->data,
 	              TRUE);
+	g_list_free(entry);
 
 	return ltime;
 }
