@@ -89,6 +89,8 @@ struct _IndicatorDatetimePrivate {
 	GDBusProxy * service_proxy;
 	IdoCalendarMenuItem *ido_calendar;
 
+	GList * timezone_items;
+
 	GSettings * settings;
 };
 
@@ -105,7 +107,9 @@ enum {
 
 typedef struct _indicator_item_t indicator_item_t;
 struct _indicator_item_t {
-	GtkWidget * radio;
+	IndicatorDatetime * self;
+	DbusmenuMenuitem * mi;
+	GtkWidget * gmi;
 	GtkWidget * icon;
 	GtkWidget * label;
 	GtkWidget * right;
@@ -169,15 +173,16 @@ static GtkMenu *  get_menu                (IndicatorObject * io);
 static const gchar * get_accessible_desc  (IndicatorObject * io);
 static GVariant * bind_enum_set           (const GValue * value, const GVariantType * type, gpointer user_data);
 static gboolean bind_enum_get             (GValue * value, GVariant * variant, gpointer user_data);
-static gchar * generate_format_string     (IndicatorDatetime * self);
-static struct tm * update_label           (IndicatorDatetime * io);
+static gchar * generate_format_string_now (IndicatorDatetime * self);
+static gchar * generate_format_string_at_time (IndicatorDatetime * self, GDateTime * time);
+static void update_label                  (IndicatorDatetime * io, GDateTime ** datetime);
 static void guess_label_size              (IndicatorDatetime * self);
-static void setup_timer                   (IndicatorDatetime * self, struct tm * ltime);
+static void setup_timer                   (IndicatorDatetime * self, GDateTime * datetime);
 static void update_time                   (IndicatorDatetime * self);
 static void receive_signal                (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name, GVariant * parameters, gpointer user_data);
 static void service_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data);
 static gint generate_strftime_bitmask     (const char *time_str);
-static GSList *location_group = NULL;
+static void timezone_update_labels        (indicator_item_t * mi_data);
 
 /* Indicator Module Config */
 INDICATOR_SET_VERSION
@@ -265,7 +270,7 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv->custom_string = g_strdup(DEFAULT_TIME_FORMAT);
 	self->priv->custom_show_seconds = FALSE;
 
-	self->priv->time_string = generate_format_string(self);
+	self->priv->time_string = generate_format_string_now(self);
 
 	self->priv->service_proxy = NULL;
 
@@ -462,6 +467,13 @@ bind_enum_get (GValue * value, GVariant * variant, gpointer user_data)
 	return TRUE;
 }
 
+static void
+timezone_update_all_labels (IndicatorDatetime * self)
+{
+	IndicatorDatetimePrivate *priv = INDICATOR_DATETIME_GET_PRIVATE(self);
+	g_list_foreach(priv->timezone_items, (GFunc)timezone_update_labels, NULL);
+}
+
 /* Sets a property on the object */
 static void
 set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec)
@@ -531,7 +543,7 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 	}
 
 	/* Get the new format string */
-	gchar * newformat = generate_format_string(self);
+	gchar * newformat = generate_format_string_now(self);
 
 	/* check to ensure the format really changed */
 	if (g_strcmp0(self->priv->time_string, newformat) == 0) {
@@ -547,7 +559,8 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 	self->priv->time_string = newformat;
 
 	/* And update everything */
-	update_label(self);
+	update_label(self, NULL);
+	timezone_update_all_labels(self);
 	guess_label_size(self);
 
 	return;
@@ -626,42 +639,55 @@ update_accessible_description (IndicatorDatetime * io)
 }
 
 /* Updates the label to be the current time. */
-static struct tm *
-update_label (IndicatorDatetime * io)
+static void
+set_label_to_time_in_zone (IndicatorDatetime * self, GtkLabel * label,
+                           GTimeZone * tz, const gchar * format,
+                           GDateTime ** datetime)
 {
-	IndicatorDatetime * self = INDICATOR_DATETIME(io);
+	GDateTime * datetime_now;
+	if (tz == NULL)
+		datetime_now = g_date_time_new_now_local();
+	else
+		datetime_now = g_date_time_new_now(tz);
 
-	if (self->priv->label == NULL) return NULL;
-
-	gchar longstr[256];
-	time_t t;
-	struct tm *ltime;
-	gboolean use_markup;
-
-	t = time(NULL);
-	ltime = localtime(&t);
-	if (ltime == NULL) {
-		g_debug("Error getting local time");
-		gtk_label_set_label(self->priv->label, _("Error getting time"));
-
-		update_accessible_description(io);
-
-		return NULL;
+	gchar * timestr;
+	if (format == NULL) {
+		gchar * format_for_time = generate_format_string_at_time(self, datetime_now);
+		timestr = g_date_time_format(datetime_now, format_for_time);
+		g_free(format_for_time);
+	}
+	else {
+		timestr = g_date_time_format(datetime_now, format);
 	}
 
-	strftime(longstr, 256, self->priv->time_string, ltime);
-	
-	gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
-
-	if (pango_parse_markup(utf8, -1, 0, NULL, NULL, NULL, NULL))
+	gboolean use_markup = FALSE;
+	if (pango_parse_markup(timestr, -1, 0, NULL, NULL, NULL, NULL))
 		use_markup = TRUE;
 
 	if (use_markup)
-		gtk_label_set_markup(self->priv->label, utf8);
+		gtk_label_set_markup(label, timestr);
 	else
-		gtk_label_set_text(self->priv->label, utf8);
+		gtk_label_set_text(label, timestr);
 
-	g_free(utf8);
+	g_free(timestr);
+
+	if (datetime)
+		*datetime = datetime_now;
+	else
+		g_date_time_unref(datetime_now);
+
+	return;
+}
+
+/* Updates the label to be the current time. */
+static void
+update_label (IndicatorDatetime * io, GDateTime ** datetime)
+{
+	IndicatorDatetime * self = INDICATOR_DATETIME(io);
+
+	if (self->priv->label == NULL) return;
+
+	set_label_to_time_in_zone(self, self->priv->label, NULL, self->priv->time_string, datetime);
 
 	if (self->priv->idle_measure == 0) {
 		self->priv->idle_measure = g_idle_add(idle_measure, io);
@@ -669,15 +695,18 @@ update_label (IndicatorDatetime * io)
 
 	update_accessible_description(io);
 
-	return ltime;
+	return;
 }
 
 /* Update the time right now.  Usually the result of a timezone switch. */
 static void
 update_time (IndicatorDatetime * self)
 {
-	struct tm * ltime = update_label(self);
-	setup_timer(self, ltime);
+	GDateTime * dt;
+	update_label(self, &dt);
+	timezone_update_all_labels(self);
+	setup_timer(self, dt);
+	g_date_time_unref(dt);
 	return;
 }
 
@@ -701,15 +730,20 @@ timer_func (gpointer user_data)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
 	self->priv->timer = 0;
-	struct tm * ltime = update_label(self);
-	setup_timer(self, ltime);
+	GDateTime * dt;
+	update_label(self, &dt);
+	timezone_update_all_labels(self);
+	setup_timer(self, dt);
+	g_date_time_unref(dt);
 	return FALSE;
 }
 
 /* Configure the timer to run the next time through */
 static void
-setup_timer (IndicatorDatetime * self, struct tm * ltime)
+setup_timer (IndicatorDatetime * self, GDateTime * datetime)
 {
+	gboolean unref = FALSE;
+
 	if (self->priv->timer != 0) {
 		g_source_remove(self->priv->timer);
 		self->priv->timer = 0;
@@ -719,14 +753,18 @@ setup_timer (IndicatorDatetime * self, struct tm * ltime)
 		(self->priv->time_mode == SETTINGS_TIME_CUSTOM && self->priv->custom_show_seconds)) {
 		self->priv->timer = g_timeout_add_seconds(1, timer_func, self);
 	} else {
-		if (ltime == NULL) {
-			time_t t;
-			t = time(NULL);
-			ltime = localtime(&t);
+		if (datetime == NULL) {
+			datetime = g_date_time_new_now_local();
+			unref = TRUE;
 		}
 
 		/* Plus 2 so we're just after the minute, don't want to be early. */
-		self->priv->timer = g_timeout_add_seconds(60 - ltime->tm_sec + 2, timer_func, self);
+		gint seconds = (gint)g_date_time_get_seconds(datetime);
+		self->priv->timer = g_timeout_add_seconds(60 - seconds + 2, timer_func, self);
+
+		if (unref) {
+			g_date_time_unref(datetime);
+		}
 	}
 
 	return;
@@ -953,7 +991,8 @@ style_changed (GtkWidget * widget, GtkStyle * oldstyle, gpointer data)
 	g_debug("New style for time label");
 	IndicatorDatetime * self = INDICATOR_DATETIME(data);
 	guess_label_size(self);
-	update_label(self);
+	update_label(self, NULL);
+	timezone_update_all_labels(self);
 	return;
 }
 
@@ -1028,12 +1067,8 @@ update_text_gravity (GtkWidget *widget, GdkScreen *previous_screen, gpointer dat
 /* Tries to figure out what our format string should be.  Lots
    of translator comments in here. */
 static gchar *
-generate_format_string (IndicatorDatetime * self)
+generate_format_string_full (IndicatorDatetime * self, gboolean show_day, gboolean show_date)
 {
-	if (self->priv->time_mode == SETTINGS_TIME_CUSTOM) {
-		return g_strdup(self->priv->custom_string);
-	}
-
 	gboolean twelvehour = TRUE;
 
 	if (self->priv->time_mode == SETTINGS_TIME_LOCALE) {
@@ -1066,20 +1101,20 @@ generate_format_string (IndicatorDatetime * self)
 
 	/* If there's no date or day let's just leave now and
 	   not worry about the rest of this code */
-	if (!self->priv->show_date && !self->priv->show_day) {
+	if (!show_date && !show_day) {
 		return g_strdup(time_string);
 	}
 
 	const gchar * date_string = NULL;
-	if (self->priv->show_date && self->priv->show_day) {
+	if (show_date && show_day) {
 		/* TRANSLATORS:  This is a format string passed to strftime to represent
 		   the day of the week, the month and the day of the month. */
 		date_string = T_("%a %b %e");
-	} else if (self->priv->show_date) {
+	} else if (show_date) {
 		/* TRANSLATORS:  This is a format string passed to strftime to represent
 		   the month and the day of the month. */
 		date_string = T_("%b %e");
-	} else if (self->priv->show_day) {
+	} else if (show_day) {
 		/* TRANSLATORS:  This is a format string passed to strftime to represent
 		   the day of the week. */
 		date_string = T_("%a");
@@ -1094,17 +1129,94 @@ generate_format_string (IndicatorDatetime * self)
 	return g_strdup_printf(T_("%s, %s"), date_string, time_string);
 }
 
+static gchar *
+generate_format_string_now (IndicatorDatetime * self)
+{
+	if (self->priv->time_mode == SETTINGS_TIME_CUSTOM) {
+		return g_strdup(self->priv->custom_string);
+	}
+	else {
+		return generate_format_string_full(self,
+		                                   self->priv->show_day,
+		                                   self->priv->show_date);
+	}
+}
+
+static gchar *
+generate_format_string_at_time (IndicatorDatetime * self, GDateTime * time)
+{
+	/* This is a bit less free-form than for the main "now" time label. */
+	/* If it is today, just the time should be shown (e.g. “3:55 PM”)
+           If it is a different day this week, the day and time should be shown (e.g. “Wed 3:55 PM”)
+           If it is after this week, the day, date, and time should be shown (e.g. “Wed 21 Apr 3:55 PM”). 
+           In addition, when presenting the times of upcoming events, the time should be followed by the timezone if it is different from the one the computer is currently set to. For example, “Wed 3:55 PM UTC−5”. */
+	gboolean show_day = FALSE;
+	gboolean show_date = FALSE;
+
+	GDateTime * now = g_date_time_new_now_local();
+
+	/* First, are we same day? */
+	gint time_year, time_month, time_day;
+	gint now_year, now_month, now_day;
+	g_date_time_get_ymd(time, &time_year, &time_month, &time_day);
+	g_date_time_get_ymd(now, &now_year, &now_month, &now_day);
+
+	if (time_year != now_year ||
+	    time_month != now_month ||
+	    time_day != now_day) {
+		/* OK, different days so we must at least show the day. */
+		show_day = TRUE;
+
+		/* Is it this week? */
+		/* Here, we define "is this week" as yesterday, today, or the next five days */
+		GDateTime * past = g_date_time_add_days(now, -1);
+		GDateTime * future = g_date_time_add_days(now, 5);
+		GDateTime * past_bound = g_date_time_new_local(g_date_time_get_year(past),
+		                                               g_date_time_get_month(past),
+		                                               g_date_time_get_day_of_month(past),
+		                                               0, 0, 0.0);
+		GDateTime * future_bound = g_date_time_new_local(g_date_time_get_year(future),
+		                                                 g_date_time_get_month(future),
+		                                                 g_date_time_get_day_of_month(future),
+		                                                 23, 59, 59.9);
+		if (g_date_time_compare(time, past_bound) < 0 ||
+		    g_date_time_compare(time, future_bound) > 0) {
+			show_date = TRUE;
+		}
+		g_date_time_unref(past);
+		g_date_time_unref(future);
+		g_date_time_unref(past_bound);
+		g_date_time_unref(future_bound);
+	}
+
+	return generate_format_string_full(self, show_day, show_date);
+}
+
+static void
+timezone_update_labels (indicator_item_t * mi_data)
+{
+	const gchar * zone_name = dbusmenu_menuitem_property_get(mi_data->mi, TIMEZONE_MENUITEM_PROP_ZONE);
+
+	/* TODO: Make zone name a little more user friendly */
+	gtk_label_set_text(GTK_LABEL(mi_data->label), zone_name);
+
+	/* Show current time in that zone on the right */
+	GTimeZone * tz = g_time_zone_new(zone_name);
+	set_label_to_time_in_zone(mi_data->self, GTK_LABEL(mi_data->right), tz, NULL, NULL);
+	g_time_zone_unref(tz);
+}
+
 /* Whenever we have a property change on a DbusmenuMenuitem
    we need to be responsive to that. */
 static void
-indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, gchar * value, indicator_item_t * mi_data)
+indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, indicator_item_t * mi_data)
 {
 	if (!g_strcmp0(prop, APPOINTMENT_MENUITEM_PROP_LABEL)) {
 		/* Set the main label */
-		gtk_label_set_text(GTK_LABEL(mi_data->label), value);
+		gtk_label_set_text(GTK_LABEL(mi_data->label), g_variant_get_string(value, NULL));
 	} else if (!g_strcmp0(prop, APPOINTMENT_MENUITEM_PROP_RIGHT)) {
 		/* Set the right label */
-		gtk_label_set_text(GTK_LABEL(mi_data->right), value);
+		gtk_label_set_text(GTK_LABEL(mi_data->right), g_variant_get_string(value, NULL));
 	} else if (!g_strcmp0(prop, APPOINTMENT_MENUITEM_PROP_ICON)) {
 		/* We don't use the value here, which is probably less efficient, 
 		   but it's easier to use the easy function.  And since th value
@@ -1133,6 +1245,10 @@ indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, gchar * value, in
 				g_object_unref(resized_pixbuf);
 			}
 		}
+	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_ZONE)) {
+		timezone_update_labels(mi_data);
+	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_RADIO)) {
+		gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(mi_data->gmi), g_variant_get_boolean(value));
 	} else {
 		g_warning("Indicator Item property '%s' unknown", prop);
 	}
@@ -1154,7 +1270,7 @@ new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, Dbu
 
 	indicator_item_t * mi_data = g_new0(indicator_item_t, 1);
 
-	GtkMenuItem * gmi = GTK_MENU_ITEM(gtk_menu_item_new());
+	mi_data->gmi = gtk_menu_item_new();
 
 	GtkWidget * hbox = gtk_hbox_new(FALSE, 4);
 
@@ -1205,10 +1321,10 @@ new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, Dbu
 	gtk_box_pack_start(GTK_BOX(hbox), mi_data->right, FALSE, FALSE, 0);
 	gtk_widget_show(mi_data->right);
 
-	gtk_container_add(GTK_CONTAINER(gmi), hbox);
+	gtk_container_add(GTK_CONTAINER(mi_data->gmi), hbox);
 	gtk_widget_show(hbox);
 
-	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, gmi, parent);
+	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(mi_data->gmi), parent);
 
 	g_signal_connect(G_OBJECT(newitem), DBUSMENU_MENUITEM_SIGNAL_PROPERTY_CHANGED, G_CALLBACK(indicator_prop_change_cb), mi_data);
 	g_signal_connect_swapped(G_OBJECT(newitem), "destroyed", G_CALLBACK(g_free), mi_data);
@@ -1244,6 +1360,24 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 	return TRUE;
 }
 
+static void
+timezone_toggled_cb (GtkCheckMenuItem *checkmenuitem, DbusmenuMenuitem * dbusitem)
+{
+	/* Make sure that the displayed radio-active setting is always 
+	   consistent with the dbus menuitem */
+	gtk_check_menu_item_set_active(checkmenuitem,
+		dbusmenu_menuitem_property_get_bool(dbusitem, TIMEZONE_MENUITEM_PROP_RADIO));
+}
+
+static void
+timezone_destroyed_cb (DbusmenuMenuitem * dbusitem, indicator_item_t * mi_data)
+{
+	IndicatorDatetimePrivate *priv = INDICATOR_DATETIME_GET_PRIVATE(mi_data->self);
+	priv->timezone_items = g_list_remove(priv->timezone_items, mi_data);
+	g_signal_handlers_disconnect_by_func(G_OBJECT(mi_data->gmi), G_CALLBACK(timezone_toggled_cb), dbusitem);
+	g_free(mi_data);
+}
+
 static gboolean
 new_timezone_item(DbusmenuMenuitem * newitem,
 				   DbusmenuMenuitem * parent,
@@ -1254,44 +1388,54 @@ new_timezone_item(DbusmenuMenuitem * newitem,
 	g_return_val_if_fail(DBUSMENU_IS_GTKCLIENT(client), FALSE);
 	/* Note: not checking parent, it's reasonable for it to be NULL */
 	
+	IndicatorObject *io = g_object_get_data (G_OBJECT (client), "indicator");
+	if (io == NULL) {
+		g_warning ("found no indicator to attach the timezone to");
+		return FALSE;
+	}
+
+	IndicatorDatetime *self = INDICATOR_DATETIME(io);
+	IndicatorDatetimePrivate *priv = INDICATOR_DATETIME_GET_PRIVATE(self);
+
 	// Menu item with a radio button and a right aligned time
 	indicator_item_t * mi_data = g_new0(indicator_item_t, 1);
 
-	GtkMenuItem * gmi = GTK_MENU_ITEM(gtk_menu_item_new());
+	priv->timezone_items = g_list_prepend(priv->timezone_items, mi_data);
+
+	mi_data->self = self;
+	mi_data->mi = newitem;
+	mi_data->gmi = gtk_check_menu_item_new();
+
+	gtk_check_menu_item_set_draw_as_radio(GTK_CHECK_MENU_ITEM(mi_data->gmi), TRUE);
+	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(mi_data->gmi),
+		dbusmenu_menuitem_property_get_bool(newitem, TIMEZONE_MENUITEM_PROP_RADIO));
 
 	GtkWidget * hbox = gtk_hbox_new(FALSE, 4);
 
-	mi_data->radio = gtk_radio_button_new(location_group);
-	if (location_group == NULL)
-		location_group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(mi_data->radio));
-	
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(mi_data->radio),
-		dbusmenu_menuitem_property_get_bool(newitem, TIMEZONE_MENUITEM_PROP_RADIO));
-  
-	gtk_box_pack_start(GTK_BOX(hbox), mi_data->radio, FALSE, FALSE, 0);
-	gtk_widget_show(mi_data->radio);
-	
   	/* Label, probably a username, chat room or mailbox name */
-	mi_data->label = gtk_label_new(dbusmenu_menuitem_property_get(newitem, APPOINTMENT_MENUITEM_PROP_LABEL));
+	mi_data->label = gtk_label_new("");
 	gtk_misc_set_alignment(GTK_MISC(mi_data->label), 0.0, 0.5);
 	gtk_box_pack_start(GTK_BOX(hbox), mi_data->label, TRUE, TRUE, 0);
 	gtk_widget_show(mi_data->label);
 
 	/* Usually either the time or the count on the individual
 	   item. */
-	mi_data->right = gtk_label_new(dbusmenu_menuitem_property_get(newitem, APPOINTMENT_MENUITEM_PROP_RIGHT));
+	mi_data->right = gtk_label_new("");
 	gtk_size_group_add_widget(indicator_right_group, mi_data->right);
 	gtk_misc_set_alignment(GTK_MISC(mi_data->right), 1.0, 0.5);
 	gtk_box_pack_start(GTK_BOX(hbox), mi_data->right, FALSE, FALSE, 0);
 	gtk_widget_show(mi_data->right);
 
-	gtk_container_add(GTK_CONTAINER(gmi), hbox);
+	timezone_update_labels(mi_data);
+
+	gtk_container_add(GTK_CONTAINER(mi_data->gmi), hbox);
 	gtk_widget_show(hbox);
 
-	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, gmi, parent);
+	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(mi_data->gmi), parent);
 
+	g_signal_connect(G_OBJECT(mi_data->gmi), "toggled", G_CALLBACK(timezone_toggled_cb), newitem);
 	g_signal_connect(G_OBJECT(newitem), DBUSMENU_MENUITEM_SIGNAL_PROPERTY_CHANGED, G_CALLBACK(indicator_prop_change_cb), mi_data);
-	g_signal_connect_swapped(G_OBJECT(newitem), "destroyed", G_CALLBACK(g_free), mi_data);
+	g_signal_connect(G_OBJECT(newitem), "destroyed", G_CALLBACK(timezone_destroyed_cb), mi_data);
 
 	return TRUE;
 }
@@ -1311,7 +1455,7 @@ get_label (IndicatorObject * io)
 		g_signal_connect(G_OBJECT(self->priv->label), "style-set", G_CALLBACK(style_changed), self);
 		g_signal_connect(G_OBJECT(self->priv->label), "screen-changed", G_CALLBACK(update_text_gravity), self);
 		guess_label_size(self);
-		update_label(self);
+		update_label(self, NULL);
 		gtk_widget_show(GTK_WIDGET(self->priv->label));
 	}
 
