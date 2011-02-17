@@ -1,19 +1,15 @@
-indicator-datetime (0.1.93-0ubuntu1~ppa1) natty; urgency=low
+indicator-datetime (0.1.93-0ubuntu1) natty; urgency=low
 
   * New upstream release.
     * Merging in first EDS branch
   * debian/rules: Adding in autoreconf 
 
- -- Ted Gould <ted@ubuntu.com>  Wed, 09 Feb 2011 13:25:57 -0600
-
-indicator-datetime (0.1.92-0ubuntu4+r41) UNRELEASED; urgency=low
-
-  * New upstream snapshot
+  [ Ken VanDine ]
   * debian/control
     - New build deps for eds integration, libecal1.2-dev, libical-dev, 
       libgtk2.0-dev, libcairo2-dev, libedataserver1.2-dev
 
- -- Ken VanDine <ken.vandine@canonical.com>  Wed, 09 Feb 2011 12:11:45 -0500
+ -- Ted Gould <ted@ubuntu.com>  Wed, 09 Feb 2011 13:25:57 -0600
 
 indicator-datetime (0.1.92-0ubuntu4) natty; urgency=low
 
