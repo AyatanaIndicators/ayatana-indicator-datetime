@@ -1,3 +1,12 @@
+indicator-datetime (0.1.94-0ubuntu1~ppa1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    ∘ Timezone support
+    ∘ Multiple calendar support
+    ∘ Accessible description
+
+ -- Ted Gould <ted@ubuntu.com>  Thu, 17 Feb 2011 13:07:48 -0600
+
 indicator-datetime (0.1.93-0ubuntu1) natty; urgency=low
 
   * New upstream release.
