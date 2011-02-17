@@ -166,6 +166,7 @@ static void indicator_datetime_dispose    (GObject *object);
 static void indicator_datetime_finalize   (GObject *object);
 static GtkLabel * get_label               (IndicatorObject * io);
 static GtkMenu *  get_menu                (IndicatorObject * io);
+static const gchar * get_accessible_desc  (IndicatorObject * io);
 static GVariant * bind_enum_set           (const GValue * value, const GVariantType * type, gpointer user_data);
 static gboolean bind_enum_get             (GValue * value, GVariant * variant, gpointer user_data);
 static gchar * generate_format_string     (IndicatorDatetime * self);
@@ -203,6 +204,7 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 
 	io_class->get_label = get_label;
 	io_class->get_menu  = get_menu;
+	io_class->get_accessible_desc = get_accessible_desc;
 
 	g_object_class_install_property (object_class,
 	                                 PROP_TIME_FORMAT,
@@ -603,6 +605,26 @@ idle_measure (gpointer data)
 	return FALSE;
 }
 
+/* Updates the accessible description */
+static void
+update_accessible_description (IndicatorDatetime * io)
+{
+	GList * entries = indicator_object_get_entries(INDICATOR_OBJECT(io));
+	IndicatorObjectEntry * entry = (IndicatorObjectEntry *)entries->data;
+
+	entry->accessible_desc = get_accessible_desc(INDICATOR_OBJECT(io));
+
+	g_signal_emit(G_OBJECT(io),
+	              INDICATOR_OBJECT_SIGNAL_ACCESSIBLE_DESC_UPDATE_ID,
+	              0,
+	              entry,
+	              TRUE);
+
+	g_list_free(entries);
+
+	return;
+}
+
 /* Updates the label to be the current time. */
 static struct tm *
 update_label (IndicatorDatetime * io)
@@ -621,6 +643,9 @@ update_label (IndicatorDatetime * io)
 	if (ltime == NULL) {
 		g_debug("Error getting local time");
 		gtk_label_set_label(self->priv->label, _("Error getting time"));
+
+		update_accessible_description(io);
+
 		return NULL;
 	}
 
@@ -641,6 +666,8 @@ update_label (IndicatorDatetime * io)
 	if (self->priv->idle_measure == 0) {
 		self->priv->idle_measure = g_idle_add(idle_measure, io);
 	}
+
+	update_accessible_description(io);
 
 	return ltime;
 }
@@ -1312,4 +1339,17 @@ get_menu (IndicatorObject * io)
 	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), TIMEZONE_MENUITEM_TYPE, new_timezone_item);
 
 	return GTK_MENU(self->priv->menu);
+}
+
+static const gchar *
+get_accessible_desc (IndicatorObject * io)
+{
+	IndicatorDatetime * self = INDICATOR_DATETIME(io);
+	const gchar * name;
+
+	if (self->priv->label != NULL) {
+		name = gtk_label_get_text(self->priv->label);
+		return name;
+	}
+	return NULL;
 }
