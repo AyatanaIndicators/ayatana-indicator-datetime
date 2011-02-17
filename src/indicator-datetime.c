@@ -605,12 +605,31 @@ idle_measure (gpointer data)
 	return FALSE;
 }
 
+/* Updates the accessible description */
+static void
+update_accessible_description (IndicatorDatetime * io)
+{
+	GList * entries = indicator_object_get_entries(INDICATOR_OBJECT(io));
+	IndicatorObjectEntry * entry = (IndicatorObjectEntry *)entries->data;
+
+	entry->accessible_desc = get_accessible_desc(INDICATOR_OBJECT(io));
+
+	g_signal_emit(G_OBJECT(io),
+	              INDICATOR_OBJECT_SIGNAL_ACCESSIBLE_DESC_UPDATE_ID,
+	              0,
+	              entry,
+	              TRUE);
+
+	g_list_free(entries);
+
+	return;
+}
+
 /* Updates the label to be the current time. */
 static struct tm *
 update_label (IndicatorDatetime * io)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(io);
-	GList * entry = indicator_object_get_entries(INDICATOR_OBJECT(io));
 
 	if (self->priv->label == NULL) return NULL;
 
@@ -625,12 +644,8 @@ update_label (IndicatorDatetime * io)
 		g_debug("Error getting local time");
 		gtk_label_set_label(self->priv->label, _("Error getting time"));
 
-		g_signal_emit(G_OBJECT(self),
-		              INDICATOR_OBJECT_SIGNAL_ACCESSIBLE_DESC_UPDATE_ID,
-		              0,
-		              entry->data,
-		              TRUE);
-		g_list_free(entry);
+		update_accessible_description(io);
+
 		return NULL;
 	}
 
@@ -652,12 +667,7 @@ update_label (IndicatorDatetime * io)
 		self->priv->idle_measure = g_idle_add(idle_measure, io);
 	}
 
-	g_signal_emit(G_OBJECT(self),
-	              INDICATOR_OBJECT_SIGNAL_ACCESSIBLE_DESC_UPDATE_ID,
-	              0,
-	              entry->data,
-	              TRUE);
-	g_list_free(entry);
+	update_accessible_description(io);
 
 	return ltime;
 }
