@@ -1,3 +1,17 @@
+indicator-datetime (0.1.94-0ubuntu1) natty; urgency=low
+
+  [ Ted Gould ]
+  * New upstream release.
+    ∘ Timezone support
+    ∘ Multiple calendar support
+    ∘ Accessible description
+
+  [ Ken VanDine ]
+  * debian/control
+    - Added build depends for libedataserverui1.2-dev 
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Thu, 17 Feb 2011 14:48:41 -0500
+
 indicator-datetime (0.1.93-0ubuntu1) natty; urgency=low
 
   * New upstream release.

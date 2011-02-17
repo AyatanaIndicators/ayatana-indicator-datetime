@@ -57,5 +57,13 @@
 			  more information.
 			</description>
 		</key>
+		<key name="locations" type="as">
+			<default>[]</default>
+			<summary>A List of locations</summary>
+			<description>
+			  Adds the list of locations the user has configured to display in the 
+			  indicator-datetime menu.
+			</description>
+		</key>
 	</schema>
 </schemalist>
