@@ -1,4 +1,5 @@
 src/indicator-datetime.c
 src/datetime-service.c
 src/datetime-prefs.c
+src/datetime-prefs-locations.c
 [type: gettext/glade]data/datetime-dialog.ui

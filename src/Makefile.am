@@ -41,6 +41,8 @@ libdatetime_la_LDFLAGS = \
 
 indicator_datetime_preferences_SOURCES =\
 	datetime-prefs.c \
+	datetime-prefs-locations.c \
+	datetime-prefs-locations.h \
 	utils.c \
 	utils.h \
 	settings-shared.h

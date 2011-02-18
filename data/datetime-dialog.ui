@@ -5,16 +5,28 @@
   <object class="GtkWindow" id="locationsDialog">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Locations</property>
+    <property name="modal">True</property>
+    <property name="destroy_with_parent">True</property>
     <property name="icon_name">time-admin</property>
     <child>
       <object class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <child>
-          <object class="GtkTreeView" id="locationsView">
+          <object class="GtkScrolledWindow" id="scrolledwindow1">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="model">locationsStore</property>
+            <property name="hscrollbar_policy">automatic</property>
+            <property name="vscrollbar_policy">automatic</property>
+            <child>
+              <object class="GtkTreeView" id="locationsView">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="model">locationsStore</property>
+                <property name="reorderable">True</property>
+                <property name="search_column">0</property>
+              </object>
+            </child>
           </object>
           <packing>
             <property name="expand">True</property>
@@ -27,10 +39,11 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
-              <object class="GtkButton" id="button1">
+              <object class="GtkButton" id="addButton">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="tooltip_text" translatable="yes">Add a Location…</property>
                 <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkImage" id="addImage">
@@ -47,10 +60,11 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button2">
+              <object class="GtkButton" id="removeButton">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="tooltip_text" translatable="yes">Remove This Location</property>
                 <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkImage" id="removeImage">

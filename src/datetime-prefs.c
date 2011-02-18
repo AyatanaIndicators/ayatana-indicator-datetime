@@ -35,6 +35,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "settings-shared.h"
 #include "utils.h"
+#include "datetime-prefs-locations.h"
 
 #define DATETIME_DIALOG_UI_FILE PKGDATADIR "/datetime-dialog.ui"
 
@@ -324,6 +325,13 @@ setup_time_spinner (GtkWidget * spinner, GtkWidget * other, gboolean is_time)
   update_spinner (spinner);
 }
 
+static void
+show_locations (GtkWidget * button, GtkWidget * dlg)
+{
+  GtkWidget * locationsDlg = datetime_setup_locations_dialog (GTK_WINDOW (dlg));
+  gtk_widget_show_all (locationsDlg);
+}
+
 static GtkWidget *
 create_dialog (void)
 {
@@ -351,7 +359,6 @@ create_dialog (void)
   gtk_box_pack_start (GTK_BOX (WIG ("timeDateBox")), polkit_button, FALSE, TRUE, 0);
 
   /* Set up settings bindings */
-
   g_settings_bind (conf, SETTINGS_SHOW_CLOCK_S, WIG ("showClockCheck"),
                    "active", G_SETTINGS_BIND_DEFAULT);
   g_settings_bind (conf, SETTINGS_SHOW_DAY_S, WIG ("showWeekdayCheck"),
@@ -397,6 +404,8 @@ create_dialog (void)
   setup_time_spinner (WIG ("dateSpinner"), WIG ("timeSpinner"), FALSE);
 
   GtkWidget * dlg = WIG ("timeDateDialog");
+
+  g_signal_connect (WIG ("locationsButton"), "clicked", G_CALLBACK (show_locations), dlg);
 
   /* Grab proxy for settings daemon */
   g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_NONE, NULL,
