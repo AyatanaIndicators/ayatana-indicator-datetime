@@ -27,6 +27,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <libintl.h>
 #include <locale.h>
+#include <langinfo.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <unique/unique.h>
@@ -36,6 +37,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "utils.h"
 
 #define DATETIME_DIALOG_UI_FILE PKGDATADIR "/datetime-dialog.ui"
+
+GDBusProxy * proxy = NULL;
 
 /* Turns the boolean property into a string gsettings */
 static GVariant *
@@ -116,14 +119,13 @@ add_polkit_dependency (GtkWidget * parent, GtkWidget * dependent)
   polkit_dependency_cb (parent, NULL, dependent);
 }
 
-void ntp_set_answered (GObject *object, GAsyncResult *res, gpointer autoRadio)
+void dbus_set_answered (GObject *object, GAsyncResult *res, gpointer command)
 {
   GError * error = NULL;
-  GDBusProxy * proxy = G_DBUS_PROXY (object);
   GVariant * answers = g_dbus_proxy_call_finish (proxy, res, &error);
 
   if (error != NULL) {
-    g_warning("Could not set 'using_ntp' for SettingsDaemon: %s", error->message);
+    g_warning("Could not set '%s' for SettingsDaemon: %s", (gchar *)command, error->message);
     g_error_free(error);
     return;
   }
@@ -135,16 +137,14 @@ static void
 toggle_ntp (GtkWidget * autoRadio, GParamSpec * pspec, gpointer user_data)
 {
   gboolean active = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (autoRadio));
-  GDBusProxy * proxy = G_DBUS_PROXY (g_object_get_data (G_OBJECT (autoRadio), "proxy"));
 
   g_dbus_proxy_call (proxy, "SetUsingNtp", g_variant_new ("(b)", active),
-                     G_DBUS_CALL_FLAGS_NONE, -1, NULL, ntp_set_answered, autoRadio);
+                     G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "using_ntp");
 }
 
 void ntp_query_answered (GObject *object, GAsyncResult *res, gpointer autoRadio)
 {
   GError * error = NULL;
-  GDBusProxy * proxy = G_DBUS_PROXY (object);
   GVariant * answers = g_dbus_proxy_call_finish (proxy, res, &error);
 
   if (error != NULL) {
@@ -164,10 +164,11 @@ void ntp_query_answered (GObject *object, GAsyncResult *res, gpointer autoRadio)
   g_variant_unref (answers);
 }
 
-void ntp_proxy_ready (GObject *object, GAsyncResult *res, gpointer autoRadio)
+void proxy_ready (GObject *object, GAsyncResult *res, gpointer autoRadio)
 {
   GError * error = NULL;
-  GDBusProxy * proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
+
+  proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
 
   if (error != NULL) {
     g_critical("Could not grab DBus proxy for SettingsDaemon: %s", error->message);
@@ -175,48 +176,117 @@ void ntp_proxy_ready (GObject *object, GAsyncResult *res, gpointer autoRadio)
     return;
   }
 
-  /* Now attach proxy to button so we can use it later */
-  g_object_set_data_full (G_OBJECT (autoRadio), "proxy", proxy, g_object_unref);
-
-  /* And finally ask it what is up */
+  /* And now, do initial proxy configuration */
   g_dbus_proxy_call (proxy, "GetUsingNtp", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
                      NULL, ntp_query_answered, autoRadio);
 }
 
-static void
-setup_ntp (GtkWidget * autoRadio)
-{
-  /* Do some quick checks to see if ntp is running or installed */
-
-  /* Start with assumption ntp is unusable until we prove otherwise */
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (autoRadio), FALSE);
-  gtk_widget_set_sensitive (autoRadio, FALSE);
-
-  g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_NONE, NULL,
-                            "org.gnome.SettingsDaemon.DateTimeMechanism",
-                            "/",                            
-                            "org.gnome.SettingsDaemon.DateTimeMechanism",
-                            NULL, ntp_proxy_ready, autoRadio);
-}
-
-/*static int
+static int
 input_time_text (GtkWidget * spinner, gdouble *value, gpointer user_data)
 {
-  //const gchar * text = gtk_entry_get_text (GTK_ENTRY (spinner));
+  gboolean is_time = (gboolean)GPOINTER_TO_INT (g_object_get_data (G_OBJECT (spinner), "is-time"));
+  const gchar * text = gtk_entry_get_text (GTK_ENTRY (spinner));
+
+  GDateTime * now = g_date_time_new_now_local ();
+  gint year, month, day, hour, minute, second;
+  year = g_date_time_get_year (now);
+  month = g_date_time_get_month (now);
+  day = g_date_time_get_day_of_month (now);
+  hour = g_date_time_get_hour (now);
+  minute = g_date_time_get_minute (now);
+  second = g_date_time_get_second (now);
+  g_date_time_unref (now);
+
+  /* Parse this string as if it were in the output format */
+  gint scanned = 0;
+  gboolean passed = TRUE, skip = FALSE;
+  if (is_time) {
+    gint hour_in, minute_in, second_in;
+
+    if (is_locale_12h ()) { // TODO: make this look-at/watch gsettings?
+      char ampm[51];
+
+      scanned = sscanf (text, "%u:%u:%u %50s", &hour_in, &minute_in, &second_in, ampm);
+      passed = (scanned == 4);
+
+      if (passed) {
+        const char *pm_str = nl_langinfo (PM_STR);
+        if (g_ascii_strcasecmp (pm_str, ampm) == 0) {
+          hour_in += 12;
+        }
+      }
+    } else {
+      scanned = sscanf (text, "%u:%u:%u", &hour_in, &minute_in, &second_in);
+      passed = (scanned == 3);
+    }
+
+    if (passed && (hour_in > 23 || minute_in > 59 || second_in > 59)) {
+      passed = FALSE;
+    }
+    if (passed && hour == hour_in && minute == minute_in && second == second_in) {
+      skip = TRUE; // no change
+    } else {
+      hour = hour_in;
+      minute = minute_in;
+      second = second_in;
+    }
+  }
+  else {
+    gint year_in, month_in, day_in;
+
+    scanned = sscanf (text, "%u-%u-%u", &year_in, &month_in, &day_in);
+
+    if (scanned != 3 || year_in < 1 || year_in > 9999 ||
+        month_in < 1 || month_in > 12 || day_in < 1 || day_in > 31) {
+      passed = FALSE;
+    }
+    if (passed && year == year_in && month == month_in && day == day_in) {
+      skip = TRUE; // no change
+    } else {
+      year = year_in;
+      month = month_in;
+      day = day_in;
+    }
+  }
+
+  if (!passed) {
+    g_warning ("Could not understand %s", text);
+    return TRUE;
+  }
+
+  if (skip) {
+    return TRUE;
+  }
+
+  GDateTime * datetime = g_date_time_new_local (year, month, day, hour, minute, second);
+
+  g_dbus_proxy_call (proxy, "SetTime", g_variant_new ("(x)", g_date_time_to_unix (datetime)),
+                     G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "time");
 
   return TRUE;
-}*/
+}
 
 static gboolean
 format_time_text (GtkWidget * spinner, gpointer user_data)
 {
+  if (gtk_widget_has_focus (spinner)) {
+    /* Don't do anything if we have focus, user is likely editing us */
+    return TRUE;
+  }
+
   GDateTime * datetime = (GDateTime *)g_object_get_data (G_OBJECT (spinner), "datetime");
+  gboolean is_time = (gboolean)GPOINTER_TO_INT (g_object_get_data (G_OBJECT (spinner), "is-time"));
 
   const gchar * format;
-  if (is_locale_12h ()) {
-    format = "%I:%M:%S %p";
-  } else {
-    format = "%H:%M:%S";
+  if (is_time) {
+    if (is_locale_12h ()) { // TODO: make this look-at/watch gsettings?
+      format = "%I:%M:%S %p";
+    } else {
+      format = "%H:%M:%S";
+    }
+  }
+  else {
+    format = "%Y-%m-%d";
   }
 
   gchar * formatted = g_date_time_format (datetime, format);
@@ -239,16 +309,17 @@ update_spinner (GtkWidget * spinner)
 }
 
 static void
-setup_time_spinner (GtkWidget * spinner)
+setup_time_spinner (GtkWidget * spinner, GtkWidget * other, gboolean is_time)
 {
   /* Set up spinner to have reasonable behavior */
   gtk_spin_button_set_numeric (GTK_SPIN_BUTTON (spinner), FALSE);
-  //g_signal_connect (spinner, "input", G_CALLBACK (input_time_text), NULL);
-  g_signal_connect (spinner, "output", G_CALLBACK (format_time_text), NULL);
+  g_signal_connect (spinner, "input", G_CALLBACK (input_time_text), other);
+  g_signal_connect (spinner, "output", G_CALLBACK (format_time_text), other);
+  g_object_set_data (G_OBJECT (spinner), "is-time", GINT_TO_POINTER (is_time));
 
   /* 2 seconds is what the indicator itself uses */
   guint time_id = g_timeout_add_seconds (2, (GSourceFunc)update_spinner, spinner);
-  g_signal_connect_swapped (spinner, "destroy", G_CALLBACK (g_source_remove), GINT_TO_POINTER(time_id));
+  g_signal_connect_swapped (spinner, "destroy", G_CALLBACK (g_source_remove), GINT_TO_POINTER (time_id));
 
   update_spinner (spinner);
 }
@@ -322,12 +393,17 @@ create_dialog (void)
   gtk_widget_set_sensitive (WIG ("showEventsCheck"), (evo_path != NULL));
   g_free (evo_path);
 
-  /* Check if ntp is usable and enabled */
-  setup_ntp (WIG ("automaticTimeRadio"));
-
-  setup_time_spinner (WIG ("timeSpinner"));
+  setup_time_spinner (WIG ("timeSpinner"), WIG ("dateSpinner"), TRUE);
+  setup_time_spinner (WIG ("dateSpinner"), WIG ("timeSpinner"), FALSE);
 
   GtkWidget * dlg = WIG ("timeDateDialog");
+
+  /* Grab proxy for settings daemon */
+  g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_NONE, NULL,
+                            "org.gnome.SettingsDaemon.DateTimeMechanism",
+                            "/",                            
+                            "org.gnome.SettingsDaemon.DateTimeMechanism",
+                            NULL, proxy_ready, WIG ("automaticTimeRadio"));
 
 #undef WIG
 
