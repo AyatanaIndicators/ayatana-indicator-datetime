@@ -130,6 +130,13 @@ save_to_settings (GtkWidget * dlg, GObject * store)
   g_variant_unref (locations);
 }
 
+static void
+selection_changed (GtkTreeSelection * selection, GtkWidget * remove_button)
+{
+  gint count = gtk_tree_selection_count_selected_rows (selection);
+  gtk_widget_set_sensitive (remove_button, count > 0);
+}
+
 GtkWidget *
 datetime_setup_locations_dialog (GtkWindow * parent)
 {
@@ -164,7 +171,11 @@ datetime_setup_locations_dialog (GtkWindow * parent)
   gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (tree), -1,
                                                _("Time"), cell,
                                                "text", 1, NULL);
-  gtk_tree_selection_set_mode (gtk_tree_view_get_selection (GTK_TREE_VIEW (tree)), GTK_SELECTION_MULTIPLE);
+
+  GtkTreeSelection * selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (tree));
+  gtk_tree_selection_set_mode (selection, GTK_SELECTION_MULTIPLE);
+  g_signal_connect (selection, "changed", G_CALLBACK (selection_changed), WIG ("removeButton"));
+  selection_changed (selection, WIG ("removeButton"));
 
   g_signal_connect (WIG ("addButton"), "clicked", G_CALLBACK (handle_add), tree);
   g_signal_connect (WIG ("removeButton"), "clicked", G_CALLBACK (handle_remove), tree);
