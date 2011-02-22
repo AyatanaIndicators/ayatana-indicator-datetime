@@ -36,10 +36,13 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "settings-shared.h"
 #include "utils.h"
 #include "datetime-prefs-locations.h"
+#include "cc-timezone-map.h"
 
 #define DATETIME_DIALOG_UI_FILE PKGDATADIR "/datetime-dialog.ui"
 
 GDBusProxy * proxy = NULL;
+GtkWidget * autoRadio = NULL;
+CcTimezoneMap * tzmap = NULL;
 
 /* Turns the boolean property into a string gsettings */
 static GVariant *
@@ -120,7 +123,8 @@ add_polkit_dependency (GtkWidget * parent, GtkWidget * dependent)
   polkit_dependency_cb (parent, NULL, dependent);
 }
 
-void dbus_set_answered (GObject *object, GAsyncResult *res, gpointer command)
+static void
+dbus_set_answered (GObject *object, GAsyncResult *res, gpointer command)
 {
   GError * error = NULL;
   GVariant * answers = g_dbus_proxy_call_finish (proxy, res, &error);
@@ -135,15 +139,16 @@ void dbus_set_answered (GObject *object, GAsyncResult *res, gpointer command)
 }
 
 static void
-toggle_ntp (GtkWidget * autoRadio, GParamSpec * pspec, gpointer user_data)
+toggle_ntp (GtkWidget * radio, GParamSpec * pspec, gpointer user_data)
 {
-  gboolean active = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (autoRadio));
+  gboolean active = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (radio));
 
   g_dbus_proxy_call (proxy, "SetUsingNtp", g_variant_new ("(b)", active),
                      G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "using_ntp");
 }
 
-void ntp_query_answered (GObject *object, GAsyncResult *res, gpointer autoRadio)
+static void
+ntp_query_answered (GObject *object, GAsyncResult *res, gpointer user_data)
 {
   GError * error = NULL;
   GVariant * answers = g_dbus_proxy_call_finish (proxy, res, &error);
@@ -160,12 +165,44 @@ void ntp_query_answered (GObject *object, GAsyncResult *res, gpointer autoRadio)
   gtk_widget_set_sensitive (GTK_WIDGET (autoRadio), can_use_ntp);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (autoRadio), is_using_ntp);
 
-  g_signal_connect (autoRadio, "notify::active", G_CALLBACK(toggle_ntp), NULL);
+  g_signal_connect (autoRadio, "notify::active", G_CALLBACK (toggle_ntp), NULL);
 
   g_variant_unref (answers);
 }
 
-void proxy_ready (GObject *object, GAsyncResult *res, gpointer autoRadio)
+static void
+tz_changed (CcTimezoneMap * map, TzLocation * location)
+{
+  if (location == NULL)
+    return;
+
+  g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", location->zone),
+                     G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "timezone");
+}
+
+static void
+tz_query_answered (GObject *object, GAsyncResult *res, gpointer user_data)
+{
+  GError * error = NULL;
+  GVariant * answers = g_dbus_proxy_call_finish (proxy, res, &error);
+
+  if (error != NULL) {
+    g_warning("Could not query DBus proxy for SettingsDaemon: %s", error->message);
+    g_error_free(error);
+    return;
+  }
+
+  const gchar * timezone;
+  g_variant_get (answers, "(&s)", &timezone);
+
+  cc_timezone_map_set_timezone (tzmap, timezone);
+
+  g_signal_connect (tzmap, "location-changed", G_CALLBACK (tz_changed), NULL);
+
+  g_variant_unref (answers);
+}
+
+void proxy_ready (GObject *object, GAsyncResult *res, gpointer user_data)
 {
   GError * error = NULL;
 
@@ -180,6 +217,8 @@ void proxy_ready (GObject *object, GAsyncResult *res, gpointer autoRadio)
   /* And now, do initial proxy configuration */
   g_dbus_proxy_call (proxy, "GetUsingNtp", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
                      NULL, ntp_query_answered, autoRadio);
+  g_dbus_proxy_call (proxy, "GetTimezone", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
+                     NULL, tz_query_answered, NULL);
 }
 
 static int
@@ -358,6 +397,10 @@ create_dialog (void)
   polkit_lock_button_set_lock_text (POLKIT_LOCK_BUTTON (polkit_button), _("Lock to prevent further changes"));
   gtk_box_pack_start (GTK_BOX (WIG ("timeDateBox")), polkit_button, FALSE, TRUE, 0);
 
+  /* Add map */
+  tzmap = cc_timezone_map_new ();
+  gtk_container_add (GTK_CONTAINER (WIG ("mapBox")), GTK_WIDGET (tzmap));
+
   /* Set up settings bindings */
   g_settings_bind (conf, SETTINGS_SHOW_CLOCK_S, WIG ("showClockCheck"),
                    "active", G_SETTINGS_BIND_DEFAULT);
@@ -404,6 +447,7 @@ create_dialog (void)
   setup_time_spinner (WIG ("dateSpinner"), WIG ("timeSpinner"), FALSE);
 
   GtkWidget * dlg = WIG ("timeDateDialog");
+  autoRadio = WIG ("automaticTimeRadio");
 
   g_signal_connect (WIG ("locationsButton"), "clicked", G_CALLBACK (show_locations), dlg);
 
@@ -412,7 +456,7 @@ create_dialog (void)
                             "org.gnome.SettingsDaemon.DateTimeMechanism",
                             "/",                            
                             "org.gnome.SettingsDaemon.DateTimeMechanism",
-                            NULL, proxy_ready, WIG ("automaticTimeRadio"));
+                            NULL, proxy_ready, NULL);
 
 #undef WIG
 

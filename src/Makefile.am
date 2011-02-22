@@ -49,9 +49,11 @@ indicator_datetime_preferences_SOURCES =\
 indicator_datetime_preferences_CFLAGS = \
 	-Wall \
 	-Werror \
+	-I$(top_srcdir)/libmap \
 	$(PREF_CFLAGS) \
 	-DPKGDATADIR="\"$(pkgdatadir)\""
 indicator_datetime_preferences_LDADD = \
+	 $(top_builddir)/libmap/libmap.la \
 	$(PREF_LIBS)
 
 gen-%.xml.c: %.xml

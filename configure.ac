@@ -135,6 +135,17 @@ AS_IF([test "x$with_gtk" = x3],
         ],
     [AC_MSG_FAILURE([Value for --with-gtk was neither 2 nor 3])]
 )
+
+AS_IF([test "x$with_gtk" = x3],
+	[PKG_CHECK_MODULES(LIBMAP, gio-2.0 >= $GIO_REQUIRED_VERSION
+	                           gtk+-3.0 >= $GTK3_REQUIRED_VERSION)
+		],
+      [test "x$with_gtk" = x2],
+	[PKG_CHECK_MODULES(LIBMAP, gio-2.0 >= $GIO_REQUIRED_VERSION
+	                           gtk+-2.0 >= $GTK_REQUIRED_VERSION)
+        ],
+    [AC_MSG_FAILURE([Value for --with-gtk was neither 2 nor 3])]
+)
 AC_SUBST(INDICATOR_CFLAGS)
 AC_SUBST(INDICATOR_LIBS)
 
@@ -143,6 +154,10 @@ AC_SUBST(SERVICE_LIBS)
 
 AC_SUBST(PREF_CFLAGS)
 AC_SUBST(PREF_LIBS)
+
+AC_SUBST(LIBMAP_CFLAGS)
+AC_SUBST(LIBMAP_LIBS)
+AC_SUBST(LIBMAP_LDFLAGS)
 
 ###########################
 # Grab the GSettings Macros
@@ -223,6 +238,7 @@ AM_GLIB_GNU_GETTEXT
 
 AC_OUTPUT([
 Makefile
+libmap/Makefile
 src/Makefile
 data/Makefile
 tests/Makefile

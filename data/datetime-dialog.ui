@@ -153,7 +153,20 @@
                     <property name="can_focus">False</property>
                     <property name="spacing">6</property>
                     <child>
-                      <placeholder/>
+                      <object class="GtkAspectFrame" id="mapBox">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label_xalign">0</property>
+                        <property name="shadow_type">none</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
                     </child>
                     <child>
                       <object class="GtkHBox" id="hbox4">
