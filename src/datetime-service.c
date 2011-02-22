@@ -42,6 +42,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libical/ical.h>
 #include <libecal/e-cal-time-util.h>
 #include <libedataserver/e-source.h>
+#include <libedataserverui/e-passwords.h>
 // Other users of ecal seem to also include these, not sure why they should be included by the above
 #include <libical/icaltime.h>
 #include <cairo/cairo.h>
@@ -58,6 +59,8 @@ static void geo_create_client (GeoclueMaster * master, GeoclueMasterClient * cli
 static gboolean update_appointment_menu_items (gpointer user_data);
 static gboolean update_timezone_menu_items(gpointer user_data);
 static void setup_timer (void);
+static void geo_client_invalid (GeoclueMasterClient * client, gpointer user_data);
+static void geo_address_change (GeoclueMasterClient * client, gchar * a, gchar * b, gchar * c, gchar * d, gpointer user_data);
 
 static IndicatorService * service = NULL;
 static GMainLoop * mainloop = NULL;
@@ -83,13 +86,9 @@ GSettings *conf;
 static GeoclueMasterClient * geo_master = NULL;
 static GeoclueAddress * geo_address = NULL;
 
-/* Our 3 important timezones */
-static const gchar		* ecal_timezone = NULL;
+/* Our 2 important timezones */
 static gchar 			* current_timezone = NULL;
 static gchar 			* geo_timezone = NULL;
-
-static ECal				* ecal = NULL;
-static icaltimezone     * tzone;
 
 /* Check to see if our timezones are the same */
 static void
@@ -143,9 +142,8 @@ check_timezone_sync (void) {
 			
 			if (label != NULL) {
 				// TODO work out the current location name in a nice way
-				dbusmenu_menuitem_property_set (current_location, TIMEZONE_MENUITEM_PROP_LABEL, label);
+				dbusmenu_menuitem_property_set (current_location, TIMEZONE_MENUITEM_PROP_ZONE, label);
 				// TODO work out the current time at that location 
-				dbusmenu_menuitem_property_set (current_location, TIMEZONE_MENUITEM_PROP_RIGHT, "+tzone");
 				dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 				dbusmenu_menuitem_property_set_bool(current_location, TIMEZONE_MENUITEM_PROP_RADIO, TRUE);
 			} else {
@@ -153,22 +151,19 @@ check_timezone_sync (void) {
 			}
 			if (geo_timezone != NULL) {	
 				// TODO work out the geo location name in a nice way
-				dbusmenu_menuitem_property_set (geo_location, TIMEZONE_MENUITEM_PROP_LABEL, geo_timezone);
+				dbusmenu_menuitem_property_set (geo_location, TIMEZONE_MENUITEM_PROP_ZONE, geo_timezone);
 				// TODO work out the current time at that location 
-				dbusmenu_menuitem_property_set (geo_location, TIMEZONE_MENUITEM_PROP_RIGHT, "+tzone");
 				dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 			}
 		} else {
 			// TODO work out the geo location name in a nice way
-			dbusmenu_menuitem_property_set (geo_location, TIMEZONE_MENUITEM_PROP_LABEL, geo_timezone);
+			dbusmenu_menuitem_property_set (geo_location, TIMEZONE_MENUITEM_PROP_ZONE, geo_timezone);
 			// TODO work out the current time at that location 
-			dbusmenu_menuitem_property_set (geo_location, TIMEZONE_MENUITEM_PROP_RIGHT, "+tzone");
 			dbusmenu_menuitem_property_set_bool(geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 			
 			// TODO work out the current location name in a nice way
-			dbusmenu_menuitem_property_set (current_location, TIMEZONE_MENUITEM_PROP_LABEL, current_timezone);
+			dbusmenu_menuitem_property_set (current_location, TIMEZONE_MENUITEM_PROP_ZONE, current_timezone);
 			// TODO work out the current time at that location 
-			dbusmenu_menuitem_property_set (current_location, TIMEZONE_MENUITEM_PROP_RIGHT, "+tzone");
 			dbusmenu_menuitem_property_set_bool(current_location, TIMEZONE_MENUITEM_PROP_RADIO, TRUE);
 			dbusmenu_menuitem_property_set_bool(current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 			dbusmenu_menuitem_property_set_bool(locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
@@ -230,7 +225,7 @@ quick_set_tz_cb (OobsObject * obj, OobsResult result, gpointer user_data)
 static void
 quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, gpointer user_data)
 {
-	const gchar * tz = dbusmenu_menuitem_property_get(menuitem, TIMEZONE_MENUITEM_PROP_LABEL);
+	const gchar * tz = dbusmenu_menuitem_property_get(menuitem, TIMEZONE_MENUITEM_PROP_ZONE);
 
 	g_debug("Quick setting timezone to: %s", tz);
 
@@ -303,7 +298,7 @@ check_for_calendar (gpointer user_data)
 		g_debug("Found the calendar application: %s", evo);
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
-
+/*
 		GError *gerror = NULL;
 		// TODO: In reality we should iterate sources of calendar, but getting the local one doens't lag for > a minute
 		g_debug("Setting up ecal.");
@@ -327,13 +322,13 @@ check_for_calendar (gpointer user_data)
 			ecal = NULL;
 		}
 	
-		/* This timezone represents the timezone of the calendar, this might be different to the current UTC offset.
+		 This timezone represents the timezone of the calendar, this might be different to the current UTC offset.
 		 * this means we'll have some geoclue interaction going on, and possibly the user will be involved in setting
 		 * their location manually, case in point: trains have satellite links which often geoclue to sweden,
 		 * this shouldn't automatically set the location and mess up all the appointments for the user.
-		 */
+		 
 		if (ecal) ecal_timezone = icaltimezone_get_tzid(tzone);
-		
+		*/
 		DbusmenuMenuitem * separator = dbusmenu_menuitem_new();
 		dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
 		dbusmenu_menuitem_child_add_position(root, separator, 3);
@@ -357,6 +352,7 @@ check_for_calendar (gpointer user_data)
 
 	return FALSE;
 }
+
 
 static gboolean
 update_timezone_menu_items(gpointer user_data) {
@@ -402,8 +398,7 @@ update_timezone_menu_items(gpointer user_data) {
 			g_debug("Adding timezone in update_timezones %s", locations[i]);
 			item = dbusmenu_menuitem_new();
 			dbusmenu_menuitem_property_set      (item, DBUSMENU_MENUITEM_PROP_TYPE, TIMEZONE_MENUITEM_TYPE);
-			dbusmenu_menuitem_property_set		(item, TIMEZONE_MENUITEM_PROP_LABEL, locations[i]);
-			dbusmenu_menuitem_property_set 		(item, TIMEZONE_MENUITEM_PROP_RIGHT, "+tzone");
+			dbusmenu_menuitem_property_set		(item, TIMEZONE_MENUITEM_PROP_ZONE, locations[i]);
 			dbusmenu_menuitem_property_set_bool (item, TIMEZONE_MENUITEM_PROP_RADIO, FALSE);
 			dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 			dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
@@ -417,6 +412,35 @@ update_timezone_menu_items(gpointer user_data) {
 	return FALSE;
 }
 
+// Authentication function
+static gchar *
+auth_func (ECal *ecal, const gchar *prompt, const gchar *key, gpointer user_data) {
+	gboolean remember; // TODO: Is this useful?  Should we be storing it somewhere?
+	ESource *source = e_cal_get_source (ecal);
+	gchar *auth_domain = e_source_get_duped_property (source, "auth-domain");
+
+	const gchar *component_name;
+	if (auth_domain) component_name = auth_domain;
+	else component_name = "Calendar";
+	
+	gchar *password = e_passwords_get_password (component_name, key);
+
+	if (password == NULL) {
+		password = e_passwords_ask_password (
+			_("Enter password"),
+			component_name, key, prompt,
+			E_PASSWORDS_REMEMBER_FOREVER |
+			E_PASSWORDS_SECRET |
+			E_PASSWORDS_ONLINE,
+			&remember, NULL);
+	}
+	
+	g_free (auth_domain);
+
+	return password;
+}
+
+
 // Compare function for g_list_sort of ECalComponent objects
 static gint 
 compare_appointment_items (ECalComponent *a,
@@ -426,8 +450,13 @@ compare_appointment_items (ECalComponent *a,
 	struct tm tm_a, tm_b;
 	time_t t_a, t_b;
 	gint retval = 0;
-	
+
+	if (a == NULL || b == NULL) return retval;
+
 	ECalComponentVType vtype = e_cal_component_get_vtype (a);
+	
+	if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) return -1;
+	
 	if (vtype == E_CAL_COMPONENT_EVENT)
 		e_cal_component_get_dtstart (a, &datetime_a);
 	else
@@ -436,6 +465,8 @@ compare_appointment_items (ECalComponent *a,
 	t_a = mktime(&tm_a);
 	
 	vtype = e_cal_component_get_vtype (b);
+	if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) return 1;
+	
 	if (vtype == E_CAL_COMPONENT_EVENT)
 		e_cal_component_get_dtstart (b, &datetime_b);
 	else
@@ -459,15 +490,17 @@ compare_appointment_items (ECalComponent *a,
  */
 static gboolean
 update_appointment_menu_items (gpointer user_data) {
-	if (!ecal) return FALSE;
 	// FFR: we should take into account short term timers, for instance
 	// tea timers, pomodoro timers etc... that people may add, this is hinted to in the spec.
 	time_t t1, t2;
 	gchar *query, *is, *ie, *ad;
 	GList *objects = NULL, *l;
+	GList *allobjects = NULL;
+	GSList *g;
 	GError *gerror = NULL;
 	gint i;
 	gint width, height;
+	ESourceList * sources = NULL;
 	
 	time(&t1);
 	time(&t2);
@@ -476,19 +509,6 @@ update_appointment_menu_items (gpointer user_data) {
 	is = isodate_from_time_t(t1);
 	ie = isodate_from_time_t(t2);
 	
-	// FIXME can we put a limit on the number of results? Or if not complete, or is event/todo? Or sort it by date?
-	query = g_strdup_printf("(occur-in-time-range? (make-time\"%s\") (make-time\"%s\"))", is, ie);
-	
-	
-	// FIXME iterate the query for all sources, kill global ecal
-	g_debug("Getting objects with query: %s", query);
-	if (!e_cal_get_object_list_as_comp(ecal, query, &objects, &gerror)) {
-		g_debug("Failed to get objects\n");
-		g_free(ecal);
-		ecal = NULL;
-		return FALSE;
-	}
-	g_debug("Number of objects returned: %d", g_list_length(objects));
 	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
 
 	/* Remove all of the previous appointments */
@@ -505,11 +525,56 @@ update_appointment_menu_items (gpointer user_data) {
 	}
 	
 	// TODO Remove all highlights from the calendar widget
+
+	// FIXME can we put a limit on the number of results? Or if not complete, or is event/todo? Or sort it by date?
+	query = g_strdup_printf("(occur-in-time-range? (make-time\"%s\") (make-time\"%s\"))", is, ie);
+	
+	if (!e_cal_get_sources(&sources, E_CAL_SOURCE_TYPE_EVENT, &gerror)) {
+		g_debug("Failed to get ecal sources\n");
+		return FALSE;
+	}
+
+	// iterate the query for all sources
+	for (g = e_source_list_peek_groups (sources); g; g = g->next) {
+		ESourceGroup *group = E_SOURCE_GROUP (g->data);
+		GSList *s;
+		
+		for (s = e_source_group_peek_sources (group); s; s = s->next) {
+			ESource *source = E_SOURCE (s->data);
+			g_signal_connect (G_OBJECT(source), "changed", G_CALLBACK (update_appointment_menu_items), NULL);
+			ECal *ecal = e_cal_new(source, E_CAL_SOURCE_TYPE_EVENT);
+			e_cal_set_auth_func (ecal, (ECalAuthFunc) auth_func, NULL);
+			//icaltimezone * tzone;
+			
+			if (!e_cal_open(ecal, FALSE, &gerror)) {
+				g_debug("Failed to get ecal sources %s", gerror->message);
+				g_error_free(gerror);
+				gerror = NULL;
+				continue;
+        	}
+			
+			g_debug("Getting objects with query: %s", query);
+			if (!e_cal_get_object_list_as_comp(ecal, query, &objects, &gerror)) {
+				g_debug("Failed to get objects\n");
+				g_free(ecal);
+				return FALSE;
+			}
+			g_debug("Number of objects returned: %d", g_list_length(objects));
+			
+			if (allobjects == NULL) {
+				allobjects = objects;
+			} else if (objects != NULL) {
+				allobjects = g_list_concat(allobjects, objects);
+				g_object_unref(objects);
+			}
+		}
+	}
 	
 	// Sort the list see above FIXME regarding queries
-	objects = g_list_sort(objects, (GCompareFunc) compare_appointment_items);
+	g_debug("Sorting objects list");
+	allobjects = g_list_sort(allobjects, (GCompareFunc) compare_appointment_items);
 	i = 0;
-	for (l = objects; l; l = l->next) {
+	for (l = allobjects; l; l = l->next) {
 		ECalComponent *ecalcomp = l->data;
 		ECalComponentText valuetext;
 		ECalComponentDateTime datetime;
@@ -522,6 +587,7 @@ update_appointment_menu_items (gpointer user_data) {
 		struct tm tmp_tm;
 		DbusmenuMenuitem * item;
 
+		g_debug("Start Object");
 		ECalComponentVType vtype = e_cal_component_get_vtype (ecalcomp);
 
 		// See above FIXME regarding query result
@@ -540,7 +606,6 @@ update_appointment_menu_items (gpointer user_data) {
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 	
-		g_debug("Start Object");
         // Label text        
 		e_cal_component_get_summary (ecalcomp, &valuetext);
 		summary = g_strdup (valuetext.value);
@@ -586,7 +651,7 @@ update_appointment_menu_items (gpointer user_data) {
 		g_debug("Appointment time: %s", right);
 		g_debug("Appointment timezone: %s", datetime.tzid);
 		g_debug("Appointment timezone: %s", icaltimezone_get_tzid(appointment_zone)); // These two should be the same
-		g_debug("Calendar timezone: %s", ecal_timezone);
+		//g_debug("Calendar timezone: %s", ecal_timezone);
 		
 		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, right);
 		
@@ -604,15 +669,18 @@ update_appointment_menu_items (gpointer user_data) {
 		
 		g_debug("Command to Execute: %s", cmd);
 		
-		ESource *source = e_cal_get_source (ecal);
+		// FIXME This is now more difficult to get right with more sources, as we need to keep track
+		// of which ecal or source goes with each ECalComponent :/
+		
+		//ESource *source = e_cal_get_source (ecal);
         //e_source_get_color (source, &source_color); api has been changed
-        const gchar *color_spec = e_source_peek_color_spec(source);
-        GdkColor color;
+        const gchar *color_spec = NULL; //e_source_peek_color_spec(source);
         g_debug("Colour to use: %s", color_spec);
 			
 		// Draw the correct icon for the appointment type and then tint it using mask fill.
 		// For now we'll create a circle
         if (color_spec != NULL) {
+        	GdkColor color;
         	gdk_color_parse (color_spec, &color);
         	
 			cairo_surface_t *cs = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
@@ -634,7 +702,7 @@ update_appointment_menu_items (gpointer user_data) {
 		if (i == 4) break; // See above FIXME regarding query result limit
 		i++;
 	}
-	g_list_free(objects);
+	g_object_unref(allobjects);
 	g_debug("End of objects");
 	return TRUE;
 }
@@ -694,7 +762,7 @@ build_menus (DbusmenuMenuitem * root)
 
 	geo_location = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set      (geo_location, DBUSMENU_MENUITEM_PROP_TYPE, TIMEZONE_MENUITEM_TYPE);
-	dbusmenu_menuitem_property_set		(geo_location, TIMEZONE_MENUITEM_PROP_LABEL, "Updating location information...");
+	dbusmenu_menuitem_property_set		(geo_location, TIMEZONE_MENUITEM_PROP_ZONE, "");
 	dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 	dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 	g_signal_connect(G_OBJECT(geo_location), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
@@ -702,14 +770,13 @@ build_menus (DbusmenuMenuitem * root)
 
 	current_location = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set      (current_location, DBUSMENU_MENUITEM_PROP_TYPE, TIMEZONE_MENUITEM_TYPE);
-	dbusmenu_menuitem_property_set		(current_location, TIMEZONE_MENUITEM_PROP_LABEL, "Current Timezone");
+	dbusmenu_menuitem_property_set		(current_location, TIMEZONE_MENUITEM_PROP_ZONE, "");
 	dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 	dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 	g_signal_connect(G_OBJECT(current_location), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
 	dbusmenu_menuitem_child_append(root, current_location);
 	
 	check_timezone_sync();
-	//g_signal_connect(root, DBUSMENU_MENUITEM_SIGNAL_ABOUT_TO_SHOW, G_CALLBACK(update_timezone_menu_items), NULL);
 	
 	DbusmenuMenuitem * separator = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
@@ -815,6 +882,41 @@ geo_address_cb (GeoclueAddress * address, int timestamp, GHashTable * addy_data,
 	return;
 }
 
+/* Clean up the reference we kept to the address and make sure to
+   drop the signals incase someone else has one. */
+static void
+geo_address_clean (void)
+{
+	if (geo_address == NULL) {
+		return;
+	}
+
+	g_signal_handlers_disconnect_by_func(G_OBJECT(geo_address), geo_address_cb, NULL);
+	g_object_unref(G_OBJECT(geo_address));
+
+	geo_address = NULL;
+
+	return;
+}
+
+/* Clean up and remove all signal handlers from the client as we
+   unreference it as well. */
+static void
+geo_client_clean (void)
+{
+	if (geo_master == NULL) {
+		return;
+	}
+
+	g_signal_handlers_disconnect_by_func(G_OBJECT(geo_master), geo_client_invalid, NULL);
+	g_signal_handlers_disconnect_by_func(G_OBJECT(geo_master), geo_address_change, NULL);
+	g_object_unref(G_OBJECT(geo_master));
+
+	geo_master = NULL;
+
+	return;
+}
+
 /* Callback from creating the address */
 static void
 geo_create_address (GeoclueMasterClient * master, GeoclueAddress * address, GError * error, gpointer user_data)
@@ -823,6 +925,12 @@ geo_create_address (GeoclueMasterClient * master, GeoclueAddress * address, GErr
 		g_warning("Unable to create GeoClue address: %s", error->message);
 		return;
 	}
+
+	/* We shouldn't have created a new address if we already had one
+	   so this is a warning.  But, it really is only a mem-leak so we
+	   don't need to error out. */
+	g_warn_if_fail(geo_address == NULL);
+	geo_address_clean();
 
 	g_debug("Created Geoclue Address");
 	geo_address = address;
@@ -851,10 +959,12 @@ geo_client_invalid (GeoclueMasterClient * client, gpointer user_data)
 {
 	g_warning("Master client invalid, rebuilding.");
 
-	if (geo_master != NULL) {
-		g_object_unref(G_OBJECT(geo_master));
-	}
-	geo_master = NULL;
+	/* Client changes we can assume the address is now invalid so we
+	   need to unreference the one we had. */
+	geo_address_clean();
+
+	/* And our master client is invalid */
+	geo_client_clean();
 
 	GeoclueMaster * master = geoclue_master_get_default();
 	geoclue_master_create_client_async(master, geo_create_client, NULL);
@@ -875,10 +985,9 @@ geo_address_change (GeoclueMasterClient * client, gchar * a, gchar * b, gchar * 
 {
 	g_warning("Address provider changed.  Let's change");
 
-	if (geo_address != NULL) {
-		g_object_unref(G_OBJECT(geo_address));
-	}
-	geo_address = NULL;
+	/* If the address is supposed to have changed we need to drop the old
+	   address before starting to get the new one. */
+	geo_address_clean();
 
 	geoclue_master_client_create_address_async(geo_master, geo_create_address, NULL);
 
@@ -899,7 +1008,16 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 	g_debug("Created Geoclue client at: %s", path);
 
 	geo_master = client;
+
+	if (geo_master != NULL) {
+		g_warning(_("Unable to get a GeoClue client!  Geolocation based timezone support will not be available."));
+		return;
+	}
+
 	g_object_ref(G_OBJECT(geo_master));
+
+	/* New client, make sure we don't have an address hanging on */
+	geo_address_clean();
 
 	geoclue_master_client_set_requirements_async(geo_master,
 	                                             GEOCLUE_ACCURACY_LEVEL_REGION,
@@ -979,6 +1097,9 @@ main (int argc, char ** argv)
 	g_object_unref(G_OBJECT(service));
 	g_object_unref(G_OBJECT(server));
 	g_object_unref(G_OBJECT(root));
+
+	geo_address_clean();
+	geo_client_clean();
 
 	return 0;
 }
