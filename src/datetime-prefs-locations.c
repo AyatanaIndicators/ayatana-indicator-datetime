@@ -29,6 +29,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "datetime-prefs-locations.h"
 #include "settings-shared.h"
+#include "timezone-completion.h"
 
 #define DATETIME_DIALOG_UI_FILE PKGDATADIR "/datetime-dialog.ui"
 
@@ -82,6 +83,16 @@ handle_edit (GtkCellRendererText * renderer, gchar * path, gchar * new_text,
 
   if (gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL (store), &iter, path)) {
     gtk_list_store_set (store, &iter, 0, new_text, -1);
+  }
+}
+
+static void
+handle_edit_started (GtkCellRendererText * renderer, GtkCellEditable * editable,
+                     gchar * path, TimezoneCompletion * completion)
+{
+  if (GTK_IS_ENTRY (editable)) {
+    GtkEntry *entry = GTK_ENTRY (editable);
+    gtk_entry_set_completion (entry, GTK_ENTRY_COMPLETION (timezone_completion_new ()));
   }
 }
 
@@ -161,8 +172,10 @@ datetime_setup_locations_dialog (GtkWindow * parent)
   GObject * store = gtk_builder_get_object (builder, "locationsStore");
 
   /* Configure tree */
+  TimezoneCompletion * completion = timezone_completion_new ();
   GtkCellRenderer * cell = gtk_cell_renderer_text_new ();
   g_object_set (cell, "editable", TRUE, NULL);
+  g_signal_connect (cell, "editing-started", G_CALLBACK (handle_edit_started), completion);
   g_signal_connect (cell, "edited", G_CALLBACK (handle_edit), store);
   gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (tree), -1,
                                                _("Location"), cell,
@@ -181,7 +194,9 @@ datetime_setup_locations_dialog (GtkWindow * parent)
   g_signal_connect (WIG ("removeButton"), "clicked", G_CALLBACK (handle_remove), tree);
 
   fill_from_settings (store, conf);
+
   g_object_set_data_full (G_OBJECT (dlg), "conf", g_object_ref (conf), g_object_unref);
+  g_object_set_data_full (G_OBJECT (dlg), "completion", completion, g_object_unref);
   g_signal_connect (dlg, "destroy", G_CALLBACK (save_to_settings), store);
 
   gtk_window_set_transient_for (GTK_WINDOW (dlg), parent);

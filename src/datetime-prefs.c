@@ -36,6 +36,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "settings-shared.h"
 #include "utils.h"
 #include "datetime-prefs-locations.h"
+#include "timezone-completion.h"
 #include "cc-timezone-map.h"
 
 #define DATETIME_DIALOG_UI_FILE PKGDATADIR "/datetime-dialog.ui"
@@ -176,8 +177,10 @@ tz_changed (CcTimezoneMap * map, TzLocation * location)
   if (location == NULL)
     return;
 
-  g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", location->zone),
+  gchar * file = g_build_filename ("/usr/share/zoneinfo", location->zone, NULL);
+  g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", file),
                      G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "timezone");
+  g_free (file);
 }
 
 static void
@@ -371,6 +374,25 @@ show_locations (GtkWidget * button, GtkWidget * dlg)
   gtk_widget_show_all (locationsDlg);
 }
 
+static gboolean
+timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
+                   GtkTreeIter * iter, gpointer user_data)
+{
+  GValue value = {0};
+  const gchar * strval;
+
+  gtk_tree_model_get_value (model, iter, TIMEZONE_COMPLETION_ZONE, &value);
+  strval = g_value_get_string (&value);
+
+  if (strval != NULL && strval[0] != 0) {
+    cc_timezone_map_set_timezone (tzmap, strval);
+  }
+
+  g_value_unset (&value);
+
+  return FALSE; // Do normal action too
+}
+
 static GtkWidget *
 create_dialog (void)
 {
@@ -400,6 +422,12 @@ create_dialog (void)
   /* Add map */
   tzmap = cc_timezone_map_new ();
   gtk_container_add (GTK_CONTAINER (WIG ("mapBox")), GTK_WIDGET (tzmap));
+
+  /* And completion entry */
+  TimezoneCompletion * completion = timezone_completion_new ();
+  gtk_entry_set_completion (GTK_ENTRY (WIG ("timezoneEntry")),
+                            GTK_ENTRY_COMPLETION (completion));
+  g_signal_connect (completion, "match-selected", G_CALLBACK (timezone_selected), NULL);
 
   /* Set up settings bindings */
   g_settings_bind (conf, SETTINGS_SHOW_CLOCK_S, WIG ("showClockCheck"),
