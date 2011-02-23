@@ -114,16 +114,51 @@ json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
         json_reader_end_member (reader);
       }
 
+      /* See if we have this in our store already */
       GtkTreeIter iter;
-      gtk_list_store_append (store, &iter);
-      gtk_list_store_set (store, &iter,
-                          TIMEZONE_COMPLETION_ZONE, NULL,
-                          TIMEZONE_COMPLETION_NAME, name,
-                          TIMEZONE_COMPLETION_ADMIN1, admin1,
-                          TIMEZONE_COMPLETION_COUNTRY, country,
-                          TIMEZONE_COMPLETION_LONGITUDE, longitude,
-                          TIMEZONE_COMPLETION_LATITUDE, latitude,
-                          -1);
+      gboolean skip = FALSE;
+      if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter)) {
+        do {
+          GValue value = {0};
+
+          gtk_tree_model_get_value (GTK_TREE_MODEL (store), &iter, TIMEZONE_COMPLETION_NAME, &value);
+          if (g_strcmp0 (g_value_get_string (&value), name) != 0) {
+            g_value_unset (&value);
+            continue;
+          }
+          g_value_unset (&value);
+
+          gtk_tree_model_get_value (GTK_TREE_MODEL (store), &iter, TIMEZONE_COMPLETION_ADMIN1, &value);
+          if (g_strcmp0 (g_value_get_string (&value), admin1) != 0) {
+            g_value_unset (&value);
+            continue;
+          }
+          g_value_unset (&value);
+
+          gtk_tree_model_get_value (GTK_TREE_MODEL (store), &iter, TIMEZONE_COMPLETION_COUNTRY, &value);
+          if (g_strcmp0 (g_value_get_string (&value), country) != 0) {
+            g_value_unset (&value);
+            continue;
+          }
+          g_value_unset (&value);
+
+          /* Must be the same, skip this one */
+          skip = TRUE;
+          break;
+        } while (gtk_tree_model_iter_next (GTK_TREE_MODEL (store), &iter));
+      }
+
+      if (!skip) {
+        gtk_list_store_append (store, &iter);
+        gtk_list_store_set (store, &iter,
+                            TIMEZONE_COMPLETION_ZONE, NULL,
+                            TIMEZONE_COMPLETION_NAME, name,
+                            TIMEZONE_COMPLETION_ADMIN1, admin1,
+                            TIMEZONE_COMPLETION_COUNTRY, country,
+                            TIMEZONE_COMPLETION_LONGITUDE, longitude,
+                            TIMEZONE_COMPLETION_LATITUDE, latitude,
+                            -1);
+      }
     }
 
     json_reader_end_element (reader);
@@ -183,7 +218,7 @@ request_zones (TimezoneCompletion * completion)
   priv->request_text = g_strdup (text);
 
   gchar * escaped = g_uri_escape_string (text, NULL, FALSE);
-  gchar * url = g_strdup_printf (GEONAME_URL, escaped, "11.04");
+  gchar * url = g_strdup_printf (GEONAME_URL, escaped, "11.04"); // FIXME: don't hardcode
 
   GFile * file =  g_file_new_for_uri (url);
   g_file_read_async (file, G_PRIORITY_DEFAULT, priv->cancel,
