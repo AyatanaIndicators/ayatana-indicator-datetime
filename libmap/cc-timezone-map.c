@@ -60,6 +60,8 @@ struct _CcTimezoneMapPrivate
 
   gdouble selected_offset;
 
+  gchar *watermark;
+
   TzDB *tzdb;
   TzLocation *location;
   GHashTable *alias_db;
@@ -574,6 +576,12 @@ cc_timezone_map_dispose (GObject *object)
       priv->alias_db = NULL;
     }
 
+  if (priv->watermark)
+    {
+      g_free (priv->watermark);
+      priv->watermark = NULL;
+    }
+
   G_OBJECT_CLASS (cc_timezone_map_parent_class)->dispose (object);
 }
 
@@ -821,6 +829,18 @@ cc_timezone_map_draw (GtkWidget *widget,
     {
       g_object_unref (pin);
     }
+
+  if (priv->watermark) {
+    cairo_text_extents_t extent;
+    cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+    cairo_set_font_size(cr, 12.0);
+    cairo_set_source_rgba(cr, 1, 1, 1, 0.5);
+    cairo_text_extents(cr, priv->watermark, &extent);
+    cairo_move_to(cr, alloc.width - extent.x_advance + extent.x_bearing - 5,
+                      alloc.height - extent.height - extent.y_bearing - 5);
+    cairo_show_text(cr, priv->watermark);
+    cairo_stroke(cr);
+  }
 
   return TRUE;
 }
@@ -1148,6 +1168,16 @@ cc_timezone_map_get_timezone_at_coords (CcTimezoneMap *map, gdouble lon, gdouble
     TzLocation * loc = get_loc_for_xy(GTK_WIDGET (map), x, y);
     return loc->zone;
   }
+}
+
+void
+cc_timezone_map_set_watermark (CcTimezoneMap *map, const gchar * watermark)
+{
+  if (map->priv->watermark)
+    g_free (map->priv->watermark);
+
+  map->priv->watermark = g_strdup (watermark);
+  gtk_widget_queue_draw (GTK_WIDGET (map));
 }
 
 TzLocation *

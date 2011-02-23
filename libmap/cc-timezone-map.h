@@ -70,6 +70,8 @@ GType cc_timezone_map_get_type (void) G_GNUC_CONST;
 
 CcTimezoneMap *cc_timezone_map_new (void);
 
+void cc_timezone_map_set_watermark (CcTimezoneMap * map,
+                                    const gchar * watermark);
 void cc_timezone_map_set_timezone (CcTimezoneMap *map,
                                    const gchar   *timezone);
 void cc_timezone_map_set_coords (CcTimezoneMap *map,

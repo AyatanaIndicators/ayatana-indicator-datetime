@@ -494,6 +494,8 @@ create_dialog (void)
   /* Add map */
   tzmap = cc_timezone_map_new ();
   gtk_container_add (GTK_CONTAINER (WIG ("mapBox")), GTK_WIDGET (tzmap));
+  /* Fufill the CC by Attribution license requirements for the Geonames lookup */
+  cc_timezone_map_set_watermark (tzmap, "Geonames.org");
 
   /* And completion entry */
   TimezoneCompletion * completion = timezone_completion_new ();
