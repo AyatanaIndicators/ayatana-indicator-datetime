@@ -144,7 +144,7 @@ add_widget_dependency (GtkWidget * parent, GtkWidget * dependent)
   widget_dependency_cb (parent, NULL, dependent);
 }
 
-/*static void
+static void
 polkit_dependency_cb (GtkWidget * parent, GParamSpec *pspec, GtkWidget * dependent)
 {
   gboolean authorized, sensitive;
@@ -162,7 +162,7 @@ add_polkit_dependency (GtkWidget * parent, GtkWidget * dependent)
   g_signal_connect (parent, "notify::sensitive", G_CALLBACK(polkit_dependency_cb),
                     dependent);
   polkit_dependency_cb (parent, NULL, dependent);
-}*/
+}
 
 static void
 dbus_set_answered (GObject *object, GAsyncResult *res, gpointer command)
@@ -532,7 +532,7 @@ create_dialog (void)
   add_widget_dependency (WIG ("showClockCheck"), WIG ("clockOptions"));
   add_widget_dependency (WIG ("showLocationsCheck"), WIG ("locationsButton"));
   add_widget_dependency (WIG ("manualTimeRadio"), WIG ("manualOptions"));
-  //add_polkit_dependency (polkit_button, WIG ("timeDateOptions"));
+  add_polkit_dependency (polkit_button, WIG ("timeDateOptions"));
 
   /* Hacky proxy test for whether evolution-data-server is installed */
   gchar * evo_path = g_find_program_in_path ("evolution");
