@@ -43,7 +43,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DATETIME_DIALOG_UI_FILE PKGDATADIR "/datetime-dialog.ui"
 
 GDBusProxy * proxy = NULL;
-GtkWidget * autoRadio = NULL;
+GtkWidget * auto_radio = NULL;
+GtkWidget * tz_entry = NULL;
 CcTimezoneMap * tzmap = NULL;
 
 /* Turns the boolean property into a string gsettings */
@@ -203,12 +204,21 @@ ntp_query_answered (GObject *object, GAsyncResult *res, gpointer user_data)
   gboolean can_use_ntp, is_using_ntp;
   g_variant_get (answers, "(bb)", &can_use_ntp, &is_using_ntp);
 
-  gtk_widget_set_sensitive (GTK_WIDGET (autoRadio), can_use_ntp);
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (autoRadio), is_using_ntp);
+  gtk_widget_set_sensitive (GTK_WIDGET (auto_radio), can_use_ntp);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (auto_radio), is_using_ntp);
 
-  g_signal_connect (autoRadio, "notify::active", G_CALLBACK (toggle_ntp), NULL);
+  g_signal_connect (auto_radio, "notify::active", G_CALLBACK (toggle_ntp), NULL);
 
   g_variant_unref (answers);
+}
+
+static void
+sync_entry (const gchar * location)
+{
+  gchar * name;
+  split_settings_location (location, NULL, &name);
+  gtk_entry_set_text (GTK_ENTRY (tz_entry), name);
+  g_free (name);
 }
 
 static void
@@ -221,6 +231,8 @@ tz_changed (CcTimezoneMap * map, TzLocation * location)
   g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", file),
                      G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "timezone");
   g_free (file);
+
+  sync_entry (location->zone);
 }
 
 static void
@@ -240,6 +252,7 @@ tz_query_answered (GObject *object, GAsyncResult *res, gpointer user_data)
 
   cc_timezone_map_set_timezone (tzmap, timezone);
 
+  sync_entry (timezone);
   g_signal_connect (tzmap, "location-changed", G_CALLBACK (tz_changed), NULL);
 
   g_variant_unref (answers);
@@ -259,7 +272,7 @@ void proxy_ready (GObject *object, GAsyncResult *res, gpointer user_data)
 
   /* And now, do initial proxy configuration */
   g_dbus_proxy_call (proxy, "GetUsingNtp", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
-                     NULL, ntp_query_answered, autoRadio);
+                     NULL, ntp_query_answered, auto_radio);
   g_dbus_proxy_call (proxy, "GetTimezone", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
                      NULL, tz_query_answered, NULL);
 }
@@ -543,7 +556,8 @@ create_dialog (void)
   setup_time_spinner (WIG ("dateSpinner"), WIG ("timeSpinner"), FALSE);
 
   GtkWidget * dlg = WIG ("timeDateDialog");
-  autoRadio = WIG ("automaticTimeRadio");
+  auto_radio = WIG ("automaticTimeRadio");
+  tz_entry = WIG ("timezoneEntry");
 
   g_signal_connect (WIG ("locationsButton"), "clicked", G_CALLBACK (show_locations), dlg);
 

@@ -76,7 +76,6 @@ json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
     return;
   }
 
-g_print("got json\n");
   GtkListStore * store = GTK_LIST_STORE (gtk_entry_completion_get_model (GTK_ENTRY_COMPLETION (completion)));
   JsonReader * reader = json_reader_new (json_parser_get_root (JSON_PARSER (object)));
 
@@ -115,7 +114,6 @@ g_print("got json\n");
         json_reader_end_member (reader);
       }
 
-g_print("adding %s\n", name);
       GtkTreeIter iter;
       gtk_list_store_append (store, &iter);
       gtk_list_store_set (store, &iter,
@@ -166,7 +164,6 @@ request_zones (TimezoneCompletion * completion)
 
   priv->queued_request = 0;
 
-g_print("requesting json?\n");
   if (priv->entry == NULL) {
     return FALSE;
   }
@@ -185,7 +182,6 @@ g_print("requesting json?\n");
 
   priv->request_text = g_strdup (text);
 
-g_print("requesting json now\n");
   gchar * escaped = g_uri_escape_string (text, NULL, FALSE);
   gchar * url = g_strdup_printf (GEONAME_URL, escaped, "11.04");
 

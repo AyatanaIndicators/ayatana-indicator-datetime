@@ -1176,7 +1176,7 @@ timezone_toggled_cb (GtkCheckMenuItem *checkmenuitem, DbusmenuMenuitem * dbusite
 }
 
 static void
-timezone_destroyed_cb (DbusmenuMenuitem * dbusitem, indicator_item_t * mi_data)
+timezone_destroyed_cb (indicator_item_t * mi_data, DbusmenuMenuitem * dbusitem)
 {
 	IndicatorDatetimePrivate *priv = INDICATOR_DATETIME_GET_PRIVATE(mi_data->self);
 	priv->timezone_items = g_list_remove(priv->timezone_items, mi_data);
@@ -1241,7 +1241,7 @@ new_timezone_item(DbusmenuMenuitem * newitem,
 
 	g_signal_connect(G_OBJECT(mi_data->gmi), "toggled", G_CALLBACK(timezone_toggled_cb), newitem);
 	g_signal_connect(G_OBJECT(newitem), DBUSMENU_MENUITEM_SIGNAL_PROPERTY_CHANGED, G_CALLBACK(indicator_prop_change_cb), mi_data);
-	g_signal_connect(G_OBJECT(newitem), "destroyed", G_CALLBACK(timezone_destroyed_cb), mi_data);
+	g_object_weak_ref(G_OBJECT(newitem), (GWeakNotify)timezone_destroyed_cb, mi_data);
 
 	return TRUE;
 }
