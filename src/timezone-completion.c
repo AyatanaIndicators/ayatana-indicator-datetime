@@ -299,6 +299,35 @@ get_initial_model (void)
 }
 
 static void
+data_func (GtkCellLayout *cell_layout, GtkCellRenderer *cell,
+           GtkTreeModel *tree_model, GtkTreeIter *iter, gpointer user_data)
+{
+  GValue name_val = {0}, admin1_val = {0}, country_val = {0};
+  const gchar * name, * admin1, * country;
+
+  gtk_tree_model_get_value (GTK_TREE_MODEL (tree_model), iter, TIMEZONE_COMPLETION_NAME, &name_val);
+  gtk_tree_model_get_value (GTK_TREE_MODEL (tree_model), iter, TIMEZONE_COMPLETION_ADMIN1, &admin1_val);
+  gtk_tree_model_get_value (GTK_TREE_MODEL (tree_model), iter, TIMEZONE_COMPLETION_COUNTRY, &country_val);
+
+  name = g_value_get_string (&name_val);
+  admin1 = g_value_get_string (&admin1_val);
+  country = g_value_get_string (&country_val);
+
+  gchar * user_name;
+  if (admin1 == NULL || admin1[0] == 0) {
+    user_name = g_strdup_printf ("%s <small>(%s)</small>", name, country);
+  } else {
+    user_name = g_strdup_printf ("%s <small>(%s, %s)</small>", name, admin1, country);
+  }
+
+  g_object_set (G_OBJECT (cell), "markup", user_name, NULL);
+
+  g_value_unset (&name_val);
+  g_value_unset (&admin1_val);
+  g_value_unset (&country_val);
+}
+
+static void
 timezone_completion_class_init (TimezoneCompletionClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -318,11 +347,15 @@ timezone_completion_init (TimezoneCompletion * self)
 
   GtkListStore * model = get_initial_model ();
   gtk_entry_completion_set_model (GTK_ENTRY_COMPLETION (self), GTK_TREE_MODEL (model));
-  gtk_entry_completion_set_text_column (GTK_ENTRY_COMPLETION (self), TIMEZONE_COMPLETION_NAME);
+  g_object_set (G_OBJECT (self), "text-column", TIMEZONE_COMPLETION_NAME, NULL);
 
   priv->cancel = g_cancellable_new ();
 
   priv->request_table = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+
+  GtkCellRenderer * cell = gtk_cell_renderer_text_new ();
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (self), cell, TRUE);
+  gtk_cell_layout_set_cell_data_func (GTK_CELL_LAYOUT (self), cell, data_func, NULL, NULL);
 
   return;
 }
