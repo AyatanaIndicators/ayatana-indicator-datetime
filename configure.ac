@@ -125,12 +125,14 @@ AS_IF([test "x$with_gtk" = x3],
 	[PKG_CHECK_MODULES(PREF, gio-2.0 >= $GIO_REQUIRED_VERSION
 	                         gtk+-3.0 >= $GTK3_REQUIRED_VERSION
                                  unique-3.0
+                                 json-glib-1.0
                                  polkit-gtk-1)
 		],
       [test "x$with_gtk" = x2],
 	[PKG_CHECK_MODULES(PREF, gio-2.0 >= $GIO_REQUIRED_VERSION
 	                         gtk+-2.0 >= $GTK_REQUIRED_VERSION
                                  unique-1.0
+                                 json-glib-1.0
                                  polkit-gtk-1)
         ],
     [AC_MSG_FAILURE([Value for --with-gtk was neither 2 nor 3])]

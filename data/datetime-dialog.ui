@@ -98,6 +98,8 @@
       <column type="gchararray"/>
       <!-- column-name Time -->
       <column type="gchararray"/>
+      <!-- column-name Zone -->
+      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkDialog" id="timeDateDialog">

@@ -22,6 +22,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __DATETIME_SETTINGS_SHARED_H__
 #define __DATETIME_SETTINGS_SHARED_H__
 
+#include <glib/gi18n-lib.h>
+
 #define SETTINGS_INTERFACE              "com.canonical.indicator.datetime"
 #define SETTINGS_SHOW_CLOCK_S           "show-clock"
 #define SETTINGS_TIME_FORMAT_S          "time-format"
@@ -35,5 +37,22 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SETTINGS_SHOW_EVENTS_S          "show-events"
 #define SETTINGS_SHOW_LOCATIONS_S       "show-locations"
 #define SETTINGS_LOCATIONS_S            "locations"
+
+enum {
+	SETTINGS_TIME_LOCALE = 0,
+	SETTINGS_TIME_12_HOUR = 1,
+	SETTINGS_TIME_24_HOUR = 2,
+	SETTINGS_TIME_CUSTOM = 3
+};
+
+/* TRANSLATORS: A format string for the strftime function for
+   a clock showing 12-hour time without seconds. */
+#define DEFAULT_TIME_12_FORMAT   N_("%l:%M %p")
+
+/* TRANSLATORS: A format string for the strftime function for
+   a clock showing 24-hour time without seconds. */
+#define DEFAULT_TIME_24_FORMAT   N_("%H:%M")
+
+#define DEFAULT_TIME_FORMAT      DEFAULT_TIME_12_FORMAT
 
 #endif

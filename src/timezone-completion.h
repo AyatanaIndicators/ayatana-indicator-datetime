@@ -45,13 +45,17 @@ struct _TimezoneCompletion {
   GtkEntryCompletion parent;
 };
 
-#define TIMEZONE_COMPLETION_ZONE    0
-#define TIMEZONE_COMPLETION_NAME    1
-#define TIMEZONE_COMPLETION_COUNTRY 2
-#define TIMEZONE_COMPLETION_LAST    3
+#define TIMEZONE_COMPLETION_ZONE      0
+#define TIMEZONE_COMPLETION_NAME      1
+#define TIMEZONE_COMPLETION_ADMIN1    2
+#define TIMEZONE_COMPLETION_COUNTRY   3
+#define TIMEZONE_COMPLETION_LONGITUDE 4
+#define TIMEZONE_COMPLETION_LATITUDE  5
+#define TIMEZONE_COMPLETION_LAST      6
 
 GType timezone_completion_get_type (void);
 TimezoneCompletion * timezone_completion_new ();
+void timezone_completion_watch_entry (TimezoneCompletion * completion, GtkEntry * entry);
 
 G_END_DECLS
 

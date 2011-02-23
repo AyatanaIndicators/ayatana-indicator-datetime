@@ -146,6 +146,55 @@ tz_db_free (TzDB *db)
 	g_free (db);
 }
 
+static gint
+sort_locations (TzLocation *a,
+                TzLocation *b)
+{
+  if (a->dist > b->dist)
+    return 1;
+
+  if (a->dist < b->dist)
+    return -1;
+
+  return 0;
+}
+
+static gdouble
+convert_longtitude_to_x (gdouble longitude, gint map_width)
+{
+  const gdouble xdeg_offset = -6;
+  gdouble x;
+
+  x = (map_width * (180.0 + longitude) / 360.0)
+    + (map_width * xdeg_offset / 180.0);
+
+  return x;
+}
+
+static gdouble
+radians (gdouble degrees)
+{
+  return (degrees / 360.0) * G_PI * 2;
+}
+
+static gdouble
+convert_latitude_to_y (gdouble latitude, gdouble map_height)
+{
+  gdouble bottom_lat = -59;
+  gdouble top_lat = 81;
+  gdouble top_per, y, full_range, top_offset, map_range;
+
+  top_per = top_lat / 180.0;
+  y = 1.25 * log (tan (G_PI_4 + 0.4 * radians (latitude)));
+  full_range = 4.6068250867599998;
+  top_offset = full_range * top_per;
+  map_range = fabs (1.25 * log (tan (G_PI_4 + 0.4 * radians (bottom_lat))) - top_offset);
+  y = fabs (y - top_offset);
+  y = y / map_range;
+  y = y * map_height;
+  return y;
+}
+
 GPtrArray *
 tz_get_locations (TzDB *db)
 {

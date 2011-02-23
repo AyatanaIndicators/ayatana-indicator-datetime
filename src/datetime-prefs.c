@@ -25,6 +25,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "config.h"
 #endif
 
+#include <stdlib.h>
 #include <libintl.h>
 #include <locale.h>
 #include <langinfo.h>
@@ -104,7 +105,7 @@ add_widget_dependency (GtkWidget * parent, GtkWidget * dependent)
   widget_dependency_cb (parent, NULL, dependent);
 }
 
-static void
+/*static void
 polkit_dependency_cb (GtkWidget * parent, GParamSpec *pspec, GtkWidget * dependent)
 {
   gboolean authorized, sensitive;
@@ -122,7 +123,7 @@ add_polkit_dependency (GtkWidget * parent, GtkWidget * dependent)
   g_signal_connect (parent, "notify::sensitive", G_CALLBACK(polkit_dependency_cb),
                     dependent);
   polkit_dependency_cb (parent, NULL, dependent);
-}
+}*/
 
 static void
 dbus_set_answered (GObject *object, GAsyncResult *res, gpointer command)
@@ -370,7 +371,7 @@ setup_time_spinner (GtkWidget * spinner, GtkWidget * other, gboolean is_time)
 static void
 show_locations (GtkWidget * button, GtkWidget * dlg)
 {
-  GtkWidget * locationsDlg = datetime_setup_locations_dialog (GTK_WINDOW (dlg));
+  GtkWidget * locationsDlg = datetime_setup_locations_dialog (GTK_WINDOW (dlg), tzmap);
   gtk_widget_show_all (locationsDlg);
 }
 
@@ -386,6 +387,25 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
 
   if (strval != NULL && strval[0] != 0) {
     cc_timezone_map_set_timezone (tzmap, strval);
+  }
+  else {
+    GValue lon_value = {0}, lat_value = {0};
+    const gchar * strlon, * strlat;
+    gdouble lon = 0.0, lat = 0.0;
+
+    gtk_tree_model_get_value (model, iter, TIMEZONE_COMPLETION_LONGITUDE, &lon_value);
+    strlon = g_value_get_string (&lon_value);
+    if (strlon != NULL && strlon[0] != 0) {
+      lon = strtod(strlon, NULL);
+    }
+
+    gtk_tree_model_get_value (model, iter, TIMEZONE_COMPLETION_LATITUDE, &lat_value);
+    strlat = g_value_get_string (&lat_value);
+    if (strlat != NULL && strlat[0] != 0) {
+      lat = strtod(strlat, NULL);
+    }
+
+    cc_timezone_map_set_coords (tzmap, lon, lat);
   }
 
   g_value_unset (&value);
@@ -427,6 +447,7 @@ create_dialog (void)
   TimezoneCompletion * completion = timezone_completion_new ();
   gtk_entry_set_completion (GTK_ENTRY (WIG ("timezoneEntry")),
                             GTK_ENTRY_COMPLETION (completion));
+  timezone_completion_watch_entry (completion, GTK_ENTRY (WIG ("timezoneEntry")));
   g_signal_connect (completion, "match-selected", G_CALLBACK (timezone_selected), NULL);
 
   /* Set up settings bindings */
@@ -464,7 +485,7 @@ create_dialog (void)
   add_widget_dependency (WIG ("showClockCheck"), WIG ("clockOptions"));
   add_widget_dependency (WIG ("showLocationsCheck"), WIG ("locationsButton"));
   add_widget_dependency (WIG ("manualTimeRadio"), WIG ("manualOptions"));
-  add_polkit_dependency (polkit_button, WIG ("timeDateOptions"));
+  //add_polkit_dependency (polkit_button, WIG ("timeDateOptions"));
 
   /* Hacky proxy test for whether evolution-data-server is installed */
   gchar * evo_path = g_find_program_in_path ("evolution");

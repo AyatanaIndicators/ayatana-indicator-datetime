@@ -24,10 +24,11 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define __DATETIME_PREFS_LOCATIONS_H__
 
 #include <gtk/gtk.h>
+#include "cc-timezone-map.h"
 
 G_BEGIN_DECLS
 
-GtkWidget * datetime_setup_locations_dialog (GtkWindow * parent);
+GtkWidget * datetime_setup_locations_dialog (GtkWindow * parent, CcTimezoneMap * map);
 
 G_END_DECLS
 
