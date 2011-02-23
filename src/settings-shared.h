@@ -22,8 +22,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __DATETIME_SETTINGS_SHARED_H__
 #define __DATETIME_SETTINGS_SHARED_H__
 
-#include <glib/gi18n-lib.h>
-
 #define SETTINGS_INTERFACE              "com.canonical.indicator.datetime"
 #define SETTINGS_SHOW_CLOCK_S           "show-clock"
 #define SETTINGS_TIME_FORMAT_S          "time-format"
