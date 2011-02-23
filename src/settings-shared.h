@@ -33,7 +33,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SETTINGS_CUSTOM_TIME_FORMAT_S   "custom-time-format"
 #define SETTINGS_SHOW_CALENDAR_S        "show-calendar"
 #define SETTINGS_SHOW_WEEK_NUMBERS_S    "show-week-numbers"
-#define SETTINGS_WEEK_BEGINS_SUNDAY_S   "week-begins-sunday"
+#define SETTINGS_WEEK_START_S           "week-start"
 #define SETTINGS_SHOW_EVENTS_S          "show-events"
 #define SETTINGS_SHOW_LOCATIONS_S       "show-locations"
 #define SETTINGS_LOCATIONS_S            "locations"

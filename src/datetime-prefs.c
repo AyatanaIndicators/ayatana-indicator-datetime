@@ -29,7 +29,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libintl.h>
 #include <locale.h>
 #include <langinfo.h>
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 #include <gtk/gtk.h>
 #include <unique/unique.h>
 #include <polkitgtk/polkitgtk.h>
@@ -77,6 +77,45 @@ bind_hours_get (GValue * value, GVariant * variant, gpointer user_data)
     output = is_12hour_button;
   } else if (g_strcmp0(str, "24-hour") == 0) {
     output = !is_12hour_button;
+  } else {
+    return FALSE;
+  }
+
+  g_value_set_boolean (value, output);
+  return TRUE;
+}
+
+/* Turns the boolean property into a string gsettings */
+static GVariant *
+bind_week_start_set (const GValue * value, const GVariantType * type, gpointer user_data)
+{
+  const gchar * output = NULL;
+  gboolean is_sunday_button = (gboolean)GPOINTER_TO_INT(user_data);
+
+  if (g_value_get_boolean(value)) {
+    /* Only do anything if we're setting active = true */
+    output = is_sunday_button ? "sunday" : "monday";
+  } else {
+    return NULL;
+  }
+
+  return g_variant_new_string (output);
+}
+
+/* Turns a string gsettings into a boolean property */
+static gboolean
+bind_week_start_get (GValue * value, GVariant * variant, gpointer user_data)
+{
+  const gchar * str = g_variant_get_string(variant, NULL);
+  gboolean output = FALSE;
+  gboolean is_sunday_button = (gboolean)GPOINTER_TO_INT(user_data);
+
+  if (g_strcmp0(str, "locale-default") == 0) {
+    output = (is_sunday_button == is_locale_week_start_sunday ());
+  } else if (g_strcmp0(str, "sunday") == 0) {
+    output = is_sunday_button;
+  } else if (g_strcmp0(str, "monday") == 0) {
+    output = !is_sunday_button;
   } else {
     return FALSE;
   }
@@ -473,8 +512,16 @@ create_dialog (void)
                    "active", G_SETTINGS_BIND_DEFAULT);
   g_settings_bind (conf, SETTINGS_SHOW_WEEK_NUMBERS_S, WIG ("includeWeekNumbersCheck"),
                    "active", G_SETTINGS_BIND_DEFAULT);
-  /*g_settings_bind_(conf, SETTINGS_WEEK_BEGINS_SUNDAY_S, WIG ("startOnSundayRadio"),
-                   "active", G_SETTINGS_BIND_DEFAULT);*/
+  g_settings_bind_with_mapping (conf, SETTINGS_WEEK_START_S,
+                                WIG ("startOnSundayRadio"), "active",
+                                G_SETTINGS_BIND_DEFAULT,
+                                bind_week_start_get, bind_week_start_set,
+                                GINT_TO_POINTER(TRUE), NULL);
+  g_settings_bind_with_mapping (conf, SETTINGS_WEEK_START_S,
+                                WIG ("startOnMondayRadio"), "active",
+                                G_SETTINGS_BIND_DEFAULT,
+                                bind_week_start_get, bind_week_start_set,
+                                GINT_TO_POINTER(FALSE), NULL);
   g_settings_bind (conf, SETTINGS_SHOW_EVENTS_S, WIG ("showEventsCheck"),
                    "active", G_SETTINGS_BIND_DEFAULT);
   g_settings_bind (conf, SETTINGS_SHOW_LOCATIONS_S, WIG ("showLocationsCheck"),
