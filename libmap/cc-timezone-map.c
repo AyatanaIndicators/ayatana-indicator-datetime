@@ -774,6 +774,23 @@ cc_timezone_map_draw (GtkWidget *widget,
   gdk_cairo_set_source_pixbuf (cr, priv->background, 0, 0);
   cairo_paint (cr);
 
+  /* paint watermark */
+  if (priv->watermark) {
+    cairo_text_extents_t extent;
+    cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+    cairo_set_font_size(cr, 12.0);
+    cairo_set_source_rgba(cr, 1, 1, 1, 0.5);
+    cairo_text_extents(cr, priv->watermark, &extent);
+    cairo_move_to(cr, alloc.width - extent.x_advance + extent.x_bearing - 5,
+                      alloc.height - extent.height - extent.y_bearing - 5);
+    cairo_show_text(cr, priv->watermark);
+    cairo_stroke(cr);
+  }
+
+  if (!priv->location) {
+    return TRUE;
+  }
+
   /* paint hilight */
   file = g_strdup_printf (DATADIR "/timezone_%s.png",
                           g_ascii_formatd (buf, sizeof (buf),
@@ -810,37 +827,18 @@ cc_timezone_map_draw (GtkWidget *widget,
       g_clear_error (&err);
     }
 
-  if (priv->location)
-    {
-      pointx = convert_longtitude_to_x (priv->location->longitude, alloc.width);
-      pointy = convert_latitude_to_y (priv->location->latitude, alloc.height);
+  pointx = convert_longtitude_to_x (priv->location->longitude, alloc.width);
+  pointy = convert_latitude_to_y (priv->location->latitude, alloc.height);
 
-      if (pointy > alloc.height)
-        pointy = alloc.height;
-
-      if (pin)
-        {
-          gdk_cairo_set_source_pixbuf (cr, pin, pointx - 8, pointy - 14);
-          cairo_paint (cr);
-        }
-    }
+  if (pointy > alloc.height)
+    pointy = alloc.height;
 
   if (pin)
     {
+      gdk_cairo_set_source_pixbuf (cr, pin, pointx - 8, pointy - 14);
+      cairo_paint (cr);
       g_object_unref (pin);
     }
-
-  if (priv->watermark) {
-    cairo_text_extents_t extent;
-    cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-    cairo_set_font_size(cr, 12.0);
-    cairo_set_source_rgba(cr, 1, 1, 1, 0.5);
-    cairo_text_extents(cr, priv->watermark, &extent);
-    cairo_move_to(cr, alloc.width - extent.x_advance + extent.x_bearing - 5,
-                      alloc.height - extent.height - extent.y_bearing - 5);
-    cairo_show_text(cr, priv->watermark);
-    cairo_stroke(cr);
-  }
 
   return TRUE;
 }
