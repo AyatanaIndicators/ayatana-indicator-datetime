@@ -9,6 +9,8 @@ indicator_datetime_service_SOURCES = \
 	calendar-menu-item.c \
 	calendar-menu-item.h \
 	datetime-service.c \
+	utils.c \
+	utils.h \
 	dbus-shared.h \
 	settings-shared.h
 indicator_datetime_service_CFLAGS = \

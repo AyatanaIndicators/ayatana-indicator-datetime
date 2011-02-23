@@ -999,13 +999,13 @@ generate_format_string_now (IndicatorDatetime * self)
 static void
 timezone_update_labels (indicator_item_t * mi_data)
 {
-	const gchar * zone_name = dbusmenu_menuitem_property_get(mi_data->mi, TIMEZONE_MENUITEM_PROP_ZONE);
+	const gchar * zone = dbusmenu_menuitem_property_get(mi_data->mi, TIMEZONE_MENUITEM_PROP_ZONE);
+	const gchar * name = dbusmenu_menuitem_property_get(mi_data->mi, TIMEZONE_MENUITEM_PROP_NAME);
 
-	/* TODO: Make zone name a little more user friendly */
-	gtk_label_set_text(GTK_LABEL(mi_data->label), zone_name);
+	gtk_label_set_text(GTK_LABEL(mi_data->label), name);
 
 	/* Show current time in that zone on the right */
-	GTimeZone * tz = g_time_zone_new(zone_name);
+	GTimeZone * tz = g_time_zone_new(zone);
 	set_label_to_time_in_zone(mi_data->self, GTK_LABEL(mi_data->right), tz, NULL, NULL);
 	g_time_zone_unref(tz);
 }
@@ -1050,6 +1050,8 @@ indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, 
 			}
 		}
 	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_ZONE)) {
+		timezone_update_labels(mi_data);
+	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_NAME)) {
 		timezone_update_labels(mi_data);
 	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_RADIO)) {
 		gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(mi_data->gmi), g_variant_get_boolean(value));

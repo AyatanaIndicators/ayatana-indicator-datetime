@@ -79,11 +79,16 @@ split_settings_location (const gchar * location, gchar ** zone, gchar ** name)
     gchar * after = first ? g_strstrip (first + 1) : NULL;
     if (after == NULL || after[0] == 0) {
       /* Make up name from zone */
-      gchar * slash = strrchr (location_dup, '/');
-      after = slash ? slash + 1 : location_dup;
+      gchar * chr = strrchr (location_dup, '/');
+      after = g_strdup (chr ? chr + 1 : location_dup);
+      while ((chr = strchr (after, '_')) != NULL) { /* and turn underscores to spaces */
+        *chr = ' ';
+      }
+      *name = after;
     }
-
-    *name = g_strdup (after);
+    else {
+      *name = g_strdup (after);
+    }
   }
 }
 
