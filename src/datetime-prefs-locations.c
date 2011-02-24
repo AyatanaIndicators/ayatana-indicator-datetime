@@ -297,6 +297,9 @@ datetime_setup_locations_dialog (GtkWindow * parent, CcTimezoneMap * map)
   gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (tree), -1,
                                                _("Location"), cell,
                                                "text", 0, NULL);
+  GtkTreeViewColumn * loc_col = gtk_tree_view_get_column (GTK_TREE_VIEW (tree), 0);
+  gtk_tree_view_column_set_expand (loc_col, TRUE);
+
   cell = gtk_cell_renderer_text_new ();
   gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (tree), -1,
                                                _("Time"), cell,
