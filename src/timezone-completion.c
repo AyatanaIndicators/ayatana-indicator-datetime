@@ -37,6 +37,7 @@ enum {
 typedef struct _TimezoneCompletionPrivate TimezoneCompletionPrivate;
 struct _TimezoneCompletionPrivate
 {
+  GtkTreeModel * initial_model;
   GtkEntry *     entry;
   guint          queued_request;
   guint          changed_id;
@@ -58,6 +59,16 @@ static void timezone_completion_finalize   (GObject *object);
 G_DEFINE_TYPE (TimezoneCompletion, timezone_completion, GTK_TYPE_ENTRY_COMPLETION);
 
 static void
+save_and_use_model (TimezoneCompletion * completion, GtkTreeModel * model)
+{
+  TimezoneCompletionPrivate * priv = TIMEZONE_COMPLETION_GET_PRIVATE(completion);
+
+  g_hash_table_insert (priv->request_table, g_strdup (priv->request_text), g_object_ref (model));
+  gtk_entry_completion_set_model (GTK_ENTRY_COMPLETION (completion), model);
+  gtk_entry_completion_complete (GTK_ENTRY_COMPLETION (completion));
+}
+
+static void
 json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
 {
   TimezoneCompletion * completion = TIMEZONE_COMPLETION (user_data);
@@ -73,10 +84,18 @@ json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
   if (error != NULL) {
     g_warning ("Could not parse geoname JSON data: %s", error->message);
     g_error_free (error);
+    save_and_use_model (completion, priv->initial_model);
     return;
   }
 
-  GtkListStore * store = GTK_LIST_STORE (gtk_entry_completion_get_model (GTK_ENTRY_COMPLETION (completion)));
+  GtkListStore * store = gtk_list_store_new (TIMEZONE_COMPLETION_LAST,
+                                             G_TYPE_STRING,
+                                             G_TYPE_STRING,
+                                             G_TYPE_STRING,
+                                             G_TYPE_STRING,
+                                             G_TYPE_STRING,
+                                             G_TYPE_STRING);
+
   JsonReader * reader = json_reader_new (json_parser_get_root (JSON_PARSER (object)));
 
   if (!json_reader_is_array (reader))
@@ -114,57 +133,23 @@ json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
         json_reader_end_member (reader);
       }
 
-      /* See if we have this in our store already */
       GtkTreeIter iter;
-      gboolean skip = FALSE;
-      if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter)) {
-        do {
-          GValue value = {0};
-
-          gtk_tree_model_get_value (GTK_TREE_MODEL (store), &iter, TIMEZONE_COMPLETION_NAME, &value);
-          if (g_strcmp0 (g_value_get_string (&value), name) != 0) {
-            g_value_unset (&value);
-            continue;
-          }
-          g_value_unset (&value);
-
-          gtk_tree_model_get_value (GTK_TREE_MODEL (store), &iter, TIMEZONE_COMPLETION_ADMIN1, &value);
-          if (g_strcmp0 (g_value_get_string (&value), admin1) != 0) {
-            g_value_unset (&value);
-            continue;
-          }
-          g_value_unset (&value);
-
-          gtk_tree_model_get_value (GTK_TREE_MODEL (store), &iter, TIMEZONE_COMPLETION_COUNTRY, &value);
-          if (g_strcmp0 (g_value_get_string (&value), country) != 0) {
-            g_value_unset (&value);
-            continue;
-          }
-          g_value_unset (&value);
-
-          /* Must be the same, skip this one */
-          skip = TRUE;
-          break;
-        } while (gtk_tree_model_iter_next (GTK_TREE_MODEL (store), &iter));
-      }
-
-      if (!skip) {
-        gtk_list_store_append (store, &iter);
-        gtk_list_store_set (store, &iter,
-                            TIMEZONE_COMPLETION_ZONE, NULL,
-                            TIMEZONE_COMPLETION_NAME, name,
-                            TIMEZONE_COMPLETION_ADMIN1, admin1,
-                            TIMEZONE_COMPLETION_COUNTRY, country,
-                            TIMEZONE_COMPLETION_LONGITUDE, longitude,
-                            TIMEZONE_COMPLETION_LATITUDE, latitude,
-                            -1);
-      }
+      gtk_list_store_append (store, &iter);
+      gtk_list_store_set (store, &iter,
+                          TIMEZONE_COMPLETION_ZONE, NULL,
+                          TIMEZONE_COMPLETION_NAME, name,
+                          TIMEZONE_COMPLETION_ADMIN1, admin1,
+                          TIMEZONE_COMPLETION_COUNTRY, country,
+                          TIMEZONE_COMPLETION_LONGITUDE, longitude,
+                          TIMEZONE_COMPLETION_LATITUDE, latitude,
+                          -1);
     }
 
     json_reader_end_element (reader);
   }
 
-  g_hash_table_insert (priv->request_table, g_strdup (priv->request_text), NULL);
+  save_and_use_model (completion, GTK_TREE_MODEL (store));
+  g_object_unref (G_OBJECT (store));
 }
 
 static void
@@ -184,6 +169,7 @@ geonames_data_ready (GObject *object, GAsyncResult *res, gpointer user_data)
   if (error != NULL) {
     g_warning ("Could not connect to geoname lookup server: %s", error->message);
     g_error_free (error);
+    save_and_use_model (completion, priv->initial_model);
     return;
   }
 
@@ -205,8 +191,12 @@ request_zones (TimezoneCompletion * completion)
 
   const gchar * text = gtk_entry_get_text (priv->entry);
 
-  if (g_hash_table_lookup_extended (priv->request_table, text, NULL, NULL))
-    return FALSE; // already looked this up
+  gpointer data;
+  if (g_hash_table_lookup_extended (priv->request_table, text, NULL, &data)) {
+    gtk_entry_completion_set_model (GTK_ENTRY_COMPLETION (completion), GTK_TREE_MODEL (data));
+    gtk_entry_completion_complete (GTK_ENTRY_COMPLETION (completion));
+    return FALSE;
+  }
 
   /* Cancel any ongoing request */
   if (priv->cancel) {
@@ -327,6 +317,14 @@ data_func (GtkCellLayout *cell_layout, GtkCellRenderer *cell,
   g_value_unset (&country_val);
 }
 
+static gboolean
+match_func (GtkEntryCompletion *completion, const gchar *key,
+            GtkTreeIter *iter, gpointer user_data)
+{
+  // geonames does the work for us
+  return TRUE;
+}
+
 static void
 timezone_completion_class_init (TimezoneCompletionClass *klass)
 {
@@ -345,13 +343,17 @@ timezone_completion_init (TimezoneCompletion * self)
 {
   TimezoneCompletionPrivate * priv = TIMEZONE_COMPLETION_GET_PRIVATE (self);
 
-  GtkListStore * model = get_initial_model ();
-  gtk_entry_completion_set_model (GTK_ENTRY_COMPLETION (self), GTK_TREE_MODEL (model));
-  g_object_set (G_OBJECT (self), "text-column", TIMEZONE_COMPLETION_NAME, NULL);
+  priv->initial_model = GTK_TREE_MODEL (get_initial_model ());
+
+  gtk_entry_completion_set_match_func (GTK_ENTRY_COMPLETION (self), match_func, NULL, NULL);
+  g_object_set (G_OBJECT (self),
+                "text-column", TIMEZONE_COMPLETION_NAME,
+                "popup-set-width", FALSE,
+                NULL);
 
   priv->cancel = g_cancellable_new ();
 
-  priv->request_table = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+  priv->request_table = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
 
   GtkCellRenderer * cell = gtk_cell_renderer_text_new ();
   gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (self), cell, TRUE);
@@ -377,6 +379,11 @@ timezone_completion_dispose (GObject * object)
     g_object_remove_weak_pointer (G_OBJECT (priv->entry), (gpointer *)&priv->entry);
   }
 
+  if (priv->initial_model != NULL) {
+    g_object_unref (G_OBJECT (priv->initial_model));
+    priv->initial_model = NULL;
+  }
+
   if (priv->queued_request) {
     g_source_remove (priv->queued_request);
     priv->queued_request = 0;
@@ -388,8 +395,15 @@ timezone_completion_dispose (GObject * object)
     priv->cancel = NULL;
   }
 
-  g_free (priv->request_text);
-  g_hash_table_destroy (priv->request_table);
+  if (priv->request_text != NULL) {
+    g_free (priv->request_text);
+    priv->request_text = NULL;
+  }
+
+  if (priv->request_table != NULL) {
+    g_hash_table_destroy (priv->request_table);
+    priv->request_table = NULL;
+  }
 
   return;
 }
