@@ -152,9 +152,17 @@ handle_edit_started (GtkCellRendererText * renderer, GtkCellEditable * editable,
 }
 
 static gboolean
-update_times (GtkListStore * store)
+update_times (TimezoneCompletion * completion)
 {
   /* For each entry, check zone in column 2 and set column 1 to it's time */
+  GtkListStore * store = GTK_LIST_STORE (g_object_get_data (G_OBJECT (completion), "store"));
+  GObject * cell = G_OBJECT (g_object_get_data (G_OBJECT (completion), "name-cell"));
+
+  gboolean editing;
+  g_object_get (cell, "editing", &editing, NULL);
+  if (editing) { /* No updates while editing, it cancels the edit */
+    return TRUE;
+  }
 
   GDateTime * now = g_date_time_new_now_local ();
 
@@ -299,6 +307,7 @@ datetime_setup_locations_dialog (GtkWindow * parent, CcTimezoneMap * map)
                                                "text", 0, NULL);
   GtkTreeViewColumn * loc_col = gtk_tree_view_get_column (GTK_TREE_VIEW (tree), 0);
   gtk_tree_view_column_set_expand (loc_col, TRUE);
+  g_object_set_data (G_OBJECT (completion), "name-cell", cell);
 
   cell = gtk_cell_renderer_text_new ();
   gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (tree), -1,
@@ -315,8 +324,8 @@ datetime_setup_locations_dialog (GtkWindow * parent, CcTimezoneMap * map)
 
   fill_from_settings (store, conf);
 
-  guint time_id = g_timeout_add_seconds (2, (GSourceFunc)update_times, store);
-  update_times (GTK_LIST_STORE (store));
+  guint time_id = g_timeout_add_seconds (2, (GSourceFunc)update_times, completion);
+  update_times (completion);
 
   g_object_set_data_full (G_OBJECT (dlg), "conf", g_object_ref (conf), g_object_unref);
   g_object_set_data_full (G_OBJECT (dlg), "completion", completion, g_object_unref);
