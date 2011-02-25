@@ -1,11 +1,11 @@
 
-AC_INIT(indicator-datetime, 0.1.92, ted@canonical.com)
+AC_INIT(indicator-datetime, 0.1.94, ted@canonical.com)
 AC_COPYRIGHT([Copyright 2009,2010 Canonical])
 
 AC_PREREQ(2.53)
 
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(indicator-datetime, 0.1.92)
+AM_INIT_AUTOMAKE(indicator-datetime, 0.1.94)
 
 AM_MAINTAINER_MODE
 
@@ -51,7 +51,7 @@ AC_ARG_WITH([gtk],
 # Dependencies
 ###########################
 
-INDICATOR_REQUIRED_VERSION=0.3.0
+INDICATOR_REQUIRED_VERSION=0.3.19
 DBUSMENUGLIB_REQUIRED_VERSION=0.1.1
 DBUSMENUGTK_REQUIRED_VERSION=0.3.94
 GIO_REQUIRED_VERSION=2.25.11
@@ -65,6 +65,8 @@ ICAL_REQUIRED_VERSION=0.44
 CAIRO_REQUIRED_VERSION=1.10
 GDK_REQUIRED_VERSION=2.22
 GLIB_REQUIRED_VERSION=2.26
+GTK_REQUIRED_VERSION=2.12
+GTK3_REQUIRED_VERSION=3.0
 
 AS_IF([test "x$with_gtk" = x3],
     [PKG_CHECK_MODULES(INDICATOR, indicator3 >= $INDICATOR_REQUIRED_VERSION
@@ -117,11 +119,47 @@ AS_IF([test "x$with_gtk" = x3],
         ],
     [AC_MSG_FAILURE([Value for --with-gtk was neither 2 nor 3])]
 )
+
+# FIXME: polkit-gtk-1 isn't gtk3-compatible
+AS_IF([test "x$with_gtk" = x3],
+	[PKG_CHECK_MODULES(PREF, gio-2.0 >= $GIO_REQUIRED_VERSION
+	                         gtk+-3.0 >= $GTK3_REQUIRED_VERSION
+                                 unique-3.0
+                                 json-glib-1.0
+                                 polkit-gtk-1)
+		],
+      [test "x$with_gtk" = x2],
+	[PKG_CHECK_MODULES(PREF, gio-2.0 >= $GIO_REQUIRED_VERSION
+	                         gtk+-2.0 >= $GTK_REQUIRED_VERSION
+                                 unique-1.0
+                                 json-glib-1.0
+                                 polkit-gtk-1)
+        ],
+    [AC_MSG_FAILURE([Value for --with-gtk was neither 2 nor 3])]
+)
+
+AS_IF([test "x$with_gtk" = x3],
+	[PKG_CHECK_MODULES(LIBMAP, gio-2.0 >= $GIO_REQUIRED_VERSION
+	                           gtk+-3.0 >= $GTK3_REQUIRED_VERSION)
+		],
+      [test "x$with_gtk" = x2],
+	[PKG_CHECK_MODULES(LIBMAP, gio-2.0 >= $GIO_REQUIRED_VERSION
+	                           gtk+-2.0 >= $GTK_REQUIRED_VERSION)
+        ],
+    [AC_MSG_FAILURE([Value for --with-gtk was neither 2 nor 3])]
+)
 AC_SUBST(INDICATOR_CFLAGS)
 AC_SUBST(INDICATOR_LIBS)
 
 AC_SUBST(SERVICE_CFLAGS)
 AC_SUBST(SERVICE_LIBS)
+
+AC_SUBST(PREF_CFLAGS)
+AC_SUBST(PREF_LIBS)
+
+AC_SUBST(LIBMAP_CFLAGS)
+AC_SUBST(LIBMAP_LIBS)
+AC_SUBST(LIBMAP_LDFLAGS)
 
 ###########################
 # Grab the GSettings Macros
@@ -202,6 +240,7 @@ AM_GLIB_GNU_GETTEXT
 
 AC_OUTPUT([
 Makefile
+libmap/Makefile
 src/Makefile
 data/Makefile
 tests/Makefile

@@ -5,12 +5,14 @@
 		<value nick="24-hour" value="2" />
 		<value nick="custom" value="3" />
 	</enum>
-	<enum id="week-start-enum">
-		<value nick="locale-default" value="0" />
-		<value nick="sunday" value="1" />
-		<value nick="monday" value="2" />
-	</enum>
 	<schema id="com.canonical.indicator.datetime" path="/com/canonical/indicator/datetime/" gettext-domain="indicator-datetime">
+		<key name="show-clock" type="b">
+			<default>true</default>
+			<summary>Show the clock in the panel</summary>
+			<description>
+			  Controls whether the clock indicator appears in the panel or not.
+			</description>
+		</key>
 		<key name="time-format" enum="time-enum">
 			<default>'locale-default'</default>
 			<summary>What the time format should be</summary>
@@ -21,6 +23,17 @@
 			  team for your language.  If you just want something different you can
 			  adjust this to be either 12 or 24 time.  Or, you can use a custom format
 			  string and set the custom-time-format setting.
+			</description>
+		</key>
+		<key name="custom-time-format" type="s">
+			<default>"%l:%M %p"</default>
+			<summary>The format string passed to strftime</summary>
+			<description>
+			  The format of the time and/or date that is visible on the panel when using
+			  the indicator.  For most users this will be a set of predefined values as
+			  determined by the configuration utility, but advanced users can change it
+			  to anything strftime can accept.  Look at the man page on strftime for
+			  more information.
 			</description>
 		</key>
 		<key name="show-seconds" type="b">
@@ -51,15 +64,11 @@
 			  time-format value is set to custom.
 			</description>
 		</key>
-		<key name="custom-time-format" type="s">
-			<default>"%l:%M %p"</default>
-			<summary>The format string passed to strftime</summary>
+		<key name="show-calendar" type="b">
+			<default>true</default>
+			<summary>Show the monthly calendar in the indicator</summary>
 			<description>
-			  The format of the time and/or date that is visible on the panel when using
-			  the indicator.  For most users this will be a set of predefined values as
-			  determined by the configuration utility, but advanced users can change it
-			  to anything strftime can accept.  Look at the man page on strftime for
-			  more information.
+			  Puts the monthly calendar in indicator-datetime's menu.
 			</description>
 		</key>
 		<key name="show-week-numbers" type="b">
@@ -67,21 +76,6 @@
 			<summary>Show week numbers in calendar</summary>
 			<description>
 			  Shows the week numbers in the monthly calendar in indicator-datetime's menu.
-			</description>
-		</key>
-		<key name="locations" type="as">
-			<default>['UTC']</default>
-			<summary>A List of locations</summary>
-			<description>
-			  Adds the list of locations the user has configured to display in the 
-			  indicator-datetime menu.
-			</description>
-		</key>
-		<key name="show-calendar" type="b">
-			<default>true</default>
-			<summary>Show the monthly calendar in the indicator</summary>
-			<description>
-			  Puts the monthly calendar in indicator-datetime's menu.
 			</description>
 		</key>
 		<key name="show-events" type="b">
@@ -96,6 +90,14 @@
 			<summary>Show locations in the indicator</summary>
 			<description>
 			  Shows custom defined locations in indicator-datetime's menu.
+			</description>
+		</key>
+		<key name="locations" type="as">
+			<default>['UTC']</default>
+			<summary>A List of locations</summary>
+			<description>
+			  Adds the list of locations the user has configured to display in the 
+			  indicator-datetime menu.
 			</description>
 		</key>
 	</schema>
