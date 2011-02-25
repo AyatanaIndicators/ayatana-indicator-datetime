@@ -222,6 +222,7 @@ update_current_timezone (void) {
 
 	check_timezone_sync();
 
+    if (error != NULL) g_error_free(error);
 	return;
 }
 
@@ -303,9 +304,9 @@ check_for_calendar (gpointer user_data)
 		g_signal_connect(G_OBJECT(add_appointment), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "evolution -c calendar");
 		dbusmenu_menuitem_child_add_position (root, add_appointment, 3);
 
-		// Update the calendar items every 30 minutes if it updates the first time
+		// Update the calendar items every 5 minutes if it updates the first time
 		if (update_appointment_menu_items(NULL))
-			g_timeout_add_seconds(60*30, update_appointment_menu_items, NULL); 
+			g_timeout_add_seconds(60*5, update_appointment_menu_items, NULL); 
 			
 		// Connect to event::month-changed 
 		g_signal_connect(calendar, "event::month-changed", G_CALLBACK(month_changed_cb), NULL);
@@ -671,6 +672,8 @@ update_appointment_menu_items (gpointer user_data) {
 		if (i == 4) break; // See above FIXME regarding query result limit
 		i++;
 	}
+	
+    if (gerror != NULL) g_error_free(gerror);
 	g_object_unref(allobjects);
 	g_debug("End of objects");
 	return TRUE;
