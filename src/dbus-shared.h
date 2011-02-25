@@ -27,7 +27,14 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define  MENU_OBJ      "/com/canonical/indicator/datetime/menu"
 
-#define  DBUSMENU_CALENDAR_MENUITEM_TYPE "x-canonical-calendar-item"
+#define DBUSMENU_CALENDAR_MENUITEM_TYPE    "x-canonical-calendar-item"
+
+// The following properties are not *really* properties, but are just
+// a way of accessing the calendar from the service
+#define CALENDAR_MENUITEM_PROP_MARK        "calendar-mark"
+#define CALENDAR_MENUITEM_PROP_UNMARK      "calendar-unmark"
+#define CALENDAR_MENUITEM_PROP_CLEAR_MARKS "calendar-clear-marks"
+
 
 #define APPOINTMENT_MENUITEM_TYPE          "appointment-item"	
 #define APPOINTMENT_MENUITEM_PROP_LABEL    "appointment-label"
