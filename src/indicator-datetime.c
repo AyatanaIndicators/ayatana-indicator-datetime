@@ -1357,11 +1357,12 @@ month_changed_cb (IdoCalendarMenuItem *ido,
 {
 	gchar datestring[20];
 	guint d,m,y;
+	DbusmenuMenuitem * item = DBUSMENU_MENUITEM (user_data);
 	ido_calendar_menu_item_get_date(ido, &y, &m, &d);
 	g_sprintf(datestring, "%d-%d-%d", y, m, d);
 	GVariant *variant = g_variant_new_string(datestring);
 	guint timestamp = (guint)time(NULL);
-	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(ido), "event::month-changed", variant, timestamp);
+	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(item), "event::month-changed", variant, timestamp);
 	g_debug("Got month changed signal: %s", datestring);
 }
 
@@ -1388,7 +1389,7 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 	self->priv->ido_calendar = ido;
 
 	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(ido), parent);
-	g_signal_connect(ido, "month-changed", G_CALLBACK(month_changed_cb), NULL);
+	g_signal_connect_after(ido, "month-changed", G_CALLBACK(month_changed_cb), (gpointer)newitem);
 	return TRUE;
 }
 
