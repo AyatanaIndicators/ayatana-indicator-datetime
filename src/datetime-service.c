@@ -99,6 +99,9 @@ set_timezone_label (DbusmenuMenuitem * mi, const gchar * location)
 
 	dbusmenu_menuitem_property_set (mi, TIMEZONE_MENUITEM_PROP_NAME, name);
 	dbusmenu_menuitem_property_set (mi, TIMEZONE_MENUITEM_PROP_ZONE, zone);
+
+	g_free (zone);
+	g_free (name);
 }
 
 /* Check to see if our timezones are the same */
