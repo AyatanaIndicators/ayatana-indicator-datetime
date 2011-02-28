@@ -35,11 +35,15 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+bin_PROGRAMS = indicator-datetime-preferences$(EXEEXT)
 libexec_PROGRAMS = indicator-datetime-service$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/intltool.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
+	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
+	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -67,12 +71,13 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(datetimelibdir)" \
+am__installdirs = "$(DESTDIR)$(datetimelibdir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(libexecdir)"
 LTLIBRARIES = $(datetimelib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 libdatetime_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
-am_libdatetime_la_OBJECTS = libdatetime_la-indicator-datetime.lo
+am_libdatetime_la_OBJECTS = libdatetime_la-utils.lo \
+	libdatetime_la-indicator-datetime.lo
 libdatetime_la_OBJECTS = $(am_libdatetime_la_OBJECTS)
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
@@ -81,12 +86,26 @@ libdatetime_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(libdatetime_la_CFLAGS) $(CFLAGS) $(libdatetime_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
-PROGRAMS = $(libexec_PROGRAMS)
+PROGRAMS = $(bin_PROGRAMS) $(libexec_PROGRAMS)
+am_indicator_datetime_preferences_OBJECTS =  \
+	indicator_datetime_preferences-datetime-prefs.$(OBJEXT) \
+	indicator_datetime_preferences-datetime-prefs-locations.$(OBJEXT) \
+	indicator_datetime_preferences-timezone-completion.$(OBJEXT) \
+	indicator_datetime_preferences-utils.$(OBJEXT)
+indicator_datetime_preferences_OBJECTS =  \
+	$(am_indicator_datetime_preferences_OBJECTS)
+indicator_datetime_preferences_DEPENDENCIES =  \
+	$(top_builddir)/libmap/libmap.la $(am__DEPENDENCIES_1)
+indicator_datetime_preferences_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(indicator_datetime_preferences_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_indicator_datetime_service_OBJECTS =  \
 	indicator_datetime_service-datetime-interface.$(OBJEXT) \
 	indicator_datetime_service-gen-datetime-service.xml.$(OBJEXT) \
 	indicator_datetime_service-calendar-menu-item.$(OBJEXT) \
-	indicator_datetime_service-datetime-service.$(OBJEXT)
+	indicator_datetime_service-datetime-service.$(OBJEXT) \
+	indicator_datetime_service-utils.$(OBJEXT)
 indicator_datetime_service_OBJECTS =  \
 	$(am_indicator_datetime_service_OBJECTS)
 indicator_datetime_service_DEPENDENCIES = $(am__DEPENDENCIES_1)
@@ -121,8 +140,10 @@ AM_V_GEN = $(am__v_GEN_$(V))
 am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
 am__v_GEN_0 = @echo "  GEN   " $@;
 SOURCES = $(libdatetime_la_SOURCES) \
+	$(indicator_datetime_preferences_SOURCES) \
 	$(indicator_datetime_service_SOURCES)
 DIST_SOURCES = $(libdatetime_la_SOURCES) \
+	$(indicator_datetime_preferences_SOURCES) \
 	$(indicator_datetime_service_SOURCES)
 ETAGS = etags
 CTAGS = ctags
@@ -182,6 +203,9 @@ INTLTOOL_PERL = @INTLTOOL_PERL@
 INTLTOOL_UPDATE = @INTLTOOL_UPDATE@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
+LIBMAP_CFLAGS = @LIBMAP_CFLAGS@
+LIBMAP_LDFLAGS = @LIBMAP_LDFLAGS@
+LIBMAP_LIBS = @LIBMAP_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
@@ -216,6 +240,8 @@ POFILES = @POFILES@
 POSUB = @POSUB@
 PO_IN_DATADIR_FALSE = @PO_IN_DATADIR_FALSE@
 PO_IN_DATADIR_TRUE = @PO_IN_DATADIR_TRUE@
+PREF_CFLAGS = @PREF_CFLAGS@
+PREF_LIBS = @PREF_LIBS@
 RANLIB = @RANLIB@
 SED = @SED@
 SERVICE_CFLAGS = @SERVICE_CFLAGS@
@@ -286,7 +312,10 @@ indicator_datetime_service_SOURCES = \
 	calendar-menu-item.c \
 	calendar-menu-item.h \
 	datetime-service.c \
-	dbus-shared.h
+	utils.c \
+	utils.h \
+	dbus-shared.h \
+	settings-shared.h
 
 indicator_datetime_service_CFLAGS = \
 	-Wall \
@@ -303,6 +332,9 @@ datetimelib_LTLIBRARIES = libdatetime.la
 libdatetime_la_SOURCES = \
 	gen-datetime-service.xml.h \
 	dbus-shared.h \
+	settings-shared.h \
+	utils.c \
+	utils.h \
 	indicator-datetime.c
 
 libdatetime_la_CFLAGS = \
@@ -316,6 +348,27 @@ libdatetime_la_LIBADD = \
 libdatetime_la_LDFLAGS = \
 	-module \
 	-avoid-version
+
+indicator_datetime_preferences_SOURCES = \
+	datetime-prefs.c \
+	datetime-prefs-locations.c \
+	datetime-prefs-locations.h \
+	timezone-completion.c \
+	timezone-completion.h \
+	utils.c \
+	utils.h \
+	settings-shared.h
+
+indicator_datetime_preferences_CFLAGS = \
+	-Wall \
+	-Werror \
+	-I$(top_srcdir)/libmap \
+	$(PREF_CFLAGS) \
+	-DPKGDATADIR="\"$(pkgdatadir)\""
+
+indicator_datetime_preferences_LDADD = \
+	 $(top_builddir)/libmap/libmap.la \
+	$(PREF_LIBS)
 
 BUILT_SOURCES = \
 	gen-datetime-service.xml.c \
@@ -395,6 +448,49 @@ clean-datetimelibLTLIBRARIES:
 	done
 libdatetime.la: $(libdatetime_la_OBJECTS) $(libdatetime_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libdatetime_la_LINK) -rpath $(datetimelibdir) $(libdatetime_la_OBJECTS) $(libdatetime_la_LIBADD) $(LIBS)
+install-binPROGRAMS: $(bin_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
+	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
+	for p in $$list; do echo "$$p $$p"; done | \
+	sed 's/$(EXEEXT)$$//' | \
+	while read p p1; do if test -f $$p || test -f $$p1; \
+	  then echo "$$p"; echo "$$p"; else :; fi; \
+	done | \
+	sed -e 'p;s,.*/,,;n;h' -e 's|.*|.|' \
+	    -e 'p;x;s,.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/' | \
+	sed 'N;N;N;s,\n, ,g' | \
+	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1 } \
+	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
+	    if ($$2 == $$4) files[d] = files[d] " " $$1; \
+	    else { print "f", $$3 "/" $$4, $$1; } } \
+	  END { for (d in files) print "f", d, files[d] }' | \
+	while read type dir files; do \
+	    if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
+	    test -z "$$files" || { \
+	    echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files '$(DESTDIR)$(bindir)$$dir'"; \
+	    $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files "$(DESTDIR)$(bindir)$$dir" || exit $$?; \
+	    } \
+	; done
+
+uninstall-binPROGRAMS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
+	files=`for p in $$list; do echo "$$p"; done | \
+	  sed -e 'h;s,^.*/,,;s/$(EXEEXT)$$//;$(transform)' \
+	      -e 's/$$/$(EXEEXT)/' `; \
+	test -n "$$list" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(bindir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(bindir)" && rm -f $$files
+
+clean-binPROGRAMS:
+	@list='$(bin_PROGRAMS)'; test -n "$$list" || exit 0; \
+	echo " rm -f" $$list; \
+	rm -f $$list || exit $$?; \
+	test -n "$(EXEEXT)" || exit 0; \
+	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
+	echo " rm -f" $$list; \
+	rm -f $$list
 install-libexecPROGRAMS: $(libexec_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	test -z "$(libexecdir)" || $(MKDIR_P) "$(DESTDIR)$(libexecdir)"
@@ -438,6 +534,9 @@ clean-libexecPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
+indicator-datetime-preferences$(EXEEXT): $(indicator_datetime_preferences_OBJECTS) $(indicator_datetime_preferences_DEPENDENCIES) 
+	@rm -f indicator-datetime-preferences$(EXEEXT)
+	$(AM_V_CCLD)$(indicator_datetime_preferences_LINK) $(indicator_datetime_preferences_OBJECTS) $(indicator_datetime_preferences_LDADD) $(LIBS)
 indicator-datetime-service$(EXEEXT): $(indicator_datetime_service_OBJECTS) $(indicator_datetime_service_DEPENDENCIES) 
 	@rm -f indicator-datetime-service$(EXEEXT)
 	$(AM_V_CCLD)$(indicator_datetime_service_LINK) $(indicator_datetime_service_OBJECTS) $(indicator_datetime_service_LDADD) $(LIBS)
@@ -448,11 +547,17 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_preferences-datetime-prefs-locations.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_preferences-datetime-prefs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_preferences-timezone-completion.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_preferences-utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_service-calendar-menu-item.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_service-datetime-interface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_service-datetime-service.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_service-gen-datetime-service.xml.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_service-utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdatetime_la-indicator-datetime.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdatetime_la-utils.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -478,6 +583,14 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
+libdatetime_la-utils.lo: utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdatetime_la_CFLAGS) $(CFLAGS) -MT libdatetime_la-utils.lo -MD -MP -MF $(DEPDIR)/libdatetime_la-utils.Tpo -c -o libdatetime_la-utils.lo `test -f 'utils.c' || echo '$(srcdir)/'`utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libdatetime_la-utils.Tpo $(DEPDIR)/libdatetime_la-utils.Plo
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='utils.c' object='libdatetime_la-utils.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdatetime_la_CFLAGS) $(CFLAGS) -c -o libdatetime_la-utils.lo `test -f 'utils.c' || echo '$(srcdir)/'`utils.c
+
 libdatetime_la-indicator-datetime.lo: indicator-datetime.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdatetime_la_CFLAGS) $(CFLAGS) -MT libdatetime_la-indicator-datetime.lo -MD -MP -MF $(DEPDIR)/libdatetime_la-indicator-datetime.Tpo -c -o libdatetime_la-indicator-datetime.lo `test -f 'indicator-datetime.c' || echo '$(srcdir)/'`indicator-datetime.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libdatetime_la-indicator-datetime.Tpo $(DEPDIR)/libdatetime_la-indicator-datetime.Plo
@@ -485,6 +598,70 @@ libdatetime_la-indicator-datetime.lo: indicator-datetime.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='indicator-datetime.c' object='libdatetime_la-indicator-datetime.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdatetime_la_CFLAGS) $(CFLAGS) -c -o libdatetime_la-indicator-datetime.lo `test -f 'indicator-datetime.c' || echo '$(srcdir)/'`indicator-datetime.c
+
+indicator_datetime_preferences-datetime-prefs.o: datetime-prefs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_preferences_CFLAGS) $(CFLAGS) -MT indicator_datetime_preferences-datetime-prefs.o -MD -MP -MF $(DEPDIR)/indicator_datetime_preferences-datetime-prefs.Tpo -c -o indicator_datetime_preferences-datetime-prefs.o `test -f 'datetime-prefs.c' || echo '$(srcdir)/'`datetime-prefs.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_preferences-datetime-prefs.Tpo $(DEPDIR)/indicator_datetime_preferences-datetime-prefs.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='datetime-prefs.c' object='indicator_datetime_preferences-datetime-prefs.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_preferences_CFLAGS) $(CFLAGS) -c -o indicator_datetime_preferences-datetime-prefs.o `test -f 'datetime-prefs.c' || echo '$(srcdir)/'`datetime-prefs.c
+
+indicator_datetime_preferences-datetime-prefs.obj: datetime-prefs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_preferences_CFLAGS) $(CFLAGS) -MT indicator_datetime_preferences-datetime-prefs.obj -MD -MP -MF $(DEPDIR)/indicator_datetime_preferences-datetime-prefs.Tpo -c -o indicator_datetime_preferences-datetime-prefs.obj `if test -f 'datetime-prefs.c'; then $(CYGPATH_W) 'datetime-prefs.c'; else $(CYGPATH_W) '$(srcdir)/datetime-prefs.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_preferences-datetime-prefs.Tpo $(DEPDIR)/indicator_datetime_preferences-datetime-prefs.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='datetime-prefs.c' object='indicator_datetime_preferences-datetime-prefs.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_preferences_CFLAGS) $(CFLAGS) -c -o indicator_datetime_preferences-datetime-prefs.obj `if test -f 'datetime-prefs.c'; then $(CYGPATH_W) 'datetime-prefs.c'; else $(CYGPATH_W) '$(srcdir)/datetime-prefs.c'; fi`
+
+indicator_datetime_preferences-datetime-prefs-locations.o: datetime-prefs-locations.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_preferences_CFLAGS) $(CFLAGS) -MT indicator_datetime_preferences-datetime-prefs-locations.o -MD -MP -MF $(DEPDIR)/indicator_datetime_preferences-datetime-prefs-locations.Tpo -c -o indicator_datetime_preferences-datetime-prefs-locations.o `test -f 'datetime-prefs-locations.c' || echo '$(srcdir)/'`datetime-prefs-locations.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_preferences-datetime-prefs-locations.Tpo $(DEPDIR)/indicator_datetime_preferences-datetime-prefs-locations.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='datetime-prefs-locations.c' object='indicator_datetime_preferences-datetime-prefs-locations.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_preferences_CFLAGS) $(CFLAGS) -c -o indicator_datetime_preferences-datetime-prefs-locations.o `test -f 'datetime-prefs-locations.c' || echo '$(srcdir)/'`datetime-prefs-locations.c
+
+indicator_datetime_preferences-datetime-prefs-locations.obj: datetime-prefs-locations.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_preferences_CFLAGS) $(CFLAGS) -MT indicator_datetime_preferences-datetime-prefs-locations.obj -MD -MP -MF $(DEPDIR)/indicator_datetime_preferences-datetime-prefs-locations.Tpo -c -o indicator_datetime_preferences-datetime-prefs-locations.obj `if test -f 'datetime-prefs-locations.c'; then $(CYGPATH_W) 'datetime-prefs-locations.c'; else $(CYGPATH_W) '$(srcdir)/datetime-prefs-locations.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_preferences-datetime-prefs-locations.Tpo $(DEPDIR)/indicator_datetime_preferences-datetime-prefs-locations.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='datetime-prefs-locations.c' object='indicator_datetime_preferences-datetime-prefs-locations.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_preferences_CFLAGS) $(CFLAGS) -c -o indicator_datetime_preferences-datetime-prefs-locations.obj `if test -f 'datetime-prefs-locations.c'; then $(CYGPATH_W) 'datetime-prefs-locations.c'; else $(CYGPATH_W) '$(srcdir)/datetime-prefs-locations.c'; fi`
+
+indicator_datetime_preferences-timezone-completion.o: timezone-completion.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_preferences_CFLAGS) $(CFLAGS) -MT indicator_datetime_preferences-timezone-completion.o -MD -MP -MF $(DEPDIR)/indicator_datetime_preferences-timezone-completion.Tpo -c -o indicator_datetime_preferences-timezone-completion.o `test -f 'timezone-completion.c' || echo '$(srcdir)/'`timezone-completion.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_preferences-timezone-completion.Tpo $(DEPDIR)/indicator_datetime_preferences-timezone-completion.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='timezone-completion.c' object='indicator_datetime_preferences-timezone-completion.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_preferences_CFLAGS) $(CFLAGS) -c -o indicator_datetime_preferences-timezone-completion.o `test -f 'timezone-completion.c' || echo '$(srcdir)/'`timezone-completion.c
+
+indicator_datetime_preferences-timezone-completion.obj: timezone-completion.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_preferences_CFLAGS) $(CFLAGS) -MT indicator_datetime_preferences-timezone-completion.obj -MD -MP -MF $(DEPDIR)/indicator_datetime_preferences-timezone-completion.Tpo -c -o indicator_datetime_preferences-timezone-completion.obj `if test -f 'timezone-completion.c'; then $(CYGPATH_W) 'timezone-completion.c'; else $(CYGPATH_W) '$(srcdir)/timezone-completion.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_preferences-timezone-completion.Tpo $(DEPDIR)/indicator_datetime_preferences-timezone-completion.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='timezone-completion.c' object='indicator_datetime_preferences-timezone-completion.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_preferences_CFLAGS) $(CFLAGS) -c -o indicator_datetime_preferences-timezone-completion.obj `if test -f 'timezone-completion.c'; then $(CYGPATH_W) 'timezone-completion.c'; else $(CYGPATH_W) '$(srcdir)/timezone-completion.c'; fi`
+
+indicator_datetime_preferences-utils.o: utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_preferences_CFLAGS) $(CFLAGS) -MT indicator_datetime_preferences-utils.o -MD -MP -MF $(DEPDIR)/indicator_datetime_preferences-utils.Tpo -c -o indicator_datetime_preferences-utils.o `test -f 'utils.c' || echo '$(srcdir)/'`utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_preferences-utils.Tpo $(DEPDIR)/indicator_datetime_preferences-utils.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='utils.c' object='indicator_datetime_preferences-utils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_preferences_CFLAGS) $(CFLAGS) -c -o indicator_datetime_preferences-utils.o `test -f 'utils.c' || echo '$(srcdir)/'`utils.c
+
+indicator_datetime_preferences-utils.obj: utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_preferences_CFLAGS) $(CFLAGS) -MT indicator_datetime_preferences-utils.obj -MD -MP -MF $(DEPDIR)/indicator_datetime_preferences-utils.Tpo -c -o indicator_datetime_preferences-utils.obj `if test -f 'utils.c'; then $(CYGPATH_W) 'utils.c'; else $(CYGPATH_W) '$(srcdir)/utils.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_preferences-utils.Tpo $(DEPDIR)/indicator_datetime_preferences-utils.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='utils.c' object='indicator_datetime_preferences-utils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_preferences_CFLAGS) $(CFLAGS) -c -o indicator_datetime_preferences-utils.obj `if test -f 'utils.c'; then $(CYGPATH_W) 'utils.c'; else $(CYGPATH_W) '$(srcdir)/utils.c'; fi`
 
 indicator_datetime_service-datetime-interface.o: datetime-interface.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -MT indicator_datetime_service-datetime-interface.o -MD -MP -MF $(DEPDIR)/indicator_datetime_service-datetime-interface.Tpo -c -o indicator_datetime_service-datetime-interface.o `test -f 'datetime-interface.c' || echo '$(srcdir)/'`datetime-interface.c
@@ -549,6 +726,22 @@ indicator_datetime_service-datetime-service.obj: datetime-service.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='datetime-service.c' object='indicator_datetime_service-datetime-service.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -c -o indicator_datetime_service-datetime-service.obj `if test -f 'datetime-service.c'; then $(CYGPATH_W) 'datetime-service.c'; else $(CYGPATH_W) '$(srcdir)/datetime-service.c'; fi`
+
+indicator_datetime_service-utils.o: utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -MT indicator_datetime_service-utils.o -MD -MP -MF $(DEPDIR)/indicator_datetime_service-utils.Tpo -c -o indicator_datetime_service-utils.o `test -f 'utils.c' || echo '$(srcdir)/'`utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_service-utils.Tpo $(DEPDIR)/indicator_datetime_service-utils.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='utils.c' object='indicator_datetime_service-utils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -c -o indicator_datetime_service-utils.o `test -f 'utils.c' || echo '$(srcdir)/'`utils.c
+
+indicator_datetime_service-utils.obj: utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -MT indicator_datetime_service-utils.obj -MD -MP -MF $(DEPDIR)/indicator_datetime_service-utils.Tpo -c -o indicator_datetime_service-utils.obj `if test -f 'utils.c'; then $(CYGPATH_W) 'utils.c'; else $(CYGPATH_W) '$(srcdir)/utils.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_service-utils.Tpo $(DEPDIR)/indicator_datetime_service-utils.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='utils.c' object='indicator_datetime_service-utils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -c -o indicator_datetime_service-utils.obj `if test -f 'utils.c'; then $(CYGPATH_W) 'utils.c'; else $(CYGPATH_W) '$(srcdir)/utils.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -643,7 +836,7 @@ check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
 all-am: Makefile $(LTLIBRARIES) $(PROGRAMS)
 installdirs:
-	for dir in "$(DESTDIR)$(datetimelibdir)" "$(DESTDIR)$(libexecdir)"; do \
+	for dir in "$(DESTDIR)$(datetimelibdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(libexecdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -676,7 +869,7 @@ maintainer-clean-generic:
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
-clean-am: clean-datetimelibLTLIBRARIES clean-generic \
+clean-am: clean-binPROGRAMS clean-datetimelibLTLIBRARIES clean-generic \
 	clean-libexecPROGRAMS clean-libtool mostlyclean-am
 
 distclean: distclean-am
@@ -703,7 +896,7 @@ install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-libexecPROGRAMS
+install-exec-am: install-binPROGRAMS install-libexecPROGRAMS
 
 install-html: install-html-am
 
@@ -743,27 +936,27 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-datetimelibLTLIBRARIES \
+uninstall-am: uninstall-binPROGRAMS uninstall-datetimelibLTLIBRARIES \
 	uninstall-libexecPROGRAMS
 
 .MAKE: all check install install-am install-strip
 
-.PHONY: CTAGS GTAGS all all-am check check-am clean \
+.PHONY: CTAGS GTAGS all all-am check check-am clean clean-binPROGRAMS \
 	clean-datetimelibLTLIBRARIES clean-generic \
 	clean-libexecPROGRAMS clean-libtool ctags distclean \
 	distclean-compile distclean-generic distclean-libtool \
 	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am \
-	install-datetimelibLTLIBRARIES install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-libexecPROGRAMS \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-datetimelibLTLIBRARIES \
-	uninstall-libexecPROGRAMS
+	install install-am install-binPROGRAMS install-data \
+	install-data-am install-datetimelibLTLIBRARIES install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am \
+	install-libexecPROGRAMS install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags uninstall uninstall-am uninstall-binPROGRAMS \
+	uninstall-datetimelibLTLIBRARIES uninstall-libexecPROGRAMS
 
 
 gen-%.xml.c: %.xml

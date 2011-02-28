@@ -39,7 +39,10 @@ host_triplet = @host@
 subdir = data
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/intltool.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
+	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
+	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -75,8 +78,9 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(dbus_servicesdir)"
-DATA = $(dbus_services_DATA)
+am__installdirs = "$(DESTDIR)$(dbus_servicesdir)" \
+	"$(DESTDIR)$(pkgdatadir)"
+DATA = $(dbus_services_DATA) $(pkgdata_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALL_LINGUAS = @ALL_LINGUAS@
@@ -133,6 +137,9 @@ INTLTOOL_PERL = @INTLTOOL_PERL@
 INTLTOOL_UPDATE = @INTLTOOL_UPDATE@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
+LIBMAP_CFLAGS = @LIBMAP_CFLAGS@
+LIBMAP_LDFLAGS = @LIBMAP_LDFLAGS@
+LIBMAP_LIBS = @LIBMAP_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
@@ -167,6 +174,8 @@ POFILES = @POFILES@
 POSUB = @POSUB@
 PO_IN_DATADIR_FALSE = @PO_IN_DATADIR_FALSE@
 PO_IN_DATADIR_TRUE = @PO_IN_DATADIR_TRUE@
+PREF_CFLAGS = @PREF_CFLAGS@
+PREF_LIBS = @PREF_LIBS@
 RANLIB = @RANLIB@
 SED = @SED@
 SERVICE_CFLAGS = @SERVICE_CFLAGS@
@@ -235,8 +244,10 @@ gsettings_SCHEMAS = \
 
 dbus_servicesdir = $(DBUSSERVICEDIR)
 dbus_services_DATA = indicator-datetime.service
+pkgdata_DATA = datetime-dialog.ui
 EXTRA_DIST = \
 	$(gsettings_SCHEMAS) \
+	datetime-dialog.ui \
 	indicator-datetime.service.in
 
 CLEANFILES = indicator-datetime.service
@@ -299,6 +310,26 @@ uninstall-dbus_servicesDATA:
 	test -n "$$files" || exit 0; \
 	echo " ( cd '$(DESTDIR)$(dbus_servicesdir)' && rm -f" $$files ")"; \
 	cd "$(DESTDIR)$(dbus_servicesdir)" && rm -f $$files
+install-pkgdataDATA: $(pkgdata_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(pkgdatadir)" || $(MKDIR_P) "$(DESTDIR)$(pkgdatadir)"
+	@list='$(pkgdata_DATA)'; test -n "$(pkgdatadir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(pkgdatadir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(pkgdatadir)" || exit $$?; \
+	done
+
+uninstall-pkgdataDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(pkgdata_DATA)'; test -n "$(pkgdatadir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(pkgdatadir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(pkgdatadir)" && rm -f $$files
 tags: TAGS
 TAGS:
 
@@ -340,7 +371,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(dbus_servicesdir)"; do \
+	for dir in "$(DESTDIR)$(dbus_servicesdir)" "$(DESTDIR)$(pkgdatadir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -389,7 +420,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-dbus_servicesDATA
+install-data-am: install-dbus_servicesDATA install-pkgdataDATA
 
 install-dvi: install-dvi-am
 
@@ -433,7 +464,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-dbus_servicesDATA
+uninstall-am: uninstall-dbus_servicesDATA uninstall-pkgdataDATA
 
 .MAKE: install-am install-strip
 
@@ -443,11 +474,12 @@ uninstall-am: uninstall-dbus_servicesDATA
 	install-data install-data-am install-dbus_servicesDATA \
 	install-dvi install-dvi-am install-exec install-exec-am \
 	install-html install-html-am install-info install-info-am \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
-	ps ps-am uninstall uninstall-am uninstall-dbus_servicesDATA
+	install-man install-pdf install-pdf-am install-pkgdataDATA \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
+	uninstall-dbus_servicesDATA uninstall-pkgdataDATA
 
 @GSETTINGS_RULES@
 
