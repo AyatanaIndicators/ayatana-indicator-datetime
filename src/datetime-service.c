@@ -462,8 +462,7 @@ update_appointment_menu_items (gpointer user_data) {
 	if (calendar == NULL) return FALSE;
 	if (!g_settings_get_boolean(conf, SETTINGS_SHOW_EVENTS_S)) return FALSE;
 	
-	time_t t1, t2;
-	gchar *query, *is, *ie, *ad;
+	gchar *query, *ad;
 	GList *objects = NULL, *l;
 	GList *allobjects = NULL;
 	GSList *g;
@@ -471,13 +470,6 @@ update_appointment_menu_items (gpointer user_data) {
 	gint i;
 	gint width, height;
 	ESourceList * sources = NULL;
-	
-	time(&t1);
-	time(&t2);
-	t2 += (time_t) (7 * 24 * 60 * 60); /* 7 days ahead of now */
-
-	is = isodate_from_time_t(t1);
-	ie = isodate_from_time_t(t2);
 	
 	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
 
@@ -497,7 +489,7 @@ update_appointment_menu_items (gpointer user_data) {
 	// TODO Remove all highlights from the calendar widget
 
 	// FIXME can we put a limit on the number of results? Or if not complete, or is event/todo? Or sort it by date?
-	query = g_strdup_printf("(occur-in-time-range? (make-time\"%s\") (make-time\"%s\"))", is, ie);
+	query = g_strdup_printf("(occur-in-time-range? (time-now) (time-add-day (time-now) 7))");
 	
 	if (!e_cal_get_sources(&sources, E_CAL_SOURCE_TYPE_EVENT, &gerror)) {
 		g_debug("Failed to get ecal sources\n");
