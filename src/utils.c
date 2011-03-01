@@ -50,17 +50,6 @@ is_locale_12h (void)
 	return TRUE;
 }
 
-/* Check the system locale setting to see if the week starts on Sunday or Monday */
-gboolean
-is_locale_week_start_sunday (void)
-{
-	const char * week_1stday = nl_langinfo (_NL_TIME_WEEK_1STDAY);
-
-  /* This appears to be a special value that libc uses for Sunday, it's not
-     really a string */
-  return (GPOINTER_TO_INT (week_1stday) == 19971130);
-}
-
 void
 split_settings_location (const gchar * location, gchar ** zone, gchar ** name)
 {

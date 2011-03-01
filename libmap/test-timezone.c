@@ -47,6 +47,7 @@ int main (int argc, char **argv)
 
 		g_free (filename);
 		g_free (path);
+		tz_info_free (info);
 	}
 	tz_db_free (db);
 	g_free (pixmap_dir);

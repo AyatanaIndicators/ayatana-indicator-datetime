@@ -99,6 +99,9 @@ set_timezone_label (DbusmenuMenuitem * mi, const gchar * location)
 
 	dbusmenu_menuitem_property_set (mi, TIMEZONE_MENUITEM_PROP_NAME, name);
 	dbusmenu_menuitem_property_set (mi, TIMEZONE_MENUITEM_PROP_ZONE, zone);
+
+	g_free (zone);
+	g_free (name);
 }
 
 /* Check to see if our timezones are the same */
@@ -124,7 +127,7 @@ check_timezone_sync (void) {
 	} else {
 		g_debug("Timezones are different");
 	}
-
+	
 	gboolean show = g_settings_get_boolean (conf, SETTINGS_SHOW_LOCATIONS_S);
 
 	if (geo_location != NULL && current_location != NULL) {
@@ -219,6 +222,7 @@ update_current_timezone (void) {
 
 	check_timezone_sync();
 
+    if (error != NULL) g_error_free(error);
 	return;
 }
 
@@ -263,52 +267,35 @@ activate_cb (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
 	}
 }
 
+static gboolean
+month_changed_cb (DbusmenuMenuitem * menuitem, GVariant *variant, guint timestamp)
+{
+	// TODO: * Decode the month/year from the string we received
+	//       * Check what our current month/year are
+	//		 * Set some globals so when we-re-run update appointment menu items it gets the right start date
+	//		 * update appointment menu items
+	g_debug("Received month changed : %s", g_variant_get_string(variant, NULL));
+	return TRUE;
+}
+
 /* Looks for the calendar application and enables the item if
    we have one */
 static gboolean
 check_for_calendar (gpointer user_data)
 {
 	g_return_val_if_fail (calendar != NULL, FALSE);
+	
+	if (!g_settings_get_boolean(conf, SETTINGS_SHOW_CALENDAR_S)) return FALSE;
 
 	gchar *evo = g_find_program_in_path("evolution");
 	if (evo != NULL) {
 		g_debug("Found the calendar application: %s", evo);
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
-/*
-		GError *gerror = NULL;
-		// TODO: In reality we should iterate sources of calendar, but getting the local one doens't lag for > a minute
-		g_debug("Setting up ecal.");
-		if (!ecal)
-			ecal = e_cal_new_system_calendar();
-	
-		if (!ecal) {
-			g_debug("e_cal_new_system_calendar failed");
-			ecal = NULL;
-		}
-		g_debug("Open calendar.");
-		if (!e_cal_open(ecal, FALSE, &gerror) ) {
-			g_debug("e_cal_open: %s\n", gerror->message);
-			g_free(ecal);
-			ecal = NULL;
-		}
-		g_debug("Get calendar timezone.");
-		if (!e_cal_get_timezone(ecal, "UTC", &tzone, &gerror)) {
-			g_debug("failed to get time zone\n");
-			g_free(ecal);
-			ecal = NULL;
-		}
-	
-		 This timezone represents the timezone of the calendar, this might be different to the current UTC offset.
-		 * this means we'll have some geoclue interaction going on, and possibly the user will be involved in setting
-		 * their location manually, case in point: trains have satellite links which often geoclue to sweden,
-		 * this shouldn't automatically set the location and mess up all the appointments for the user.
-		 
-		if (ecal) ecal_timezone = icaltimezone_get_tzid(tzone);
-		*/
+
 		DbusmenuMenuitem * separator = dbusmenu_menuitem_new();
 		dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
-		dbusmenu_menuitem_child_add_position(root, separator, 3);
+		dbusmenu_menuitem_child_add_position(root, separator, 2);
 
 		add_appointment = dbusmenu_menuitem_new();
 		dbusmenu_menuitem_property_set     (add_appointment, DBUSMENU_MENUITEM_PROP_LABEL, _("Add Appointment"));
@@ -317,9 +304,12 @@ check_for_calendar (gpointer user_data)
 		g_signal_connect(G_OBJECT(add_appointment), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "evolution -c calendar");
 		dbusmenu_menuitem_child_add_position (root, add_appointment, 3);
 
-		update_appointment_menu_items(NULL);
-		g_signal_connect(root, DBUSMENU_MENUITEM_SIGNAL_ABOUT_TO_SHOW, G_CALLBACK(update_appointment_menu_items), NULL);	
-
+		// Update the calendar items every 5 minutes if it updates the first time
+		if (update_appointment_menu_items(NULL))
+			g_timeout_add_seconds(60*5, update_appointment_menu_items, NULL); 
+			
+		// Connect to event::month-changed 
+		g_signal_connect(calendar, "event::month-changed", G_CALLBACK(month_changed_cb), NULL);
 		g_free(evo);
 	} else {
 		g_debug("Unable to find calendar app.");
@@ -334,6 +324,7 @@ check_for_calendar (gpointer user_data)
 static gboolean
 update_timezone_menu_items(gpointer user_data) {
 	g_debug("Updating timezone menu items");
+
 	gchar ** locations = g_settings_get_strv(conf, SETTINGS_LOCATIONS_S);
 	if (locations == NULL) { 
 		g_debug("No locations configured (NULL)");
@@ -400,7 +391,7 @@ auth_func (ECal *ecal, const gchar *prompt, const gchar *key, gpointer user_data
 	else component_name = "Calendar";
 	
 	gchar *password = e_passwords_get_password (component_name, key);
-
+	
 	if (password == NULL) {
 		password = e_passwords_ask_password (
 			_("Enter password"),
@@ -468,6 +459,9 @@ static gboolean
 update_appointment_menu_items (gpointer user_data) {
 	// FFR: we should take into account short term timers, for instance
 	// tea timers, pomodoro timers etc... that people may add, this is hinted to in the spec.
+	if (calendar == NULL) return FALSE;
+	if (!g_settings_get_boolean(conf, SETTINGS_SHOW_EVENTS_S)) return FALSE;
+	
 	time_t t1, t2;
 	gchar *query, *is, *ie, *ad;
 	GList *objects = NULL, *l;
@@ -520,7 +514,6 @@ update_appointment_menu_items (gpointer user_data) {
 			g_signal_connect (G_OBJECT(source), "changed", G_CALLBACK (update_appointment_menu_items), NULL);
 			ECal *ecal = e_cal_new(source, E_CAL_SOURCE_TYPE_EVENT);
 			e_cal_set_auth_func (ecal, (ECalAuthFunc) auth_func, NULL);
-			//icaltimezone * tzone;
 			
 			if (!e_cal_open(ecal, FALSE, &gerror)) {
 				g_debug("Failed to get ecal sources %s", gerror->message);
@@ -533,7 +526,8 @@ update_appointment_menu_items (gpointer user_data) {
 			if (!e_cal_get_object_list_as_comp(ecal, query, &objects, &gerror)) {
 				g_debug("Failed to get objects\n");
 				g_free(ecal);
-				return FALSE;
+				gerror = NULL;
+				continue;
 			}
 			g_debug("Number of objects returned: %d", g_list_length(objects));
 			
@@ -678,6 +672,8 @@ update_appointment_menu_items (gpointer user_data) {
 		if (i == 4) break; // See above FIXME regarding query result limit
 		i++;
 	}
+	
+    if (gerror != NULL) g_error_free(gerror);
 	g_object_unref(allobjects);
 	g_debug("End of objects");
 	return TRUE;
