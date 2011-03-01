@@ -73,6 +73,7 @@ static DatetimeInterface * dbus = NULL;
 static DbusmenuMenuitem * date = NULL;
 static DbusmenuMenuitem * calendar = NULL;
 static DbusmenuMenuitem * settings = NULL;
+static DbusmenuMenuitem * events_separator = NULL;
 static DbusmenuMenuitem * locations_separator = NULL;
 static DbusmenuMenuitem * geo_location = NULL;
 static DbusmenuMenuitem * current_location = NULL;
@@ -278,8 +279,38 @@ month_changed_cb (DbusmenuMenuitem * menuitem, GVariant *variant, guint timestam
 	return TRUE;
 }
 
+static guint ecaltimer = 0;
+
+static void
+start_ecal_timer(void)
+{
+	if (ecaltimer != 0) g_source_remove(ecaltimer);
+	if (update_appointment_menu_items(NULL))
+		ecaltimer = g_timeout_add_seconds(60*5, update_appointment_menu_items, NULL); 	
+}
+
+static void
+stop_ecal_timer(void)
+{
+	if (ecaltimer != 0) g_source_remove(ecaltimer);
+}
+
+static void
+show_events_changed (void)
+{
+	if (g_settings_get_boolean(conf, SETTINGS_SHOW_EVENTS_S)) {
+		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+		dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+		start_ecal_timer();
+	} else {
+		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		stop_ecal_timer();
+	}
+}
+
 /* Looks for the calendar application and enables the item if
-   we have one */
+   we have one, starts ecal timer if events are turned on */
 static gboolean
 check_for_calendar (gpointer user_data)
 {
@@ -293,21 +324,26 @@ check_for_calendar (gpointer user_data)
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 
-		DbusmenuMenuitem * separator = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
-		dbusmenu_menuitem_child_add_position(root, separator, 2);
-
+		events_separator = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set(events_separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
+		dbusmenu_menuitem_child_add_position(root, events_separator, 2);
 		add_appointment = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set     (add_appointment, DBUSMENU_MENUITEM_PROP_LABEL, _("Add Appointment"));
+		dbusmenu_menuitem_property_set (add_appointment, DBUSMENU_MENUITEM_PROP_LABEL, _("Add Appointment"));
 		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
-		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 		g_signal_connect(G_OBJECT(add_appointment), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "evolution -c calendar");
 		dbusmenu_menuitem_child_add_position (root, add_appointment, 3);
 
-		// Update the calendar items every 5 minutes if it updates the first time
-		if (update_appointment_menu_items(NULL))
-			g_timeout_add_seconds(60*5, update_appointment_menu_items, NULL); 
-			
+
+		if (g_settings_get_boolean(conf, SETTINGS_SHOW_EVENTS_S)) {
+			dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+			dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+			start_ecal_timer();
+		} else {
+			dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+			dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+			stop_ecal_timer();
+		}
+		
 		// Connect to event::month-changed 
 		g_signal_connect(calendar, "event::month-changed", G_CALLBACK(month_changed_cb), NULL);
 		g_free(evo);
@@ -381,7 +417,11 @@ update_timezone_menu_items(gpointer user_data) {
 
 // Authentication function
 static gchar *
-auth_func (ECal *ecal, const gchar *prompt, const gchar *key, gpointer user_data) {
+auth_func (ECal *ecal, 
+           const gchar *prompt, 
+           const gchar *key, 
+           gpointer user_data)
+{
 	gboolean remember; // TODO: Is this useful?  Should we be storing it somewhere?
 	ESource *source = e_cal_get_source (ecal);
 	gchar *auth_domain = e_source_get_duped_property (source, "auth-domain");
@@ -411,8 +451,8 @@ auth_func (ECal *ecal, const gchar *prompt, const gchar *key, gpointer user_data
 // Compare function for g_list_sort of ECalComponent objects
 static gint 
 compare_appointment_items (ECalComponent *a,
-                           ECalComponent *b) {
-                                       
+                           ECalComponent *b) 
+{
 	ECalComponentDateTime datetime_a, datetime_b;
 	struct tm tm_a, tm_b;
 	time_t t_a, t_b;
@@ -422,10 +462,8 @@ compare_appointment_items (ECalComponent *a,
 
 	ECalComponentVType vtype = e_cal_component_get_vtype (a);
 	
-	if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) {
-		g_debug("E-Cal Component is neither an event or a todo");
-		return -1;
-	}
+	if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) return -1;
+	
 	if (vtype == E_CAL_COMPONENT_EVENT)
 		e_cal_component_get_dtstart (a, &datetime_a);
 	else
@@ -434,11 +472,8 @@ compare_appointment_items (ECalComponent *a,
 	t_a = mktime(&tm_a);
 	
 	vtype = e_cal_component_get_vtype (b);
-	if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) {
-		e_cal_component_free_datetime (&datetime_a);
-		g_debug("E-Cal Component is neither an event or a todo");
-		return -1;
-	}
+	if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) return 1;
+	
 	if (vtype == E_CAL_COMPONENT_EVENT)
 		e_cal_component_get_dtstart (b, &datetime_b);
 	else
@@ -447,12 +482,29 @@ compare_appointment_items (ECalComponent *a,
 	t_b = mktime(&tm_b);
 
 	// Compare datetime_a and datetime_b, newest first in this sort.
-	if (t_a > t_b) retval = 1;
-	else if (t_a < t_b) retval = -1;
-	
-	e_cal_component_free_datetime (&datetime_a);
-	e_cal_component_free_datetime (&datetime_b);
-	return retval;
+	if (t_a > t_b) return = 1;
+	else if (t_a < t_b) return = -1;
+}
+
+static gboolean
+populate_appointment_instances (ECalComponent *comp,
+                                time_t instance_start,
+                                time_t instance_end,
+                                gpointer data)
+{
+	// DEBUG what is the address of "objects" from data
+
+	// The aim here is to receive a usable pointer to the objects list
+	// append to it, and change the list that data points at. 
+	// this is a crafty hack so we're able to sort the items afterwards 
+	GList *objects = (GList *)data;
+	data = (GList *)g_list_append(objects, comp);
+
+	// DEBUG objects should have changed in the resultant location too
+
+	// TODO We also may as well use this opportunity to "mark days" in the calendar
+	// as we're iterating everything of interest here anyway.
+	return TRUE;
 }
 
 /* Populate the menu with todays, next 5 appointments. 
@@ -461,7 +513,8 @@ compare_appointment_items (ECalComponent *a,
  * this is a problem mainly on the EDS side of things, not ours. 
  */
 static gboolean
-update_appointment_menu_items (gpointer user_data) {
+update_appointment_menu_items (gpointer user_data)
+{
 	// FFR: we should take into account short term timers, for instance
 	// tea timers, pomodoro timers etc... that people may add, this is hinted to in the spec.
 	if (calendar == NULL) return FALSE;
@@ -481,8 +534,6 @@ update_appointment_menu_items (gpointer user_data) {
 	time(&t2);
 	t2 += (time_t) (7 * 24 * 60 * 60); /* 7 days ahead of now */
 
-	is = isodate_from_time_t(t1);
-	ie = isodate_from_time_t(t2);
 	
 	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
 
@@ -502,7 +553,7 @@ update_appointment_menu_items (gpointer user_data) {
 	// TODO Remove all highlights from the calendar widget
 
 	// FIXME can we put a limit on the number of results? Or if not complete, or is event/todo? Or sort it by date?
-	query = g_strdup_printf("(occur-in-time-range? (make-time\"%s\") (make-time\"%s\"))", is, ie);
+	//query = g_strdup_printf("(occur-in-time-range? (make-time\"%s\") (make-time\"%s\"))", is, ie);
 	
 	if (!e_cal_get_sources(&sources, E_CAL_SOURCE_TYPE_EVENT, &gerror)) {
 		g_debug("Failed to get ecal sources\n");
@@ -527,15 +578,10 @@ update_appointment_menu_items (gpointer user_data) {
 				continue;
         	}
 			
-			g_debug("Getting objects with query: %s", query);
-			if (!e_cal_get_object_list_as_comp(ecal, query, &objects, &gerror)) {
-				g_debug("Failed to get objects\n");
-				g_free(ecal);
-				gerror = NULL;
-				continue;
-			}
+			g_debug("Generating instances");
+			e_cal_generate_instances (client, t1, t2, (ECalRecurInstanceFn) populate_appointment_instances, (gpointer) &objects);
 			g_debug("Number of objects returned: %d", g_list_length(objects));
-			
+			                                               
 			if (allobjects == NULL) {
 				allobjects = objects;
 			} else if (objects != NULL) {
@@ -761,6 +807,7 @@ build_menus (DbusmenuMenuitem * root)
 	check_timezone_sync();
 	
 	g_signal_connect (conf, "changed::" SETTINGS_SHOW_LOCATIONS_S, G_CALLBACK (show_locations_changed), NULL);
+	g_signal_connect (conf, "changed::" SETTINGS_SHOW_EVENTS_S, G_CALLBACK (show_events_changed), NULL);
 
 	DbusmenuMenuitem * separator = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
