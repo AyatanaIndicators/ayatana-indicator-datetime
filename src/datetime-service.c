@@ -456,9 +456,8 @@ compare_appointment_items (ECalComponent *a,
 	ECalComponentDateTime datetime_a, datetime_b;
 	struct tm tm_a, tm_b;
 	time_t t_a, t_b;
-	gint retval = 0;
 
-	if (a == NULL || b == NULL) return retval;
+	if (a == NULL || b == NULL) return 0;
 
 	ECalComponentVType vtype = e_cal_component_get_vtype (a);
 	
@@ -482,8 +481,9 @@ compare_appointment_items (ECalComponent *a,
 	t_b = mktime(&tm_b);
 
 	// Compare datetime_a and datetime_b, newest first in this sort.
-	if (t_a > t_b) return = 1;
-	else if (t_a < t_b) return = -1;
+	if (t_a > t_b) return 1;
+	else if (t_a < t_b) return -1;
+	return 0;
 }
 
 static gboolean
@@ -521,7 +521,7 @@ update_appointment_menu_items (gpointer user_data)
 	if (!g_settings_get_boolean(conf, SETTINGS_SHOW_EVENTS_S)) return FALSE;
 	
 	time_t t1, t2;
-	gchar *query, *is, *ie, *ad;
+	gchar *ad;
 	GList *objects = NULL, *l;
 	GList *allobjects = NULL;
 	GSList *g;
@@ -579,7 +579,7 @@ update_appointment_menu_items (gpointer user_data)
         	}
 			
 			g_debug("Generating instances");
-			e_cal_generate_instances (client, t1, t2, (ECalRecurInstanceFn) populate_appointment_instances, (gpointer) &objects);
+			e_cal_generate_instances (ecal, t1, t2, (ECalRecurInstanceFn) populate_appointment_instances, (gpointer) objects);
 			g_debug("Number of objects returned: %d", g_list_length(objects));
 			                                               
 			if (allobjects == NULL) {
