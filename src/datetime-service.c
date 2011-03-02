@@ -81,6 +81,7 @@ static DbusmenuMenuitem * current_location = NULL;
 static DbusmenuMenuitem * add_appointment = NULL;
 static GList			* appointments = NULL;
 static GList			* dconflocations = NULL;
+static GList			* tmpobjects = NULL;
 GSettings *conf;
 
 
@@ -449,19 +450,25 @@ auth_func (ECal *ecal,
 
 
 // Compare function for g_list_sort of ECalComponent objects
-static gint 
+// Generate instances sorts them by time anyway
+/*static gint 
 compare_appointment_items (ECalComponent *a,
                            ECalComponent *b) 
 {
+	g_debug("Comparing two items from list %d %d", (int)a, (int)b);
 	ECalComponentDateTime datetime_a, datetime_b;
 	struct tm tm_a, tm_b;
 	time_t t_a, t_b;
+	gint retval = 0;
 
 	if (a == NULL || b == NULL) return 0;
 
 	ECalComponentVType vtype = e_cal_component_get_vtype (a);
 	
-	if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) return -1;
+	if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) {
+		g_debug("A is Not a todo or event");
+		return 1;
+	}
 	
 	if (vtype == E_CAL_COMPONENT_EVENT)
 		e_cal_component_get_dtstart (a, &datetime_a);
@@ -471,7 +478,10 @@ compare_appointment_items (ECalComponent *a,
 	t_a = mktime(&tm_a);
 	
 	vtype = e_cal_component_get_vtype (b);
-	if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) return 1;
+	if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) {
+		g_debug("B is Not a todo or event");
+		return -1;
+	}
 	
 	if (vtype == E_CAL_COMPONENT_EVENT)
 		e_cal_component_get_dtstart (b, &datetime_b);
@@ -481,10 +491,16 @@ compare_appointment_items (ECalComponent *a,
 	t_b = mktime(&tm_b);
 
 	// Compare datetime_a and datetime_b, newest first in this sort.
-	if (t_a > t_b) return 1;
-	else if (t_a < t_b) return -1;
+	if (t_a > t_b) {
+		g_debug("A > B: %d > %d", (int)t_a, (int)t_b);
+		retval = 1;
+	} else if (t_a < t_b) {
+		g_debug("B > A: %d > %d", (int)t_b, (int)t_a);
+		retval = -1;
+	}
+	g_debug("A == B: %d == %d", (int)t_a, (int)t_b);
 	return 0;
-}
+}*/
 
 static gboolean
 populate_appointment_instances (ECalComponent *comp,
@@ -492,15 +508,11 @@ populate_appointment_instances (ECalComponent *comp,
                                 time_t instance_end,
                                 gpointer data)
 {
-	// DEBUG what is the address of "objects" from data
-
-	// The aim here is to receive a usable pointer to the objects list
-	// append to it, and change the list that data points at. 
-	// this is a crafty hack so we're able to sort the items afterwards 
-	GList *objects = (GList *)data;
-	data = (GList *)g_list_append(objects, comp);
-
-	// DEBUG objects should have changed in the resultant location too
+	g_debug("Appending item %d", (int)comp);
+	ECalComponentVType vtype = e_cal_component_get_vtype (comp);
+	if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) return FALSE;
+	g_object_ref(comp);
+	tmpobjects = g_list_append(tmpobjects, comp);
 
 	// TODO We also may as well use this opportunity to "mark days" in the calendar
 	// as we're iterating everything of interest here anyway.
@@ -522,17 +534,18 @@ update_appointment_menu_items (gpointer user_data)
 	
 	time_t t1, t2;
 	gchar *ad;
-	GList *objects = NULL, *l;
+	GList *l;
 	GList *allobjects = NULL;
 	GSList *g;
 	GError *gerror = NULL;
+	tmpobjects = NULL;
 	gint i;
 	gint width, height;
 	ESourceList * sources = NULL;
 	
 	time(&t1);
 	time(&t2);
-	t2 += (time_t) (7 * 24 * 60 * 60); /* 7 days ahead of now */
+	t2 += (time_t) (7 * 24 * 60 * 60); /* 7 days ahead of now, we actually need number_of_days_in_this_month */
 
 	
 	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
@@ -551,9 +564,6 @@ update_appointment_menu_items (gpointer user_data)
 	}
 	
 	// TODO Remove all highlights from the calendar widget
-
-	// FIXME can we put a limit on the number of results? Or if not complete, or is event/todo? Or sort it by date?
-	//query = g_strdup_printf("(occur-in-time-range? (make-time\"%s\") (make-time\"%s\"))", is, ie);
 	
 	if (!e_cal_get_sources(&sources, E_CAL_SOURCE_TYPE_EVENT, &gerror)) {
 		g_debug("Failed to get ecal sources\n");
@@ -579,21 +589,13 @@ update_appointment_menu_items (gpointer user_data)
         	}
 			
 			g_debug("Generating instances");
-			e_cal_generate_instances (ecal, t1, t2, (ECalRecurInstanceFn) populate_appointment_instances, (gpointer) objects);
-			g_debug("Number of objects returned: %d", g_list_length(objects));
-			                                               
-			if (allobjects == NULL) {
-				allobjects = objects;
-			} else if (objects != NULL) {
-				allobjects = g_list_concat(allobjects, objects);
-				g_object_unref(objects);
-			}
+			e_cal_generate_instances (ecal, t1, t2, (ECalRecurInstanceFn) populate_appointment_instances, NULL);
+			g_debug("Number of objects returned: %d", g_list_length(tmpobjects));
 		}
 	}
+	allobjects = tmpobjects;
+	tmpobjects = NULL;
 	
-	// Sort the list see above FIXME regarding queries
-	g_debug("Sorting objects list");
-	allobjects = g_list_sort(allobjects, (GCompareFunc) compare_appointment_items);
 	i = 0;
 	for (l = allobjects; l; l = l->next) {
 		ECalComponent *ecalcomp = l->data;
@@ -719,12 +721,13 @@ update_appointment_menu_items (gpointer user_data)
 		dbusmenu_menuitem_child_add_position (root, item, 3+i);
 		appointments = g_list_append         (appointments, item); // Keep track of the items here to make them east to remove
 		g_debug("Adding appointment: %p", item);
-		
-		if (i == 4) break; // See above FIXME regarding query result limit
+
+		if (i == 4) break;
 		i++;
 	}
 	
     if (gerror != NULL) g_error_free(gerror);
+    for (l = allobjects; l; l = l->next) g_object_unref(l->data);
 	g_object_unref(allobjects);
 	g_debug("End of objects");
 	return TRUE;
