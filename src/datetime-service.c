@@ -448,60 +448,6 @@ auth_func (ECal *ecal,
 	return password;
 }
 
-
-// Compare function for g_list_sort of ECalComponent objects
-// Generate instances sorts them by time anyway
-/*static gint 
-compare_appointment_items (ECalComponent *a,
-                           ECalComponent *b) 
-{
-	g_debug("Comparing two items from list %d %d", (int)a, (int)b);
-	ECalComponentDateTime datetime_a, datetime_b;
-	struct tm tm_a, tm_b;
-	time_t t_a, t_b;
-	gint retval = 0;
-
-	if (a == NULL || b == NULL) return 0;
-
-	ECalComponentVType vtype = e_cal_component_get_vtype (a);
-	
-	if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) {
-		g_debug("A is Not a todo or event");
-		return 1;
-	}
-	
-	if (vtype == E_CAL_COMPONENT_EVENT)
-		e_cal_component_get_dtstart (a, &datetime_a);
-	else
-	    e_cal_component_get_due (a, &datetime_a);
-	tm_a = icaltimetype_to_tm(datetime_a.value);
-	t_a = mktime(&tm_a);
-	
-	vtype = e_cal_component_get_vtype (b);
-	if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) {
-		g_debug("B is Not a todo or event");
-		return -1;
-	}
-	
-	if (vtype == E_CAL_COMPONENT_EVENT)
-		e_cal_component_get_dtstart (b, &datetime_b);
-	else
-	    e_cal_component_get_due (b, &datetime_b);
-	tm_b = icaltimetype_to_tm(datetime_b.value);
-	t_b = mktime(&tm_b);
-
-	// Compare datetime_a and datetime_b, newest first in this sort.
-	if (t_a > t_b) {
-		g_debug("A > B: %d > %d", (int)t_a, (int)t_b);
-		retval = 1;
-	} else if (t_a < t_b) {
-		g_debug("B > A: %d > %d", (int)t_b, (int)t_a);
-		retval = -1;
-	}
-	g_debug("A == B: %d == %d", (int)t_a, (int)t_b);
-	return 0;
-}*/
-
 static gboolean
 populate_appointment_instances (ECalComponent *comp,
                                 time_t instance_start,
@@ -511,11 +457,13 @@ populate_appointment_instances (ECalComponent *comp,
 	g_debug("Appending item %d", (int)comp);
 	ECalComponentVType vtype = e_cal_component_get_vtype (comp);
 	if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) return FALSE;
+	
+	icalproperty_status status;
+	e_cal_component_get_status (comp, &status);
+	if (status == ICAL_STATUS_COMPLETED || status == ICAL_STATUS_CANCELLED) return FALSE;
+	
 	g_object_ref(comp);
 	tmpobjects = g_list_append(tmpobjects, comp);
-
-	// TODO We also may as well use this opportunity to "mark days" in the calendar
-	// as we're iterating everything of interest here anyway.
 	return TRUE;
 }
 
@@ -577,7 +525,7 @@ update_appointment_menu_items (gpointer user_data)
 		
 		for (s = e_source_group_peek_sources (group); s; s = s->next) {
 			ESource *source = E_SOURCE (s->data);
-			g_signal_connect (G_OBJECT(source), "changed", G_CALLBACK (update_appointment_menu_items), NULL);
+			//g_signal_connect (G_OBJECT(source), "changed", G_CALLBACK (update_appointment_menu_items), NULL);
 			ECal *ecal = e_cal_new(source, E_CAL_SOURCE_TYPE_EVENT);
 			e_cal_set_auth_func (ecal, (ECalAuthFunc) auth_func, NULL);
 			
@@ -603,27 +551,27 @@ update_appointment_menu_items (gpointer user_data)
 		ECalComponentDateTime datetime;
 		icaltimezone *appointment_zone = NULL;
 		icaltimezone *current_zone = NULL;
-		icalproperty_status status;
 		gchar *summary, *cmd;
 		char right[20];
 		//const gchar *uri;
 		struct tm tmp_tm;
 		DbusmenuMenuitem * item;
 
-		g_debug("Start Object");
+		g_debug("Start Object %p", ecalcomp);
 		ECalComponentVType vtype = e_cal_component_get_vtype (ecalcomp);
 
-		// See above FIXME regarding query result
-		// If it's not an event or todo, continue no-increment
-        if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO)
-			continue;
-
-		// See above FIXME regarding query result
-		// if the status is completed, continue no-increment
-		e_cal_component_get_status (ecalcomp, &status);
-		if (status == ICAL_STATUS_COMPLETED || status == ICAL_STATUS_CANCELLED)
-			continue;
-
+		if (vtype == E_CAL_COMPONENT_EVENT)
+			e_cal_component_get_dtstart (ecalcomp, &datetime);
+		else
+		    e_cal_component_get_due (ecalcomp, &datetime);
+		    
+		if (!datetime.value) continue;
+		
+		// TODO Mark days with appointments in the current month
+		
+		if (i >= 5) continue;
+		i++;
+		
 		item = dbusmenu_menuitem_new();
 		dbusmenu_menuitem_property_set       (item, DBUSMENU_MENUITEM_PROP_TYPE, APPOINTMENT_MENUITEM_TYPE);
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
@@ -638,23 +586,13 @@ update_appointment_menu_items (gpointer user_data)
 		g_free (summary);
 		
 		// Due text
-		if (vtype == E_CAL_COMPONENT_EVENT)
-			e_cal_component_get_dtstart (ecalcomp, &datetime);
-		else
-		    e_cal_component_get_due (ecalcomp, &datetime);
-		
-		// FIXME need to get the timezone of the above datetime, 
-		// and get the icaltimezone of the geoclue timezone/selected timezone (whichever is preferred)
-		if (!datetime.value) {
-			g_free(item);
-			continue;
-		}
-		
 		appointment_zone = icaltimezone_get_builtin_timezone_from_tzid(datetime.tzid);
 		current_zone = icaltimezone_get_builtin_timezone_from_tzid(current_timezone);
 		if (!appointment_zone || datetime.value->is_date) { // If it's today put in the current timezone?
 			appointment_zone = current_zone;
 		}
+		// FIXME need to get the timezone of the above datetime, 
+		// and get the icaltimezone of the geoclue timezone/selected timezone (whichever is preferred)
 		// TODO: Convert the timezone into a 3 letter abbreviation if it's different to current_timezone
 		// TODO: Add the appointment timezone to the list if it's not already there. 
 		
@@ -680,12 +618,11 @@ update_appointment_menu_items (gpointer user_data)
 		
 		e_cal_component_free_datetime (&datetime);
 		
-		ad = isodate_from_time_t(mktime(&tmp_tm));
 		
 		// Now we pull out the URI for the calendar event and try to create a URI that'll work when we execute evolution
 		// FIXME Because the URI stuff is really broken, we're going to open the calendar at todays date instead
-		
 		//e_cal_component_get_uid(ecalcomp, &uri);
+		ad = isodate_from_time_t(mktime(&tmp_tm));
 		cmd = g_strconcat("evolution calendar:///?startdate=", ad, NULL);
 		g_signal_connect (G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
 						  G_CALLBACK (activate_cb), cmd);
@@ -718,17 +655,13 @@ update_appointment_menu_items (gpointer user_data)
 			
 			dbusmenu_menuitem_property_set_image (item, APPOINTMENT_MENUITEM_PROP_ICON, pixbuf);
 		}
-		dbusmenu_menuitem_child_add_position (root, item, 3+i);
+		dbusmenu_menuitem_child_add_position (root, item, 2+i);
 		appointments = g_list_append         (appointments, item); // Keep track of the items here to make them east to remove
 		g_debug("Adding appointment: %p", item);
-
-		if (i == 4) break;
-		i++;
 	}
 	
     if (gerror != NULL) g_error_free(gerror);
     for (l = allobjects; l; l = l->next) g_object_unref(l->data);
-	g_object_unref(allobjects);
 	g_debug("End of objects");
 	return TRUE;
 }
@@ -810,6 +743,7 @@ build_menus (DbusmenuMenuitem * root)
 	check_timezone_sync();
 	
 	g_signal_connect (conf, "changed::" SETTINGS_SHOW_LOCATIONS_S, G_CALLBACK (show_locations_changed), NULL);
+	g_signal_connect (conf, "changed::" SETTINGS_LOCATIONS_S, G_CALLBACK (show_locations_changed), NULL);
 	g_signal_connect (conf, "changed::" SETTINGS_SHOW_EVENTS_S, G_CALLBACK (show_events_changed), NULL);
 
 	DbusmenuMenuitem * separator = dbusmenu_menuitem_new();
