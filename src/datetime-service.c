@@ -306,6 +306,18 @@ show_events_changed (void)
 	} else {
 		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 		dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		/* Remove all of the previous appointments */
+		if (appointments != NULL) {
+			g_debug("Freeing old appointments");
+			while (appointments != NULL) {
+				DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(appointments->data);
+				g_debug("Freeing old appointment: %p", litem);
+				// Remove all the existing menu items which are in appointments.
+				appointments = g_list_remove(appointments, litem);
+				dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(litem));
+				g_object_unref(G_OBJECT(litem));
+			}
+		}
 		stop_ecal_timer();
 	}
 }
