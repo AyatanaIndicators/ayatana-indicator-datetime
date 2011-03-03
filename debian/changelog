@@ -1,3 +1,16 @@
+indicator-datetime (0.1.96-0ubuntu1) natty; urgency=low
+
+  [ Ted Gould ]
+  * New upstream release.
+    * Preference UI cleanups
+    * Fix color rendering for appointments
+    * Fix spin buttons to behave properly
+
+  [ Ken VanDine ]
+  * Better handling of recurring events (LP: #726603)
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Thu, 03 Mar 2011 16:38:01 -0500
+
 indicator-datetime (0.1.95-0ubuntu1) natty; urgency=low
 
   * New upstream release.
