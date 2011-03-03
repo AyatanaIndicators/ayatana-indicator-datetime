@@ -30,6 +30,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <locale.h>
 #include <langinfo.h>
 #include <glib/gi18n-lib.h>
+#include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 #include <unique/unique.h>
 #include <polkitgtk/polkitgtk.h>
@@ -296,7 +297,7 @@ input_time_text (GtkWidget * spinner, gdouble * value, gpointer user_data)
   gdouble current_value = gtk_spin_button_get_value (GTK_SPIN_BUTTON (spinner));
   *value = current_value;
 
-  GDateTime * now = g_date_time_new_from_unix_utc (current_value);
+  GDateTime * now = g_date_time_new_from_unix_local (current_value);
   gint year, month, day, hour, minute, second;
   year = g_date_time_get_year (now);
   month = g_date_time_get_month (now);
@@ -395,7 +396,7 @@ format_time_text (GtkWidget * spinner, gpointer user_data)
     format = "%Y-%m-%d";
   }
 
-  GDateTime * datetime = g_date_time_new_from_unix_utc (gtk_spin_button_get_value (GTK_SPIN_BUTTON (spinner)));
+  GDateTime * datetime = g_date_time_new_from_unix_local (gtk_spin_button_get_value (GTK_SPIN_BUTTON (spinner)));
   gchar * formatted = g_date_time_format (datetime, format);
   gtk_entry_set_text (GTK_ENTRY (spinner), formatted);
   g_date_time_unref (datetime);
@@ -507,6 +508,32 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
   return FALSE; // Do normal action too
 }
 
+static gboolean
+key_pressed (GtkWidget * widget, GdkEventKey * event, gpointer user_data)
+{
+  switch (event->keyval) {
+  case GDK_KEY_Escape:
+    gtk_widget_destroy (widget);
+    return TRUE;
+  }
+  return FALSE;
+}
+
+static GtkWidget *
+get_child_of_type (GtkContainer * parent, GType type)
+{
+  GList * children, * iter;
+
+  children = gtk_container_get_children (parent);
+  for (iter = children; iter; iter = iter->next) {
+    if (G_TYPE_CHECK_INSTANCE_TYPE (iter->data, type)) {
+      return GTK_WIDGET (iter->data);
+    }
+  }
+
+  return NULL;
+}
+
 static GtkWidget *
 create_dialog (void)
 {
@@ -532,6 +559,11 @@ create_dialog (void)
   polkit_lock_button_set_unlock_text (POLKIT_LOCK_BUTTON (polkit_button), _("Unlock to change these settings"));
   polkit_lock_button_set_lock_text (POLKIT_LOCK_BUTTON (polkit_button), _("Lock to prevent further changes"));
   gtk_box_pack_start (GTK_BOX (WIG ("timeDateBox")), polkit_button, FALSE, TRUE, 0);
+  /* Make sure border around button is visible */
+  GtkWidget * polkit_button_button = get_child_of_type (GTK_CONTAINER (polkit_button), GTK_TYPE_BUTTON);
+  if (polkit_button_button != NULL) {
+    gtk_button_set_relief (GTK_BUTTON (polkit_button_button), GTK_RELIEF_NORMAL);
+  }
 
   /* Add map */
   tzmap = cc_timezone_map_new ();
@@ -593,6 +625,7 @@ create_dialog (void)
   tz_entry = WIG ("timezoneEntry");
 
   g_signal_connect (WIG ("locationsButton"), "clicked", G_CALLBACK (show_locations), dlg);
+  g_signal_connect (dlg, "key-press-event", G_CALLBACK (key_pressed), NULL);
 
   /* Grab proxy for settings daemon */
   g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_NONE, NULL,
@@ -645,7 +678,7 @@ main (int argc, char ** argv)
     unique_app_watch_window (app, GTK_WINDOW (dlg));
 
     gtk_widget_show_all (dlg);
-    g_signal_connect (dlg, "response", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect (dlg, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     gtk_main ();
   }
 
