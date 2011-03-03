@@ -643,6 +643,9 @@ update_appointment_menu_items (gpointer user_data)
 	comp_instances = NULL;
 	i = 0;
 	
+	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
+	if (width == 0) width = 12;
+	if (height == 0) height = 12;
 	for (l = sorted_comp_instances; l; l = l->next) {
 		struct comp_instance *ci = l->data;
 		ECalComponent *ecalcomp = ci->comp;
@@ -743,13 +746,11 @@ update_appointment_menu_items (gpointer user_data)
         	// Fixme causes segfault, but we have colours now yay!
         	GdkColor color;
         	gdk_color_parse (color_spec, &color);	
-        	
-			gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
-			if (width == 0) width = 12;
-			if (height == 0) height = 12;
 			                                    
         	cairo_surface_t *surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, width, height ); 
-    		 
+			// Width keeps becoming zero!!
+			if (width == 0) width = 12;
+			if (height == 0) height = 12;
     		cairo_t *cr = cairo_create(surface);
 			gdk_cairo_set_source_color(cr, &color);
 			cairo_paint(cr);
@@ -759,6 +760,9 @@ update_appointment_menu_items (gpointer user_data)
     		cairo_stroke(cr);
 			// Convert to pixbuf, in gtk3 this is done with gdk_pixbuf_get_from_surface
 			cairo_content_t content = cairo_surface_get_content (surface) | CAIRO_CONTENT_COLOR;
+			// Width keeps becoming zero!!
+			if (width == 0) width = 12;
+			if (height == 0) height = 12;
 			GdkPixbuf *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB, 
 			                                    !!(content & CAIRO_CONTENT_ALPHA), 
 			                                    8, width, height);
