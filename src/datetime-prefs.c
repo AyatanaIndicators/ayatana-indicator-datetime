@@ -304,6 +304,7 @@ input_time_text (GtkWidget * spinner, gdouble * value, gpointer user_data)
   hour = g_date_time_get_hour (now);
   minute = g_date_time_get_minute (now);
   second = g_date_time_get_second (now);
+  g_date_time_unref (now);
 
   /* Parse this string as if it were in the output format */
   gint scanned = 0;
