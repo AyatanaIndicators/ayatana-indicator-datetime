@@ -678,6 +678,7 @@ main (int argc, char ** argv)
     unique_app_watch_window (app, GTK_WINDOW (dlg));
 
     gtk_widget_show_all (dlg);
+    g_signal_connect (dlg, "response", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect (dlg, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     gtk_main ();
   }
