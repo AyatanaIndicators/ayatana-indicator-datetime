@@ -47,7 +47,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libical/icaltime.h>
 #include <cairo/cairo.h>
 
-
 #include <oobs/oobs-timeconfig.h>
 
 #include "datetime-interface.h"
@@ -137,7 +136,7 @@ check_timezone_sync (void) {
 	} else {
 		g_debug("Timezones are different");
 	}
-	
+
 	gboolean show = g_settings_get_boolean (conf, SETTINGS_SHOW_LOCATIONS_S);
 
 	if (geo_location != NULL && current_location != NULL) {
@@ -383,6 +382,7 @@ update_timezone_menu_items(gpointer user_data) {
 	g_debug("Updating timezone menu items");
 
 	gchar ** locations = g_settings_get_strv(conf, SETTINGS_LOCATIONS_S);
+
 	if (locations == NULL) { 
 		g_debug("No locations configured (NULL)");
 		return FALSE;
