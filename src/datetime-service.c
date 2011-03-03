@@ -82,6 +82,7 @@ static DbusmenuMenuitem * add_appointment = NULL;
 static GList			* appointments = NULL;
 static GList			* dconflocations = NULL;
 static GList			* comp_instances = NULL;
+static gboolean           updating_appointments = FALSE;
 GSettings *conf;
 
 
@@ -567,6 +568,8 @@ update_appointment_menu_items (gpointer user_data)
 	// tea timers, pomodoro timers etc... that people may add, this is hinted to in the spec.
 	if (calendar == NULL) return FALSE;
 	if (!g_settings_get_boolean(conf, SETTINGS_SHOW_EVENTS_S)) return FALSE;
+	if (updating_appointments) return TRUE;
+	updating_appointments = TRUE;
 	
 	time_t t1, t2;
 	gchar *ad;
@@ -639,10 +642,6 @@ update_appointment_menu_items (gpointer user_data)
 	GList *sorted_comp_instances = g_list_sort(comp_instances, compare_comp_instances);
 	comp_instances = NULL;
 	i = 0;
-	
-	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
-	if (width == 0) width = 12;
-	if (height == 0) height = 12;
 	
 	for (l = sorted_comp_instances; l; l = l->next) {
 		struct comp_instance *ci = l->data;
@@ -743,7 +742,12 @@ update_appointment_menu_items (gpointer user_data)
         if (color_spec != NULL) {
         	// Fixme causes segfault, but we have colours now yay!
         	GdkColor color;
-        	gdk_color_parse (color_spec, &color);			                                    
+        	gdk_color_parse (color_spec, &color);	
+        	
+			gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
+			if (width == 0) width = 12;
+			if (height == 0) height = 12;
+			                                    
         	cairo_surface_t *surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, width, height ); 
     		 
     		cairo_t *cr = cairo_create(surface);
@@ -758,39 +762,39 @@ update_appointment_menu_items (gpointer user_data)
 			GdkPixbuf *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB, 
 			                                    !!(content & CAIRO_CONTENT_ALPHA), 
 			                                    8, width, height);
-			                                    
-    		gint sstride = cairo_image_surface_get_stride( surface ); 
-    		gint dstride = gdk_pixbuf_get_rowstride (pixbuf);
-    		guchar *spixels = cairo_image_surface_get_data( surface );
-    		guchar *dpixels = gdk_pixbuf_get_pixels (pixbuf);
+			if (pixbuf != NULL) {               
+				gint sstride = cairo_image_surface_get_stride( surface ); 
+				gint dstride = gdk_pixbuf_get_rowstride (pixbuf);
+				guchar *spixels = cairo_image_surface_get_data( surface );
+				guchar *dpixels = gdk_pixbuf_get_pixels (pixbuf);
 
+	  			int x, y;
+	  			for (y = 0; y < height; y++) {
+					guint32 *src = (guint32 *) spixels;
 
-  			int x, y;
-  			for (y = 0; y < height; y++) {
-    			guint32 *src = (guint32 *) spixels;
+					for (x = 0; x < width; x++) {
+						guint alpha = src[x] >> 24;
 
-				for (x = 0; x < width; x++) {
-					guint alpha = src[x] >> 24;
-
-					if (alpha == 0) {
-          				dpixels[x * 4 + 0] = 0;
-          				dpixels[x * 4 + 1] = 0;
-          				dpixels[x * 4 + 2] = 0;
-        			} else {
-						dpixels[x * 4 + 0] = (((src[x] & 0xff0000) >> 16) * 255 + alpha / 2) / alpha;
-						dpixels[x * 4 + 1] = (((src[x] & 0x00ff00) >>  8) * 255 + alpha / 2) / alpha;
-						dpixels[x * 4 + 2] = (((src[x] & 0x0000ff) >>  0) * 255 + alpha / 2) / alpha;
+						if (alpha == 0) {
+		      				dpixels[x * 4 + 0] = 0;
+		      				dpixels[x * 4 + 1] = 0;
+		      				dpixels[x * 4 + 2] = 0;
+		    			} else {
+							dpixels[x * 4 + 0] = (((src[x] & 0xff0000) >> 16) * 255 + alpha / 2) / alpha;
+							dpixels[x * 4 + 1] = (((src[x] & 0x00ff00) >>  8) * 255 + alpha / 2) / alpha;
+							dpixels[x * 4 + 2] = (((src[x] & 0x0000ff) >>  0) * 255 + alpha / 2) / alpha;
+						}
+						dpixels[x * 4 + 3] = alpha;
 					}
-					dpixels[x * 4 + 3] = alpha;
-				}
-    			spixels += sstride;
-    			dpixels += dstride;
-  			}
+					spixels += sstride;
+					dpixels += dstride;
+	  			}
 
-			cairo_surface_destroy (surface);
-			cairo_destroy(cr);
+				cairo_surface_destroy (surface);
+				cairo_destroy(cr);
 			
-			dbusmenu_menuitem_property_set_image (item, APPOINTMENT_MENUITEM_PROP_ICON, pixbuf);
+				dbusmenu_menuitem_property_set_image (item, APPOINTMENT_MENUITEM_PROP_ICON, pixbuf);
+			}
 		}
 		dbusmenu_menuitem_child_add_position (root, item, 2+i);
 		appointments = g_list_append         (appointments, item); // Keep track of the items here to make them east to remove
@@ -804,6 +808,7 @@ update_appointment_menu_items (gpointer user_data)
 		g_list_free(sorted_comp_instances);
 	}
 	
+	updating_appointments = FALSE;
 	g_debug("End of objects");
 	return TRUE;
 }
