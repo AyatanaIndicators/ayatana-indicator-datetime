@@ -2,6 +2,16 @@
 <interface>
   <requires lib="gtk+" version="2.24"/>
   <!-- interface-naming-policy project-wide -->
+  <object class="GtkAdjustment" id="dateAdjustment">
+    <property name="upper">1.8446744073709552e+19</property>
+    <property name="step_increment">86400</property>
+    <property name="page_increment">864000</property>
+  </object>
+  <object class="GtkAdjustment" id="timeAdjustment">
+    <property name="upper">1.8446744073709552e+19</property>
+    <property name="step_increment">60</property>
+    <property name="page_increment">3600</property>
+  </object>
   <object class="GtkWindow" id="locationsDialog">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Locations</property>
@@ -279,6 +289,7 @@
                                 <property name="width_chars">11</property>
                                 <property name="xalign">1</property>
                                 <property name="invisible_char_set">True</property>
+                                <property name="adjustment">timeAdjustment</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -321,6 +332,7 @@
                                 <property name="width_chars">11</property>
                                 <property name="xalign">1</property>
                                 <property name="invisible_char_set">True</property>
+                                <property name="adjustment">dateAdjustment</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>

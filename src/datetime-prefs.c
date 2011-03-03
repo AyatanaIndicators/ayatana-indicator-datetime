@@ -47,6 +47,11 @@ GDBusProxy * proxy = NULL;
 GtkWidget * auto_radio = NULL;
 GtkWidget * tz_entry = NULL;
 CcTimezoneMap * tzmap = NULL;
+GtkWidget * time_spin = NULL;
+GtkWidget * date_spin = NULL;
+guint       save_time_id = 0;
+gboolean    user_edited_time = FALSE;
+gboolean    changing_time = FALSE;
 
 /* Turns the boolean property into a string gsettings */
 static GVariant *
@@ -239,13 +244,60 @@ void proxy_ready (GObject *object, GAsyncResult *res, gpointer user_data)
                      NULL, tz_query_answered, NULL);
 }
 
+static gboolean
+are_spinners_focused (void)
+{
+  // save_time_id means that we were in focus and haven't finished our save
+  // yet, so act like we are still focused.
+  return save_time_id || gtk_widget_has_focus (time_spin) || gtk_widget_has_focus (date_spin);
+}
+
+static gboolean
+save_time (gpointer user_data)
+{
+  if (user_edited_time) {
+    gdouble current_value = gtk_spin_button_get_value (GTK_SPIN_BUTTON (date_spin));
+    g_dbus_proxy_call (proxy, "SetTime", g_variant_new ("(x)", (guint64)current_value),
+                       G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "time");
+  }
+  user_edited_time = FALSE;
+  save_time_id = 0;
+  return FALSE;
+}
+
+static gboolean
+spin_focus_in (void)
+{
+  if (save_time_id > 0) {
+    g_source_remove (save_time_id);
+    save_time_id = 0;
+  }
+  return FALSE;
+}
+
+static gboolean
+spin_focus_out (void)
+{
+  /* We want to only save when both spinners are unfocused.  But it's difficult
+     to tell who is about to get focus during a focus-out.  So we set an idle
+     callback to save the time if we don't focus in to another spinner by that
+     time. */
+  if (save_time_id == 0) {
+    save_time_id = g_idle_add ((GSourceFunc)save_time, NULL);
+  }
+  return FALSE;
+}
+
 static int
-input_time_text (GtkWidget * spinner, gdouble *value, gpointer user_data)
+input_time_text (GtkWidget * spinner, gdouble * value, gpointer user_data)
 {
   gboolean is_time = (gboolean)GPOINTER_TO_INT (g_object_get_data (G_OBJECT (spinner), "is-time"));
   const gchar * text = gtk_entry_get_text (GTK_ENTRY (spinner));
 
-  GDateTime * now = g_date_time_new_now_local ();
+  gdouble current_value = gtk_spin_button_get_value (GTK_SPIN_BUTTON (spinner));
+  *value = current_value;
+
+  GDateTime * now = g_date_time_new_from_unix_local (current_value);
   gint year, month, day, hour, minute, second;
   year = g_date_time_get_year (now);
   month = g_date_time_get_month (now);
@@ -316,10 +368,13 @@ input_time_text (GtkWidget * spinner, gdouble *value, gpointer user_data)
     return TRUE;
   }
 
-  GDateTime * datetime = g_date_time_new_local (year, month, day, hour, minute, second);
-
-  g_dbus_proxy_call (proxy, "SetTime", g_variant_new ("(x)", g_date_time_to_unix (datetime)),
-                     G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "time");
+  gboolean prev_changing = changing_time;
+  changing_time = TRUE;
+  GDateTime * new_time = g_date_time_new_local (year, month, day, hour, minute, second);
+  *value = g_date_time_to_unix (new_time);
+  user_edited_time = TRUE;
+  g_date_time_unref (new_time);
+  changing_time = prev_changing;
 
   return TRUE;
 }
@@ -327,12 +382,6 @@ input_time_text (GtkWidget * spinner, gdouble *value, gpointer user_data)
 static gboolean
 format_time_text (GtkWidget * spinner, gpointer user_data)
 {
-  if (gtk_widget_has_focus (spinner)) {
-    /* Don't do anything if we have focus, user is likely editing us */
-    return TRUE;
-  }
-
-  GDateTime * datetime = (GDateTime *)g_object_get_data (G_OBJECT (spinner), "datetime");
   gboolean is_time = (gboolean)GPOINTER_TO_INT (g_object_get_data (G_OBJECT (spinner), "is-time"));
 
   const gchar * format;
@@ -347,39 +396,71 @@ format_time_text (GtkWidget * spinner, gpointer user_data)
     format = "%Y-%m-%d";
   }
 
+  GDateTime * datetime = g_date_time_new_from_unix_local (gtk_spin_button_get_value (GTK_SPIN_BUTTON (spinner)));
   gchar * formatted = g_date_time_format (datetime, format);
   gtk_entry_set_text (GTK_ENTRY (spinner), formatted);
-
-  return TRUE;
-}
-
-static gboolean
-update_spinner (GtkWidget * spinner)
-{
-  /* Add datetime object to spinner, which will hold the real time value, rather
-     then using the value of the spinner itself. */
-  GDateTime * datetime = g_date_time_new_now_local ();
-  g_object_set_data_full (G_OBJECT (spinner), "datetime", datetime, (GDestroyNotify)g_date_time_unref);
-
-  format_time_text (spinner, NULL);
+  g_date_time_unref (datetime);
 
   return TRUE;
 }
 
 static void
-setup_time_spinner (GtkWidget * spinner, GtkWidget * other, gboolean is_time)
+spin_copy_value (GtkSpinButton * spinner, GtkSpinButton * other)
 {
-  /* Set up spinner to have reasonable behavior */
-  gtk_spin_button_set_numeric (GTK_SPIN_BUTTON (spinner), FALSE);
-  g_signal_connect (spinner, "input", G_CALLBACK (input_time_text), other);
-  g_signal_connect (spinner, "output", G_CALLBACK (format_time_text), other);
-  g_object_set_data (G_OBJECT (spinner), "is-time", GINT_TO_POINTER (is_time));
+  if (gtk_spin_button_get_value (spinner) != gtk_spin_button_get_value (other)) {
+    gtk_spin_button_set_value (other, gtk_spin_button_get_value (spinner));
+  }
+  if (!changing_time) { /* Means user pressed spin buttons */
+    user_edited_time = TRUE;
+  }
+}
+
+static gboolean
+update_spinners (void)
+{
+  /* Add datetime object to spinner, which will hold the real time value, rather
+     then using the value of the spinner itself.  And don't update while user is
+     editing. */
+  if (!are_spinners_focused ()) {
+    gboolean prev_changing = changing_time;
+    changing_time = TRUE;
+    GDateTime * now = g_date_time_new_now_local ();
+    gtk_spin_button_set_value (GTK_SPIN_BUTTON (time_spin), (gdouble)g_date_time_to_unix (now));
+    /* will be copied to other spin button */
+    g_date_time_unref (now);
+    changing_time = prev_changing;
+  }
+  return TRUE;
+}
+
+static void
+setup_time_spinners (GtkWidget * time, GtkWidget * date)
+{
+  g_signal_connect (time, "input", G_CALLBACK (input_time_text), date);
+  g_signal_connect (date, "input", G_CALLBACK (input_time_text), time);
+
+  g_signal_connect (time, "output", G_CALLBACK (format_time_text), date);
+  g_signal_connect (date, "output", G_CALLBACK (format_time_text), time);
+
+  g_signal_connect (time, "focus-in-event", G_CALLBACK (spin_focus_in), date);
+  g_signal_connect (date, "focus-in-event", G_CALLBACK (spin_focus_in), time);
+
+  g_signal_connect (time, "focus-out-event", G_CALLBACK (spin_focus_out), date);
+  g_signal_connect (date, "focus-out-event", G_CALLBACK (spin_focus_out), time);
+
+  g_signal_connect (time, "value-changed", G_CALLBACK (spin_copy_value), date);
+  g_signal_connect (date, "value-changed", G_CALLBACK (spin_copy_value), time);
+
+  g_object_set_data (G_OBJECT (time), "is-time", GINT_TO_POINTER (TRUE));
+  g_object_set_data (G_OBJECT (date), "is-time", GINT_TO_POINTER (FALSE));
+
+  time_spin = time;
+  date_spin = date;
 
   /* 2 seconds is what the indicator itself uses */
-  guint time_id = g_timeout_add_seconds (2, (GSourceFunc)update_spinner, spinner);
-  g_signal_connect_swapped (spinner, "destroy", G_CALLBACK (g_source_remove), GINT_TO_POINTER (time_id));
-
-  update_spinner (spinner);
+  guint time_id = g_timeout_add_seconds (2, (GSourceFunc)update_spinners, NULL);
+  g_signal_connect_swapped (time_spin, "destroy", G_CALLBACK (g_source_remove), GINT_TO_POINTER (time_id));
+  update_spinners ();
 }
 
 static void
@@ -537,8 +618,7 @@ create_dialog (void)
   gtk_widget_set_sensitive (WIG ("showEventsCheck"), (evo_path != NULL));
   g_free (evo_path);
 
-  setup_time_spinner (WIG ("timeSpinner"), WIG ("dateSpinner"), TRUE);
-  setup_time_spinner (WIG ("dateSpinner"), WIG ("timeSpinner"), FALSE);
+  setup_time_spinners (WIG ("timeSpinner"), WIG ("dateSpinner"));
 
   GtkWidget * dlg = WIG ("timeDateDialog");
   auto_radio = WIG ("automaticTimeRadio");
