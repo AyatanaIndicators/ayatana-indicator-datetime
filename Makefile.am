@@ -1,5 +1,6 @@
 
 SUBDIRS = \
+	libmap \
 	src \
 	data \
 	tests \

@@ -23,12 +23,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "config.h"
 #endif
 
-#include <locale.h>
-#include <langinfo.h>
-#include <string.h>
-
 /* GStuff */
 #include <glib.h>
+#include <glib/gprintf.h>
 #include <glib-object.h>
 #include <glib/gi18n-lib.h>
 #include <gio/gio.h>
@@ -40,10 +37,12 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /* DBusMenu */
 #include <libdbusmenu-gtk/menu.h>
-#include <libido/idocalendarmenuitem.h>
+#include <libido/libido.h>
 #include <libdbusmenu-gtk/menuitem.h>
 
+#include "utils.h"
 #include "dbus-shared.h"
+#include "settings-shared.h"
 
 
 #define INDICATOR_DATETIME_TYPE            (indicator_datetime_get_type ())
@@ -79,6 +78,9 @@ struct _IndicatorDatetimePrivate {
 	gchar * custom_string;
 	gboolean custom_show_seconds;
 
+	gboolean show_week_numbers;
+	gint week_start;
+	
 	guint idle_measure;
 	gint  max_width;
 
@@ -102,7 +104,8 @@ enum {
 	PROP_SHOW_SECONDS,
 	PROP_SHOW_DAY,
 	PROP_SHOW_DATE,
-	PROP_CUSTOM_TIME_FORMAT
+	PROP_CUSTOM_TIME_FORMAT,
+	PROP_SHOW_WEEK_NUMBERS
 };
 
 typedef struct _indicator_item_t indicator_item_t;
@@ -120,30 +123,7 @@ struct _indicator_item_t {
 #define PROP_SHOW_DAY_S                 "show-day"
 #define PROP_SHOW_DATE_S                "show-date"
 #define PROP_CUSTOM_TIME_FORMAT_S       "custom-time-format"
-
-#define SETTINGS_INTERFACE              "com.canonical.indicator.datetime"
-#define SETTINGS_TIME_FORMAT_S          "time-format"
-#define SETTINGS_SHOW_SECONDS_S         "show-seconds"
-#define SETTINGS_SHOW_DAY_S             "show-day"
-#define SETTINGS_SHOW_DATE_S            "show-date"
-#define SETTINGS_CUSTOM_TIME_FORMAT_S   "custom-time-format"
-
-enum {
-	SETTINGS_TIME_LOCALE = 0,
-	SETTINGS_TIME_12_HOUR = 1,
-	SETTINGS_TIME_24_HOUR = 2,
-	SETTINGS_TIME_CUSTOM = 3
-};
-
-/* TRANSLATORS: A format string for the strftime function for
-   a clock showing 12-hour time without seconds. */
-#define DEFAULT_TIME_12_FORMAT   N_("%l:%M %p")
-
-/* TRANSLATORS: A format string for the strftime function for
-   a clock showing 24-hour time without seconds. */
-#define DEFAULT_TIME_24_FORMAT   N_("%H:%M")
-
-#define DEFAULT_TIME_FORMAT      DEFAULT_TIME_12_FORMAT
+#define PROP_SHOW_WEEK_NUMBERS_S        "show-week-numbers"
 
 #define INDICATOR_DATETIME_GET_PRIVATE(o) \
 (G_TYPE_INSTANCE_GET_PRIVATE ((o), INDICATOR_DATETIME_TYPE, IndicatorDatetimePrivate))
@@ -174,7 +154,6 @@ static const gchar * get_accessible_desc  (IndicatorObject * io);
 static GVariant * bind_enum_set           (const GValue * value, const GVariantType * type, gpointer user_data);
 static gboolean bind_enum_get             (GValue * value, GVariant * variant, gpointer user_data);
 static gchar * generate_format_string_now (IndicatorDatetime * self);
-static gchar * generate_format_string_at_time (IndicatorDatetime * self, GDateTime * time);
 static void update_label                  (IndicatorDatetime * io, GDateTime ** datetime);
 static void guess_label_size              (IndicatorDatetime * self);
 static void setup_timer                   (IndicatorDatetime * self, GDateTime * datetime);
@@ -249,6 +228,13 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 	                                                     DEFAULT_TIME_FORMAT,
 	                                                     G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
+	g_object_class_install_property (object_class,
+	                                 PROP_SHOW_WEEK_NUMBERS,
+	                                 g_param_spec_boolean(PROP_SHOW_WEEK_NUMBERS_S,
+	                                                      "Whether to show the week numbers in the calendar.",
+	                                                      "Shows the week numbers in the monthly calendar in indicator-datetime's menu.",
+	                                                      FALSE, /* default */
+	                                                      G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 	return;
 }
 
@@ -306,6 +292,11 @@ indicator_datetime_init (IndicatorDatetime *self)
 		                SETTINGS_CUSTOM_TIME_FORMAT_S,
 		                self,
 		                PROP_CUSTOM_TIME_FORMAT_S,
+		                G_SETTINGS_BIND_DEFAULT);
+		g_settings_bind(self->priv->settings,
+		                SETTINGS_SHOW_WEEK_NUMBERS_S,
+		                self,
+		                PROP_SHOW_WEEK_NUMBERS_S,
 		                G_SETTINGS_BIND_DEFAULT);
 	} else {
 		g_warning("Unable to get settings for '" SETTINGS_INTERFACE "'");
@@ -533,6 +524,18 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 		}
 		break;
 	}
+	case PROP_SHOW_WEEK_NUMBERS: {
+		if (g_value_get_boolean(value) != self->priv->show_week_numbers) {
+			GtkCalendarDisplayOptions flags = ido_calendar_menu_item_get_display_options (self->priv->ido_calendar);
+			if (g_value_get_boolean(value) == TRUE)
+				flags |= GTK_CALENDAR_SHOW_WEEK_NUMBERS;
+			else
+				flags &= ~GTK_CALENDAR_SHOW_WEEK_NUMBERS;
+			ido_calendar_menu_item_set_display_options (self->priv->ido_calendar, flags);
+			self->priv->show_week_numbers = g_value_get_boolean(value);
+		}
+		break;
+	}
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
 		return;
@@ -587,6 +590,9 @@ get_property (GObject * object, guint prop_id, GValue * value, GParamSpec * pspe
 		break;
 	case PROP_CUSTOM_TIME_FORMAT:
 		g_value_set_string(value, self->priv->custom_string);
+		break;
+	case PROP_SHOW_WEEK_NUMBERS:
+		g_value_set_boolean(value, self->priv->show_week_numbers);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -652,7 +658,7 @@ set_label_to_time_in_zone (IndicatorDatetime * self, GtkLabel * label,
 
 	gchar * timestr;
 	if (format == NULL) {
-		gchar * format_for_time = generate_format_string_at_time(self, datetime_now);
+		gchar * format_for_time = generate_format_string_at_time(datetime_now);
 		timestr = g_date_time_format(datetime_now, format_for_time);
 		g_free(format_for_time);
 	}
@@ -996,59 +1002,6 @@ style_changed (GtkWidget * widget, GtkStyle * oldstyle, gpointer data)
 	return;
 }
 
-/* Translate msg according to the locale specified by LC_TIME */
-static char *
-T_(const char *msg)
-{
-	/* General strategy here is to make sure LANGUAGE is empty (since that
-	   trumps all LC_* vars) and then to temporarily swap LC_TIME and
-	   LC_MESSAGES.  Then have gettext translate msg.
-
-	   We strdup the strings because the setlocale & *env functions do not
-	   guarantee anything about the storage used for the string, and thus
-	   the string may not be portably safe after multiple calls.
-
-	   Note that while you might think g_dcgettext would do the trick here,
-	   that actually looks in /usr/share/locale/XX/LC_TIME, not the
-	   LC_MESSAGES directory, so we won't find any translation there.
-	*/
-	char *message_locale = g_strdup(setlocale(LC_MESSAGES, NULL));
-	char *time_locale = g_strdup(setlocale(LC_TIME, NULL));
-	char *language = g_strdup(g_getenv("LANGUAGE"));
-	char *rv;
-	g_unsetenv("LANGUAGE");
-	setlocale(LC_MESSAGES, time_locale);
-
-	/* Get the LC_TIME version */
-	rv = _(msg);
-
-	/* Put everything back the way it was */
-	setlocale(LC_MESSAGES, message_locale);
-	g_setenv("LANGUAGE", language, TRUE);
-	g_free(message_locale);
-	g_free(time_locale);
-	g_free(language);
-	return rv;
-}
-
-/* Check the system locale setting to see if the format is 24-hour
-   time or 12-hour time */
-static gboolean
-is_locale_12h()
-{
-	static const char *formats_24h[] = {"%H", "%R", "%T", "%OH", "%k", NULL};
-	const char *t_fmt = nl_langinfo(T_FMT);
-	int i;
-
-	for (i = 0; formats_24h[i]; ++i) {
-		if (strstr(t_fmt, formats_24h[i])) {
-			return FALSE;
-		}
-	}
-
-	return TRUE;
-}
-
 /* Respond to changes in the screen to update the text gravity */
 static void
 update_text_gravity (GtkWidget *widget, GdkScreen *previous_screen, gpointer data)
@@ -1064,71 +1017,6 @@ update_text_gravity (GtkWidget *widget, GdkScreen *previous_screen, gpointer dat
 	pango_context_set_base_gravity(context, PANGO_GRAVITY_AUTO);
 }
 
-/* Tries to figure out what our format string should be.  Lots
-   of translator comments in here. */
-static gchar *
-generate_format_string_full (IndicatorDatetime * self, gboolean show_day, gboolean show_date)
-{
-	gboolean twelvehour = TRUE;
-
-	if (self->priv->time_mode == SETTINGS_TIME_LOCALE) {
-		twelvehour = is_locale_12h();
-	} else if (self->priv->time_mode == SETTINGS_TIME_24_HOUR) {
-		twelvehour = FALSE;
-	}
-
-	const gchar * time_string = NULL;
-	if (twelvehour) {
-		if (self->priv->show_seconds) {
-			/* TRANSLATORS: A format string for the strftime function for
-			   a clock showing 12-hour time with seconds. */
-			time_string = T_("%l:%M:%S %p");
-		} else {
-			time_string = T_(DEFAULT_TIME_12_FORMAT);
-		}
-	} else {
-		if (self->priv->show_seconds) {
-			/* TRANSLATORS: A format string for the strftime function for
-			   a clock showing 24-hour time with seconds. */
-			time_string = T_("%H:%M:%S");
-		} else {
-			time_string = T_(DEFAULT_TIME_24_FORMAT);
-		}
-	}
-	
-	/* Checkpoint, let's not fail */
-	g_return_val_if_fail(time_string != NULL, g_strdup(DEFAULT_TIME_FORMAT));
-
-	/* If there's no date or day let's just leave now and
-	   not worry about the rest of this code */
-	if (!show_date && !show_day) {
-		return g_strdup(time_string);
-	}
-
-	const gchar * date_string = NULL;
-	if (show_date && show_day) {
-		/* TRANSLATORS:  This is a format string passed to strftime to represent
-		   the day of the week, the month and the day of the month. */
-		date_string = T_("%a %b %e");
-	} else if (show_date) {
-		/* TRANSLATORS:  This is a format string passed to strftime to represent
-		   the month and the day of the month. */
-		date_string = T_("%b %e");
-	} else if (show_day) {
-		/* TRANSLATORS:  This is a format string passed to strftime to represent
-		   the day of the week. */
-		date_string = T_("%a");
-	}
-
-	/* Check point, we should have a date string */
-	g_return_val_if_fail(date_string != NULL, g_strdup(time_string));
-
-	/* TRANSLATORS: This is a format string passed to strftime to combine the
-	   date and the time.  The value of "%s, %s" would result in a string like
-	   this in US English 12-hour time: 'Fri Jul 16, 11:50 AM' */
-	return g_strdup_printf(T_("%s, %s"), date_string, time_string);
-}
-
 static gchar *
 generate_format_string_now (IndicatorDatetime * self)
 {
@@ -1136,72 +1024,21 @@ generate_format_string_now (IndicatorDatetime * self)
 		return g_strdup(self->priv->custom_string);
 	}
 	else {
-		return generate_format_string_full(self,
-		                                   self->priv->show_day,
+		return generate_format_string_full(self->priv->show_day,
 		                                   self->priv->show_date);
 	}
-}
-
-static gchar *
-generate_format_string_at_time (IndicatorDatetime * self, GDateTime * time)
-{
-	/* This is a bit less free-form than for the main "now" time label. */
-	/* If it is today, just the time should be shown (e.g. “3:55 PM”)
-           If it is a different day this week, the day and time should be shown (e.g. “Wed 3:55 PM”)
-           If it is after this week, the day, date, and time should be shown (e.g. “Wed 21 Apr 3:55 PM”). 
-           In addition, when presenting the times of upcoming events, the time should be followed by the timezone if it is different from the one the computer is currently set to. For example, “Wed 3:55 PM UTC−5”. */
-	gboolean show_day = FALSE;
-	gboolean show_date = FALSE;
-
-	GDateTime * now = g_date_time_new_now_local();
-
-	/* First, are we same day? */
-	gint time_year, time_month, time_day;
-	gint now_year, now_month, now_day;
-	g_date_time_get_ymd(time, &time_year, &time_month, &time_day);
-	g_date_time_get_ymd(now, &now_year, &now_month, &now_day);
-
-	if (time_year != now_year ||
-	    time_month != now_month ||
-	    time_day != now_day) {
-		/* OK, different days so we must at least show the day. */
-		show_day = TRUE;
-
-		/* Is it this week? */
-		/* Here, we define "is this week" as yesterday, today, or the next five days */
-		GDateTime * past = g_date_time_add_days(now, -1);
-		GDateTime * future = g_date_time_add_days(now, 5);
-		GDateTime * past_bound = g_date_time_new_local(g_date_time_get_year(past),
-		                                               g_date_time_get_month(past),
-		                                               g_date_time_get_day_of_month(past),
-		                                               0, 0, 0.0);
-		GDateTime * future_bound = g_date_time_new_local(g_date_time_get_year(future),
-		                                                 g_date_time_get_month(future),
-		                                                 g_date_time_get_day_of_month(future),
-		                                                 23, 59, 59.9);
-		if (g_date_time_compare(time, past_bound) < 0 ||
-		    g_date_time_compare(time, future_bound) > 0) {
-			show_date = TRUE;
-		}
-		g_date_time_unref(past);
-		g_date_time_unref(future);
-		g_date_time_unref(past_bound);
-		g_date_time_unref(future_bound);
-	}
-
-	return generate_format_string_full(self, show_day, show_date);
 }
 
 static void
 timezone_update_labels (indicator_item_t * mi_data)
 {
-	const gchar * zone_name = dbusmenu_menuitem_property_get(mi_data->mi, TIMEZONE_MENUITEM_PROP_ZONE);
+	const gchar * zone = dbusmenu_menuitem_property_get(mi_data->mi, TIMEZONE_MENUITEM_PROP_ZONE);
+	const gchar * name = dbusmenu_menuitem_property_get(mi_data->mi, TIMEZONE_MENUITEM_PROP_NAME);
 
-	/* TODO: Make zone name a little more user friendly */
-	gtk_label_set_text(GTK_LABEL(mi_data->label), zone_name);
+	gtk_label_set_text(GTK_LABEL(mi_data->label), name);
 
 	/* Show current time in that zone on the right */
-	GTimeZone * tz = g_time_zone_new(zone_name);
+	GTimeZone * tz = g_time_zone_new(zone);
 	set_label_to_time_in_zone(mi_data->self, GTK_LABEL(mi_data->right), tz, NULL, NULL);
 	g_time_zone_unref(tz);
 }
@@ -1247,8 +1084,19 @@ indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, 
 		}
 	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_ZONE)) {
 		timezone_update_labels(mi_data);
+	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_NAME)) {
+		timezone_update_labels(mi_data);
 	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_RADIO)) {
 		gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(mi_data->gmi), g_variant_get_boolean(value));
+		
+	// Properties for marking and unmarking the calendar
+	
+	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_MARK)) {
+		ido_calendar_menu_item_mark_day (IDO_CALENDAR_MENU_ITEM (mi_data), g_variant_get_int16(value));
+	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_UNMARK)) {
+		ido_calendar_menu_item_unmark_day (IDO_CALENDAR_MENU_ITEM (mi_data), g_variant_get_int16(value));
+	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_CLEAR_MARKS)) {
+		ido_calendar_menu_item_clear_marks (IDO_CALENDAR_MENU_ITEM (mi_data));
 	} else {
 		g_warning("Indicator Item property '%s' unknown", prop);
 	}
@@ -1332,6 +1180,20 @@ new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, Dbu
 	return TRUE;
 }
 
+static void
+month_changed_cb (IdoCalendarMenuItem *ido, 
+                  gpointer        user_data) 
+{
+	gchar datestring[20];
+	guint d,m,y;
+	DbusmenuMenuitem * item = DBUSMENU_MENUITEM (user_data);
+	ido_calendar_menu_item_get_date(ido, &y, &m, &d);
+	g_sprintf(datestring, "%d-%d-%d", y, m, d);
+	GVariant *variant = g_variant_new_string(datestring);
+	guint timestamp = (guint)time(NULL);
+	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(item), "event::month-changed", variant, timestamp);
+	g_debug("Got month changed signal: %s", datestring);
+}
 
 static gboolean
 new_calendar_item (DbusmenuMenuitem * newitem,
@@ -1356,7 +1218,7 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 	self->priv->ido_calendar = ido;
 
 	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(ido), parent);
-
+	g_signal_connect_after(ido, "month-changed", G_CALLBACK(month_changed_cb), (gpointer)newitem);
 	return TRUE;
 }
 
@@ -1370,7 +1232,7 @@ timezone_toggled_cb (GtkCheckMenuItem *checkmenuitem, DbusmenuMenuitem * dbusite
 }
 
 static void
-timezone_destroyed_cb (DbusmenuMenuitem * dbusitem, indicator_item_t * mi_data)
+timezone_destroyed_cb (indicator_item_t * mi_data, DbusmenuMenuitem * dbusitem)
 {
 	IndicatorDatetimePrivate *priv = INDICATOR_DATETIME_GET_PRIVATE(mi_data->self);
 	priv->timezone_items = g_list_remove(priv->timezone_items, mi_data);
@@ -1435,7 +1297,7 @@ new_timezone_item(DbusmenuMenuitem * newitem,
 
 	g_signal_connect(G_OBJECT(mi_data->gmi), "toggled", G_CALLBACK(timezone_toggled_cb), newitem);
 	g_signal_connect(G_OBJECT(newitem), DBUSMENU_MENUITEM_SIGNAL_PROPERTY_CHANGED, G_CALLBACK(indicator_prop_change_cb), mi_data);
-	g_signal_connect(G_OBJECT(newitem), "destroyed", G_CALLBACK(timezone_destroyed_cb), mi_data);
+	g_object_weak_ref(G_OBJECT(newitem), (GWeakNotify)timezone_destroyed_cb, mi_data);
 
 	return TRUE;
 }

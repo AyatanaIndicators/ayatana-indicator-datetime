@@ -1,11 +1,27 @@
-indicator-datetime (0.1.94-0ubuntu1~ppa1) natty; urgency=low
+indicator-datetime (0.1.95-0ubuntu1) natty; urgency=low
 
+  * New upstream release.
+    - New preference dialog
+    - Improved EDS support
+    - Improved timezone support
+  * debian/control:
+    - Update Build-Depends
+
+ -- Michael Terry <mterry@ubuntu.com>  Mon, 28 Feb 2011 08:09:29 -0500
+
+indicator-datetime (0.1.94-0ubuntu1) natty; urgency=low
+
+  [ Ted Gould ]
   * New upstream release.
     ∘ Timezone support
     ∘ Multiple calendar support
     ∘ Accessible description
 
- -- Ted Gould <ted@ubuntu.com>  Thu, 17 Feb 2011 13:09:04 -0600
+  [ Ken VanDine ]
+  * debian/control
+    - Added build depends for libedataserverui1.2-dev 
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Thu, 17 Feb 2011 14:48:41 -0500
 
 indicator-datetime (0.1.93-0ubuntu1) natty; urgency=low
 
