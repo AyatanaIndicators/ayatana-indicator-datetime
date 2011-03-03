@@ -641,8 +641,8 @@ update_appointment_menu_items (gpointer user_data)
 	i = 0;
 	
 	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
-	if (width == 0) width = 16;
-	if (height == 0) height = 16;
+	if (width == 0) width = 12;
+	if (height == 0) height = 12;
 	
 	for (l = sorted_comp_instances; l; l = l->next) {
 		struct comp_instance *ci = l->data;
@@ -742,21 +742,55 @@ update_appointment_menu_items (gpointer user_data)
 		// For now we'll create a circle
         if (color_spec != NULL) {
         	// Fixme causes segfault, but we have colours now yay!
-        	/*GdkColor color;
-        	gdk_color_parse (color_spec, &color);
-        	GdkPixmap *pixmap = gdk_pixmap_new(NULL, width, height, 32);
-        	if (pixmap != NULL) {
-				cairo_t *cr = gdk_cairo_create(pixmap);
-				cairo_arc (cr, width/2, height/2, width/2, 0, 2 * M_PI);
-				gdk_cairo_set_source_color(cr, &color);
-				cairo_fill(cr);
-		
-				GdkPixbuf * pixbuf = gdk_pixbuf_get_from_drawable(NULL, (GdkDrawable*)pixmap, 
-					gdk_colormap_new(gdk_drawable_get_visual((GdkDrawable*)pixmap), TRUE), 0,0,0,0, width, height);
-				cairo_destroy(cr);
+        	GdkColor color;
+        	gdk_color_parse (color_spec, &color);			                                    
+        	cairo_surface_t *surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, width, height ); 
+    		 
+    		cairo_t *cr = cairo_create(surface);
+			gdk_cairo_set_source_color(cr, &color);
+			cairo_paint(cr);
+    		cairo_set_source_rgba(cr, 0,0,0,0.5);
+    		cairo_set_line_width(cr, 1);
+    		cairo_rectangle (cr, 0.5, 0.5, width-1, height-1);
+    		cairo_stroke(cr);
+			// Convert to pixbuf, in gtk3 this is done with gdk_pixbuf_get_from_surface
+			cairo_content_t content = cairo_surface_get_content (surface) | CAIRO_CONTENT_COLOR;
+			GdkPixbuf *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB, 
+			                                    !!(content & CAIRO_CONTENT_ALPHA), 
+			                                    8, width, height);
+			                                    
+    		gint sstride = cairo_image_surface_get_stride( surface ); 
+    		gint dstride = gdk_pixbuf_get_rowstride (pixbuf);
+    		guchar *spixels = cairo_image_surface_get_data( surface );
+    		guchar *dpixels = gdk_pixbuf_get_pixels (pixbuf);
+
+
+  			int x, y;
+  			for (y = 0; y < height; y++) {
+    			guint32 *src = (guint32 *) spixels;
+
+				for (x = 0; x < width; x++) {
+					guint alpha = src[x] >> 24;
+
+					if (alpha == 0) {
+          				dpixels[x * 4 + 0] = 0;
+          				dpixels[x * 4 + 1] = 0;
+          				dpixels[x * 4 + 2] = 0;
+        			} else {
+						dpixels[x * 4 + 0] = (((src[x] & 0xff0000) >> 16) * 255 + alpha / 2) / alpha;
+						dpixels[x * 4 + 1] = (((src[x] & 0x00ff00) >>  8) * 255 + alpha / 2) / alpha;
+						dpixels[x * 4 + 2] = (((src[x] & 0x0000ff) >>  0) * 255 + alpha / 2) / alpha;
+					}
+					dpixels[x * 4 + 3] = alpha;
+				}
+    			spixels += sstride;
+    			dpixels += dstride;
+  			}
+
+			cairo_surface_destroy (surface);
+			cairo_destroy(cr);
 			
-				dbusmenu_menuitem_property_set_image (item, APPOINTMENT_MENUITEM_PROP_ICON, pixbuf);
-			}*/
+			dbusmenu_menuitem_property_set_image (item, APPOINTMENT_MENUITEM_PROP_ICON, pixbuf);
 		}
 		dbusmenu_menuitem_child_add_position (root, item, 2+i);
 		appointments = g_list_append         (appointments, item); // Keep track of the items here to make them east to remove
