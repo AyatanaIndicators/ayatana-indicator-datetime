@@ -605,11 +605,10 @@ update_appointment_menu_items (gpointer user_data)
 				continue;
         	}
 			
-			g_debug("Generating instances");
 			e_cal_generate_instances (ecal, t1, t2, (ECalRecurInstanceFn) populate_appointment_instances, (gpointer) source);
-			g_debug("Number of objects returned: %d", g_list_length(comp_instances));
 		}
 	}
+	g_debug("Number of ECalComponents returned: %d", g_list_length(comp_instances));
 	GList *sorted_comp_instances = g_list_sort(comp_instances, compare_comp_instances);
 	comp_instances = NULL;
 	
@@ -659,13 +658,9 @@ update_appointment_menu_items (gpointer user_data)
 		int year = today->tm_year;
 		
 		struct tm *due;
-		g_debug("Start time %s", ctime(&ci->start));
 		if (vtype == E_CAL_COMPONENT_EVENT) due = localtime(&ci->start);
 		else if (vtype == E_CAL_COMPONENT_TODO) due = localtime(&ci->end);
 		else continue;
-		
-		strftime(right, 20, "%a %l:%M %p", due);
-		g_debug("Start time %s -> %s", asctime(due), right);
 
 		int dmday = due->tm_mday;
 		int dmon = due->tm_mon;
@@ -698,7 +693,7 @@ update_appointment_menu_items (gpointer user_data)
         	// Fixme causes segfault, but we have colours now yay!
         	GdkColor color;
         	gdk_color_parse (color_spec, &color);	
-        	g_debug("Creating a cairo surface of size, %d by %d", width, height);         
+        	g_debug("Creating a cairo surface\n    size, %d by %d", width, height);         
         	cairo_surface_t *surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, width, height ); 
 
     		cairo_t *cr = cairo_create(surface);
@@ -743,7 +738,7 @@ update_appointment_menu_items (gpointer user_data)
 	  			
 				dbusmenu_menuitem_property_set_image (item, APPOINTMENT_MENUITEM_PROP_ICON, pixbuf);
 			} else {
-				g_debug("Creating pixbuf from surface failed, couldn't create new pixbuf for size, %d by %d", width, height);
+				g_debug("Creating pixbuf from surface failed\n    Couldn't create new pixbuf for size, %d by %d", width, height);
 			}
 			cairo_surface_destroy (surface);
 			cairo_destroy(cr);
