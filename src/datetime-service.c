@@ -613,8 +613,8 @@ update_appointment_menu_items (gpointer user_data)
 	comp_instances = NULL;
 	
 	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
-	if (width == 0) width = 12;
-	if (height == 0) height = 12;
+	if (width <= 0) width = 12;
+	if (height <= 0) height = 13;
 	
 	i = 0;
 	for (l = sorted_comp_instances; l; l = l->next) {
