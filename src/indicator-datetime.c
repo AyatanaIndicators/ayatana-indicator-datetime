@@ -1221,7 +1221,14 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 	
 	IdoCalendarMenuItem *ido = IDO_CALENDAR_MENU_ITEM (ido_calendar_menu_item_new ());
 	self->priv->ido_calendar = ido;
-
+	
+	GtkCalendarDisplayOptions flags = ido_calendar_menu_item_get_display_options (self->priv->ido_calendar);
+	if (self->priv->show_week_numbers == TRUE)
+		flags |= GTK_CALENDAR_SHOW_WEEK_NUMBERS;
+	else
+		flags &= ~GTK_CALENDAR_SHOW_WEEK_NUMBERS;
+	ido_calendar_menu_item_set_display_options (self->priv->ido_calendar, flags);
+	
 	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(ido), parent);
 	g_signal_connect_after(ido, "month-changed", G_CALLBACK(month_changed_cb), (gpointer)newitem);
 	return TRUE;
