@@ -279,7 +279,7 @@ activate_cb (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
 static gboolean
 month_changed_cb (DbusmenuMenuitem * menuitem, GVariant *variant, guint timestamp)
 {
-	// BLOCKED: We're not getting the signal from calendar the ido calendar menuitem
+	// BLOCKED: Get string from the variant causes segfault in glib
 	// TODO: * Decode the month/year from the string we received
 	//       * Check what our current month/year are
 	//		 * Set some globals so when we-re-run update appointment menu items it gets the right start date

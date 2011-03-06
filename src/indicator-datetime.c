@@ -1102,6 +1102,9 @@ indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, 
 		ido_calendar_menu_item_unmark_day (IDO_CALENDAR_MENU_ITEM (mi_data), g_variant_get_int16(value));
 	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_CLEAR_MARKS)) {
 		ido_calendar_menu_item_clear_marks (IDO_CALENDAR_MENU_ITEM (mi_data));
+	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_SET_DATE)) {
+		// TODO This needs to be an array of 3 ints
+		//ido_calendar_menu_item_set_date (IDO_CALENDAR_MENU_ITEM (mi_data), );
 	} else {
 		g_warning("Indicator Item property '%s' unknown", prop);
 	}
@@ -1196,8 +1199,40 @@ month_changed_cb (IdoCalendarMenuItem *ido,
 	g_sprintf(datestring, "%d-%d-%d", y, m, d);
 	GVariant *variant = g_variant_new_string(datestring);
 	guint timestamp = (guint)time(NULL);
-	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(item), "event::month-changed", variant, timestamp);
+	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(item), "month-changed", variant, timestamp);
 	g_debug("Got month changed signal: %s", datestring);
+}
+
+static void
+day_selected_cb (IdoCalendarMenuItem *ido,
+				  guint           day,
+                  gpointer        user_data) 
+{
+	gchar datestring[20];
+	guint d,m,y;
+	DbusmenuMenuitem * item = DBUSMENU_MENUITEM (user_data);
+	ido_calendar_menu_item_get_date(ido, &y, &m, &d);
+	g_sprintf(datestring, "%d-%d-%d", y, m, d);
+	GVariant *variant = g_variant_new_string(datestring);
+	guint timestamp = (guint)time(NULL);
+	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(item), "day-selected", variant, timestamp);
+	g_debug("Got day-selected signal: %s", datestring);
+}
+
+static void
+day_selected_double_click_cb (IdoCalendarMenuItem *ido,
+				              guint           day,
+                              gpointer        user_data) 
+{
+	gchar datestring[20];
+	guint d,m,y;
+	DbusmenuMenuitem * item = DBUSMENU_MENUITEM (user_data);
+	ido_calendar_menu_item_get_date(ido, &y, &m, &d);
+	g_sprintf(datestring, "%d-%d-%d", y, m, d);
+	GVariant *variant = g_variant_new_string(datestring);
+	guint timestamp = (guint)time(NULL);
+	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(item), "day-selected-double-click", variant, timestamp);
+	g_debug("Got day-selected-double-click signal: %s", datestring);
 }
 
 static gboolean
@@ -1231,6 +1266,11 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 	
 	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(ido), parent);
 	g_signal_connect_after(ido, "month-changed", G_CALLBACK(month_changed_cb), (gpointer)newitem);
+	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(ido), parent);
+	g_signal_connect_after(ido, "day-selected", G_CALLBACK(day_selected_cb), (gpointer)newitem);
+	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(ido), parent);
+	g_signal_connect_after(ido, "day-selected-double-click", G_CALLBACK(day_selected_double_click_cb), (gpointer)newitem);
+
 	return TRUE;
 }
 
