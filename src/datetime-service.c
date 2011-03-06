@@ -284,7 +284,7 @@ month_changed_cb (DbusmenuMenuitem * menuitem, GVariant *variant, guint timestam
 	//       * Check what our current month/year are
 	//		 * Set some globals so when we-re-run update appointment menu items it gets the right start date
 	//		 * update appointment menu items
-	g_debug("Received month changed : %s", g_variant_get_string(variant, NULL));
+	g_debug("Received month changed : %d", g_variant_get_uint32(variant));
 	return TRUE;
 }
 

@@ -1197,7 +1197,14 @@ month_changed_cb (IdoCalendarMenuItem *ido,
 	DbusmenuMenuitem * item = DBUSMENU_MENUITEM (user_data);
 	ido_calendar_menu_item_get_date(ido, &y, &m, &d);
 	g_sprintf(datestring, "%d-%d-%d", y, m, d);
-	GVariant *variant = g_variant_new_string(datestring);
+	struct tm date;
+	date.tm_mday = d;
+	date.tm_mon = m;
+	date.tm_year = y;
+	date.tm_hour = 0;
+	date.tm_min = 0;
+	guint selecteddate = (guint)mktime(&date);
+	GVariant *variant = g_variant_new_uint32(selecteddate);
 	guint timestamp = (guint)time(NULL);
 	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(item), "month-changed", variant, timestamp);
 	g_debug("Got month changed signal: %s", datestring);
