@@ -279,6 +279,7 @@ activate_cb (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
 static gboolean
 month_changed_cb (DbusmenuMenuitem * menuitem, GVariant *variant, guint timestamp)
 {
+	// BLOCKED: We're not getting the signal from calendar the ido calendar menuitem
 	// TODO: * Decode the month/year from the string we received
 	//       * Check what our current month/year are
 	//		 * Set some globals so when we-re-run update appointment menu items it gets the right start date
@@ -404,8 +405,6 @@ update_timezone_menu_items(gpointer user_data) {
 	
 	gboolean show = g_settings_get_boolean (conf, SETTINGS_SHOW_LOCATIONS_S);
 
-	// TODO: Remove items from the dconflocations at the end of the iteration
-	// Make sure if there are multiple locations, our current location is shown
 	if (len > 0) {
 		dbusmenu_menuitem_property_set_bool (locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
 		dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
@@ -432,7 +431,6 @@ update_timezone_menu_items(gpointer user_data) {
 		}
 	}
 	g_strfreev (locations);
-	// Get the evolution calendar timezone as a place and time and add it
 	return FALSE;
 }
 
@@ -514,43 +512,16 @@ populate_appointment_instances (ECalComponent *comp,
 	
 	// TODO: Convert the timezone into a 3 letter abbreviation if it's different to current_timezone
 	// TODO: Add the appointment timezone to the list if it's not already there. 
-		
-	GSList *period_list = NULL, *l;
-	if (e_cal_component_has_recurrences (comp)) {
-		e_cal_component_get_rdate_list (comp, &period_list);
-		g_debug("ECalComponent has recurrences");
-	} else {
-		g_debug("ECalComponent doesn't have recurrences");
-	}
 	
 	struct comp_instance *ci;
 	ci = g_new (struct comp_instance, 1);
 	
-	// Do we get rdate_list?
-	if (period_list != NULL) {
-		g_debug("Got recurring periods");
-		for (l = period_list; l; l = l->next) {
-			ECalComponentPeriod *period = l->data;
-			struct tm tmp_tm  = icaltimetype_to_tm_with_zone (&period->start, appointment_zone, current_zone);
-			time_t start = mktime(&tmp_tm);
-			g_debug("period time: %d", (int)start);
-		
-			tmp_tm = icaltimetype_to_tm_with_zone (&period->u.end, appointment_zone, current_zone);
-			time_t end = mktime(&tmp_tm);
-		
-			if (start >= instance_start && end < instance_end) {
-				ci->start = start;
-				ci->end = end;
-			}
-		}
-	} else {
-		ci->start = instance_start;
-		ci->end = instance_end;
-		g_debug("Got no recurring periods set time to start %s, end %s", ctime(&instance_start), ctime(&instance_end));
-	}
+	g_debug("Using times start %s, end %s", ctime(&instance_start), ctime(&instance_end));
 	
 	ci->comp = comp;
 	ci->source = E_SOURCE(data);
+	ci->start = instance_start;
+	ci->end = instance_end;
 	
 	comp_instances = g_list_append(comp_instances, ci);
 	return TRUE;
@@ -616,7 +587,7 @@ update_appointment_menu_items (gpointer user_data)
 		}
 	}
 	
-	// iterate the query for all sources
+	// Generate instances for all sources
 	for (g = e_source_list_peek_groups (sources); g; g = g->next) {
 		ESourceGroup *group = E_SOURCE_GROUP (g->data);
 		GSList *s;
@@ -634,23 +605,22 @@ update_appointment_menu_items (gpointer user_data)
 				continue;
         	}
 			
-			g_debug("Generating instances");
 			e_cal_generate_instances (ecal, t1, t2, (ECalRecurInstanceFn) populate_appointment_instances, (gpointer) source);
-			g_debug("Number of objects returned: %d", g_list_length(comp_instances));
 		}
 	}
+	g_debug("Number of ECalComponents returned: %d", g_list_length(comp_instances));
 	GList *sorted_comp_instances = g_list_sort(comp_instances, compare_comp_instances);
 	comp_instances = NULL;
-	i = 0;
 	
 	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
-	if (width == 0) width = 12;
-	if (height == 0) height = 12;
+	if (width <= 0) width = 12;
+	if (height <= 0) height = 13;
+	
+	i = 0;
 	for (l = sorted_comp_instances; l; l = l->next) {
 		struct comp_instance *ci = l->data;
 		ECalComponent *ecalcomp = ci->comp;
 		ECalComponentText valuetext;
-		//ECalComponentDateTime datetime;
 		gchar *summary, *cmd;
 		char right[20];
 		//const gchar *uri;
@@ -675,19 +645,7 @@ update_appointment_menu_items (gpointer user_data)
 		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_LABEL, summary);
 		g_debug("Summary: %s", summary);
 		g_free (summary);
-		
-		//appointment_zone = icaltimezone_get_builtin_timezone_from_tzid(datetime.tzid);
-		//current_zone = icaltimezone_get_builtin_timezone_from_tzid(current_timezone);
-		//if (!appointment_zone || datetime.value->is_date) { // If it's today put in the current timezone?
-		//	appointment_zone = current_zone;
-		//}
-		// FIXME need to get the timezone of the above datetime, 
-		// and get the icaltimezone of the geoclue timezone/selected timezone (whichever is preferred)
-		// TODO: Convert the timezone into a 3 letter abbreviation if it's different to current_timezone
-		// TODO: Add the appointment timezone to the list if it's not already there. 
-		
-		//tmp_tm = icaltimetype_to_tm_with_zone (datetime.value, appointment_zone, current_zone);
-		
+
 		// Due text
 		ECalComponentVType vtype = e_cal_component_get_vtype (ecalcomp);
 		
@@ -700,13 +658,9 @@ update_appointment_menu_items (gpointer user_data)
 		int year = today->tm_year;
 		
 		struct tm *due;
-		g_debug("Start time %s", ctime(&ci->start));
 		if (vtype == E_CAL_COMPONENT_EVENT) due = localtime(&ci->start);
 		else if (vtype == E_CAL_COMPONENT_TODO) due = localtime(&ci->end);
 		else continue;
-		
-		strftime(right, 20, "%a %l:%M %p", due);
-		g_debug("Start time %s -> %s", asctime(due), right);
 
 		int dmday = due->tm_mday;
 		int dmon = due->tm_mon;
@@ -718,14 +672,7 @@ update_appointment_menu_items (gpointer user_data)
 			strftime(right, 20, "%a %l:%M %p", due);
 			
 		g_debug("Appointment time: %s", right);
-		//g_debug("Appointment timezone: %s", datetime.tzid);
-		//g_debug("Appointment timezone: %s", icaltimezone_get_tzid(appointment_zone)); // These two should be the same
-		//g_debug("Calendar timezone: %s", ecal_timezone);
-		
 		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, right);
-		
-		//e_cal_component_free_datetime (&datetime);
-		
 		
 		// Now we pull out the URI for the calendar event and try to create a URI that'll work when we execute evolution
 		// FIXME Because the URI stuff is really broken, we're going to open the calendar at todays date instead
@@ -746,11 +693,9 @@ update_appointment_menu_items (gpointer user_data)
         	// Fixme causes segfault, but we have colours now yay!
         	GdkColor color;
         	gdk_color_parse (color_spec, &color);	
-			                                    
+        	g_debug("Creating a cairo surface\n    size, %d by %d", width, height);         
         	cairo_surface_t *surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, width, height ); 
-			// Width keeps becoming zero!!
-			if (width == 0) width = 12;
-			if (height == 0) height = 12;
+
     		cairo_t *cr = cairo_create(surface);
 			gdk_cairo_set_source_color(cr, &color);
 			cairo_paint(cr);
@@ -760,9 +705,6 @@ update_appointment_menu_items (gpointer user_data)
     		cairo_stroke(cr);
 			// Convert to pixbuf, in gtk3 this is done with gdk_pixbuf_get_from_surface
 			cairo_content_t content = cairo_surface_get_content (surface) | CAIRO_CONTENT_COLOR;
-			// Width keeps becoming zero!!
-			if (width == 0) width = 12;
-			if (height == 0) height = 12;
 			GdkPixbuf *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB, 
 			                                    !!(content & CAIRO_CONTENT_ALPHA), 
 			                                    8, width, height);
@@ -793,12 +735,13 @@ update_appointment_menu_items (gpointer user_data)
 					spixels += sstride;
 					dpixels += dstride;
 	  			}
-
-				cairo_surface_destroy (surface);
-				cairo_destroy(cr);
-			
+	  			
 				dbusmenu_menuitem_property_set_image (item, APPOINTMENT_MENUITEM_PROP_ICON, pixbuf);
+			} else {
+				g_debug("Creating pixbuf from surface failed\n    Couldn't create new pixbuf for size, %d by %d", width, height);
 			}
+			cairo_surface_destroy (surface);
+			cairo_destroy(cr);
 		}
 		dbusmenu_menuitem_child_add_position (root, item, 2+i);
 		appointments = g_list_append         (appointments, item); // Keep track of the items here to make them east to remove
