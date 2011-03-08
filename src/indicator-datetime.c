@@ -1197,7 +1197,7 @@ month_changed_cb (IdoCalendarMenuItem *ido,
 	ido_calendar_menu_item_get_date(ido, &y, &m, &d);
 	struct tm date = {0};
 	date.tm_mday = d;
-	date.tm_mon = m + 1; // Month is always off by one
+	date.tm_mon = m;
 	date.tm_year = y - 1900;
 	guint selecteddate = (guint)mktime(&date);
 	g_debug("Got month changed signal: %s", asctime(&date));

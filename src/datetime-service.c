@@ -283,8 +283,9 @@ month_changed_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, g
 	// BLOCKED: get type, then get type as string from the variant causes segfault in glib
 	// TODO: * Set some globals so when we-re-run update appointment menu items it gets the right start date
 	//		 * update appointment menu items
-	g_debug("Received month changed with timestamp: %d", g_variant_get_uint32(variant));	
 	start_time_appointments = (time_t)g_variant_get_uint32(variant);
+	
+	g_debug("Received month changed with timestamp: %d -> %s",(int)start_time_appointments, ctime(&start_time_appointments));	
 	update_appointment_menu_items(NULL);
 	return TRUE;
 }
@@ -678,7 +679,7 @@ update_appointment_menu_items (gpointer user_data)
 		else
 			strftime(right, 20, "%a %l:%M %p", due);
 			
-		g_debug("Appointment time: %s, for date", right, asctime(&due));
+		g_debug("Appointment time: %s, for date %s", right, asctime(due));
 		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, right);
 		
 		// Now we pull out the URI for the calendar event and try to create a URI that'll work when we execute evolution
