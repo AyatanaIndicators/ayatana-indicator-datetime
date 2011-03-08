@@ -82,7 +82,7 @@ static GList			* appointments = NULL;
 static GList			* dconflocations = NULL;
 static GList			* comp_instances = NULL;
 static gboolean           updating_appointments = FALSE;
-//static time_t			  start_time_appointments = NULL;
+static time_t			  start_time_appointments = (time_t) 0;
 GSettings *conf;
 
 
@@ -278,18 +278,14 @@ activate_cb (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
 }
 
 static gboolean
-month_changed_cb (DbusmenuMenuitem * menuitem, GVariant *variant, guint timestamp)
+month_changed_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, guint timestamp)
 {
 	// BLOCKED: get type, then get type as string from the variant causes segfault in glib
 	// TODO: * Set some globals so when we-re-run update appointment menu items it gets the right start date
 	//		 * update appointment menu items
-	if (g_variant_get_type(variant) != G_VARIANT_TYPE_UINT32)
-		g_debug("Variant type is not uint32");
-	else
-		g_debug("Received month changed with timestamp: %d", g_variant_get_uint32(variant));
-		
-	//start_time_appointments = (time_t)g_variant_get_uint32(variant);
-	//update_appointment_menu_items(NULL);
+	g_debug("Received month changed with timestamp: %d", g_variant_get_uint32(variant));	
+	start_time_appointments = (time_t)g_variant_get_uint32(variant);
+	update_appointment_menu_items(NULL);
 	return TRUE;
 }
 
@@ -542,6 +538,7 @@ update_appointment_menu_items (gpointer user_data)
 {
 	// FFR: we should take into account short term timers, for instance
 	// tea timers, pomodoro timers etc... that people may add, this is hinted to in the spec.
+	g_debug("Update appointments called");
 	if (calendar == NULL) return FALSE;
 	if (!g_settings_get_boolean(conf, SETTINGS_SHOW_EVENTS_S)) return FALSE;
 	if (updating_appointments) return TRUE;
@@ -557,22 +554,12 @@ update_appointment_menu_items (gpointer user_data)
 	gint width, height;
 	ESourceList * sources = NULL;
 	
-	time(&t1);
-	time(&t2);
-	t2 += (time_t) (7 * 24 * 60 * 60); /* 7 days ahead of now, we actually need number_of_days_in_this_month */
+	if (start_time_appointments > 0)
+		t1 = start_time_appointments;
+	else
+		time(&t1);
 
-	/* Remove all of the previous appointments */
-	if (appointments != NULL) {
-		g_debug("Freeing old appointments");
-		while (appointments != NULL) {
-			DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(appointments->data);
-			g_debug("Freeing old appointment: %p", litem);
-			// Remove all the existing menu items which are in appointments.
-			appointments = g_list_remove(appointments, litem);
-			dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(litem));
-			g_object_unref(G_OBJECT(litem));
-		}
-	}
+	t2 = t1 + (time_t) (7 * 24 * 60 * 60); /* 7 days ahead of now, we actually need number_of_days_in_this_month */
 	
 	// TODO Remove all highlights from the calendar widget
 	
@@ -616,11 +603,26 @@ update_appointment_menu_items (gpointer user_data)
 	g_debug("Number of ECalComponents returned: %d", g_list_length(comp_instances));
 	GList *sorted_comp_instances = g_list_sort(comp_instances, compare_comp_instances);
 	comp_instances = NULL;
-	
-	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
+
+	/* Remove all of the previous appointments */
+	if (appointments != NULL) {
+		g_debug("Freeing old appointments");
+		while (appointments != NULL) {
+			DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(appointments->data);
+			g_debug("Freeing old appointment: %p", litem);
+			// Remove all the existing menu items which are in appointments.
+			appointments = g_list_remove(appointments, litem);
+			dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(litem));
+			g_object_unref(G_OBJECT(litem));
+		}
+	}
+
+	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height); 
+	// Sometimes these give negative numbers, sometimes large numbers which look like timestampss
 	if (width <= 0) width = 12;
-	if (height <= 0) height = 13;
-	
+	if (height <= 0) height = 12;
+	if (width > 30) width = 12;
+	if (height > 30) height = 12;
 	i = 0;
 	for (l = sorted_comp_instances; l; l = l->next) {
 		struct comp_instance *ci = l->data;
@@ -676,7 +678,7 @@ update_appointment_menu_items (gpointer user_data)
 		else
 			strftime(right, 20, "%a %l:%M %p", due);
 			
-		g_debug("Appointment time: %s", right);
+		g_debug("Appointment time: %s, for date", right, asctime(&due));
 		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, right);
 		
 		// Now we pull out the URI for the calendar event and try to create a URI that'll work when we execute evolution
