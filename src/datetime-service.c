@@ -624,6 +624,17 @@ update_appointment_menu_items (gpointer user_data)
 	if (height <= 0) height = 12;
 	if (width > 30) width = 12;
 	if (height > 30) height = 12;
+	
+	gchar *time_format_str = g_settings_get_string(conf, SETTINGS_TIME_FORMAT_S);
+	gint apt_output;
+	if (g_strcmp0(time_format_str, "12-hour") == 0) {
+		apt_output = SETTINGS_TIME_12_HOUR;
+	} else if (g_strcmp0(time_format_str, "24-hour") == 0) {
+		apt_output = SETTINGS_TIME_24_HOUR;
+	} else {
+		apt_output = SETTINGS_TIME_LOCALE;
+	}
+	
 	i = 0;
 	for (l = sorted_comp_instances; l; l = l->next) {
 		struct comp_instance *ci = l->data;
@@ -674,11 +685,23 @@ update_appointment_menu_items (gpointer user_data)
 		int dmon = due->tm_mon;
 		int dyear = due->tm_year;
 		
-		if ((mday == dmday) && (mon == dmon) && (year == dyear))
-			strftime(right, 20, "%l:%M %p", due);
-		else
-			strftime(right, 20, "%a %l:%M %p", due);
-			
+		if (apt_output == SETTINGS_TIME_12_HOUR) {
+			if ((mday == dmday) && (mon == dmon) && (year == dyear))
+				strftime(right, 20, DEFAULT_TIME_12_FORMAT, due);
+			else
+				strftime(right, 20, DEFAULT_TIME_12_FORMAT_WITH_DAY, due);
+		} else if (apt_output == SETTINGS_TIME_24_HOUR) {
+			if ((mday == dmday) && (mon == dmon) && (year == dyear))
+				strftime(right, 20, DEFAULT_TIME_24_FORMAT, due);
+			else
+				strftime(right, 20, DEFAULT_TIME_24_FORMAT_WITH_DAY, due);
+		} else {
+			if ((mday == dmday) && (mon == dmon) && (year == dyear))
+				strftime(right, 20, DEFAULT_TIME_FORMAT, due);
+			else
+				strftime(right, 20, DEFAULT_TIME_FORMAT_WITH_DAY, due);
+		}
+		
 		g_debug("Appointment time: %s, for date %s", right, asctime(due));
 		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, right);
 		
