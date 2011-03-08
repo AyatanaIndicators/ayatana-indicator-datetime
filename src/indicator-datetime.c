@@ -1192,24 +1192,21 @@ static void
 month_changed_cb (IdoCalendarMenuItem *ido, 
                   gpointer        user_data) 
 {
-	gchar datestring[20];
 	guint d,m,y;
 	DbusmenuMenuitem * item = DBUSMENU_MENUITEM (user_data);
 	ido_calendar_menu_item_get_date(ido, &y, &m, &d);
-	g_sprintf(datestring, "%d-%d-%d", y, m, d);
-	struct tm date;
+	struct tm date = {0};
 	date.tm_mday = d;
-	date.tm_mon = m;
-	date.tm_year = y;
-	date.tm_hour = 0;
-	date.tm_min = 0;
+	date.tm_mon = m + 1; // Month is always off by one
+	date.tm_year = y - 1900;
 	guint selecteddate = (guint)mktime(&date);
+	g_debug("Got month changed signal: %s", asctime(&date));
+	g_debug("Selected date %d from %d-%d-%d", selecteddate, d, m, y);
 	GVariant *variant = g_variant_new_uint32(selecteddate);
 	guint timestamp = (guint)time(NULL);
 	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(item), "month-changed", variant, timestamp);
-	g_debug("Got month changed signal: %s", datestring);
 }
-
+/* The following needs ido changes to be merged
 static void
 day_selected_cb (IdoCalendarMenuItem *ido,
 				  guint           day,
@@ -1241,7 +1238,7 @@ day_selected_double_click_cb (IdoCalendarMenuItem *ido,
 	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(item), "day-selected-double-click", variant, timestamp);
 	g_debug("Got day-selected-double-click signal: %s", datestring);
 }
-
+*/
 static gboolean
 new_calendar_item (DbusmenuMenuitem * newitem,
 				   DbusmenuMenuitem * parent,
@@ -1274,9 +1271,9 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(ido), parent);
 	g_signal_connect_after(ido, "month-changed", G_CALLBACK(month_changed_cb), (gpointer)newitem);
 	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(ido), parent);
-	g_signal_connect_after(ido, "day-selected", G_CALLBACK(day_selected_cb), (gpointer)newitem);
+	/*g_signal_connect_after(ido, "day-selected", G_CALLBACK(day_selected_cb), (gpointer)newitem);
 	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(ido), parent);
-	g_signal_connect_after(ido, "day-selected-double-click", G_CALLBACK(day_selected_double_click_cb), (gpointer)newitem);
+	g_signal_connect_after(ido, "day-selected-double-click", G_CALLBACK(day_selected_double_click_cb), (gpointer)newitem);*/
 
 	return TRUE;
 }

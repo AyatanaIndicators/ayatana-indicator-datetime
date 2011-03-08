@@ -82,6 +82,7 @@ static GList			* appointments = NULL;
 static GList			* dconflocations = NULL;
 static GList			* comp_instances = NULL;
 static gboolean           updating_appointments = FALSE;
+//static time_t			  start_time_appointments = NULL;
 GSettings *conf;
 
 
@@ -279,12 +280,16 @@ activate_cb (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
 static gboolean
 month_changed_cb (DbusmenuMenuitem * menuitem, GVariant *variant, guint timestamp)
 {
-	// BLOCKED: Get string from the variant causes segfault in glib
-	// TODO: * Decode the month/year from the string we received
-	//       * Check what our current month/year are
-	//		 * Set some globals so when we-re-run update appointment menu items it gets the right start date
+	// BLOCKED: get type, then get type as string from the variant causes segfault in glib
+	// TODO: * Set some globals so when we-re-run update appointment menu items it gets the right start date
 	//		 * update appointment menu items
-	g_debug("Received month changed : %d", g_variant_get_uint32(variant));
+	if (g_variant_get_type(variant) != G_VARIANT_TYPE_UINT32)
+		g_debug("Variant type is not uint32");
+	else
+		g_debug("Received month changed with timestamp: %d", g_variant_get_uint32(variant));
+		
+	//start_time_appointments = (time_t)g_variant_get_uint32(variant);
+	//update_appointment_menu_items(NULL);
 	return TRUE;
 }
 
