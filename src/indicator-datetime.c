@@ -76,6 +76,7 @@ struct _IndicatorDatetimePrivate {
 
 	gchar * time_string;
 
+	gboolean show_clock;
 	gint time_mode;
 	gboolean show_seconds;
 	gboolean show_date;
@@ -105,6 +106,7 @@ struct _IndicatorDatetimePrivate {
    found and looked up. */
 enum {
 	PROP_0,
+	PROP_SHOW_CLOCK,
 	PROP_TIME_FORMAT,
 	PROP_SHOW_SECONDS,
 	PROP_SHOW_DAY,
@@ -123,6 +125,7 @@ struct _indicator_item_t {
 	GtkWidget * right;
 };
 
+#define PROP_SHOW_CLOCK_S               "show-clock"
 #define PROP_TIME_FORMAT_S              "time-format"
 #define PROP_SHOW_SECONDS_S             "show-seconds"
 #define PROP_SHOW_DAY_S                 "show-day"
@@ -196,6 +199,13 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 	io_class->get_accessible_desc = get_accessible_desc;
 
 	g_object_class_install_property (object_class,
+	                                 PROP_SHOW_CLOCK,
+	                                 g_param_spec_boolean(PROP_SHOW_CLOCK_S,
+	                                                      "Whether to show the clock in the menu bar.",
+	                                                      "Shows indicator-datetime in the shell's menu bar.",
+	                                                      TRUE, /* default */
+	                                                      G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (object_class,
 	                                 PROP_TIME_FORMAT,
 	                                 g_param_spec_int(PROP_TIME_FORMAT_S,
 	                                                  "A choice of which format should be used on the panel",
@@ -254,6 +264,7 @@ indicator_datetime_init (IndicatorDatetime *self)
 	self->priv->idle_measure = 0;
 	self->priv->max_width = 0;
 
+	self->priv->show_clock = TRUE;
 	self->priv->time_mode = SETTINGS_TIME_LOCALE;
 	self->priv->show_seconds = FALSE;
 	self->priv->show_date = FALSE;
@@ -270,6 +281,11 @@ indicator_datetime_init (IndicatorDatetime *self)
 
 	self->priv->settings = g_settings_new(SETTINGS_INTERFACE);
 	if (self->priv->settings != NULL) {
+		g_settings_bind(self->priv->settings,
+		                SETTINGS_SHOW_CLOCK_S,
+		                self,
+		                PROP_SHOW_CLOCK_S,
+		                G_SETTINGS_BIND_DEFAULT);
 		g_settings_bind_with_mapping(self->priv->settings,
 		                SETTINGS_TIME_FORMAT_S,
 		                self,
@@ -478,6 +494,13 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 	gboolean update = FALSE;
 
 	switch(prop_id) {
+	case PROP_SHOW_CLOCK: {
+		if (g_value_get_boolean(value) != self->priv->show_clock) {
+			self->priv->show_clock = g_value_get_boolean(value);
+			gtk_widget_set_visible (GTK_WIDGET (self->priv->label), self->priv->show_clock);
+		}
+		break;
+	}
 	case PROP_TIME_FORMAT: {
 		gint newval = g_value_get_int(value);
 		if (newval != self->priv->time_mode) {
@@ -581,6 +604,9 @@ get_property (GObject * object, guint prop_id, GValue * value, GParamSpec * pspe
 	IndicatorDatetime * self = INDICATOR_DATETIME(object);
 
 	switch(prop_id) {
+	case PROP_SHOW_CLOCK:
+		g_value_set_boolean(value, self->priv->show_clock);
+		break;
 	case PROP_TIME_FORMAT:
 		g_value_set_int(value, self->priv->time_mode);
 		break;
@@ -1330,7 +1356,7 @@ get_label (IndicatorObject * io)
 		g_signal_connect(G_OBJECT(self->priv->label), "screen-changed", G_CALLBACK(update_text_gravity), self);
 		guess_label_size(self);
 		update_label(self, NULL);
-		gtk_widget_show(GTK_WIDGET(self->priv->label));
+		gtk_widget_set_visible(GTK_WIDGET (self->priv->label), self->priv->show_clock);
 	}
 
 	if (self->priv->timer == 0) {
