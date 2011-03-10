@@ -84,6 +84,7 @@ struct _IndicatorDatetimePrivate {
 	gboolean custom_show_seconds;
 
 	gboolean show_week_numbers;
+	gboolean show_calendar;
 	gint week_start;
 	
 	guint idle_measure;
@@ -110,7 +111,8 @@ enum {
 	PROP_SHOW_DAY,
 	PROP_SHOW_DATE,
 	PROP_CUSTOM_TIME_FORMAT,
-	PROP_SHOW_WEEK_NUMBERS
+	PROP_SHOW_WEEK_NUMBERS,
+	PROP_SHOW_CALENDAR
 };
 
 typedef struct _indicator_item_t indicator_item_t;
@@ -129,6 +131,7 @@ struct _indicator_item_t {
 #define PROP_SHOW_DATE_S                "show-date"
 #define PROP_CUSTOM_TIME_FORMAT_S       "custom-time-format"
 #define PROP_SHOW_WEEK_NUMBERS_S        "show-week-numbers"
+#define PROP_SHOW_CALENDAR_S            "show-calendar"
 
 #define INDICATOR_DATETIME_GET_PRIVATE(o) \
 (G_TYPE_INSTANCE_GET_PRIVATE ((o), INDICATOR_DATETIME_TYPE, IndicatorDatetimePrivate))
@@ -240,6 +243,13 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 	                                                      "Shows the week numbers in the monthly calendar in indicator-datetime's menu.",
 	                                                      FALSE, /* default */
 	                                                      G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (object_class,
+	                                 PROP_SHOW_CALENDAR,
+	                                 g_param_spec_boolean(PROP_SHOW_CALENDAR_S,
+	                                                      "Whether to show the calendar.",
+	                                                      "Shows the monthly calendar in indicator-datetime's menu.",
+	                                                      TRUE, /* default */
+	                                                      G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 	return;
 }
 
@@ -302,6 +312,11 @@ indicator_datetime_init (IndicatorDatetime *self)
 		                SETTINGS_SHOW_WEEK_NUMBERS_S,
 		                self,
 		                PROP_SHOW_WEEK_NUMBERS_S,
+		                G_SETTINGS_BIND_DEFAULT);
+		g_settings_bind(self->priv->settings,
+		                SETTINGS_SHOW_CALENDAR_S,
+		                self,
+		                PROP_SHOW_CALENDAR_S,
 		                G_SETTINGS_BIND_DEFAULT);
 	} else {
 		g_warning("Unable to get settings for '" SETTINGS_INTERFACE "'");
@@ -541,6 +556,13 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 		}
 		break;
 	}
+	case PROP_SHOW_CALENDAR: {
+		if (g_value_get_boolean(value) != self->priv->show_calendar) {
+			self->priv->show_calendar = g_value_get_boolean(value);
+			gtk_widget_set_visible (GTK_WIDGET (self->priv->ido_calendar), self->priv->show_calendar);
+		}
+		break;
+	}
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
 		return;
@@ -598,6 +620,9 @@ get_property (GObject * object, guint prop_id, GValue * value, GParamSpec * pspe
 		break;
 	case PROP_SHOW_WEEK_NUMBERS:
 		g_value_set_boolean(value, self->priv->show_week_numbers);
+		break;
+	case PROP_SHOW_CALENDAR:
+		g_value_set_boolean(value, self->priv->show_calendar);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -1228,7 +1253,9 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 	else
 		flags &= ~GTK_CALENDAR_SHOW_WEEK_NUMBERS;
 	ido_calendar_menu_item_set_display_options (self->priv->ido_calendar, flags);
-	
+
+	gtk_widget_set_visible (GTK_WIDGET (self->priv->ido_calendar), self->priv->show_calendar);
+
 	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(ido), parent);
 	g_signal_connect_after(ido, "month-changed", G_CALLBACK(month_changed_cb), (gpointer)newitem);
 	return TRUE;
