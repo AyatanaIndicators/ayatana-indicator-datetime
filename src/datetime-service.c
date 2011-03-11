@@ -336,8 +336,6 @@ static gboolean
 check_for_calendar (gpointer user_data)
 {
 	g_return_val_if_fail (calendar != NULL, FALSE);
-	
-	if (!g_settings_get_boolean(conf, SETTINGS_SHOW_CALENDAR_S)) return FALSE;
 
 	gchar *evo = g_find_program_in_path("evolution");
 	if (evo != NULL) {
