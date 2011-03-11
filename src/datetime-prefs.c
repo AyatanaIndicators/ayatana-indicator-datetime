@@ -35,6 +35,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <unique/unique.h>
 #include <polkitgtk/polkitgtk.h>
 
+#include "dbus-shared.h"
 #include "settings-shared.h"
 #include "utils.h"
 #include "datetime-prefs-locations.h"
@@ -225,7 +226,8 @@ tz_query_answered (GObject *object, GAsyncResult *res, gpointer user_data)
   g_variant_unref (answers);
 }
 
-void proxy_ready (GObject *object, GAsyncResult *res, gpointer user_data)
+static void
+proxy_ready (GObject *object, GAsyncResult *res, gpointer user_data)
 {
   GError * error = NULL;
 
@@ -242,6 +244,35 @@ void proxy_ready (GObject *object, GAsyncResult *res, gpointer user_data)
                      NULL, ntp_query_answered, auto_radio);
   g_dbus_proxy_call (proxy, "GetTimezone", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
                      NULL, tz_query_answered, NULL);
+}
+
+static void
+service_name_owner_changed (GDBusProxy * proxy, GParamSpec *pspec, gpointer user_data)
+{
+  GtkWidget * widget = GTK_WIDGET (user_data);
+  gchar * owner = g_dbus_proxy_get_name_owner (proxy);
+
+  gtk_widget_set_sensitive (widget, (owner != NULL));
+
+  g_free (owner);
+}
+
+static void
+service_proxy_ready (GObject *object, GAsyncResult *res, gpointer user_data)
+{
+  GError * error = NULL;
+
+  proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
+
+  if (error != NULL) {
+    g_critical("Could not grab DBus proxy for indicator-datetime-service: %s", error->message);
+    g_error_free(error);
+    return;
+  }
+
+  /* And now, do initial proxy configuration */
+  g_signal_connect (proxy, "notify::g-name-owner", G_CALLBACK (service_name_owner_changed), user_data);
+  service_name_owner_changed (proxy, NULL, user_data);
 }
 
 static gboolean
@@ -634,6 +665,15 @@ create_dialog (void)
                             "org.gnome.SettingsDaemon.DateTimeMechanism",
                             NULL, proxy_ready, NULL);
 
+  /* Grab proxy for datetime service, to see if it's running.  It would
+     actually be more ideal to see if the indicator module itself is running,
+     but that doesn't yet claim a name on the bus.  Presumably the service
+     would have been started by any such indicator, so this will at least tell
+     us if there *was* a datetime module run this session. */
+  g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION, G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START, NULL,
+                            SERVICE_NAME, SERVICE_OBJ, SERVICE_IFACE,
+                            NULL, service_proxy_ready, WIG ("showClockCheck"));
+
 #undef WIG
 
   g_object_unref (conf);
@@ -678,7 +718,6 @@ main (int argc, char ** argv)
     unique_app_watch_window (app, GTK_WINDOW (dlg));
 
     gtk_widget_show_all (dlg);
-    g_signal_connect (dlg, "response", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect (dlg, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     gtk_main ();
   }

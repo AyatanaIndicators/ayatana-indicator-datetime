@@ -12,9 +12,15 @@ dbus_services_DATA = indicator-datetime.service
 
 pkgdata_DATA = datetime-dialog.ui
 
+@INTLTOOL_DESKTOP_RULE@
+desktopdir = $(datadir)/applications
+desktop_DATA = indicator-datetime-preferences.desktop
+
 EXTRA_DIST = \
 	$(gsettings_SCHEMAS) \
 	datetime-dialog.ui \
+	indicator-datetime-preferences.desktop \
+	indicator-datetime-preferences.desktop.in \
 	indicator-datetime.service.in
 
-CLEANFILES = indicator-datetime.service
+CLEANFILES = indicator-datetime-preferences.desktop indicator-datetime.service

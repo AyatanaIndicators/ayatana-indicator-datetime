@@ -1,3 +1,12 @@
+indicator-datetime (0.1.97-0ubuntu1~ppa1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    * Fix handling of reoccruing events
+    * Handle settings in the indicator
+    * Allow for hiding the calendar and the clock
+
+ -- Ted Gould <ted@ubuntu.com>  Thu, 10 Mar 2011 23:10:55 -0600
+
 indicator-datetime (0.1.96-0ubuntu1) natty; urgency=low
 
   [ Ted Gould ]

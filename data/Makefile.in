@@ -76,8 +76,8 @@ am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 am__installdirs = "$(DESTDIR)$(dbus_servicesdir)" \
-	"$(DESTDIR)$(pkgdatadir)"
-DATA = $(dbus_services_DATA) $(pkgdata_DATA)
+	"$(DESTDIR)$(desktopdir)" "$(DESTDIR)$(pkgdatadir)"
+DATA = $(dbus_services_DATA) $(desktop_DATA) $(pkgdata_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALL_LINGUAS = @ALL_LINGUAS@
@@ -242,12 +242,16 @@ gsettings_SCHEMAS = \
 dbus_servicesdir = $(DBUSSERVICEDIR)
 dbus_services_DATA = indicator-datetime.service
 pkgdata_DATA = datetime-dialog.ui
+desktopdir = $(datadir)/applications
+desktop_DATA = indicator-datetime-preferences.desktop
 EXTRA_DIST = \
 	$(gsettings_SCHEMAS) \
 	datetime-dialog.ui \
+	indicator-datetime-preferences.desktop \
+	indicator-datetime-preferences.desktop.in \
 	indicator-datetime.service.in
 
-CLEANFILES = indicator-datetime.service
+CLEANFILES = indicator-datetime-preferences.desktop indicator-datetime.service
 all: all-am
 
 .SUFFIXES:
@@ -307,6 +311,26 @@ uninstall-dbus_servicesDATA:
 	test -n "$$files" || exit 0; \
 	echo " ( cd '$(DESTDIR)$(dbus_servicesdir)' && rm -f" $$files ")"; \
 	cd "$(DESTDIR)$(dbus_servicesdir)" && rm -f $$files
+install-desktopDATA: $(desktop_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(desktopdir)" || $(MKDIR_P) "$(DESTDIR)$(desktopdir)"
+	@list='$(desktop_DATA)'; test -n "$(desktopdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(desktopdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(desktopdir)" || exit $$?; \
+	done
+
+uninstall-desktopDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(desktop_DATA)'; test -n "$(desktopdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(desktopdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(desktopdir)" && rm -f $$files
 install-pkgdataDATA: $(pkgdata_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(pkgdatadir)" || $(MKDIR_P) "$(DESTDIR)$(pkgdatadir)"
@@ -368,7 +392,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(dbus_servicesdir)" "$(DESTDIR)$(pkgdatadir)"; do \
+	for dir in "$(DESTDIR)$(dbus_servicesdir)" "$(DESTDIR)$(desktopdir)" "$(DESTDIR)$(pkgdatadir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -417,7 +441,8 @@ info: info-am
 
 info-am:
 
-install-data-am: install-dbus_servicesDATA install-pkgdataDATA
+install-data-am: install-dbus_servicesDATA install-desktopDATA \
+	install-pkgdataDATA
 
 install-dvi: install-dvi-am
 
@@ -461,7 +486,8 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-dbus_servicesDATA uninstall-pkgdataDATA
+uninstall-am: uninstall-dbus_servicesDATA uninstall-desktopDATA \
+	uninstall-pkgdataDATA
 
 .MAKE: install-am install-strip
 
@@ -469,19 +495,22 @@ uninstall-am: uninstall-dbus_servicesDATA uninstall-pkgdataDATA
 	distclean distclean-generic distclean-libtool distdir dvi \
 	dvi-am html html-am info info-am install install-am \
 	install-data install-data-am install-dbus_servicesDATA \
-	install-dvi install-dvi-am install-exec install-exec-am \
-	install-html install-html-am install-info install-info-am \
-	install-man install-pdf install-pdf-am install-pkgdataDATA \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
+	install-desktopDATA install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-pdf install-pdf-am \
+	install-pkgdataDATA install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
-	uninstall-dbus_servicesDATA uninstall-pkgdataDATA
+	uninstall-dbus_servicesDATA uninstall-desktopDATA \
+	uninstall-pkgdataDATA
 
 @GSETTINGS_RULES@
 
 %.service: %.service.in
 	sed -e "s|\@libexecdir\@|$(libexecdir)|" $< > $@
+
+@INTLTOOL_DESKTOP_RULE@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
