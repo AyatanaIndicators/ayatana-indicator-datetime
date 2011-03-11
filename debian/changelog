@@ -1,11 +1,15 @@
-indicator-datetime (0.1.96-0ubuntu1~ppa1) natty; urgency=low
+indicator-datetime (0.1.96-0ubuntu1) natty; urgency=low
 
+  [ Ted Gould ]
   * New upstream release.
-    * Perference UI cleanups
+    * Preference UI cleanups
     * Fix color rendering for appointments
     * Fix spin buttons to behave properly
 
- -- Ted Gould <ted@ubuntu.com>  Thu, 03 Mar 2011 14:54:15 -0600
+  [ Ken VanDine ]
+  * Better handling of recurring events (LP: #726603)
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Thu, 03 Mar 2011 16:38:01 -0500
 
 indicator-datetime (0.1.95-0ubuntu1) natty; urgency=low
 
