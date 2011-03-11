@@ -35,6 +35,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <unique/unique.h>
 #include <polkitgtk/polkitgtk.h>
 
+#include "dbus-shared.h"
 #include "settings-shared.h"
 #include "utils.h"
 #include "datetime-prefs-locations.h"
@@ -670,9 +671,7 @@ create_dialog (void)
      would have been started by any such indicator, so this will at least tell
      us if there *was* a datetime module run this session. */
   g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION, G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START, NULL,
-                            "com.canonical.indicator.datetime",
-                            "/com/canonical/indicator/datetime/service",                            
-                            "com.canonical.indicator.datetime.service",
+                            SERVICE_NAME, SERVICE_OBJ, SERVICE_IFACE,
                             NULL, service_proxy_ready, WIG ("showClockCheck"));
 
 #undef WIG
