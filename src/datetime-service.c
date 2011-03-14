@@ -548,7 +548,6 @@ update_appointment_menu_items (gpointer user_data)
 	time_t t1, t2;
 	gchar *ad;
 	GList *l;
-	//GList *allobjects = NULL;
 	GSList *g;
 	GError *gerror = NULL;
 	gint i;
@@ -560,7 +559,11 @@ update_appointment_menu_items (gpointer user_data)
 	else
 		time(&t1);
 
-	t2 = t1 + (time_t) (7 * 24 * 60 * 60); /* 7 days ahead of now, we actually need number_of_days_in_this_month */
+	/* TODO: 7 days ahead of now, we actually need number_of_days_in_this_month 
+	 *       so we call "mark-day" for all remaining days in this month
+	 * N.B. Ideally we want any/all dates which are later than today to be marked.
+	 */
+	t2 = t1 + (time_t) (7 * 24 * 60 * 60); 
 	
 	// TODO Remove all highlights from the calendar widget
 	
@@ -619,7 +622,8 @@ update_appointment_menu_items (gpointer user_data)
 	}
 
 	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height); 
-	// Sometimes these give negative numbers, sometimes large numbers which look like timestampss
+	// Sometimes these give negative numbers, sometimes large numbers which look like timestamps
+	// is there a buffer overwrite causing it?
 	if (width <= 0) width = 12;
 	if (height <= 0) height = 12;
 	if (width > 30) width = 12;
