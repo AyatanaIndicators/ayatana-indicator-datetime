@@ -34,6 +34,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CALENDAR_MENUITEM_PROP_MARK        "calendar-mark"
 #define CALENDAR_MENUITEM_PROP_UNMARK      "calendar-unmark"
 #define CALENDAR_MENUITEM_PROP_CLEAR_MARKS "calendar-clear-marks"
+#define CALENDAR_MENUITEM_PROP_SET_DATE    "calendar-set-date"
 
 
 #define APPOINTMENT_MENUITEM_TYPE          "appointment-item"	
