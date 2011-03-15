@@ -551,7 +551,7 @@ update_appointment_menu_items (gpointer user_data)
 	GSList *g;
 	GError *gerror = NULL;
 	gint i;
-	gint width, height;
+	gint width = 0, height = 0;
 	ESourceList * sources = NULL;
 	
 	if (start_time_appointments > 0)
@@ -621,9 +621,7 @@ update_appointment_menu_items (gpointer user_data)
 		}
 	}
 
-	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height); 
-	// Sometimes these give negative numbers, sometimes large numbers which look like timestamps
-	// is there a buffer overwrite causing it?
+	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
 	if (width <= 0) width = 12;
 	if (height <= 0) height = 12;
 	if (width > 30) width = 12;
