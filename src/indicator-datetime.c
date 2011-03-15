@@ -1154,9 +1154,9 @@ indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, 
 	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_CLEAR_MARKS)) {
 		ido_calendar_menu_item_clear_marks (IDO_CALENDAR_MENU_ITEM (mi_data));
 	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_SET_DATE)) {
-		gint *array = g_variant_get_fixed_array(value, 3, sizeof(gint));
+		// const gint * array = g_variant_get_fixed_array(value, NULL, sizeof(gint));
 		// TODO: Needs ido branch merged - lp:~karl-qdh/ido/select-activate-set-date
-		//ido_calendar_menu_item_set_date (IDO_CALENDAR_MENU_ITEM (mi_data), array[0], array[1], array[2]);
+		// ido_calendar_menu_item_set_date (IDO_CALENDAR_MENU_ITEM (mi_data), array[0], array[1], array[2]);
 	} else {
 		g_warning("Indicator Item property '%s' unknown", prop);
 	}
