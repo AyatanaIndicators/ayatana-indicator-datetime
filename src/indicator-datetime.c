@@ -813,7 +813,7 @@ setup_timer (IndicatorDatetime * self, GDateTime * datetime)
 	
 	if (self->priv->show_seconds ||
 		(self->priv->time_mode == SETTINGS_TIME_CUSTOM && self->priv->custom_show_seconds)) {
-		self->priv->timer = g_timeout_add_seconds(1, timer_func, self);
+		self->priv->timer = g_timeout_add_full(G_PRIORITY_HIGH, 865, timer_func, self, NULL);
 	} else {
 		if (datetime == NULL) {
 			datetime = g_date_time_new_now_local();
@@ -1154,9 +1154,9 @@ indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, 
 	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_CLEAR_MARKS)) {
 		ido_calendar_menu_item_clear_marks (IDO_CALENDAR_MENU_ITEM (mi_data));
 	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_SET_DATE)) {
-		// const gint * array = g_variant_get_fixed_array(value, NULL, sizeof(gint));
-		// TODO: Needs ido branch merged - lp:~karl-qdh/ido/select-activate-set-date
-		// ido_calendar_menu_item_set_date (IDO_CALENDAR_MENU_ITEM (mi_data), array[0], array[1], array[2]);
+		gsize size = 3;
+		const gint * array = g_variant_get_fixed_array(value, &size, sizeof(gint));
+		ido_calendar_menu_item_set_date (IDO_CALENDAR_MENU_ITEM (mi_data), array[0], array[1], array[2]);
 	} else {
 		g_warning("Indicator Item property '%s' unknown", prop);
 	}
@@ -1257,13 +1257,10 @@ month_changed_cb (IdoCalendarMenuItem *ido,
 	guint timestamp = (guint)time(NULL);
 	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(item), "month-changed", variant, timestamp);
 }
-
-// TODO: Needs ido branch merged - lp:~karl-qdh/ido/select-activate-set-date
-/*	
+	
 static void
 day_selected_cb (IdoCalendarMenuItem *ido,
-				  guint           day,
-                  gpointer        user_data) 
+                 gpointer        user_data) 
 {
 	guint d,m,y;
 	DbusmenuMenuitem * item = DBUSMENU_MENUITEM (user_data);
@@ -1281,7 +1278,6 @@ day_selected_cb (IdoCalendarMenuItem *ido,
 
 static void
 day_selected_double_click_cb (IdoCalendarMenuItem *ido,
-				              guint           day,
                               gpointer        user_data) 
 {
 	guint d,m,y;
@@ -1297,8 +1293,6 @@ day_selected_double_click_cb (IdoCalendarMenuItem *ido,
 	guint timestamp = (guint)time(NULL);
 	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(item), "day-selected-double-click", variant, timestamp);
 }
-*/
-
 
 static gboolean
 new_calendar_item (DbusmenuMenuitem * newitem,
@@ -1333,10 +1327,8 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 
 	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(ido), parent);
 	g_signal_connect_after(ido, "month-changed", G_CALLBACK(month_changed_cb), (gpointer)newitem);
-	
-	// TODO: Needs ido branch merged - lp:~karl-qdh/ido/select-activate-set-date
-	/*g_signal_connect_after(ido, "day-selected", G_CALLBACK(day_selected_cb), (gpointer)newitem);
-	g_signal_connect_after(ido, "day-selected-double-click", G_CALLBACK(day_selected_double_click_cb), (gpointer)newitem);*/
+	g_signal_connect_after(ido, "day-selected", G_CALLBACK(day_selected_cb), (gpointer)newitem);
+	g_signal_connect_after(ido, "day-selected-double-click", G_CALLBACK(day_selected_double_click_cb), (gpointer)newitem);
 
 	return TRUE;
 }
