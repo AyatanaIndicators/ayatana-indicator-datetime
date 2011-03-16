@@ -47,8 +47,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libical/icaltime.h>
 #include <cairo/cairo.h>
 
-#include <oobs/oobs-timeconfig.h>
-
 #include "datetime-interface.h"
 #include "dbus-shared.h"
 #include "settings-shared.h"
