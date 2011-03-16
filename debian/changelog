@@ -1,10 +1,14 @@
-indicator-datetime (0.1.97-0ubuntu1~ppa2) natty; urgency=low
+indicator-datetime (0.1.98-0ubuntu1~ppa1) UNRELEASED; urgency=low
 
-  * Upstream Merge
-    * Fix appointment time format
-    * Change appointments with selected date in calendar
+  * New upstream release.
+    ∘ Make appointments match calendar month
+    ∘ Fix time format of appointments
+    ∘ Get date change signals from calendar and adjust based on them.
+    ∘ Crash fixes (LP: #733833, LP: #729444)
+    ∘ Valgrind invalid read (LP: #729175)
+    ∘ Translation fixes to date label (LP: #729632)
 
- -- Ted Gould <ted@ubuntu.com>  Mon, 14 Mar 2011 21:48:42 -0500
+ -- Ted Gould <ted@ubuntu.com>  Wed, 16 Mar 2011 16:06:55 -0500
 
 indicator-datetime (0.1.97-0ubuntu1~ppa1) natty; urgency=low
 
