@@ -82,6 +82,7 @@ static GList			* appointments = NULL;
 static GList			* dconflocations = NULL;
 static GList			* comp_instances = NULL;
 static gboolean           updating_appointments = FALSE;
+static time_t			  start_time_appointments = (time_t) 0;
 GSettings *conf;
 
 
@@ -277,14 +278,43 @@ activate_cb (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
 }
 
 static gboolean
-month_changed_cb (DbusmenuMenuitem * menuitem, GVariant *variant, guint timestamp)
+month_changed_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, guint timestamp)
 {
-	// BLOCKED: We're not getting the signal from calendar the ido calendar menuitem
-	// TODO: * Decode the month/year from the string we received
-	//       * Check what our current month/year are
-	//		 * Set some globals so when we-re-run update appointment menu items it gets the right start date
-	//		 * update appointment menu items
-	g_debug("Received month changed : %s", g_variant_get_string(variant, NULL));
+	start_time_appointments = (time_t)g_variant_get_uint32(variant);
+	
+	g_debug("Received month changed with timestamp: %d -> %s",(int)start_time_appointments, ctime(&start_time_appointments));	
+	update_appointment_menu_items(NULL);
+	return TRUE;
+}
+
+static gboolean
+day_selected_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, guint timestamp)
+{
+	start_time_appointments = (time_t)g_variant_get_uint32(variant);
+	
+	g_debug("Received day-selected with timestamp: %d -> %s",(int)start_time_appointments, ctime(&start_time_appointments));	
+	update_appointment_menu_items(NULL);
+	return TRUE;
+}
+
+static gboolean
+day_selected_double_click_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, guint timestamp)
+{
+	time_t evotime = (time_t)g_variant_get_uint32(variant);
+	
+	g_debug("Received day-selected-double-click with timestamp: %d -> %s",(int)evotime, ctime(&evotime));	
+	
+	gchar *ad = isodate_from_time_t(evotime);
+	gchar *cmd = g_strconcat("evolution calendar:///?startdate=", ad, NULL);
+	
+	GError * error = NULL;
+
+	g_debug("Issuing command '%s'", cmd);
+	if (!g_spawn_command_line_async(cmd, &error)) {
+		g_warning("Unable to start %s: %s", (char *)cmd, error->message);
+		g_error_free(error);
+	}
+	
 	return TRUE;
 }
 
@@ -363,8 +393,10 @@ check_for_calendar (gpointer user_data)
 			stop_ecal_timer();
 		}
 		
-		// Connect to event::month-changed 
+		// Connect to calendar events
 		g_signal_connect(calendar, "event::month-changed", G_CALLBACK(month_changed_cb), NULL);
+		g_signal_connect(calendar, "event::day-selected", G_CALLBACK(day_selected_cb), NULL);
+		g_signal_connect(calendar, "event::day-selected-double-click", G_CALLBACK(day_selected_double_click_cb), NULL);
 		g_free(evo);
 	} else {
 		g_debug("Unable to find calendar app.");
@@ -535,39 +567,57 @@ update_appointment_menu_items (gpointer user_data)
 {
 	// FFR: we should take into account short term timers, for instance
 	// tea timers, pomodoro timers etc... that people may add, this is hinted to in the spec.
+	g_debug("Update appointments called");
 	if (calendar == NULL) return FALSE;
 	if (!g_settings_get_boolean(conf, SETTINGS_SHOW_EVENTS_S)) return FALSE;
 	if (updating_appointments) return TRUE;
 	updating_appointments = TRUE;
 	
-	time_t t1, t2;
+	time_t curtime = 0, t1 = 0, t2 = 0;
 	gchar *ad;
 	GList *l;
-	//GList *allobjects = NULL;
 	GSList *g;
 	GError *gerror = NULL;
 	gint i;
-	gint width, height;
+	gint width = 0, height = 0;
 	ESourceList * sources = NULL;
-	
-	time(&t1);
-	time(&t2);
-	t2 += (time_t) (7 * 24 * 60 * 60); /* 7 days ahead of now, we actually need number_of_days_in_this_month */
 
-	/* Remove all of the previous appointments */
-	if (appointments != NULL) {
-		g_debug("Freeing old appointments");
-		while (appointments != NULL) {
-			DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(appointments->data);
-			g_debug("Freeing old appointment: %p", litem);
-			// Remove all the existing menu items which are in appointments.
-			appointments = g_list_remove(appointments, litem);
-			dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(litem));
-			g_object_unref(G_OBJECT(litem));
+	// Get today & work out query times
+	time(&curtime);
+  	struct tm *today = localtime(&curtime);
+	const int mday = today->tm_mday;
+	const int mon = today->tm_mon;
+	const int year = today->tm_year;
+	
+  	struct tm *start_tm = NULL;
+	int this_year = today->tm_year + 1900;
+	int days[12]={31,28,31,30,31,30,31,31,30,31,30,31};
+	if ((this_year % 400 == 0) || (this_year % 100 > 0 && this_year % 4 == 0)) days[1] = 29;
+	
+	int highlightdays = days[mon] - mday + 1;
+	t1 = curtime; // By default the current time is the appointment start time. 
+	
+	if (start_time_appointments > 0) {
+  		start_tm = localtime(&start_time_appointments);
+		int start_month = start_tm->tm_mon;
+		int start_year = start_tm->tm_year + 1900;
+		if ((start_month != mon) || (start_year != this_year)) {
+			// Set t1 to the start of that month.
+			struct tm month_start = {0};
+			month_start.tm_year = start_tm->tm_year;
+			month_start.tm_mon = start_tm->tm_mon;
+			month_start.tm_mday = 1;
+			t1 = mktime(&month_start);
+			highlightdays = days[mon];
 		}
 	}
 	
-	// TODO Remove all highlights from the calendar widget
+	g_debug("Will highlight %d days from %s", highlightdays, ctime(&t1));
+
+	t2 = t1 + (time_t) (highlightdays * 24 * 60 * 60); 
+	
+	// Remove all highlights from the calendar widget
+	dbusmenu_menuitem_property_set (calendar, CALENDAR_MENUITEM_PROP_CLEAR_MARKS, NULL);
 	
 	if (!e_cal_get_sources(&sources, E_CAL_SOURCE_TYPE_EVENT, &gerror)) {
 		g_debug("Failed to get ecal sources\n");
@@ -592,7 +642,7 @@ update_appointment_menu_items (gpointer user_data)
 		
 		for (s = e_source_group_peek_sources (group); s; s = s->next) {
 			ESource *source = E_SOURCE (s->data);
-			//g_signal_connect (G_OBJECT(source), "changed", G_CALLBACK (update_appointment_menu_items), NULL);
+			g_signal_connect (G_OBJECT(source), "changed", G_CALLBACK (update_appointment_menu_items), NULL);
 			ECal *ecal = e_cal_new(source, E_CAL_SOURCE_TYPE_EVENT);
 			e_cal_set_auth_func (ecal, (ECalAuthFunc) auth_func, NULL);
 			
@@ -609,10 +659,36 @@ update_appointment_menu_items (gpointer user_data)
 	g_debug("Number of ECalComponents returned: %d", g_list_length(comp_instances));
 	GList *sorted_comp_instances = g_list_sort(comp_instances, compare_comp_instances);
 	comp_instances = NULL;
+	g_debug("Components sorted");
 	
+	/* Remove all of the previous appointments */
+	if (appointments != NULL) {
+		g_debug("Freeing old appointments");
+		while (appointments != NULL) {
+			DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(appointments->data);
+			g_debug("Freeing old appointment: %p", litem);
+			// Remove all the existing menu items which are in appointments.
+			appointments = g_list_remove(appointments, litem);
+			dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(litem));
+			g_object_unref(G_OBJECT(litem));
+		}
+	}
+
 	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
 	if (width <= 0) width = 12;
-	if (height <= 0) height = 13;
+	if (height <= 0) height = 12;
+	if (width > 30) width = 12;
+	if (height > 30) height = 12;
+	
+	gchar *time_format_str = g_settings_get_string(conf, SETTINGS_TIME_FORMAT_S);
+	gint apt_output;
+	if (g_strcmp0(time_format_str, "12-hour") == 0) {
+		apt_output = SETTINGS_TIME_12_HOUR;
+	} else if (g_strcmp0(time_format_str, "24-hour") == 0) {
+		apt_output = SETTINGS_TIME_24_HOUR;
+	} else {
+		apt_output = SETTINGS_TIME_LOCALE;
+	}
 	
 	i = 0;
 	for (l = sorted_comp_instances; l; l = l->next) {
@@ -623,13 +699,34 @@ update_appointment_menu_items (gpointer user_data)
 		char right[20];
 		//const gchar *uri;
 		DbusmenuMenuitem * item;
-
-		g_debug("Start Object %p", ecalcomp);
 		
-		// TODO Mark days
+		ECalComponentVType vtype = e_cal_component_get_vtype (ecalcomp);
+		struct tm *due = NULL;
+		if (vtype == E_CAL_COMPONENT_EVENT) due = localtime(&ci->start);
+		else if (vtype == E_CAL_COMPONENT_TODO) due = localtime(&ci->end);
+		else continue;
+		
+		const int dmday = due->tm_mday;
+		const int dmon = due->tm_mon;
+		const int dyear = due->tm_year;
+		
+		// Mark day
+		g_debug("Marking date %s", ctime(&ci->start));
+		dbusmenu_menuitem_property_set_int (calendar, CALENDAR_MENUITEM_PROP_MARK, due->tm_mday);
+
+
+		// If the appointment time is less than the selected date, 
+		// don't create an appointment item for it.
+		if (vtype == E_CAL_COMPONENT_EVENT) {
+			if (ci->start < start_time_appointments) continue;
+		} else if (vtype == E_CAL_COMPONENT_TODO) {
+			if (ci->end < start_time_appointments) continue;
+		}
 		
 		if (i >= 5) continue;
 		i++;
+
+		g_debug("Create menu item");
 		
 		item = dbusmenu_menuitem_new();
 		dbusmenu_menuitem_property_set       (item, DBUSMENU_MENUITEM_PROP_TYPE, APPOINTMENT_MENUITEM_TYPE);
@@ -645,31 +742,23 @@ update_appointment_menu_items (gpointer user_data)
 		g_free (summary);
 
 		// Due text
-		ECalComponentVType vtype = e_cal_component_get_vtype (ecalcomp);
-		
-		// Get today
-		time_t curtime = time(NULL);
-  		struct tm *today = localtime(&curtime);
-		
-		int mday = today->tm_mday;
-		int mon = today->tm_mon;
-		int year = today->tm_year;
-		
-		struct tm *due;
-		if (vtype == E_CAL_COMPONENT_EVENT) due = localtime(&ci->start);
-		else if (vtype == E_CAL_COMPONENT_TODO) due = localtime(&ci->end);
-		else continue;
-
-		int dmday = due->tm_mday;
-		int dmon = due->tm_mon;
-		int dyear = due->tm_year;
-		
-		if ((mday == dmday) && (mon == dmon) && (year == dyear))
-			strftime(right, 20, "%l:%M %p", due);
-		else
-			strftime(right, 20, "%a %l:%M %p", due);
-			
-		g_debug("Appointment time: %s", right);
+		if (apt_output == SETTINGS_TIME_12_HOUR) {
+			if ((mday == dmday) && (mon == dmon) && (year == dyear))
+				strftime(right, 20, _(DEFAULT_TIME_12_FORMAT), due);
+			else
+				strftime(right, 20, _(DEFAULT_TIME_12_FORMAT_WITH_DAY), due);
+		} else if (apt_output == SETTINGS_TIME_24_HOUR) {
+			if ((mday == dmday) && (mon == dmon) && (year == dyear))
+				strftime(right, 20, _(DEFAULT_TIME_24_FORMAT), due);
+			else
+				strftime(right, 20, _(DEFAULT_TIME_24_FORMAT_WITH_DAY), due);
+		} else {
+			if ((mday == dmday) && (mon == dmon) && (year == dyear))
+				strftime(right, 20, _(DEFAULT_TIME_FORMAT), due);
+			else
+				strftime(right, 20, _(DEFAULT_TIME_FORMAT_WITH_DAY), due);
+		}
+		g_debug("Appointment time: %s, for date %s", right, asctime(due));
 		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, right);
 		
 		// Now we pull out the URI for the calendar event and try to create a URI that'll work when we execute evolution
@@ -688,10 +777,9 @@ update_appointment_menu_items (gpointer user_data)
 		// Draw the correct icon for the appointment type and then tint it using mask fill.
 		// For now we'll create a circle
         if (color_spec != NULL) {
-        	// Fixme causes segfault, but we have colours now yay!
         	GdkColor color;
         	gdk_color_parse (color_spec, &color);	
-        	g_debug("Creating a cairo surface\n    size, %d by %d", width, height);         
+        	g_debug("Creating a cairo surface: size, %d by %d", width, height);         
         	cairo_surface_t *surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, width, height ); 
 
     		cairo_t *cr = cairo_create(surface);
@@ -736,13 +824,13 @@ update_appointment_menu_items (gpointer user_data)
 	  			
 				dbusmenu_menuitem_property_set_image (item, APPOINTMENT_MENUITEM_PROP_ICON, pixbuf);
 			} else {
-				g_debug("Creating pixbuf from surface failed\n    Couldn't create new pixbuf for size, %d by %d", width, height);
+				g_debug("Creating pixbuf from surface failed");
 			}
 			cairo_surface_destroy (surface);
 			cairo_destroy(cr);
 		}
 		dbusmenu_menuitem_child_add_position (root, item, 2+i);
-		appointments = g_list_append         (appointments, item); // Keep track of the items here to make them east to remove
+		appointments = g_list_append         (appointments, item); // Keep track of the items here to make them easy to remove
 		g_debug("Adding appointment: %p", item);
 	}
 	
@@ -750,8 +838,8 @@ update_appointment_menu_items (gpointer user_data)
 	for (l = sorted_comp_instances; l; l = l->next) { 
 		const struct comp_instance *ci = l->data;
 		g_object_unref(ci->comp);
-		g_list_free(sorted_comp_instances);
 	}
+	g_list_free(sorted_comp_instances);
 	
 	updating_appointments = FALSE;
 	g_debug("End of objects");
@@ -783,6 +871,12 @@ show_locations_changed (void)
 {
 	/* Re-calculate */
 	check_timezone_sync();
+}
+
+static void
+time_format_changed (void)
+{
+	update_appointment_menu_items(NULL);
 }
 
 /* Does the work to build the default menu, really calls out
@@ -837,6 +931,7 @@ build_menus (DbusmenuMenuitem * root)
 	g_signal_connect (conf, "changed::" SETTINGS_SHOW_LOCATIONS_S, G_CALLBACK (show_locations_changed), NULL);
 	g_signal_connect (conf, "changed::" SETTINGS_LOCATIONS_S, G_CALLBACK (show_locations_changed), NULL);
 	g_signal_connect (conf, "changed::" SETTINGS_SHOW_EVENTS_S, G_CALLBACK (show_events_changed), NULL);
+	g_signal_connect (conf, "changed::" SETTINGS_TIME_FORMAT_S, G_CALLBACK (time_format_changed), NULL);
 
 	DbusmenuMenuitem * separator = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);

@@ -1,11 +1,11 @@
 
-AC_INIT(indicator-datetime, 0.1.97, ted@canonical.com)
+AC_INIT(indicator-datetime, 0.1.98, ted@canonical.com)
 AC_COPYRIGHT([Copyright 2009,2010 Canonical])
 
 AC_PREREQ(2.53)
 
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(indicator-datetime, 0.1.97)
+AM_INIT_AUTOMAKE(indicator-datetime, 0.1.98)
 
 AM_MAINTAINER_MODE
 
@@ -56,7 +56,7 @@ DBUSMENUGLIB_REQUIRED_VERSION=0.1.1
 DBUSMENUGTK_REQUIRED_VERSION=0.3.94
 GIO_REQUIRED_VERSION=2.25.11
 # Note: the GIO check below also ensures the proper glib with gsettings support is present
-INDICATOR_DISPLAY_OBJECTS=0.1.10
+INDICATOR_DISPLAY_OBJECTS=0.2.2
 GEOCLUE_REQUIRED_VERSION=0.12.0
 OOBS_REQUIRED_VERSION=2.31.0
 ECAL_REQUIRED_VERSION=2.30
