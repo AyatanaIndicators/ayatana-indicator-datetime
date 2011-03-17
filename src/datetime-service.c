@@ -471,7 +471,6 @@ auth_func (ECal *ecal,
            const gchar *key, 
            gpointer user_data)
 {
-	gboolean remember; // TODO: Is this useful?  Should we be storing it somewhere?
 	ESource *source = e_cal_get_source (ecal);
 	gchar *auth_domain = e_source_get_duped_property (source, "auth-domain");
 
