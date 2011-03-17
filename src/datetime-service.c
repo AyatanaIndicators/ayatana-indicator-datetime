@@ -481,16 +481,6 @@ auth_func (ECal *ecal,
 	
 	gchar *password = e_passwords_get_password (component_name, key);
 	
-	if (password == NULL) {
-		password = e_passwords_ask_password (
-			_("Enter password"),
-			component_name, key, prompt,
-			E_PASSWORDS_REMEMBER_FOREVER |
-			E_PASSWORDS_SECRET |
-			E_PASSWORDS_ONLINE,
-			&remember, NULL);
-	}
-	
 	g_free (auth_domain);
 
 	return password;
