@@ -53,9 +53,15 @@ enum {
 #define DEFAULT_TIME_FORMAT      DEFAULT_TIME_12_FORMAT
 #define DEFAULT_TIME_FORMAT_WITH_DAY DEFAULT_TIME_12_FORMAT
 
+/* TRANSLATORS: A format string for the strftime function for
+   a clock showing the day of the week and the time in 12-hour format without
+   seconds. */
 #define DEFAULT_TIME_12_FORMAT_WITH_DAY N_("%a %l:%M %p")
-/* TRANSLATORS: Information is available in this Launchpad
-   answer: https://answers.launchpad.net/ubuntu/+source/indicator-datetime/+question/149752 */
+
+/* TRANSLATORS: A format string for the strftime function for
+   a clock showing the day of the week and the time in 24-hour format without
+   seconds.  Information is available in this Launchpad answer:
+   https://answers.launchpad.net/ubuntu/+source/indicator-datetime/+question/149752 */
 #define DEFAULT_TIME_24_FORMAT_WITH_DAY N_("%a %H:%M")
 
 #endif
