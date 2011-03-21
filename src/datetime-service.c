@@ -252,8 +252,8 @@ update_datetime (gpointer user_data)
 		return FALSE;
 	}
 
-	/* Note: may require some localization tweaks */
-	strftime(longstr, 128, "%A, %e %B %Y", ltime);
+	/* Translators: strftime(3) style date format on top of the menu when you click on the clock */
+	strftime(longstr, 128, _("%A, %e %B %Y"), ltime);
 	
 	gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
 	dbusmenu_menuitem_property_set(date, DBUSMENU_MENUITEM_PROP_LABEL, utf8);
