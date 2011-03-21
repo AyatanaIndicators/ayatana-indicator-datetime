@@ -54,6 +54,8 @@ enum {
 #define DEFAULT_TIME_FORMAT_WITH_DAY DEFAULT_TIME_12_FORMAT
 
 #define DEFAULT_TIME_12_FORMAT_WITH_DAY N_("%a %l:%M %p")
+/* TRANSLATORS: Information is available in this Launchpad
+   answer: https://answers.launchpad.net/ubuntu/+source/indicator-datetime/+question/149752 */
 #define DEFAULT_TIME_24_FORMAT_WITH_DAY N_("%a %H:%M")
 
 #endif
