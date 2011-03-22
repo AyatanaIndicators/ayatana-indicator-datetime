@@ -469,7 +469,6 @@ auth_func (ECal *ecal,
            const gchar *key, 
            gpointer user_data)
 {
-	gboolean remember; // TODO: Is this useful?  Should we be storing it somewhere?
 	ESource *source = e_cal_get_source (ecal);
 	gchar *auth_domain = e_source_get_duped_property (source, "auth-domain");
 
@@ -478,16 +477,6 @@ auth_func (ECal *ecal,
 	else component_name = "Calendar";
 	
 	gchar *password = e_passwords_get_password (component_name, key);
-	
-	if (password == NULL) {
-		password = e_passwords_ask_password (
-			_("Enter password"),
-			component_name, key, prompt,
-			E_PASSWORDS_REMEMBER_FOREVER |
-			E_PASSWORDS_SECRET |
-			E_PASSWORDS_ONLINE,
-			&remember, NULL);
-	}
 	
 	g_free (auth_domain);
 
