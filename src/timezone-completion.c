@@ -63,7 +63,7 @@ save_and_use_model (TimezoneCompletion * completion, GtkTreeModel * model)
 {
   TimezoneCompletionPrivate * priv = TIMEZONE_COMPLETION_GET_PRIVATE(completion);
 
-  g_hash_table_insert (priv->request_table, g_strdup (priv->request_text), g_object_ref (model));
+  g_hash_table_insert (priv->request_table, g_strdup (priv->request_text), g_object_ref_sink (model));
   gtk_entry_completion_set_model (GTK_ENTRY_COMPLETION (completion), model);
   gtk_entry_completion_complete (GTK_ENTRY_COMPLETION (completion));
 }
@@ -149,7 +149,7 @@ json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
   }
 
   save_and_use_model (completion, GTK_TREE_MODEL (store));
-  g_object_unref (G_OBJECT (store));
+  g_object_unref (G_OBJECT (reader));
 }
 
 static void
