@@ -380,16 +380,13 @@ static void
 data_func (GtkCellLayout *cell_layout, GtkCellRenderer *cell,
            GtkTreeModel *tree_model, GtkTreeIter *iter, gpointer user_data)
 {
-  GValue name_val = {0}, admin1_val = {0}, country_val = {0};
   const gchar * name, * admin1, * country;
 
-  gtk_tree_model_get_value (GTK_TREE_MODEL (tree_model), iter, TIMEZONE_COMPLETION_NAME, &name_val);
-  gtk_tree_model_get_value (GTK_TREE_MODEL (tree_model), iter, TIMEZONE_COMPLETION_ADMIN1, &admin1_val);
-  gtk_tree_model_get_value (GTK_TREE_MODEL (tree_model), iter, TIMEZONE_COMPLETION_COUNTRY, &country_val);
-
-  name = g_value_get_string (&name_val);
-  admin1 = g_value_get_string (&admin1_val);
-  country = g_value_get_string (&country_val);
+  gtk_tree_model_get (GTK_TREE_MODEL (tree_model), iter,
+                      TIMEZONE_COMPLETION_NAME, &name,
+                      TIMEZONE_COMPLETION_ADMIN1, &admin1,
+                      TIMEZONE_COMPLETION_COUNTRY, &country,
+                      -1);
 
   gchar * user_name;
   if (admin1 == NULL || admin1[0] == 0) {
@@ -399,10 +396,6 @@ data_func (GtkCellLayout *cell_layout, GtkCellRenderer *cell,
   }
 
   g_object_set (G_OBJECT (cell), "markup", user_name, NULL);
-
-  g_value_unset (&name_val);
-  g_value_unset (&admin1_val);
-  g_value_unset (&country_val);
 }
 
 static void
