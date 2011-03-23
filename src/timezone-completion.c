@@ -229,6 +229,20 @@ json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
     json_reader_end_element (reader);
   }
 
+  if (strlen (priv->request_text) < 4) {
+    gchar * lower_text = g_ascii_strdown (priv->request_text, -1);
+    if (g_strcmp0 (lower_text, "ut") == 0 ||
+        g_strcmp0 (lower_text, "utc") == 0) {
+      GtkTreeIter iter;
+      gtk_list_store_append (store, &iter);
+      gtk_list_store_set (store, &iter,
+                          TIMEZONE_COMPLETION_ZONE, "UTC",
+                          TIMEZONE_COMPLETION_NAME, "UTC",
+                          -1);
+    }
+    g_free (lower_text);
+  }
+
   save_and_use_model (completion, GTK_TREE_MODEL (store));
   g_object_unref (G_OBJECT (reader));
 }
@@ -372,6 +386,13 @@ get_initial_model (void)
     g_free (name);
   }
 
+  GtkTreeIter iter;
+  gtk_list_store_append (store, &iter);
+  gtk_list_store_set (store, &iter,
+                      TIMEZONE_COMPLETION_ZONE, "UTC",
+                      TIMEZONE_COMPLETION_NAME, "UTC",
+                      -1);
+
   tz_db_free (db);
   return store;
 }
@@ -389,7 +410,9 @@ data_func (GtkCellLayout *cell_layout, GtkCellRenderer *cell,
                       -1);
 
   gchar * user_name;
-  if (admin1 == NULL || admin1[0] == 0) {
+  if (country == NULL || country[0] == 0) {
+    user_name = g_strdup (name);
+  } else if (admin1 == NULL || admin1[0] == 0) {
     user_name = g_strdup_printf ("%s <small>(%s)</small>", name, country);
   } else {
     user_name = g_strdup_printf ("%s <small>(%s, %s)</small>", name, admin1, country);
