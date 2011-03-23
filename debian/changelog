@@ -1,3 +1,18 @@
+indicator-datetime (0.2.0-0ubuntu1) natty; urgency=low
+
+  * New upstream release.
+    ∘ Remove unused liboobs
+    ∘ Add translator comments and make strings translatable (LP: #737326)
+    ∘ Remove password dialog for calendars not the keyring
+    ∘ Use default matching when geonames aren't available (LP: #740870)
+    ∘ UI Cleanups and naming fixes (LP: #740806, LP: #740819)
+    ∘ Free JSON parser data
+    ∘ Avoid duplicates in GeoNames data (LP: #740884)
+    ∘ Make location completion more robust
+  * debian/control: Dropping liboobs
+
+ -- Ted Gould <ted@ubuntu.com>  Wed, 23 Mar 2011 16:22:50 -0500
+
 indicator-datetime (0.1.98-0ubuntu1) natty; urgency=low
 
   * New upstream release.
@@ -12,6 +27,15 @@ indicator-datetime (0.1.98-0ubuntu1) natty; urgency=low
     * Allow for hiding the calendar and the clock
 
  -- Ted Gould <ted@ubuntu.com>  Wed, 16 Mar 2011 16:17:38 -0500
+
+indicator-datetime (0.1.97-0ubuntu1~ppa1) natty; urgency=low
+
+  * New upstream release.
+    * Fix handling of reoccruing events
+    * Handle settings in the indicator
+    * Allow for hiding the calendar and the clock
+
+ -- Ted Gould <ted@ubuntu.com>  Thu, 10 Mar 2011 23:14:41 -0600
 
 indicator-datetime (0.1.96-0ubuntu1) natty; urgency=low
 

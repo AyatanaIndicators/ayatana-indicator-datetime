@@ -47,8 +47,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libical/icaltime.h>
 #include <cairo/cairo.h>
 
-#include <oobs/oobs-timeconfig.h>
-
 #include "datetime-interface.h"
 #include "dbus-shared.h"
 #include "settings-shared.h"
@@ -254,8 +252,8 @@ update_datetime (gpointer user_data)
 		return FALSE;
 	}
 
-	/* Note: may require some localization tweaks */
-	strftime(longstr, 128, "%A, %e %B %Y", ltime);
+	/* Translators: strftime(3) style date format on top of the menu when you click on the clock */
+	strftime(longstr, 128, _("%A, %e %B %Y"), ltime);
 	
 	gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
 	dbusmenu_menuitem_property_set(date, DBUSMENU_MENUITEM_PROP_LABEL, utf8);
@@ -373,11 +371,15 @@ check_for_calendar (gpointer user_data)
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 
+		dbusmenu_menuitem_property_set_bool(date, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+		g_signal_connect (G_OBJECT(date), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
+						  G_CALLBACK (activate_cb), "evolution -c calendar");
+						  
 		events_separator = dbusmenu_menuitem_new();
 		dbusmenu_menuitem_property_set(events_separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
 		dbusmenu_menuitem_child_add_position(root, events_separator, 2);
 		add_appointment = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set (add_appointment, DBUSMENU_MENUITEM_PROP_LABEL, _("Add Appointment"));
+		dbusmenu_menuitem_property_set (add_appointment, DBUSMENU_MENUITEM_PROP_LABEL, _("Add Event..."));
 		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		g_signal_connect(G_OBJECT(add_appointment), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "evolution -c calendar");
 		dbusmenu_menuitem_child_add_position (root, add_appointment, 3);
@@ -471,7 +473,6 @@ auth_func (ECal *ecal,
            const gchar *key, 
            gpointer user_data)
 {
-	gboolean remember; // TODO: Is this useful?  Should we be storing it somewhere?
 	ESource *source = e_cal_get_source (ecal);
 	gchar *auth_domain = e_source_get_duped_property (source, "auth-domain");
 
@@ -480,16 +481,6 @@ auth_func (ECal *ecal,
 	else component_name = "Calendar";
 	
 	gchar *password = e_passwords_get_password (component_name, key);
-	
-	if (password == NULL) {
-		password = e_passwords_ask_password (
-			_("Enter password"),
-			component_name, key, prompt,
-			E_PASSWORDS_REMEMBER_FOREVER |
-			E_PASSWORDS_SECRET |
-			E_PASSWORDS_ONLINE,
-			&remember, NULL);
-	}
 	
 	g_free (auth_domain);
 
