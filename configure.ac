@@ -1,11 +1,11 @@
 
-AC_INIT(indicator-datetime, 0.1.98, ted@canonical.com)
+AC_INIT(indicator-datetime, 0.2.0, ted@canonical.com)
 AC_COPYRIGHT([Copyright 2009,2010 Canonical])
 
 AC_PREREQ(2.53)
 
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(indicator-datetime, 0.1.98)
+AM_INIT_AUTOMAKE(indicator-datetime, 0.2.0)
 
 AM_MAINTAINER_MODE
 
@@ -58,7 +58,6 @@ GIO_REQUIRED_VERSION=2.25.11
 # Note: the GIO check below also ensures the proper glib with gsettings support is present
 INDICATOR_DISPLAY_OBJECTS=0.2.2
 GEOCLUE_REQUIRED_VERSION=0.12.0
-OOBS_REQUIRED_VERSION=2.31.0
 ECAL_REQUIRED_VERSION=2.30
 EDS_REQUIRED_VERSION=2.30
 ICAL_REQUIRED_VERSION=0.44
@@ -93,7 +92,6 @@ AS_IF([test "x$with_gtk" = x3],
 	                             libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
 	                             gio-2.0 >= $GIO_REQUIRED_VERSION
 	                             geoclue >= $GEOCLUE_REQUIRED_VERSION
-	                             liboobs-1 >= $OOBS_REQUIRED_VERSION
 	                             libecal-1.2 >= $ECAL_REQUIRED_VERSION
 	                             libical >= $ICAL_REQUIRED_VERSION
 	                             libedataserver-1.2 >= EDS_REQUIRED_VERSION
@@ -109,7 +107,6 @@ AS_IF([test "x$with_gtk" = x3],
 	                             libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
 	                             gio-2.0 >= $GIO_REQUIRED_VERSION
 	                             geoclue >= $GEOCLUE_REQUIRED_VERSION
-	                             liboobs-1 >= $OOBS_REQUIRED_VERSION
 	                             libecal-1.2 >= $ECAL_REQUIRED_VERSION
 	                             libical >= $ICAL_REQUIRED_VERSION
 	                             libedataserver-1.2 >= EDS_REQUIRED_VERSION

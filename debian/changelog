@@ -1,3 +1,17 @@
+indicator-datetime (0.2.0-0ubuntu1~ppa1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    ∘ Remove unused liboobs
+    ∘ Add translator comments and make strings translatable (LP: #737326)
+    ∘ Remove password dialog for calendars not the keyring
+    ∘ Use default matching when geonames aren't available (LP: #740870)
+    ∘ UI Cleanups and naming fixes (LP: #740806, LP: #740819)
+    ∘ Free JSON parser data
+    ∘ Avoid duplicates in GeoNames data (LP: #740884)
+    ∘ Make location completion more robust
+
+ -- Ted Gould <ted@ubuntu.com>  Wed, 23 Mar 2011 16:15:45 -0500
+
 indicator-datetime (0.1.98-0ubuntu1~ppa1) natty; urgency=low
 
   * New upstream release.
