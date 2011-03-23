@@ -318,6 +318,27 @@ day_selected_double_click_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant
 	return TRUE;
 }
 
+static gboolean
+close_menu_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant) 
+{
+	if (calendar == NULL) return FALSE;
+	start_time_appointments = 0;
+	// TODO create a variant which will be an array of 3 ints {y,m,d}
+	GVariant *date_variant;
+	time_t curtime;
+	struct tm *t1;
+	time(&curtime);
+	t1 = localtime(&curtime);
+	GVariant *date[3];
+	date[0] = g_variant_new_uint32(t1->tm_year + 1900);
+	date[1] = g_variant_new_uint32(t1->tm_mon);
+	date[2] = g_variant_new_uint32(t1->tm_mday);
+	date_variant = g_variant_new_array(NULL, date, 3);
+	
+	dbusmenu_menuitem_property_set_variant (calendar, CALENDAR_MENUITEM_PROP_SET_DATE, date_variant);
+	return TRUE;
+}
+
 static guint ecaltimer = 0;
 
 static void
@@ -1215,6 +1236,9 @@ main (int argc, char ** argv)
 	dbusmenu_server_set_root(server, root);
 	
 	build_menus(root);
+	
+	// Connect to the close signal to reset the calendar date 
+	g_signal_connect(root, "event::closed", G_CALLBACK(close_menu_cb), NULL);
 	
 	/* Cache the timezone */
 	update_current_timezone();

@@ -1149,13 +1149,17 @@ indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, 
 	
 	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_MARK)) {
 		ido_calendar_menu_item_mark_day (IDO_CALENDAR_MENU_ITEM (mi_data), g_variant_get_int16(value));
+		g_debug("Marked day: %d", g_variant_get_int16(value));
 	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_UNMARK)) {
 		ido_calendar_menu_item_unmark_day (IDO_CALENDAR_MENU_ITEM (mi_data), g_variant_get_int16(value));
+		g_debug("Unmarked day: %d", g_variant_get_int16(value));
 	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_CLEAR_MARKS)) {
+		g_debug("Cleared Marks");
 		ido_calendar_menu_item_clear_marks (IDO_CALENDAR_MENU_ITEM (mi_data));
 	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_SET_DATE)) {
 		gsize size = 3;
 		const gint * array = g_variant_get_fixed_array(value, &size, sizeof(gint));
+		g_debug("Setting date y-m-d: %d-%d-%d", array[0], array[1], array[2]);
 		ido_calendar_menu_item_set_date (IDO_CALENDAR_MENU_ITEM (mi_data), array[0], array[1], array[2]);
 	} else {
 		g_warning("Indicator Item property '%s' unknown", prop);
