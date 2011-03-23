@@ -7,11 +7,6 @@
     <property name="step_increment">86400</property>
     <property name="page_increment">864000</property>
   </object>
-  <object class="GtkAdjustment" id="timeAdjustment">
-    <property name="upper">1.8446744073709552e+19</property>
-    <property name="step_increment">60</property>
-    <property name="page_increment">3600</property>
-  </object>
   <object class="GtkWindow" id="locationsDialog">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Locations</property>
@@ -47,6 +42,17 @@
           </packing>
         </child>
         <child>
+          <object class="GtkHSeparator" id="hseparator1">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkHBox" id="hbox10">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
@@ -55,7 +61,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="tooltip_text" translatable="yes">Add a Location…</property>
                 <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkImage" id="addImage">
@@ -76,7 +81,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="tooltip_text" translatable="yes">Remove This Location</property>
                 <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkImage" id="removeImage">
@@ -96,7 +100,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">1</property>
+            <property name="position">2</property>
           </packing>
         </child>
       </object>
@@ -111,6 +115,11 @@
       <!-- column-name Zone -->
       <column type="gchararray"/>
     </columns>
+  </object>
+  <object class="GtkAdjustment" id="timeAdjustment">
+    <property name="upper">1.8446744073709552e+19</property>
+    <property name="step_increment">60</property>
+    <property name="page_increment">3600</property>
   </object>
   <object class="GtkWindow" id="timeDateDialog">
     <property name="can_focus">False</property>
