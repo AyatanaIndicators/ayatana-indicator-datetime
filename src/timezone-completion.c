@@ -58,12 +58,26 @@ static void timezone_completion_finalize   (GObject *object);
 
 G_DEFINE_TYPE (TimezoneCompletion, timezone_completion, GTK_TYPE_ENTRY_COMPLETION);
 
+static gboolean
+match_func (GtkEntryCompletion *completion, const gchar *key,
+            GtkTreeIter *iter, gpointer user_data)
+{
+  // geonames does the work for us
+  return TRUE;
+}
+
 static void
 save_and_use_model (TimezoneCompletion * completion, GtkTreeModel * model)
 {
   TimezoneCompletionPrivate * priv = TIMEZONE_COMPLETION_GET_PRIVATE(completion);
 
   g_hash_table_insert (priv->request_table, g_strdup (priv->request_text), g_object_ref (model));
+
+  if (model == priv->initial_model)
+    gtk_entry_completion_set_match_func (GTK_ENTRY_COMPLETION (completion), NULL, NULL, NULL);
+  else
+    gtk_entry_completion_set_match_func (GTK_ENTRY_COMPLETION (completion), match_func, NULL, NULL);
+
   gtk_entry_completion_set_model (GTK_ENTRY_COMPLETION (completion), model);
   gtk_entry_completion_complete (GTK_ENTRY_COMPLETION (completion));
 }
@@ -317,14 +331,6 @@ data_func (GtkCellLayout *cell_layout, GtkCellRenderer *cell,
   g_value_unset (&country_val);
 }
 
-static gboolean
-match_func (GtkEntryCompletion *completion, const gchar *key,
-            GtkTreeIter *iter, gpointer user_data)
-{
-  // geonames does the work for us
-  return TRUE;
-}
-
 static void
 timezone_completion_class_init (TimezoneCompletionClass *klass)
 {
@@ -345,7 +351,6 @@ timezone_completion_init (TimezoneCompletion * self)
 
   priv->initial_model = GTK_TREE_MODEL (get_initial_model ());
 
-  gtk_entry_completion_set_match_func (GTK_ENTRY_COMPLETION (self), match_func, NULL, NULL);
   g_object_set (G_OBJECT (self),
                 "text-column", TIMEZONE_COMPLETION_NAME,
                 "popup-set-width", FALSE,
