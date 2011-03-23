@@ -87,6 +87,39 @@ save_and_use_model (TimezoneCompletion * completion, GtkTreeModel * model)
   g_signal_emit_by_name (priv->entry, "changed");
 }
 
+static gint
+sort_zone (GtkTreeModel *model, GtkTreeIter *a, GtkTreeIter *b,
+           gpointer user_data)
+{
+  /* Anything that has text as a prefix goes first, in mostly sorted order.
+     Then everything else goes after, in mostly sorted order. */
+  const gchar *casefolded_text = (const gchar *)user_data;
+
+  const gchar *namea = NULL, *nameb = NULL;
+  gtk_tree_model_get (model, a, TIMEZONE_COMPLETION_NAME, &namea, -1);
+  gtk_tree_model_get (model, b, TIMEZONE_COMPLETION_NAME, &nameb, -1);
+
+  gchar *casefolded_namea = NULL, *casefolded_nameb = NULL;
+  casefolded_namea = g_utf8_casefold (namea, -1);
+  casefolded_nameb = g_utf8_casefold (nameb, -1);
+
+  gboolean amatches = FALSE, bmatches = FALSE;
+  amatches = strncmp (casefolded_text, casefolded_namea, strlen(casefolded_text)) == 0;
+  bmatches = strncmp (casefolded_text, casefolded_nameb, strlen(casefolded_text)) == 0;
+
+  gint rv;
+  if (amatches && !bmatches)
+    rv = -1;
+  else if (bmatches && !amatches)
+    rv = 1;
+  else
+    rv = g_utf8_collate (casefolded_namea, casefolded_nameb);
+
+  g_free (casefolded_namea);
+  g_free (casefolded_nameb);
+  return rv;
+}
+
 static void
 json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
 {
@@ -179,6 +212,13 @@ json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
                             TIMEZONE_COMPLETION_LONGITUDE, longitude,
                             TIMEZONE_COMPLETION_LATITUDE, latitude,
                             -1);
+        gtk_tree_sortable_set_sort_func (GTK_TREE_SORTABLE (store),
+                                         TIMEZONE_COMPLETION_NAME, sort_zone,
+                                         g_utf8_casefold(priv->request_text, -1),
+                                         g_free);
+        gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (store),
+                                              TIMEZONE_COMPLETION_NAME,
+                                              GTK_SORT_ASCENDING);
       }
 
       prev_name = name;
