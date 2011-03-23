@@ -80,6 +80,11 @@ save_and_use_model (TimezoneCompletion * completion, GtkTreeModel * model)
 
   gtk_entry_completion_set_model (GTK_ENTRY_COMPLETION (completion), model);
   gtk_entry_completion_complete (GTK_ENTRY_COMPLETION (completion));
+
+  /* By this time, the changed signal has come and gone.  We didn't give a
+     model to use, so no popup appeared for user.  Poke the entry again to show
+     popup in 300ms. */
+  g_signal_emit_by_name (priv->entry, "changed");
 }
 
 static void
@@ -116,6 +121,8 @@ json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
   JsonReader * reader = json_reader_new (json_parser_get_root (JSON_PARSER (object)));
 
   if (!json_reader_is_array (reader)) {
+    g_warning ("Could not parse geoname JSON data");
+    save_and_use_model (completion, priv->initial_model);
     g_object_unref (G_OBJECT (reader));
     return;
   }
@@ -223,15 +230,6 @@ request_zones (TimezoneCompletion * completion)
     return FALSE;
   }
 
-  const gchar * text = gtk_entry_get_text (priv->entry);
-
-  gpointer data;
-  if (g_hash_table_lookup_extended (priv->request_table, text, NULL, &data)) {
-    gtk_entry_completion_set_model (GTK_ENTRY_COMPLETION (completion), GTK_TREE_MODEL (data));
-    gtk_entry_completion_complete (GTK_ENTRY_COMPLETION (completion));
-    return FALSE;
-  }
-
   /* Cancel any ongoing request */
   if (priv->cancel) {
     g_cancellable_cancel (priv->cancel);
@@ -239,6 +237,7 @@ request_zones (TimezoneCompletion * completion)
   }
   g_free (priv->request_text);
 
+  const gchar * text = gtk_entry_get_text (priv->entry);
   priv->request_text = g_strdup (text);
 
   gchar * escaped = g_uri_escape_string (text, NULL, FALSE);
@@ -259,7 +258,18 @@ entry_changed (GtkEntry * entry, TimezoneCompletion * completion)
   if (priv->queued_request) {
     g_source_remove (priv->queued_request);
   }
-  priv->queued_request = g_timeout_add (300, (GSourceFunc)request_zones, completion);
+
+  /* See if we've already got this one */
+  const gchar * text = gtk_entry_get_text (priv->entry);
+  gpointer data;
+  if (g_hash_table_lookup_extended (priv->request_table, text, NULL, &data)) {
+    gtk_entry_completion_set_model (GTK_ENTRY_COMPLETION (completion), GTK_TREE_MODEL (data));
+  }
+  else {
+    priv->queued_request = g_timeout_add (300, (GSourceFunc)request_zones, completion);
+    gtk_entry_completion_set_model (GTK_ENTRY_COMPLETION (completion), NULL);
+  }
+  gtk_entry_completion_complete (GTK_ENTRY_COMPLETION (completion));
 }
 
 void
@@ -267,6 +277,10 @@ timezone_completion_watch_entry (TimezoneCompletion * completion, GtkEntry * ent
 {
   TimezoneCompletionPrivate * priv = TIMEZONE_COMPLETION_GET_PRIVATE (completion);
 
+  if (priv->queued_request) {
+    g_source_remove (priv->queued_request);
+    priv->queued_request = 0;
+  }
   if (priv->entry) {
     g_source_remove (priv->changed_id);
     g_object_remove_weak_pointer (G_OBJECT (priv->entry), (gpointer *)&priv->entry);
