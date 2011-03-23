@@ -98,8 +98,10 @@ json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
 
   JsonReader * reader = json_reader_new (json_parser_get_root (JSON_PARSER (object)));
 
-  if (!json_reader_is_array (reader))
+  if (!json_reader_is_array (reader)) {
+    g_object_unref (G_OBJECT (reader));
     return;
+  }
 
   gint i, count = json_reader_count_elements (reader);
   for (i = 0; i < count; ++i) {
