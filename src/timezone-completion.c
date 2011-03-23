@@ -74,6 +74,9 @@ json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
   TimezoneCompletion * completion = TIMEZONE_COMPLETION (user_data);
   TimezoneCompletionPrivate * priv = TIMEZONE_COMPLETION_GET_PRIVATE(completion);
   GError * error = NULL;
+  const gchar * prev_name = NULL;
+  const gchar * prev_admin1 = NULL;
+  const gchar * prev_country = NULL;
 
   json_parser_load_from_stream_finish (JSON_PARSER (object), res, &error);
 
@@ -112,6 +115,7 @@ json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
       const gchar * country = NULL;
       const gchar * longitude = NULL;
       const gchar * latitude = NULL;
+      gboolean skip = FALSE;
       if (json_reader_read_member (reader, "name")) {
         name = json_reader_get_string_value (reader);
         json_reader_end_member (reader);
@@ -133,16 +137,30 @@ json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
         json_reader_end_member (reader);
       }
 
-      GtkTreeIter iter;
-      gtk_list_store_append (store, &iter);
-      gtk_list_store_set (store, &iter,
-                          TIMEZONE_COMPLETION_ZONE, NULL,
-                          TIMEZONE_COMPLETION_NAME, name,
-                          TIMEZONE_COMPLETION_ADMIN1, admin1,
-                          TIMEZONE_COMPLETION_COUNTRY, country,
-                          TIMEZONE_COMPLETION_LONGITUDE, longitude,
-                          TIMEZONE_COMPLETION_LATITUDE, latitude,
-                          -1);
+      if (g_strcmp0(name, prev_name) == 0 &&
+          g_strcmp0(admin1, prev_admin1) == 0 &&
+          g_strcmp0(country, prev_country) == 0) {
+        // Sometimes the data will have duplicate entries that only differ
+        // in longitude and latitude.  e.g. "rio de janeiro", "wellington"
+        skip = TRUE;
+      }
+
+      if (!skip) {
+        GtkTreeIter iter;
+        gtk_list_store_append (store, &iter);
+        gtk_list_store_set (store, &iter,
+                            TIMEZONE_COMPLETION_ZONE, NULL,
+                            TIMEZONE_COMPLETION_NAME, name,
+                            TIMEZONE_COMPLETION_ADMIN1, admin1,
+                            TIMEZONE_COMPLETION_COUNTRY, country,
+                            TIMEZONE_COMPLETION_LONGITUDE, longitude,
+                            TIMEZONE_COMPLETION_LATITUDE, latitude,
+                            -1);
+      }
+
+      prev_name = name;
+      prev_admin1 = admin1;
+      prev_country = country;
     }
 
     json_reader_end_element (reader);
