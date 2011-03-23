@@ -9,8 +9,9 @@ indicator-datetime (0.2.0-0ubuntu1~ppa1) UNRELEASED; urgency=low
     ∘ Free JSON parser data
     ∘ Avoid duplicates in GeoNames data (LP: #740884)
     ∘ Make location completion more robust
+  * debian/control: Dropping liboobs
 
- -- Ted Gould <ted@ubuntu.com>  Wed, 23 Mar 2011 16:15:45 -0500
+ -- Ted Gould <ted@ubuntu.com>  Wed, 23 Mar 2011 16:18:22 -0500
 
 indicator-datetime (0.1.98-0ubuntu1) natty; urgency=low
 
