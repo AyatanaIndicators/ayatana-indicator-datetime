@@ -12,7 +12,7 @@ indicator-datetime (0.2.0-0ubuntu1~ppa1) UNRELEASED; urgency=low
 
  -- Ted Gould <ted@ubuntu.com>  Wed, 23 Mar 2011 16:15:45 -0500
 
-indicator-datetime (0.1.98-0ubuntu1~ppa1) natty; urgency=low
+indicator-datetime (0.1.98-0ubuntu1) natty; urgency=low
 
   * New upstream release.
     ∘ Make appointments match calendar month
@@ -21,6 +21,9 @@ indicator-datetime (0.1.98-0ubuntu1~ppa1) natty; urgency=low
     ∘ Crash fixes (LP: #733833, LP: #729444)
     ∘ Valgrind invalid read (LP: #729175)
     ∘ Translation fixes to date label (LP: #729632)
+    * Fix handling of reoccruing events
+    * Handle settings in the indicator
+    * Allow for hiding the calendar and the clock
 
  -- Ted Gould <ted@ubuntu.com>  Wed, 16 Mar 2011 16:17:38 -0500
 
