@@ -71,7 +71,7 @@ save_and_use_model (TimezoneCompletion * completion, GtkTreeModel * model)
 {
   TimezoneCompletionPrivate * priv = TIMEZONE_COMPLETION_GET_PRIVATE(completion);
 
-  g_hash_table_insert (priv->request_table, g_strdup (priv->request_text), g_object_ref (model));
+  g_hash_table_insert (priv->request_table, g_strdup (priv->request_text), g_object_ref_sink (model));
 
   if (model == priv->initial_model)
     gtk_entry_completion_set_match_func (GTK_ENTRY_COMPLETION (completion), NULL, NULL, NULL);
@@ -112,8 +112,10 @@ json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
 
   JsonReader * reader = json_reader_new (json_parser_get_root (JSON_PARSER (object)));
 
-  if (!json_reader_is_array (reader))
+  if (!json_reader_is_array (reader)) {
+    g_object_unref (G_OBJECT (reader));
     return;
+  }
 
   gint i, count = json_reader_count_elements (reader);
   for (i = 0; i < count; ++i) {
@@ -163,7 +165,7 @@ json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
   }
 
   save_and_use_model (completion, GTK_TREE_MODEL (store));
-  g_object_unref (G_OBJECT (store));
+  g_object_unref (G_OBJECT (reader));
 }
 
 static void
