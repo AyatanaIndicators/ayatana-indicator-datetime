@@ -99,14 +99,15 @@ json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
 
   json_parser_load_from_stream_finish (JSON_PARSER (object), res, &error);
 
-  if (priv->cancel && (error == NULL || error->code != G_IO_ERROR_CANCELLED)) {
+  if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED) && priv->cancel) {
     g_cancellable_reset (priv->cancel);
   }
 
   if (error != NULL) {
+    if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+      save_and_use_model (completion, priv->initial_model);
     g_warning ("Could not parse geoname JSON data: %s", error->message);
     g_error_free (error);
-    save_and_use_model (completion, priv->initial_model);
     return;
   }
 
@@ -203,14 +204,15 @@ geonames_data_ready (GObject *object, GAsyncResult *res, gpointer user_data)
 
   stream = g_file_read_finish (G_FILE (object), res, &error);
 
-  if (priv->cancel && (error == NULL || error->code != G_IO_ERROR_CANCELLED)) {
+  if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED) && priv->cancel) {
     g_cancellable_reset (priv->cancel);
   }
 
   if (error != NULL) {
+    if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+      save_and_use_model (completion, priv->initial_model);
     g_warning ("Could not connect to geoname lookup server: %s", error->message);
     g_error_free (error);
-    save_and_use_model (completion, priv->initial_model);
     return;
   }
 
