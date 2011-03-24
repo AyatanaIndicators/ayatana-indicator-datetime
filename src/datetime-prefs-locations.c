@@ -39,6 +39,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define COL_TIME 1
 #define COL_ZONE 2
 
+static gboolean update_times (TimezoneCompletion * completion);
+
 static void
 handle_add (GtkWidget * button, GtkTreeView * tree)
 {
@@ -103,8 +105,6 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
                       TIMEZONE_COMPLETION_NAME, &name,
                       -1);
 
-  g_debug("match selected: %s, %s", name, zone);
-
   if (zone == NULL || zone[0] == 0) {
     const gchar * strlon, * strlat;
     gdouble lon = 0.0, lat = 0.0;
@@ -131,6 +131,8 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
   if (store != NULL && store_iter != NULL) {
     gtk_list_store_set (store, store_iter, COL_NAME, name, COL_ZONE, zone, -1);
   }
+
+  update_times (TIMEZONE_COMPLETION (widget));
 
   return FALSE; // Do normal action too
 }
