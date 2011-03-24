@@ -233,6 +233,8 @@ generate_format_string_at_time (GDateTime * time)
 		g_date_time_unref(future_bound);
 	}
 
+	g_date_time_unref (now);
+
 	return generate_format_string_full(show_day, show_date);
 }
 
