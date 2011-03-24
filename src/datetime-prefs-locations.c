@@ -39,7 +39,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define COL_TIME 1
 #define COL_ZONE 2
 
-static gboolean update_times (TimezoneCompletion * completion);
+static gboolean update_times (GtkWidget * dlg);
+static void save_when_idle (GtkWidget * dlg);
 
 static void
 handle_add (GtkWidget * button, GtkTreeView * tree)
@@ -96,7 +97,7 @@ handle_edit (GtkCellRendererText * renderer, gchar * path, gchar * new_text,
 
 static gboolean
 timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
-                   GtkTreeIter * iter, gpointer user_data)
+                   GtkTreeIter * iter, GtkWidget * dlg)
 {
   const gchar * zone, * name;
 
@@ -132,7 +133,7 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
     gtk_list_store_set (store, store_iter, COL_NAME, name, COL_ZONE, zone, -1);
   }
 
-  update_times (TIMEZONE_COMPLETION (widget));
+  update_times (dlg);
 
   return FALSE; // Do normal action too
 }
@@ -155,9 +156,10 @@ handle_edit_started (GtkCellRendererText * renderer, GtkCellEditable * editable,
 }
 
 static gboolean
-update_times (TimezoneCompletion * completion)
+update_times (GtkWidget * dlg)
 {
   /* For each entry, check zone in column 2 and set column 1 to it's time */
+  TimezoneCompletion * completion = TIMEZONE_COMPLETION (g_object_get_data (G_OBJECT (dlg), "completion"));
   GtkListStore * store = GTK_LIST_STORE (g_object_get_data (G_OBJECT (completion), "store"));
   GObject * cell = G_OBJECT (g_object_get_data (G_OBJECT (completion), "name-cell"));
 
@@ -166,6 +168,8 @@ update_times (TimezoneCompletion * completion)
   if (editing) { /* No updates while editing, it cancels the edit */
     return TRUE;
   }
+
+  g_signal_handlers_block_by_func (store, save_when_idle, dlg);
 
   GDateTime * now = g_date_time_new_now_local ();
 
@@ -193,6 +197,9 @@ update_times (TimezoneCompletion * completion)
   }
 
   g_date_time_unref (now);
+
+  g_signal_handlers_unblock_by_func (store, save_when_idle, dlg);
+
   return TRUE;
 }
 
@@ -220,13 +227,8 @@ fill_from_settings (GObject * store, GSettings * conf)
 }
 
 static void
-dialog_closed (GtkWidget * dlg, GObject * store)
+save_to_settings (GObject * store, GSettings * conf)
 {
-  /* Cleanup a tad */
-  guint time_id = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (dlg), "time-id"));
-  g_source_remove (time_id);
-
-  /* Now save to settings */
   GVariantBuilder builder;
   g_variant_builder_init (&builder, G_VARIANT_TYPE_ARRAY);
 
@@ -249,11 +251,45 @@ dialog_closed (GtkWidget * dlg, GObject * store)
   }
 
   GVariant * locations = g_variant_builder_end (&builder);
-
-  GSettings * conf = G_SETTINGS (g_object_get_data (G_OBJECT (dlg), "conf"));
   g_settings_set_strv (conf, SETTINGS_LOCATIONS_S, g_variant_get_strv (locations, NULL));
-
   g_variant_unref (locations);
+}
+
+static gboolean
+save_now (GtkWidget *dlg)
+{
+  GSettings * conf = G_SETTINGS (g_object_get_data (G_OBJECT (dlg), "conf"));
+  GObject * completion = G_OBJECT (g_object_get_data (G_OBJECT (dlg), "completion"));
+  GObject * store = G_OBJECT (g_object_get_data (completion, "store"));
+
+  save_to_settings (store, conf);
+
+  g_object_set_data (G_OBJECT (dlg), "save-id", GINT_TO_POINTER(0));
+
+  return FALSE;
+}
+
+static void
+save_when_idle (GtkWidget *dlg)
+{
+  guint save_id = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (dlg), "save-id"));
+
+  if (save_id == 0) {
+    save_id = g_idle_add ((GSourceFunc)save_now, dlg);
+    g_object_set_data (G_OBJECT (dlg), "save-id", GINT_TO_POINTER(save_id));
+  }
+}
+
+static void
+dialog_closed (GtkWidget * dlg, GObject * store)
+{
+  /* Cleanup a tad */
+  guint time_id = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (dlg), "time-id"));
+  g_source_remove (time_id);
+
+  guint save_id = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (dlg), "save-id"));
+  if (save_id > 0)
+    g_source_remove (save_id);
 }
 
 static void
@@ -290,7 +326,7 @@ datetime_setup_locations_dialog (GtkWindow * parent, CcTimezoneMap * map)
   TimezoneCompletion * completion = timezone_completion_new ();
   g_object_set_data (G_OBJECT (completion), "tzmap", map);
   g_object_set_data (G_OBJECT (completion), "store", store);
-  g_signal_connect (completion, "match-selected", G_CALLBACK (timezone_selected), NULL);
+  g_signal_connect (completion, "match-selected", G_CALLBACK (timezone_selected), dlg);
 
   GtkCellRenderer * cell = gtk_cell_renderer_text_new ();
   g_object_set (cell, "editable", TRUE, NULL);
@@ -317,14 +353,18 @@ datetime_setup_locations_dialog (GtkWindow * parent, CcTimezoneMap * map)
   g_signal_connect (WIG ("removeButton"), "clicked", G_CALLBACK (handle_remove), tree);
 
   fill_from_settings (store, conf);
-
-  guint time_id = g_timeout_add_seconds (2, (GSourceFunc)update_times, completion);
-  update_times (completion);
+  g_signal_connect_swapped (store, "row-deleted", G_CALLBACK (save_when_idle), dlg);
+  g_signal_connect_swapped (store, "row-inserted", G_CALLBACK (save_when_idle), dlg);
+  g_signal_connect_swapped (store, "row-changed", G_CALLBACK (save_when_idle), dlg);
+  g_signal_connect_swapped (store, "rows-reordered", G_CALLBACK (save_when_idle), dlg);
 
   g_object_set_data_full (G_OBJECT (dlg), "conf", g_object_ref (conf), g_object_unref);
   g_object_set_data_full (G_OBJECT (dlg), "completion", completion, g_object_unref);
-  g_object_set_data (G_OBJECT (dlg), "time-id", GINT_TO_POINTER(time_id));
   g_signal_connect (dlg, "destroy", G_CALLBACK (dialog_closed), store);
+
+  guint time_id = g_timeout_add_seconds (2, (GSourceFunc)update_times, dlg);
+  g_object_set_data (G_OBJECT (dlg), "time-id", GINT_TO_POINTER(time_id));
+  update_times (dlg);
 
   gtk_window_set_transient_for (GTK_WINDOW (dlg), parent);
 
