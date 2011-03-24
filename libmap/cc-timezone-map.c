@@ -788,6 +788,13 @@ cc_timezone_map_draw (GtkWidget *widget,
   }
 
   if (!priv->location) {
+    /* Check if insensitive */
+    if (gtk_widget_get_state (widget) == GTK_STATE_INSENSITIVE) {
+      cairo_set_source_rgba(cr, 1, 1, 1, 0.5);
+      cairo_rectangle(cr, 0, 0, alloc.width, alloc.height);
+      cairo_fill(cr);
+    }
+
     return TRUE;
   }
 
@@ -839,6 +846,13 @@ cc_timezone_map_draw (GtkWidget *widget,
       cairo_paint (cr);
       g_object_unref (pin);
     }
+
+  /* Check if insensitive */
+  if (gtk_widget_get_state (widget) == GTK_STATE_INSENSITIVE) {
+    cairo_set_source_rgba(cr, 1, 1, 1, 0.5);
+    cairo_rectangle(cr, 0, 0, alloc.width, alloc.height);
+    cairo_fill(cr);
+  }
 
   return TRUE;
 }
