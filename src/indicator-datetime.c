@@ -1144,10 +1144,17 @@ indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, 
 		timezone_update_labels(mi_data);
 	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_RADIO)) {
 		gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(mi_data->gmi), g_variant_get_boolean(value));
-		
-	// Properties for marking and unmarking the calendar
-	
-	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_MARK)) {
+	} else {
+		g_warning("Indicator Item property '%s' unknown", prop);
+	}
+	return;
+}
+// Properties for marking and unmarking the calendar
+static void
+calendar_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, IdoCalendarMenuItem * mi_data)
+{
+	g_debug("Changing calendar property");
+	if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_MARK)) {
 		ido_calendar_menu_item_mark_day (IDO_CALENDAR_MENU_ITEM (mi_data), g_variant_get_int16(value));
 		g_debug("Marked day: %d", g_variant_get_int16(value));
 	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_UNMARK)) {
@@ -1332,7 +1339,7 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 	g_signal_connect_after(ido, "day-selected", G_CALLBACK(day_selected_cb), (gpointer)newitem);
 	g_signal_connect_after(ido, "day-selected-double-click", G_CALLBACK(day_selected_double_click_cb), (gpointer)newitem);
 
-	g_signal_connect(G_OBJECT(newitem), DBUSMENU_MENUITEM_SIGNAL_PROPERTY_CHANGED, G_CALLBACK(indicator_prop_change_cb), ido);
+	g_signal_connect(G_OBJECT(newitem), DBUSMENU_MENUITEM_SIGNAL_PROPERTY_CHANGED, G_CALLBACK(calendar_prop_change_cb), ido);
 	return TRUE;
 }
 
