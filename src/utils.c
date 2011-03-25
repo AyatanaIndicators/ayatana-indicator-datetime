@@ -181,8 +181,8 @@ generate_format_string_full (gboolean show_day, gboolean show_date)
 	g_return_val_if_fail(date_string != NULL, g_strdup(time_string));
 
 	/* TRANSLATORS: This is a format string passed to strftime to combine the
-	   date and the time.  The value of "%s, %s" would result in a string like
-	   this in US English 12-hour time: 'Fri Jul 16, 11:50 AM' */
+	   date and the time.  The value of "%s %s" would result in a string like
+	   this in US English 12-hour time: 'Fri Jul 16 11:50 AM' */
 	return g_strdup_printf(T_("%s %s"), date_string, time_string);
 }
 
