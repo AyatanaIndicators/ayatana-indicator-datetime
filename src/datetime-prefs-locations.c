@@ -144,7 +144,6 @@ handle_edit_started (GtkCellRendererText * renderer, GtkCellEditable * editable,
 {
   if (GTK_IS_ENTRY (editable)) {
     GtkEntry *entry = GTK_ENTRY (editable);
-    gtk_entry_set_completion (entry, GTK_ENTRY_COMPLETION (completion));
     timezone_completion_watch_entry (completion, entry);
 
     GtkListStore * store = GTK_LIST_STORE (g_object_get_data (G_OBJECT (completion), "store"));

@@ -604,8 +604,6 @@ create_dialog (void)
 
   /* And completion entry */
   TimezoneCompletion * completion = timezone_completion_new ();
-  gtk_entry_set_completion (GTK_ENTRY (WIG ("timezoneEntry")),
-                            GTK_ENTRY_COMPLETION (completion));
   timezone_completion_watch_entry (completion, GTK_ENTRY (WIG ("timezoneEntry")));
   g_signal_connect (completion, "match-selected", G_CALLBACK (timezone_selected), NULL);
 
