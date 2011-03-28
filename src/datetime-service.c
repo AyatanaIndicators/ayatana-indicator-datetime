@@ -364,12 +364,13 @@ static gboolean
 check_for_calendar (gpointer user_data)
 {
 	g_return_val_if_fail (calendar != NULL, FALSE);
-
+	// Always enable the calendar even if it does nothing
+	dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+	dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+	
 	gchar *evo = g_find_program_in_path("evolution");
 	if (evo != NULL) {
 		g_debug("Found the calendar application: %s", evo);
-		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
-		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 
 		dbusmenu_menuitem_property_set_bool(date, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		g_signal_connect (G_OBJECT(date), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
