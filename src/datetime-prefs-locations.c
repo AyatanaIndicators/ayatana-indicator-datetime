@@ -229,6 +229,7 @@ fill_from_settings (GObject * store, GSettings * conf)
 static void
 save_to_settings (GObject * store, GSettings * conf)
 {
+  gboolean empty = TRUE;
   GVariantBuilder builder;
   g_variant_builder_init (&builder, G_VARIANT_TYPE_ARRAY);
 
@@ -246,13 +247,21 @@ save_to_settings (GObject * store, GSettings * conf)
         gchar * settings_string = g_strdup_printf("%s %s", strzone, strname);
         g_variant_builder_add (&builder, "s", settings_string);
         g_free (settings_string);
+        empty = FALSE;
       }
     } while (gtk_tree_model_iter_next (GTK_TREE_MODEL (store), &iter));
   }
 
-  GVariant * locations = g_variant_builder_end (&builder);
-  g_settings_set_strv (conf, SETTINGS_LOCATIONS_S, g_variant_get_strv (locations, NULL));
-  g_variant_unref (locations);
+  if (empty) {
+    /* Empty list */
+    g_variant_builder_clear (&builder);
+    g_settings_set_strv (conf, SETTINGS_LOCATIONS_S, NULL);
+  }
+  else {
+    GVariant * locations = g_variant_builder_end (&builder);
+    g_settings_set_strv (conf, SETTINGS_LOCATIONS_S, g_variant_get_strv (locations, NULL));
+    g_variant_unref (locations);
+  }
 }
 
 static gboolean
