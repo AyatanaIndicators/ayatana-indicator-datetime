@@ -607,7 +607,7 @@ update_appointment_menu_items (gpointer user_data)
 	int days[12]={31,28,31,30,31,30,31,31,30,31,30,31};
 	if ((this_year % 400 == 0) || (this_year % 100 > 0 && this_year % 4 == 0)) days[1] = 29;
 	
-	int highlightdays = days[mon] - mday + 1;
+	int highlightdays = days[mon] - mday;
 	t1 = curtime; // By default the current time is the appointment start time. 
 	
 	if (start_time_appointments > 0) {
@@ -627,10 +627,7 @@ update_appointment_menu_items (gpointer user_data)
 	
 	g_debug("Will highlight %d days from %s", highlightdays, ctime(&t1));
 
-	t2 = t1 + (time_t) (highlightdays * 24 * 60 * 60); 
-	
-	// Remove all highlights from the calendar widget
-	dbusmenu_menuitem_property_set (calendar, CALENDAR_MENUITEM_PROP_CLEAR_MARKS, NULL);
+	t2 = t1 + (time_t) (highlightdays * 24 * 60 * 60);
 	
 	if (!e_cal_get_sources(&sources, E_CAL_SOURCE_TYPE_EVENT, &gerror)) {
 		g_debug("Failed to get ecal sources\n");
@@ -702,6 +699,11 @@ update_appointment_menu_items (gpointer user_data)
 	} else {
 		apt_output = SETTINGS_TIME_LOCALE;
 	}
+	// Remove all highlights from the calendar widget
+	dbusmenu_menuitem_property_set (calendar, CALENDAR_MENUITEM_PROP_CLEAR_MARKS, NULL);
+	
+	GVariantBuilder markeddays;
+	g_variant_builder_init (&markeddays, G_VARIANT_TYPE_ARRAY);
 	
 	i = 0;
 	for (l = sorted_comp_instances; l; l = l->next) {
@@ -724,9 +726,8 @@ update_appointment_menu_items (gpointer user_data)
 		const int dyear = due->tm_year;
 		
 		// Mark day
-		g_debug("Marking date %s", ctime(&ci->start));
-		dbusmenu_menuitem_property_set_int (calendar, CALENDAR_MENUITEM_PROP_MARK, due->tm_mday);
-
+		g_debug("Adding marked date %s, %d", ctime(&ci->start), dmday);
+		g_variant_builder_add (&markeddays, "i", dmday);
 
 		// If the appointment time is less than the selected date, 
 		// don't create an appointment item for it.
@@ -853,6 +854,9 @@ update_appointment_menu_items (gpointer user_data)
 		g_object_unref(ci->comp);
 	}
 	g_list_free(sorted_comp_instances);
+	
+	GVariant * marks = g_variant_builder_end (&markeddays);
+	dbusmenu_menuitem_property_set_variant (calendar, CALENDAR_MENUITEM_PROP_MARK, marks);
 	
 	updating_appointments = FALSE;
 	g_debug("End of objects");
