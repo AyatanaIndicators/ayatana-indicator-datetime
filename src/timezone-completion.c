@@ -24,6 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <json-glib/json-glib.h>
 #include <gdk/gdk.h>
+#include <gdk/gdkkeysyms.h>
 #include <glib/gi18n.h>
 #include "timezone-completion.h"
 #include "tz.h"
@@ -41,6 +42,7 @@ struct _TimezoneCompletionPrivate
   GtkEntry *     entry;
   guint          queued_request;
   guint          changed_id;
+  guint          keypress_id;
   GCancellable * cancel;
   gchar *        request_text;
   GHashTable *   request_table;
@@ -313,6 +315,7 @@ entry_changed (GtkEntry * entry, TimezoneCompletion * completion)
 
   if (priv->queued_request) {
     g_source_remove (priv->queued_request);
+    priv->queued_request = 0;
   }
 
   /* See if we've already got this one */
@@ -328,6 +331,94 @@ entry_changed (GtkEntry * entry, TimezoneCompletion * completion)
   gtk_entry_completion_complete (GTK_ENTRY_COMPLETION (completion));
 }
 
+static GtkWidget *
+get_descendent (GtkWidget * parent, GType type)
+{
+  if (g_type_is_a (G_OBJECT_TYPE (parent), type))
+    return parent;
+
+  if (GTK_IS_CONTAINER (parent)) {
+    GList * children = gtk_container_get_children (GTK_CONTAINER (parent));
+    GList * iter;
+    for (iter = children; iter; iter = iter->next) {
+      GtkWidget * found = get_descendent (GTK_WIDGET (iter->data), type);
+      if (found) {
+        g_list_free (children);
+        return found;
+      }
+    }
+    g_list_free (children);
+  }
+
+  return NULL;
+}
+
+/**
+ * The popup window and its GtkTreeView are private to our parent completion
+ * object.  We can't get access to discover if there is a highlighted item or
+ * even if the window is showing right now.  So this is a super hack to find
+ * it by looking through our toplevel's window group and finding a window with
+ * a GtkTreeView that points at our model.  There should be only one ever, so
+ * we'll use the first one we find.
+ */
+static GtkTreeView *
+find_popup_treeview (GtkWidget * widget, GtkTreeModel * model)
+{
+  GtkWidget * toplevel = gtk_widget_get_toplevel (widget);
+  if (!GTK_IS_WINDOW (toplevel))
+    return NULL;
+
+  GtkWindowGroup * group = gtk_window_get_group (GTK_WINDOW (toplevel)); 
+  GList * windows = gtk_window_group_list_windows (group);
+  GList * iter;
+  for (iter = windows; iter; iter = iter->next) {
+    if (iter->data == toplevel)
+      continue; // Skip our own window, we don't have it
+    GtkWidget * view = get_descendent (GTK_WIDGET (iter->data), GTK_TYPE_TREE_VIEW);
+    if (view != NULL) {
+      GtkTreeModel * tree_model = gtk_tree_view_get_model (GTK_TREE_VIEW (view));
+      if (GTK_IS_TREE_MODEL_FILTER (tree_model))
+        tree_model = gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (tree_model));
+      if (tree_model == model) {
+        g_list_free (windows);
+        return GTK_TREE_VIEW (view);
+      }
+    }
+  }
+  g_list_free (windows);
+
+  return NULL;
+}
+
+static gboolean
+entry_keypress (GtkEntry * entry, GdkEventKey  *event, TimezoneCompletion * completion)
+{
+  if (event->keyval == GDK_ISO_Enter ||
+      event->keyval == GDK_KP_Enter ||
+	    event->keyval == GDK_Return) {
+    /* Make sure that user has a selection to choose, otherwise ignore */
+    GtkTreeModel * model = gtk_entry_completion_get_model (GTK_ENTRY_COMPLETION (completion));
+    GtkTreeView * view = find_popup_treeview (GTK_WIDGET (entry), model);
+    if (view == NULL) {
+      // Just beep if popup hasn't appeared yet.
+      gtk_widget_error_bell (GTK_WIDGET (entry));
+      return TRUE;
+    }
+
+    GtkTreeSelection * sel = gtk_tree_view_get_selection (view);
+    GtkTreeModel * sel_model = NULL;
+    if (!gtk_tree_selection_get_selected (sel, &sel_model, NULL)) {
+      // No selection, we should help them out and select first item in list
+      GtkTreeIter iter;
+      if (gtk_tree_model_get_iter_first (sel_model, &iter))
+        gtk_tree_selection_select_iter (sel, &iter);
+      // And fall through to normal handler code
+    }
+  }
+
+  return FALSE;
+}
+
 void
 timezone_completion_watch_entry (TimezoneCompletion * completion, GtkEntry * entry)
 {
@@ -338,15 +429,22 @@ timezone_completion_watch_entry (TimezoneCompletion * completion, GtkEntry * ent
     priv->queued_request = 0;
   }
   if (priv->entry) {
-    g_source_remove (priv->changed_id);
+    g_signal_handler_disconnect (priv->entry, priv->changed_id);
+    g_signal_handler_disconnect (priv->entry, priv->keypress_id);
     g_object_remove_weak_pointer (G_OBJECT (priv->entry), (gpointer *)&priv->entry);
+    gtk_entry_set_completion (priv->entry, NULL);
   }
 
   guint id = g_signal_connect (entry, "changed", G_CALLBACK (entry_changed), completion);
   priv->changed_id = id;
 
+  id = g_signal_connect (entry, "key-press-event", G_CALLBACK (entry_keypress), completion);
+  priv->keypress_id = id;
+
   priv->entry = entry;
   g_object_add_weak_pointer (G_OBJECT (entry), (gpointer *)&priv->entry);
+
+  gtk_entry_set_completion (entry, GTK_ENTRY_COMPLETION (completion));
 }
 
 static GtkListStore *
@@ -468,8 +566,15 @@ timezone_completion_dispose (GObject * object)
   TimezoneCompletionPrivate * priv = TIMEZONE_COMPLETION_GET_PRIVATE (completion);
 
   if (priv->changed_id) {
-    g_source_remove (priv->changed_id);
+    if (priv->entry)
+      g_signal_handler_disconnect (priv->entry, priv->changed_id);
     priv->changed_id = 0;
+  }
+
+  if (priv->keypress_id) {
+    if (priv->entry)
+      g_signal_handler_disconnect (priv->entry, priv->keypress_id);
+    priv->keypress_id = 0;
   }
 
   if (priv->entry != NULL) {
