@@ -34,6 +34,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SETTINGS_SHOW_EVENTS_S          "show-events"
 #define SETTINGS_SHOW_LOCATIONS_S       "show-locations"
 #define SETTINGS_LOCATIONS_S            "locations"
+#define SETTINGS_TIMEZONE_NAME_S        "timezone-name"
 
 enum {
 	SETTINGS_TIME_LOCALE = 0,
