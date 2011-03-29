@@ -35,6 +35,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define DATETIME_DIALOG_UI_FILE PKGDATADIR "/datetime-dialog.ui"
 
+#define COL_NAME 0
+#define COL_TIME 1
+#define COL_ZONE 2
+
 static void
 handle_add (GtkWidget * button, GtkTreeView * tree)
 {
@@ -84,7 +88,7 @@ handle_edit (GtkCellRendererText * renderer, gchar * path, gchar * new_text,
   GtkTreeIter iter;
 
   if (gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL (store), &iter, path)) {
-    gtk_list_store_set (store, &iter, 0, new_text, -1);
+    gtk_list_store_set (store, &iter, COL_NAME, new_text, -1);
   }
 }
 
@@ -92,28 +96,28 @@ static gboolean
 timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
                    GtkTreeIter * iter, gpointer user_data)
 {
-  GValue zone_value = {0}, name_value = {0};
   const gchar * zone, * name;
 
-  gtk_tree_model_get_value (model, iter, TIMEZONE_COMPLETION_ZONE, &zone_value);
-  zone = g_value_get_string (&zone_value);
+  gtk_tree_model_get (model, iter,
+                      TIMEZONE_COMPLETION_ZONE, &zone,
+                      TIMEZONE_COMPLETION_NAME, &name,
+                      -1);
 
-  gtk_tree_model_get_value (model, iter, TIMEZONE_COMPLETION_NAME, &name_value);
-  name = g_value_get_string (&name_value);
+  g_debug("match selected: %s, %s", name, zone);
 
   if (zone == NULL || zone[0] == 0) {
-    GValue lon_value = {0}, lat_value = {0};
     const gchar * strlon, * strlat;
     gdouble lon = 0.0, lat = 0.0;
 
-    gtk_tree_model_get_value (model, iter, TIMEZONE_COMPLETION_LONGITUDE, &lon_value);
-    strlon = g_value_get_string (&lon_value);
+    gtk_tree_model_get (model, iter,
+                        TIMEZONE_COMPLETION_LONGITUDE, &strlon,
+                        TIMEZONE_COMPLETION_LATITUDE, &strlat,
+                        -1);
+
     if (strlon != NULL && strlon[0] != 0) {
       lon = strtod(strlon, NULL);
     }
 
-    gtk_tree_model_get_value (model, iter, TIMEZONE_COMPLETION_LATITUDE, &lat_value);
-    strlat = g_value_get_string (&lat_value);
     if (strlat != NULL && strlat[0] != 0) {
       lat = strtod(strlat, NULL);
     }
@@ -125,11 +129,8 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
   GtkListStore * store = GTK_LIST_STORE (g_object_get_data (G_OBJECT (widget), "store"));
   GtkTreeIter * store_iter = (GtkTreeIter *)g_object_get_data (G_OBJECT (widget), "store_iter");
   if (store != NULL && store_iter != NULL) {
-    gtk_list_store_set (store, store_iter, 0, name, 2, zone, -1);
+    gtk_list_store_set (store, store_iter, COL_NAME, name, COL_ZONE, zone, -1);
   }
-
-  g_value_unset (&name_value);
-  g_value_unset (&zone_value);
 
   return FALSE; // Do normal action too
 }
@@ -169,11 +170,9 @@ update_times (TimezoneCompletion * completion)
   GtkTreeIter iter;
   if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter)) {
     do {
-      GValue zone_value = {0};
       const gchar * strzone;
 
-      gtk_tree_model_get_value (GTK_TREE_MODEL (store), &iter, 2, &zone_value);
-      strzone = g_value_get_string (&zone_value);
+      gtk_tree_model_get (GTK_TREE_MODEL (store), &iter, COL_ZONE, &strzone, -1);
 
       if (strzone != NULL && strzone[0] != 0) {
         GTimeZone * tz = g_time_zone_new (strzone);
@@ -181,15 +180,13 @@ update_times (TimezoneCompletion * completion)
         gchar * format = generate_format_string_at_time (now_tz);
         gchar * time_str = g_date_time_format (now_tz, format);
 
-        gtk_list_store_set (store, &iter, 1, time_str, -1);
+        gtk_list_store_set (store, &iter, COL_TIME, time_str, -1);
 
         g_free (time_str);
         g_free (format);
         g_date_time_unref (now_tz);
         g_time_zone_unref (tz);
       }
-
-      g_value_unset (&zone_value);
     } while (gtk_tree_model_iter_next (GTK_TREE_MODEL (store), &iter));
   }
 
@@ -211,7 +208,7 @@ fill_from_settings (GObject * store, GSettings * conf)
     split_settings_location (*striter, &zone, &name);
 
     gtk_list_store_append (GTK_LIST_STORE (store), &iter);
-    gtk_list_store_set (GTK_LIST_STORE (store), &iter, 0, name, 2, zone, -1);
+    gtk_list_store_set (GTK_LIST_STORE (store), &iter, COL_NAME, name, COL_ZONE, zone, -1);
 
     g_free (zone);
     g_free (name);
@@ -234,23 +231,18 @@ dialog_closed (GtkWidget * dlg, GObject * store)
   GtkTreeIter iter;
   if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter)) {
     do {
-      GValue zone_value = {0}, name_value = {0};
       const gchar * strzone, * strname;
 
-      gtk_tree_model_get_value (GTK_TREE_MODEL (store), &iter, 0, &name_value);
-      gtk_tree_model_get_value (GTK_TREE_MODEL (store), &iter, 2, &zone_value);
-
-      strzone = g_value_get_string (&zone_value);
-      strname = g_value_get_string (&name_value);
+      gtk_tree_model_get (GTK_TREE_MODEL (store), &iter,
+                          COL_NAME, &strname,
+                          COL_ZONE, &strzone,
+                          -1);
 
       if (strzone != NULL && strzone[0] != 0 && strname != NULL && strname[0] != 0) {
         gchar * settings_string = g_strdup_printf("%s %s", strzone, strname);
         g_variant_builder_add (&builder, "s", settings_string);
         g_free (settings_string);
       }
-
-      g_value_unset (&zone_value);
-      g_value_unset (&name_value);
     } while (gtk_tree_model_iter_next (GTK_TREE_MODEL (store), &iter));
   }
 
@@ -304,7 +296,7 @@ datetime_setup_locations_dialog (GtkWindow * parent, CcTimezoneMap * map)
   g_signal_connect (cell, "edited", G_CALLBACK (handle_edit), store);
   gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (tree), -1,
                                                _("Location"), cell,
-                                               "text", 0, NULL);
+                                               "text", COL_NAME, NULL);
   GtkTreeViewColumn * loc_col = gtk_tree_view_get_column (GTK_TREE_VIEW (tree), 0);
   gtk_tree_view_column_set_expand (loc_col, TRUE);
   g_object_set_data (G_OBJECT (completion), "name-cell", cell);
@@ -312,7 +304,7 @@ datetime_setup_locations_dialog (GtkWindow * parent, CcTimezoneMap * map)
   cell = gtk_cell_renderer_text_new ();
   gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (tree), -1,
                                                _("Time"), cell,
-                                               "text", 1, NULL);
+                                               "text", COL_TIME, NULL);
 
   GtkTreeSelection * selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (tree));
   gtk_tree_selection_set_mode (selection, GTK_SELECTION_MULTIPLE);
