@@ -766,13 +766,23 @@ cc_timezone_map_draw (GtkWidget *widget,
   gchar *file;
   GError *err = NULL;
   gdouble pointx, pointy;
+  gdouble alpha = 1.0;
+  GtkStyle *style;
   char buf[16];
 
   gtk_widget_get_allocation (widget, &alloc);
 
+  style = gtk_widget_get_style (widget);
+
+  /* Check if insensitive */
+  if (gtk_widget_get_state (widget) == GTK_STATE_INSENSITIVE)
+    alpha = 0.5;
+
   /* paint background */
-  gdk_cairo_set_source_pixbuf (cr, priv->background, 0, 0);
+  gdk_cairo_set_source_color (cr, &style->bg[gtk_widget_get_state (widget)]);
   cairo_paint (cr);
+  gdk_cairo_set_source_pixbuf (cr, priv->background, 0, 0);
+  cairo_paint_with_alpha (cr, alpha);
 
   /* paint watermark */
   if (priv->watermark) {
@@ -788,13 +798,6 @@ cc_timezone_map_draw (GtkWidget *widget,
   }
 
   if (!priv->location) {
-    /* Check if insensitive */
-    if (gtk_widget_get_state (widget) == GTK_STATE_INSENSITIVE) {
-      cairo_set_source_rgba(cr, 1, 1, 1, 0.5);
-      cairo_rectangle(cr, 0, 0, alloc.width, alloc.height);
-      cairo_fill(cr);
-    }
-
     return TRUE;
   }
 
@@ -820,7 +823,7 @@ cc_timezone_map_draw (GtkWidget *widget,
                                          alloc.height, GDK_INTERP_BILINEAR);
       gdk_cairo_set_source_pixbuf (cr, hilight, 0, 0);
 
-      cairo_paint (cr);
+      cairo_paint_with_alpha (cr, alpha);
       g_object_unref (hilight);
       g_object_unref (orig_hilight);
     }
@@ -843,16 +846,9 @@ cc_timezone_map_draw (GtkWidget *widget,
   if (pin)
     {
       gdk_cairo_set_source_pixbuf (cr, pin, pointx - 8, pointy - 14);
-      cairo_paint (cr);
+      cairo_paint_with_alpha (cr, alpha);
       g_object_unref (pin);
     }
-
-  /* Check if insensitive */
-  if (gtk_widget_get_state (widget) == GTK_STATE_INSENSITIVE) {
-    cairo_set_source_rgba(cr, 1, 1, 1, 0.5);
-    cairo_rectangle(cr, 0, 0, alloc.width, alloc.height);
-    cairo_fill(cr);
-  }
 
   return TRUE;
 }
