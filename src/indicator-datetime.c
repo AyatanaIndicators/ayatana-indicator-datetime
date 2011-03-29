@@ -813,7 +813,7 @@ setup_timer (IndicatorDatetime * self, GDateTime * datetime)
 	
 	if (self->priv->show_seconds ||
 		(self->priv->time_mode == SETTINGS_TIME_CUSTOM && self->priv->custom_show_seconds)) {
-		self->priv->timer = g_timeout_add_full(G_PRIORITY_HIGH, 865, timer_func, self, NULL);
+		self->priv->timer = g_timeout_add_full(G_PRIORITY_HIGH, 999, timer_func, self, NULL);
 	} else {
 		if (datetime == NULL) {
 			datetime = g_date_time_new_now_local();
