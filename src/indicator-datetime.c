@@ -525,7 +525,7 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 		}
 		break;
 	}
-	case PROP_SHOW_SECONDS:
+	case PROP_SHOW_SECONDS: {
 		if (g_value_get_boolean(value) != self->priv->show_seconds) {
 			self->priv->show_seconds = !self->priv->show_seconds;
 			if (self->priv->time_mode != SETTINGS_TIME_CUSTOM) {
@@ -534,7 +534,8 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 			}
 		}
 		break;
-	case PROP_SHOW_DAY:
+	}
+	case PROP_SHOW_DAY: {
 		if (g_value_get_boolean(value) != self->priv->show_day) {
 			self->priv->show_day = !self->priv->show_day;
 			if (self->priv->time_mode != SETTINGS_TIME_CUSTOM) {
@@ -542,7 +543,8 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 			}
 		}
 		break;
-	case PROP_SHOW_DATE:
+	}
+	case PROP_SHOW_DATE: {
 		if (g_value_get_boolean(value) != self->priv->show_date) {
 			self->priv->show_date = !self->priv->show_date;
 			if (self->priv->time_mode != SETTINGS_TIME_CUSTOM) {
@@ -550,6 +552,7 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 			}
 		}
 		break;
+	}
 	case PROP_CUSTOM_TIME_FORMAT: {
 		const gchar * newstr = g_value_get_string(value);
 		if (g_strcmp0(newstr, self->priv->custom_string) != 0) {
@@ -585,10 +588,11 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 			gtk_widget_set_visible (GTK_WIDGET (self->priv->ido_calendar), self->priv->show_calendar);
 		}
 		break;
-	}
-	default:
+	} 
+	default: {
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
 		return;
+	}
 	}
 
 	if (!update) {
