@@ -53,6 +53,7 @@ GtkWidget * date_spin = NULL;
 guint       save_time_id = 0;
 gboolean    user_edited_time = FALSE;
 gboolean    changing_time = FALSE;
+GtkWidget * loc_dlg = NULL;
 
 /* Turns the boolean property into a string gsettings */
 static GVariant *
@@ -495,10 +496,25 @@ setup_time_spinners (GtkWidget * time, GtkWidget * date)
 }
 
 static void
+hide_locations ()
+{
+  if (loc_dlg != NULL)
+    gtk_widget_destroy (loc_dlg);
+}
+
+static void
 show_locations (GtkWidget * button, GtkWidget * dlg)
 {
-  GtkWidget * locationsDlg = datetime_setup_locations_dialog (GTK_WINDOW (dlg), tzmap);
-  gtk_widget_show_all (locationsDlg);
+  if (loc_dlg == NULL) {
+    loc_dlg = datetime_setup_locations_dialog (tzmap);
+    gtk_window_set_transient_for (GTK_WINDOW (loc_dlg), GTK_WINDOW (dlg));
+    g_signal_connect (loc_dlg, "destroy", G_CALLBACK (gtk_widget_destroyed), &loc_dlg);
+    g_signal_connect (dlg, "focus-in-event", G_CALLBACK (hide_locations), NULL);
+    gtk_widget_show_all (loc_dlg);
+  }
+  else {
+    gtk_window_present_with_time (GTK_WINDOW (loc_dlg), gtk_get_current_event_time ());
+  }
 }
 
 static gboolean

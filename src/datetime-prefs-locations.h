@@ -28,7 +28,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 G_BEGIN_DECLS
 
-GtkWidget * datetime_setup_locations_dialog (GtkWindow * parent, CcTimezoneMap * map);
+GtkWidget * datetime_setup_locations_dialog (CcTimezoneMap * map);
 
 G_END_DECLS
 

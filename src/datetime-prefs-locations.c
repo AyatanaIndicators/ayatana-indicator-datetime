@@ -309,7 +309,7 @@ selection_changed (GtkTreeSelection * selection, GtkWidget * remove_button)
 }
 
 GtkWidget *
-datetime_setup_locations_dialog (GtkWindow * parent, CcTimezoneMap * map)
+datetime_setup_locations_dialog (CcTimezoneMap * map)
 {
   GError * error = NULL;
   GtkBuilder * builder = gtk_builder_new ();
@@ -374,8 +374,6 @@ datetime_setup_locations_dialog (GtkWindow * parent, CcTimezoneMap * map)
   guint time_id = g_timeout_add_seconds (2, (GSourceFunc)update_times, dlg);
   g_object_set_data (G_OBJECT (dlg), "time-id", GINT_TO_POINTER(time_id));
   update_times (dlg);
-
-  gtk_window_set_transient_for (GTK_WINDOW (dlg), parent);
 
 #undef WIG
 
