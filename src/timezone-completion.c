@@ -81,12 +81,15 @@ save_and_use_model (TimezoneCompletion * completion, GtkTreeModel * model)
     gtk_entry_completion_set_match_func (GTK_ENTRY_COMPLETION (completion), match_func, NULL, NULL);
 
   gtk_entry_completion_set_model (GTK_ENTRY_COMPLETION (completion), model);
-  gtk_entry_completion_complete (GTK_ENTRY_COMPLETION (completion));
 
-  /* By this time, the changed signal has come and gone.  We didn't give a
-     model to use, so no popup appeared for user.  Poke the entry again to show
-     popup in 300ms. */
-  g_signal_emit_by_name (priv->entry, "changed");
+  if (priv->entry != NULL) {
+    gtk_entry_completion_complete (GTK_ENTRY_COMPLETION (completion));
+
+    /* By this time, the changed signal has come and gone.  We didn't give a
+       model to use, so no popup appeared for user.  Poke the entry again to show
+       popup in 300ms. */
+    g_signal_emit_by_name (priv->entry, "changed");
+  }
 }
 
 static gint
