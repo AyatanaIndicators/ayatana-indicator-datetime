@@ -61,6 +61,11 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
+                <child internal-child="accessible">
+                  <object class="AtkObject" id="addButton-atkobject">
+                    <property name="AtkObject::accessible-description" translatable="yes">Add a Location…</property>
+                  </object>
+                </child>
                 <child>
                   <object class="GtkImage" id="addImage">
                     <property name="visible">True</property>
@@ -81,6 +86,11 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
+                <child internal-child="accessible">
+                  <object class="AtkObject" id="removeButton-atkobject">
+                    <property name="AtkObject::accessible-description" translatable="yes">Remove This Location</property>
+                  </object>
+                </child>
                 <child>
                   <object class="GtkImage" id="removeImage">
                     <property name="visible">True</property>
