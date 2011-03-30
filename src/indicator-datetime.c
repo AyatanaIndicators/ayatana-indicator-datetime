@@ -1200,14 +1200,14 @@ calendar_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, I
 	g_debug("Changing calendar property: %s", prop);
 	if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_MARKS)) {
 		ido_calendar_menu_item_clear_marks (IDO_CALENDAR_MENU_ITEM (mi_data));
-		g_debug("Marks: Cleared");
 		GVariantIter *iter;
 		gint day;
+
+		g_debug("\tMarks: %s", g_variant_print(value, FALSE));
 
 		g_variant_get (value, "ai", &iter);
 	  	while (g_variant_iter_loop (iter, "i", &day)) {
 			ido_calendar_menu_item_mark_day (IDO_CALENDAR_MENU_ITEM (mi_data), day);
-			g_debug("Marks: Marked day: %d", day);
 		}
 		g_variant_iter_free (iter);
 	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_SET_DATE)) {
