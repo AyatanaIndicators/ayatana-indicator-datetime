@@ -300,10 +300,33 @@ month_changed_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, g
 static gboolean
 day_selected_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, guint timestamp)
 {
-	start_time_appointments = (time_t)g_variant_get_uint32(variant);
-	
+	time_t new_time = (time_t)g_variant_get_uint32(variant);
+	g_warn_if_fail(new_time != 0);
+
+	if (start_time_appointments == 0 || new_time == 0) {
+		/* If we've got nothing, assume everyhting is going to
+		   get repopulated, let's start with a clean slate */
+		dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
+	} else {
+		/* No check to see if we changed months.  If we did we'll
+		   want to clear the marks.  Otherwise we're cool keeping
+		   them around. */
+		struct tm start_tm;
+		struct tm new_tm;
+
+		localtime_r(&start_time_appointments, &start_tm);
+		localtime_r(&new_time, &new_tm);
+
+		if (start_tm.tm_mon != new_tm.tm_mon) {
+			dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
+		}
+	}
+
+	start_time_appointments = new_time;
+
 	g_debug("Received day-selected with timestamp: %d -> %s",(int)start_time_appointments, ctime(&start_time_appointments));	
 	g_idle_add(update_appointment_menu_items_idle, NULL);
+
 	return TRUE;
 }
 
