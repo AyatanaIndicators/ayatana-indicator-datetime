@@ -353,6 +353,12 @@ stop_ecal_timer(void)
 {
 	if (ecaltimer != 0) g_source_remove(ecaltimer);
 }
+static gboolean
+idle_start_ecal_timer (gpointer data)
+{
+	start_ecal_timer();
+	return FALSE;
+}
 
 static void
 show_events_changed (void)
@@ -410,7 +416,7 @@ check_for_calendar (gpointer user_data)
 		if (g_settings_get_boolean(conf, SETTINGS_SHOW_EVENTS_S)) {
 			dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 			dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
-			g_idle_add(start_ecal_timer, NULL);
+			g_idle_add((GSourceFunc)idle_start_ecal_timer, NULL);
 		} else {
 			dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 			dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
