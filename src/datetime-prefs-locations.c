@@ -35,9 +35,11 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define DATETIME_DIALOG_UI_FILE PKGDATADIR "/datetime-dialog.ui"
 
-#define COL_NAME 0
-#define COL_TIME 1
-#define COL_ZONE 2
+#define COL_NAME         0
+#define COL_TIME         1
+#define COL_ZONE         2
+#define COL_VISIBLE_NAME 3
+#define COL_ICON         4
 
 static gboolean update_times (GtkWidget * dlg);
 static void save_when_idle (GtkWidget * dlg);
@@ -90,8 +92,18 @@ handle_edit (GtkCellRendererText * renderer, gchar * path, gchar * new_text,
 {
   GtkTreeIter iter;
 
+  // Manual user edits are always wrong (unless they are undoing a previous
+  // edit), so we set the error icon here if needed.  Common way to get to
+  // this code path is to lose entry focus.
   if (gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL (store), &iter, path)) {
-    gtk_list_store_set (store, &iter, COL_NAME, new_text, -1);
+    const gchar * name;
+    gtk_tree_model_get (GTK_TREE_MODEL (store), &iter, COL_NAME, &name, -1);
+    gboolean correct = g_strcmp0 (name, new_text) == 0;
+
+    gtk_list_store_set (store, &iter,
+                        COL_VISIBLE_NAME, new_text,
+                        COL_ICON, correct ? NULL : GTK_STOCK_DIALOG_ERROR,
+                        -1);
   }
 }
 
@@ -130,7 +142,11 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
   GtkListStore * store = GTK_LIST_STORE (g_object_get_data (G_OBJECT (widget), "store"));
   GtkTreeIter * store_iter = (GtkTreeIter *)g_object_get_data (G_OBJECT (widget), "store_iter");
   if (store != NULL && store_iter != NULL) {
-    gtk_list_store_set (store, store_iter, COL_NAME, name, COL_ZONE, zone, -1);
+    gtk_list_store_set (store, store_iter,
+                        COL_VISIBLE_NAME, name,
+                        COL_ICON, NULL,
+                        COL_NAME, name,
+                        COL_ZONE, zone, -1);
   }
 
   update_times (dlg);
@@ -216,7 +232,11 @@ fill_from_settings (GObject * store, GSettings * conf)
     split_settings_location (*striter, &zone, &name);
 
     gtk_list_store_append (GTK_LIST_STORE (store), &iter);
-    gtk_list_store_set (GTK_LIST_STORE (store), &iter, COL_NAME, name, COL_ZONE, zone, -1);
+    gtk_list_store_set (GTK_LIST_STORE (store), &iter,
+                        COL_VISIBLE_NAME, name,
+                        COL_ICON, NULL,
+                        COL_NAME, name,
+                        COL_ZONE, zone, -1);
 
     g_free (zone);
     g_free (name);
@@ -342,10 +362,14 @@ datetime_setup_locations_dialog (CcTimezoneMap * map)
   g_signal_connect (cell, "edited", G_CALLBACK (handle_edit), store);
   gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (tree), -1,
                                                _("Location"), cell,
-                                               "text", COL_NAME, NULL);
+                                               "text", COL_VISIBLE_NAME, NULL);
   GtkTreeViewColumn * loc_col = gtk_tree_view_get_column (GTK_TREE_VIEW (tree), 0);
   gtk_tree_view_column_set_expand (loc_col, TRUE);
   g_object_set_data (G_OBJECT (completion), "name-cell", cell);
+
+  cell = gtk_cell_renderer_pixbuf_new ();
+  gtk_tree_view_column_pack_start (loc_col, cell, FALSE);
+  gtk_tree_view_column_add_attribute (loc_col, cell, "icon-name", COL_ICON);
 
   cell = gtk_cell_renderer_text_new ();
   gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (tree), -1,

@@ -123,6 +123,10 @@
       <column type="gchararray"/>
       <!-- column-name Zone -->
       <column type="gchararray"/>
+      <!-- column-name Visible Name -->
+      <column type="gchararray"/>
+      <!-- column-name Icon -->
+      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkAdjustment" id="timeAdjustment">
