@@ -101,6 +101,8 @@ struct _IndicatorDatetimePrivate {
 	GList * timezone_items;
 
 	GSettings * settings;
+
+	GtkSizeGroup * indicator_right_group;
 };
 
 /* Enum for the properties so that they can be quickly
@@ -181,8 +183,6 @@ INDICATOR_SET_VERSION
 INDICATOR_SET_TYPE(INDICATOR_DATETIME_TYPE)
 
 G_DEFINE_TYPE (IndicatorDatetime, indicator_datetime, INDICATOR_OBJECT_TYPE);
-
-static GtkSizeGroup * indicator_right_group = NULL;
 
 static void
 indicator_datetime_class_init (IndicatorDatetimeClass *klass)
@@ -341,6 +341,7 @@ indicator_datetime_init (IndicatorDatetime *self)
 	}
 
 	self->priv->sm = indicator_service_manager_new_version(SERVICE_NAME, SERVICE_VERSION);
+	self->priv->indicator_right_group = GTK_SIZE_GROUP(gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL));
 
 	self->priv->service_proxy_cancel = g_cancellable_new();
 
@@ -456,6 +457,11 @@ indicator_datetime_dispose (GObject *object)
 	if (self->priv->service_proxy != NULL) {
 		g_object_unref(self->priv->service_proxy);
 		self->priv->service_proxy = NULL;
+	}
+
+	if (self->priv->indicator_right_group != NULL) {
+		g_object_unref(G_OBJECT(self->priv->indicator_right_group));
+		self->priv->indicator_right_group = NULL;
 	}
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->dispose (object);
@@ -1226,7 +1232,9 @@ new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, Dbu
 {
 	g_return_val_if_fail(DBUSMENU_IS_MENUITEM(newitem), FALSE);
 	g_return_val_if_fail(DBUSMENU_IS_GTKCLIENT(client), FALSE);
+	g_return_val_if_fail(IS_INDICATOR_DATETIME(user_data), FALSE);
 	/* Note: not checking parent, it's reasonable for it to be NULL */
+	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
 
 	indicator_item_t * mi_data = g_new0(indicator_item_t, 1);
 
@@ -1276,7 +1284,7 @@ new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, Dbu
 	/* Usually either the time or the count on the individual
 	   item. */
 	mi_data->right = gtk_label_new(dbusmenu_menuitem_property_get(newitem, APPOINTMENT_MENUITEM_PROP_RIGHT));
-	gtk_size_group_add_widget(indicator_right_group, mi_data->right);
+	gtk_size_group_add_widget(self->priv->indicator_right_group, mi_data->right);
 	gtk_misc_set_alignment(GTK_MISC(mi_data->right), 1.0, 0.5);
 	gtk_box_pack_start(GTK_BOX(hbox), mi_data->right, FALSE, FALSE, 0);
 	gtk_widget_show(mi_data->right);
@@ -1426,15 +1434,10 @@ new_timezone_item(DbusmenuMenuitem * newitem,
 {
 	g_return_val_if_fail(DBUSMENU_IS_MENUITEM(newitem), FALSE);
 	g_return_val_if_fail(DBUSMENU_IS_GTKCLIENT(client), FALSE);
+	g_return_val_if_fail(IS_INDICATOR_DATETIME(user_data), FALSE);
 	/* Note: not checking parent, it's reasonable for it to be NULL */
-	
-	IndicatorObject *io = g_object_get_data (G_OBJECT (client), "indicator");
-	if (io == NULL) {
-		g_warning ("found no indicator to attach the timezone to");
-		return FALSE;
-	}
 
-	IndicatorDatetime *self = INDICATOR_DATETIME(io);
+	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
 	IndicatorDatetimePrivate *priv = INDICATOR_DATETIME_GET_PRIVATE(self);
 
 	// Menu item with a radio button and a right aligned time
@@ -1461,7 +1464,7 @@ new_timezone_item(DbusmenuMenuitem * newitem,
 	/* Usually either the time or the count on the individual
 	   item. */
 	mi_data->right = gtk_label_new("");
-	gtk_size_group_add_widget(indicator_right_group, mi_data->right);
+	gtk_size_group_add_widget(self->priv->indicator_right_group, mi_data->right);
 	gtk_misc_set_alignment(GTK_MISC(mi_data->right), 1.0, 0.5);
 	gtk_box_pack_start(GTK_BOX(hbox), mi_data->right, FALSE, FALSE, 0);
 	gtk_widget_show(mi_data->right);
@@ -1518,9 +1521,9 @@ get_menu (IndicatorObject * io)
 	DbusmenuGtkClient *client = dbusmenu_gtkmenu_get_client(self->priv->menu);
 	g_object_set_data (G_OBJECT (client), "indicator", io);
 
-	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), DBUSMENU_CALENDAR_MENUITEM_TYPE, new_calendar_item);
-	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), APPOINTMENT_MENUITEM_TYPE, new_appointment_item);
-	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), TIMEZONE_MENUITEM_TYPE, new_timezone_item);
+	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), DBUSMENU_CALENDAR_MENUITEM_TYPE, new_calendar_item, io, NULL);
+	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), APPOINTMENT_MENUITEM_TYPE, new_appointment_item, io, NULL);
+	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), TIMEZONE_MENUITEM_TYPE, new_timezone_item, io, NULL);
 
 	return GTK_MENU(self->priv->menu);
 }
