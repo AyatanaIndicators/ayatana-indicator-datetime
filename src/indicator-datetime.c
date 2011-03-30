@@ -556,7 +556,9 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 	case PROP_SHOW_CLOCK: {
 		if (g_value_get_boolean(value) != self->priv->show_clock) {
 			self->priv->show_clock = g_value_get_boolean(value);
-			gtk_widget_set_visible (GTK_WIDGET (self->priv->label), self->priv->show_clock);
+			if (self->priv->label != NULL) {
+				gtk_widget_set_visible (GTK_WIDGET (self->priv->label), self->priv->show_clock);
+			}
 		}
 		break;
 	}
@@ -626,7 +628,9 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 	case PROP_SHOW_CALENDAR: {
 		if (g_value_get_boolean(value) != self->priv->show_calendar) {
 			self->priv->show_calendar = g_value_get_boolean(value);
-			gtk_widget_set_visible (GTK_WIDGET (self->priv->ido_calendar), self->priv->show_calendar);
+			if (self->priv->ido_calendar != NULL) {
+				gtk_widget_set_visible (GTK_WIDGET (self->priv->ido_calendar), self->priv->show_calendar);
+			}
 		}
 		break;
 	}
