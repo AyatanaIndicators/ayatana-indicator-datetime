@@ -1191,7 +1191,7 @@ indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, 
 static void
 calendar_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, IdoCalendarMenuItem * mi_data)
 {
-	g_debug("Changing calendar property");
+	g_debug("Changing calendar property: %s", prop);
 	if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_MARKS)) {
 		ido_calendar_menu_item_clear_marks (IDO_CALENDAR_MENU_ITEM (mi_data));
 		g_debug("Marks: Cleared");
@@ -1350,6 +1350,7 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 				   DbusmenuClient   * client,
 				   gpointer           user_data)
 {
+	g_debug("New calendar item");
 	g_return_val_if_fail(DBUSMENU_IS_MENUITEM(newitem), FALSE);
 	g_return_val_if_fail(DBUSMENU_IS_GTKCLIENT(client), FALSE);
 	/* Note: not checking parent, it's reasonable for it to be NULL */
