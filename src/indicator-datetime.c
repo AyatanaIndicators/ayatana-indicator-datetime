@@ -824,9 +824,9 @@ static void
 session_active_change_cb (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name,
                 GVariant * parameters, gpointer user_data)
 {
+	// Just returned from suspend
+	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
 	if (g_strcmp0(signal_name, "ActiveChanged") == 0) {
-		// Just returned from suspend
-		IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
 		update_time(self);
 	}
 	return;
