@@ -379,7 +379,7 @@ system_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
 		g_error_free(error);
 		return;
 	}
-	g_signal_connect(proxy, "g-signal::ActiveChanged", G_CALLBACK(session_active_change_cb), self);
+	g_signal_connect(proxy, "g-signal", G_CALLBACK(session_active_change_cb), self);
 
 }
 
@@ -806,7 +806,9 @@ session_active_change_cb (GDBusProxy * proxy, gchar * sender_name, gchar * signa
 {
 	// Just returned from suspend
 	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
-	update_time(self);
+	if (g_strcmp0(signal_name, "ActiveChanged") == 0) {
+		update_time(self);
+	}
 	return;
 }
 
