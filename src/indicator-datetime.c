@@ -1377,11 +1377,26 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 	gtk_widget_set_visible (GTK_WIDGET (self->priv->ido_calendar), self->priv->show_calendar);
 
 	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(ido), parent);
+
 	g_signal_connect_after(ido, "month-changed", G_CALLBACK(month_changed_cb), (gpointer)newitem);
 	g_signal_connect_after(ido, "day-selected", G_CALLBACK(day_selected_cb), (gpointer)newitem);
 	g_signal_connect_after(ido, "day-selected-double-click", G_CALLBACK(day_selected_double_click_cb), (gpointer)newitem);
 
 	g_signal_connect(G_OBJECT(newitem), DBUSMENU_MENUITEM_SIGNAL_PROPERTY_CHANGED, G_CALLBACK(calendar_prop_change_cb), ido);
+
+	/* Run the current values through prop changed */
+	GVariant * propval = NULL;
+
+	propval = dbusmenu_menuitem_property_get_variant(newitem, CALENDAR_MENUITEM_PROP_MARKS);
+	if (propval != NULL) {
+		calendar_prop_change_cb(newitem, CALENDAR_MENUITEM_PROP_MARKS, propval, ido);
+	}
+
+	propval = dbusmenu_menuitem_property_get_variant(newitem, CALENDAR_MENUITEM_PROP_SET_DATE);
+	if (propval != NULL) {
+		calendar_prop_change_cb(newitem, CALENDAR_MENUITEM_PROP_SET_DATE, propval, ido);
+	}
+
 	return TRUE;
 }
 
