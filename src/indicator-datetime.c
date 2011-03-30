@@ -177,6 +177,9 @@ static void system_proxy_cb  (GObject * object, GAsyncResult * res, gpointer use
 static void service_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data);
 static gint generate_strftime_bitmask     (const char *time_str);
 static void timezone_update_labels        (indicator_item_t * mi_data);
+static gboolean new_calendar_item         (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, DbusmenuClient   * client, gpointer user_data);
+static gboolean new_appointment_item      (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, DbusmenuClient * client, gpointer user_data);
+static gboolean new_timezone_item         (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, DbusmenuClient   * client, gpointer user_data);
 
 /* Indicator Module Config */
 INDICATOR_SET_VERSION
@@ -342,6 +345,13 @@ indicator_datetime_init (IndicatorDatetime *self)
 
 	self->priv->sm = indicator_service_manager_new_version(SERVICE_NAME, SERVICE_VERSION);
 	self->priv->indicator_right_group = GTK_SIZE_GROUP(gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL));
+
+	self->priv->menu = dbusmenu_gtkmenu_new(SERVICE_NAME, MENU_OBJ);
+
+	DbusmenuGtkClient *client = dbusmenu_gtkmenu_get_client(self->priv->menu);
+	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), DBUSMENU_CALENDAR_MENUITEM_TYPE, new_calendar_item, self, NULL);
+	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), APPOINTMENT_MENUITEM_TYPE, new_appointment_item, self, NULL);
+	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), TIMEZONE_MENUITEM_TYPE, new_timezone_item, self, NULL);
 
 	self->priv->service_proxy_cancel = g_cancellable_new();
 
@@ -1368,15 +1378,10 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 	g_debug("New calendar item");
 	g_return_val_if_fail(DBUSMENU_IS_MENUITEM(newitem), FALSE);
 	g_return_val_if_fail(DBUSMENU_IS_GTKCLIENT(client), FALSE);
+	g_return_val_if_fail(IS_INDICATOR_DATETIME(user_data), FALSE);
 	/* Note: not checking parent, it's reasonable for it to be NULL */
 
-	IndicatorObject *io = g_object_get_data (G_OBJECT (client), "indicator");
-	if (io == NULL) {
-		g_warning ("found no indicator to attach the caledar to");
-		return FALSE;
-	}
-
-	IndicatorDatetime *self = INDICATOR_DATETIME(io);
+	IndicatorDatetime *self = INDICATOR_DATETIME(user_data);
 	self->priv = INDICATOR_DATETIME_GET_PRIVATE(self);
 	
 	IdoCalendarMenuItem *ido = IDO_CALENDAR_MENU_ITEM (ido_calendar_menu_item_new ());
@@ -1520,17 +1525,6 @@ static GtkMenu *
 get_menu (IndicatorObject * io)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(io);
-
-	if (self->priv->menu == NULL) {
-		self->priv->menu = dbusmenu_gtkmenu_new(SERVICE_NAME, MENU_OBJ);
-	}
-
-	DbusmenuGtkClient *client = dbusmenu_gtkmenu_get_client(self->priv->menu);
-	g_object_set_data (G_OBJECT (client), "indicator", io);
-
-	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), DBUSMENU_CALENDAR_MENUITEM_TYPE, new_calendar_item, io, NULL);
-	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), APPOINTMENT_MENUITEM_TYPE, new_appointment_item, io, NULL);
-	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), TIMEZONE_MENUITEM_TYPE, new_timezone_item, io, NULL);
 
 	return GTK_MENU(self->priv->menu);
 }
