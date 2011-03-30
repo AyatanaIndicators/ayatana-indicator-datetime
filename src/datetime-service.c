@@ -410,7 +410,7 @@ check_for_calendar (gpointer user_data)
 		if (g_settings_get_boolean(conf, SETTINGS_SHOW_EVENTS_S)) {
 			dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 			dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
-			start_ecal_timer();
+			g_idle_add(start_ecal_timer, NULL);
 		} else {
 			dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 			dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
