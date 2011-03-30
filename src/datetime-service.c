@@ -420,14 +420,13 @@ show_events_changed (void)
 		dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 		/* Remove all of the previous appointments */
 		if (appointments != NULL) {
-			g_debug("Freeing old appointments");
-			while (appointments != NULL) {
-				DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(appointments->data);
-				g_debug("Freeing old appointment: %p", litem);
+			g_debug("Hiding old appointments");
+			GList * appointment;
+			for (appointment = appointments; appointment != NULL; appointment = g_list_next(appointment)) {
+				DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(appointment->data);
+				g_debug("Hiding old appointment: %p", litem);
 				// Remove all the existing menu items which are in appointments.
-				appointments = g_list_remove(appointments, litem);
-				dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(litem));
-				g_object_unref(G_OBJECT(litem));
+				dbusmenu_menuitem_property_set_bool(DBUSMENU_MENUITEM(litem), DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 			}
 		}
 		stop_ecal_timer();
@@ -725,16 +724,15 @@ update_appointment_menu_items (gpointer user_data)
 	comp_instances = NULL;
 	g_debug("Components sorted");
 	
-	/* Remove all of the previous appointments */
+	/* Hiding all of the previous appointments */
 	if (appointments != NULL) {
-		g_debug("Freeing old appointments");
-		while (appointments != NULL) {
-			DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(appointments->data);
-			g_debug("Freeing old appointment: %p", litem);
+		g_debug("Hiding old appointments");
+		GList * appointment;
+		for (appointment = appointments; appointment != NULL; appointment = g_list_next(appointment)) {
+			DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(appointment->data);
+			g_debug("Hiding old appointment: %p", litem);
 			// Remove all the existing menu items which are in appointments.
-			appointments = g_list_remove(appointments, litem);
-			dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(litem));
-			g_object_unref(G_OBJECT(litem));
+			dbusmenu_menuitem_property_set_bool(DBUSMENU_MENUITEM(litem), DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 		}
 	}
 
@@ -758,6 +756,7 @@ update_appointment_menu_items (gpointer user_data)
 	g_variant_builder_init (&markeddays, G_VARIANT_TYPE_ARRAY);
 	
 	i = 0;
+	GList * cached_appointment = appointments;
 	for (l = sorted_comp_instances; l; l = l->next) {
 		struct comp_instance *ci = l->data;
 		ECalComponent *ecalcomp = ci->comp;
@@ -792,12 +791,28 @@ update_appointment_menu_items (gpointer user_data)
 		if (i >= 5) continue;
 		i++;
 
-		g_debug("Create menu item");
-		
-		item = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set       (item, DBUSMENU_MENUITEM_PROP_TYPE, APPOINTMENT_MENUITEM_TYPE);
+		if (cached_appointment == NULL) {
+			g_debug("Create menu item");
+			
+			item = dbusmenu_menuitem_new();
+			dbusmenu_menuitem_property_set       (item, DBUSMENU_MENUITEM_PROP_TYPE, APPOINTMENT_MENUITEM_TYPE);
+
+			dbusmenu_menuitem_child_add_position (root, item, 2+i);
+			appointments = g_list_append (appointments, item); // Keep track of the items here to make them easy to remove
+		} else {
+			item = DBUSMENU_MENUITEM(cached_appointment->data);
+			cached_appointment = g_list_next(cached_appointment);
+
+			/* Remove the icon as we might not replace it on error */
+			dbusmenu_menuitem_property_remove(item, APPOINTMENT_MENUITEM_PROP_ICON);
+
+			/* Remove the activate handler */
+			g_signal_handlers_disconnect_matched(G_OBJECT(item), G_SIGNAL_MATCH_FUNC, 0, 0, NULL, G_CALLBACK(activate_cb), NULL);
+		}
+
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+
 	
         // Label text        
 		e_cal_component_get_summary (ecalcomp, &valuetext);
@@ -895,8 +910,6 @@ update_appointment_menu_items (gpointer user_data)
 			cairo_surface_destroy (surface);
 			cairo_destroy(cr);
 		}
-		dbusmenu_menuitem_child_add_position (root, item, 2+i);
-		appointments = g_list_append         (appointments, item); // Keep track of the items here to make them easy to remove
 		g_debug("Adding appointment: %p", item);
 	}
 	
