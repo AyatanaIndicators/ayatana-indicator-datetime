@@ -860,7 +860,7 @@ update_appointment_menu_items (gpointer user_data)
 	g_list_free(sorted_comp_instances);
 	
 	GVariant * marks = g_variant_builder_end (&markeddays);
-	dbusmenu_menuitem_property_set_variant (calendar, CALENDAR_MENUITEM_PROP_MARK, marks);
+	dbusmenu_menuitem_property_set_variant (calendar, CALENDAR_MENUITEM_PROP_MARKS, marks);
 	
 	updating_appointments = FALSE;
 	g_debug("End of objects");

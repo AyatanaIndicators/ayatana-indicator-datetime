@@ -1192,7 +1192,7 @@ static void
 calendar_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, IdoCalendarMenuItem * mi_data)
 {
 	g_debug("Changing calendar property");
-	if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_MARK)) {
+	if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_MARKS)) {
 		ido_calendar_menu_item_clear_marks (IDO_CALENDAR_MENU_ITEM (mi_data));
 		g_debug("Marks: Cleared");
 		GVariantIter *iter;
@@ -1204,19 +1204,6 @@ calendar_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, I
 			g_debug("Marks: Marked day: %d", day);
 		}
 		g_variant_iter_free (iter);
-	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_UNMARK)) {
-		GVariantIter *iter;
-		gint day;
-
-		g_variant_get (value, "ai", &iter);
-	  	while (g_variant_iter_loop (iter, "i", &day)) {
-			g_debug("Unmarked day: %d", day);
-			ido_calendar_menu_item_unmark_day (IDO_CALENDAR_MENU_ITEM (mi_data), day);
-		}
-		g_variant_iter_free (iter);
-	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_CLEAR_MARKS)) {
-		ido_calendar_menu_item_clear_marks (IDO_CALENDAR_MENU_ITEM (mi_data));
-		g_debug("Cleared Marks");
 	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_SET_DATE)) {
 		gsize size = 3;
 		const gint * array = g_variant_get_fixed_array(value, &size, sizeof(gint));

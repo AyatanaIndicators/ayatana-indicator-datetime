@@ -31,9 +31,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // The following properties are not *really* properties, but are just
 // a way of accessing the calendar from the service
-#define CALENDAR_MENUITEM_PROP_MARK        "calendar-mark"
-#define CALENDAR_MENUITEM_PROP_UNMARK      "calendar-unmark"
-#define CALENDAR_MENUITEM_PROP_CLEAR_MARKS "calendar-clear-marks"
+#define CALENDAR_MENUITEM_PROP_MARKS       "calendar-marks"
 #define CALENDAR_MENUITEM_PROP_SET_DATE    "calendar-set-date"
 
 
