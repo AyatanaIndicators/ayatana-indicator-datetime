@@ -293,6 +293,13 @@ month_changed_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, g
 	   ones yet and we don't want to confuse the
 	   user. */
 	dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
+
+	GList * appointment;
+	for (appointment = appointments; appointment != NULL; appointment = g_list_next(appointment)) {
+		DbusmenuMenuitem * mi = DBUSMENU_MENUITEM(appointment->data);
+		dbusmenu_menuitem_property_set_bool(mi, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+	}
+
 	g_idle_add(update_appointment_menu_items_idle, NULL);
 	return TRUE;
 }
@@ -320,6 +327,12 @@ day_selected_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, gu
 		if (start_tm.tm_mon != new_tm.tm_mon) {
 			dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
 		}
+	}
+
+	GList * appointment;
+	for (appointment = appointments; appointment != NULL; appointment = g_list_next(appointment)) {
+		DbusmenuMenuitem * mi = DBUSMENU_MENUITEM(appointment->data);
+		dbusmenu_menuitem_property_set_bool(mi, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 	}
 
 	start_time_appointments = new_time;
