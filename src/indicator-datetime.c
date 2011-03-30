@@ -1200,21 +1200,28 @@ calendar_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, I
 	g_debug("Changing calendar property: %s", prop);
 	if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_MARKS)) {
 		ido_calendar_menu_item_clear_marks (IDO_CALENDAR_MENU_ITEM (mi_data));
-		GVariantIter *iter;
-		gint day;
 
-		g_debug("\tMarks: %s", g_variant_print(value, FALSE));
+		if (value != NULL) {
+			GVariantIter *iter;
+			gint day;
 
-		g_variant_get (value, "ai", &iter);
-	  	while (g_variant_iter_loop (iter, "i", &day)) {
-			ido_calendar_menu_item_mark_day (IDO_CALENDAR_MENU_ITEM (mi_data), day);
+			g_debug("\tMarks: %s", g_variant_print(value, FALSE));
+
+			g_variant_get (value, "ai", &iter);
+			while (g_variant_iter_loop (iter, "i", &day)) {
+				ido_calendar_menu_item_mark_day (IDO_CALENDAR_MENU_ITEM (mi_data), day);
+			}
+			g_variant_iter_free (iter);
+		} else {
+			g_debug("\tMarks: <cleared>");
 		}
-		g_variant_iter_free (iter);
 	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_SET_DATE)) {
-		gsize size = 3;
-		const gint * array = g_variant_get_fixed_array(value, &size, sizeof(gint));
-		g_debug("Setting date y-m-d: %d-%d-%d", array[0], array[1], array[2]);
-		ido_calendar_menu_item_set_date (IDO_CALENDAR_MENU_ITEM (mi_data), array[0], array[1], array[2]);
+		if (value != NULL) {
+			gsize size = 3;
+			const gint * array = g_variant_get_fixed_array(value, &size, sizeof(gint));
+			g_debug("Setting date y-m-d: %d-%d-%d", array[0], array[1], array[2]);
+			ido_calendar_menu_item_set_date (IDO_CALENDAR_MENU_ITEM (mi_data), array[0], array[1], array[2]);
+		}
 	} else {
 		g_warning("Indicator Item property '%s' unknown", prop);
 	}
