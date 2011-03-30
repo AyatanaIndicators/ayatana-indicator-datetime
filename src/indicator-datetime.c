@@ -1204,8 +1204,6 @@ indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, 
 		timezone_update_labels(mi_data);
 	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_RADIO)) {
 		gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(mi_data->gmi), g_variant_get_boolean(value));
-	} else {
-		g_warning("Indicator Item property '%s' unknown", prop);
 	}
 	return;
 }
@@ -1238,8 +1236,6 @@ calendar_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, I
 			g_debug("Setting date y-m-d: %d-%d-%d", array[0], array[1], array[2]);
 			ido_calendar_menu_item_set_date (IDO_CALENDAR_MENU_ITEM (mi_data), array[0], array[1], array[2]);
 		}
-	} else {
-		g_warning("Indicator Item property '%s' unknown", prop);
 	}
 	return;
 }
