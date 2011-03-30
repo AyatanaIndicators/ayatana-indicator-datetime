@@ -654,7 +654,7 @@ update_appointment_menu_items (gpointer user_data)
 	const int mday = today->tm_mday;
 	const int mon = today->tm_mon;
 	const int year = today->tm_year;
-	
+
   	struct tm *start_tm = NULL;
 	int this_year = today->tm_year + 1900;
 	int days[12]={31,28,31,30,31,30,31,31,30,31,30,31};
