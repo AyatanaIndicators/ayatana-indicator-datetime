@@ -749,7 +749,11 @@ update_appointment_menu_items (gpointer user_data)
 	} else if (g_strcmp0(time_format_str, "24-hour") == 0) {
 		apt_output = SETTINGS_TIME_24_HOUR;
 	} else {
-		apt_output = SETTINGS_TIME_LOCALE;
+		if (is_locale_12h()) {
+			apt_output = SETTINGS_TIME_12_HOUR;
+		} else {
+			apt_output = SETTINGS_TIME_24_HOUR;
+		}
 	}
 	
 	GVariantBuilder markeddays;
@@ -833,11 +837,6 @@ update_appointment_menu_items (gpointer user_data)
 				strftime(right, 20, _(DEFAULT_TIME_24_FORMAT), due);
 			else
 				strftime(right, 20, _(DEFAULT_TIME_24_FORMAT_WITH_DAY), due);
-		} else {
-			if ((mday == dmday) && (mon == dmon) && (year == dyear))
-				strftime(right, 20, _(DEFAULT_TIME_FORMAT), due);
-			else
-				strftime(right, 20, _(DEFAULT_TIME_FORMAT_WITH_DAY), due);
 		}
 		g_debug("Appointment time: %s, for date %s", right, asctime(due));
 		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, right);
