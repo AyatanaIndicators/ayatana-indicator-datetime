@@ -51,8 +51,8 @@ enum {
    a clock showing 24-hour time without seconds. */
 #define DEFAULT_TIME_24_FORMAT   N_("%H:%M")
 
-#define DEFAULT_TIME_FORMAT      DEFAULT_TIME_12_FORMAT
-#define DEFAULT_TIME_FORMAT_WITH_DAY DEFAULT_TIME_12_FORMAT
+#define DEFAULT_TIME_FORMAT          DEFAULT_TIME_12_FORMAT
+#define DEFAULT_TIME_FORMAT_WITH_DAY DEFAULT_TIME_12_FORMAT_WITH_DAY
 
 /* TRANSLATORS: A format string for the strftime function for
    a clock showing the day of the week and the time in 12-hour format without
