@@ -22,7 +22,7 @@ indicator-datetime (0.2.0-0ubuntu2~ppa1) natty; urgency=low
     * inicator-datetime dosen't show corretly the time when changing from 24
       hours format to 12 hours (LP: #743394)
 
- -- Ted Gould <ted@ubuntu.com>  Tue, 29 Mar 2011 20:41:10 -0500
+ -- Ted Gould <ted@ubuntu.com>  Tue, 29 Mar 2011 20:55:14 -0500
 
 indicator-datetime (0.2.0-0ubuntu1) natty; urgency=low
 
