@@ -281,6 +281,11 @@ month_changed_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, g
 	start_time_appointments = (time_t)g_variant_get_uint32(variant);
 	
 	g_debug("Received month changed with timestamp: %d -> %s",(int)start_time_appointments, ctime(&start_time_appointments));	
+	/* By default one of the first things we do is
+	   clear the marks as we don't know the correct
+	   ones yet and we don't want to confuse the
+	   user. */
+	dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
 	update_appointment_menu_items(NULL);
 	return TRUE;
 }
