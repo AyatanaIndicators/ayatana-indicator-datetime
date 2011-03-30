@@ -276,6 +276,13 @@ activate_cb (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
 }
 
 static gboolean
+update_appointment_menu_items_idle (gpointer user_data)
+{
+	update_appointment_menu_items(user_data);
+	return FALSE;
+}
+
+static gboolean
 month_changed_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, guint timestamp)
 {
 	start_time_appointments = (time_t)g_variant_get_uint32(variant);
@@ -286,7 +293,7 @@ month_changed_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, g
 	   ones yet and we don't want to confuse the
 	   user. */
 	dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
-	update_appointment_menu_items(NULL);
+	g_idle_add(update_appointment_menu_items_idle, NULL);
 	return TRUE;
 }
 
@@ -296,7 +303,7 @@ day_selected_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, gu
 	start_time_appointments = (time_t)g_variant_get_uint32(variant);
 	
 	g_debug("Received day-selected with timestamp: %d -> %s",(int)start_time_appointments, ctime(&start_time_appointments));	
-	update_appointment_menu_items(NULL);
+	g_idle_add(update_appointment_menu_items_idle, NULL);
 	return TRUE;
 }
 
