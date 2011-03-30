@@ -181,11 +181,12 @@ ntp_query_answered (GObject *object, GAsyncResult *res, gpointer user_data)
   g_variant_unref (answers);
 }
 
-static void
-sync_entry (const gchar * location)
+static gchar *
+get_zone_name (const gchar * location)
 {
   gchar * new_zone, * new_name;
   gchar * old_zone, * old_name;
+  gchar * rv;
 
   split_settings_location (location, &new_zone, &new_name);
 
@@ -199,15 +200,31 @@ sync_entry (const gchar * location)
   // old_name is potentially a saved "pretty" version of a timezone name from
   // geonames.  So we prefer to use it if available and the zones match.
 
-  if (g_strcmp0 (old_zone, new_zone) == 0)
-    gtk_entry_set_text (GTK_ENTRY (tz_entry), old_name);
-  else
-    gtk_entry_set_text (GTK_ENTRY (tz_entry), new_name);
+  if (g_strcmp0 (old_zone, new_zone) == 0) {
+    rv = old_name;
+    old_name = NULL;
+  }
+  else {
+    rv = new_name;
+    new_name = NULL;
+  }
 
   g_free (new_zone);
   g_free (old_zone);
   g_free (new_name);
   g_free (old_name);
+
+  return rv;
+}
+
+static void
+sync_entry (const gchar * location)
+{
+  gchar * name = get_zone_name (location);
+  gtk_entry_set_text (GTK_ENTRY (tz_entry), name);
+  g_free (name);
+
+  gtk_entry_set_icon_from_stock (GTK_ENTRY (tz_entry), GTK_ENTRY_ICON_SECONDARY, NULL);
 }
 
 static void
@@ -580,6 +597,28 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
 }
 
 static gboolean
+entry_focus_out (GtkEntry * entry, GdkEventFocus * event)
+{
+  // If the name left in the entry doesn't match the current timezone name,
+  // show an error icon.  It's always an error for the user to manually type in
+  // a timezone.
+  TzLocation * location = cc_timezone_map_get_location (tzmap);
+  if (location == NULL)
+    return FALSE;
+
+  gchar * name = get_zone_name (location->zone);
+  gboolean correct = (g_strcmp0 (gtk_entry_get_text (entry), name) == 0);
+  g_free (name);
+
+  gtk_entry_set_icon_from_stock (entry, GTK_ENTRY_ICON_SECONDARY,
+                                 correct ? NULL : GTK_STOCK_DIALOG_ERROR);
+  gtk_entry_set_icon_tooltip_text (entry, GTK_ENTRY_ICON_SECONDARY,
+                                   _("You need to choose a location to change the time zone."));
+  gtk_entry_set_icon_activatable (entry, GTK_ENTRY_ICON_SECONDARY, FALSE);
+  return FALSE;
+}
+
+static gboolean
 key_pressed (GtkWidget * widget, GdkEventKey * event, gpointer user_data)
 {
   switch (event->keyval) {
@@ -646,6 +685,7 @@ create_dialog (void)
   TimezoneCompletion * completion = timezone_completion_new ();
   timezone_completion_watch_entry (completion, GTK_ENTRY (WIG ("timezoneEntry")));
   g_signal_connect (completion, "match-selected", G_CALLBACK (timezone_selected), NULL);
+  g_signal_connect (WIG ("timezoneEntry"), "focus-out-event", G_CALLBACK (entry_focus_out), NULL);
 
   /* Set up settings bindings */
   g_settings_bind (conf, SETTINGS_SHOW_CLOCK_S, WIG ("showClockCheck"),
