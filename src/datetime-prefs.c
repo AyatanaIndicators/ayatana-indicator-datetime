@@ -184,10 +184,30 @@ ntp_query_answered (GObject *object, GAsyncResult *res, gpointer user_data)
 static void
 sync_entry (const gchar * location)
 {
-  gchar * name;
-  split_settings_location (location, NULL, &name);
-  gtk_entry_set_text (GTK_ENTRY (tz_entry), name);
-  g_free (name);
+  gchar * new_zone, * new_name;
+  gchar * old_zone, * old_name;
+
+  split_settings_location (location, &new_zone, &new_name);
+
+  GSettings * conf = g_settings_new (SETTINGS_INTERFACE);
+  gchar * tz_name = g_settings_get_string (conf, SETTINGS_TIMEZONE_NAME_S);
+  split_settings_location (tz_name, &old_zone, &old_name);
+  g_free (tz_name);
+  g_object_unref (conf);
+
+  // new_name is always just a sanitized version of a timezone.
+  // old_name is potentially a saved "pretty" version of a timezone name from
+  // geonames.  So we prefer to use it if available and the zones match.
+
+  if (g_strcmp0 (old_zone, new_zone) == 0)
+    gtk_entry_set_text (GTK_ENTRY (tz_entry), old_name);
+  else
+    gtk_entry_set_text (GTK_ENTRY (tz_entry), new_name);
+
+  g_free (new_zone);
+  g_free (old_zone);
+  g_free (new_name);
+  g_free (old_name);
 }
 
 static void
@@ -521,36 +541,40 @@ static gboolean
 timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
                    GtkTreeIter * iter, gpointer user_data)
 {
-  GValue value = {0};
-  const gchar * strval;
+  const gchar * name, * zone;
 
-  gtk_tree_model_get_value (model, iter, TIMEZONE_COMPLETION_ZONE, &value);
-  strval = g_value_get_string (&value);
+  gtk_tree_model_get (model, iter,
+                      TIMEZONE_COMPLETION_NAME, &name,
+                      TIMEZONE_COMPLETION_ZONE, &zone,
+                      -1);
 
-  if (strval != NULL && strval[0] != 0) {
-    cc_timezone_map_set_timezone (tzmap, strval);
-  }
-  else {
-    GValue lon_value = {0}, lat_value = {0};
+  if (zone == NULL || zone[0] == 0) {
     const gchar * strlon, * strlat;
     gdouble lon = 0.0, lat = 0.0;
 
-    gtk_tree_model_get_value (model, iter, TIMEZONE_COMPLETION_LONGITUDE, &lon_value);
-    strlon = g_value_get_string (&lon_value);
+    gtk_tree_model_get (model, iter,
+                        TIMEZONE_COMPLETION_LONGITUDE, &strlon,
+                        TIMEZONE_COMPLETION_LATITUDE, &strlat,
+                        -1);
+
     if (strlon != NULL && strlon[0] != 0) {
       lon = strtod(strlon, NULL);
     }
 
-    gtk_tree_model_get_value (model, iter, TIMEZONE_COMPLETION_LATITUDE, &lat_value);
-    strlat = g_value_get_string (&lat_value);
     if (strlat != NULL && strlat[0] != 0) {
       lat = strtod(strlat, NULL);
     }
 
-    cc_timezone_map_set_coords (tzmap, lon, lat);
+    zone = cc_timezone_map_get_timezone_at_coords (tzmap, lon, lat);
   }
 
-  g_value_unset (&value);
+  GSettings * conf = g_settings_new (SETTINGS_INTERFACE);
+  gchar * tz_name = g_strdup_printf ("%s %s", zone, name);
+  g_settings_set_string (conf, SETTINGS_TIMEZONE_NAME_S, tz_name);
+  g_free (tz_name);
+  g_object_unref (conf);
+
+  cc_timezone_map_set_timezone (tzmap, zone);
 
   return FALSE; // Do normal action too
 }
