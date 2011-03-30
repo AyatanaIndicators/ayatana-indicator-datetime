@@ -154,6 +154,27 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
   return FALSE; // Do normal action too
 }
 
+static gboolean
+query_tooltip (GtkTreeView * tree, gint x, gint y, gboolean keyboard_mode,
+               GtkTooltip * tooltip, GtkCellRenderer * cell)
+{
+  GtkTreeModel * model;
+  GtkTreeIter iter;
+  if (!gtk_tree_view_get_tooltip_context (tree, &x, &y, keyboard_mode,
+                                          &model, NULL, &iter))
+    return FALSE;
+
+  const gchar * icon;
+  gtk_tree_model_get (model, &iter, COL_ICON, &icon, -1);
+  if (icon == NULL)
+    return FALSE;
+
+  GtkTreeViewColumn * col = gtk_tree_view_get_column (tree, 0);
+  gtk_tree_view_set_tooltip_cell (tree, tooltip, NULL, col, cell);
+  gtk_tooltip_set_text (tooltip, _("You need to complete this location for it to appear in the menu."));
+  return TRUE;
+}
+
 static void
 handle_edit_started (GtkCellRendererText * renderer, GtkCellEditable * editable,
                      gchar * path, TimezoneCompletion * completion)
@@ -370,6 +391,9 @@ datetime_setup_locations_dialog (CcTimezoneMap * map)
   cell = gtk_cell_renderer_pixbuf_new ();
   gtk_tree_view_column_pack_start (loc_col, cell, FALSE);
   gtk_tree_view_column_add_attribute (loc_col, cell, "icon-name", COL_ICON);
+
+  gtk_widget_set_has_tooltip (tree, TRUE);
+  g_signal_connect (tree, "query-tooltip", G_CALLBACK (query_tooltip), cell);
 
   cell = gtk_cell_renderer_text_new ();
   gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (tree), -1,
