@@ -607,7 +607,7 @@ update_appointment_menu_items (gpointer user_data)
 	int days[12]={31,28,31,30,31,30,31,31,30,31,30,31};
 	if ((this_year % 400 == 0) || (this_year % 100 > 0 && this_year % 4 == 0)) days[1] = 29;
 	
-	int highlightdays = days[mon] - mday;
+	int highlightdays = days[mon] - mday + 1;
 	t1 = curtime; // By default the current time is the appointment start time. 
 	
 	if (start_time_appointments > 0) {
@@ -621,7 +621,7 @@ update_appointment_menu_items (gpointer user_data)
 			month_start.tm_mon = start_tm->tm_mon;
 			month_start.tm_mday = 1;
 			t1 = mktime(&month_start);
-			highlightdays = days[mon];
+			highlightdays = days[start_month];
 		}
 	}
 	
@@ -699,8 +699,6 @@ update_appointment_menu_items (gpointer user_data)
 	} else {
 		apt_output = SETTINGS_TIME_LOCALE;
 	}
-	// Remove all highlights from the calendar widget
-	dbusmenu_menuitem_property_set (calendar, CALENDAR_MENUITEM_PROP_CLEAR_MARKS, NULL);
 	
 	GVariantBuilder markeddays;
 	g_variant_builder_init (&markeddays, G_VARIANT_TYPE_ARRAY);
