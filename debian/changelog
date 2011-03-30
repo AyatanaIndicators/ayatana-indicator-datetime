@@ -1,3 +1,29 @@
+indicator-datetime (0.2.0-0ubuntu2~ppa1) natty; urgency=low
+
+  * Upstream Merge
+    * indicator-datetime-preferences crashed with SIGSEGV in
+      g_utf8_normalize() (LP: #727089)
+    * Uninstalling Evolution removes calendar from clock applet (LP: #691953)
+    * clock doesn't update on timezone change (LP: #735445)
+    * Cannot change main location (LP: #729029)
+    * indicator-datetime-preferences crashed with SIGSEGV in
+      g_simple_async_result_complete() (LP: #734951)
+    * Time zone map looks identical when sensitive vs. insensitive (LP: #740846)
+    * "Locations" window behaves like a modal dialog (LP: #740924)
+    * Added location for clock menu isn't used or remembered (LP: #740930)
+    * Time not displayed for added location in "Locations" window (LP: #740931)
+    * "UTC" location can be removed but not re-added (LP: #740938)
+    * "Locations" window bottom bar is missing a border (LP: #740941)
+    * Add and Remove buttons in "Locations" window have unnecessary tooltips
+      (LP: #740944)
+    * No separator between "Add Event" and locations (LP: #740971)
+    * indicator-datetime-preferences crashed with SIGSEGV in
+      g_atomic_int_exchange_and_add() (LP: #740978)
+    * inicator-datetime dosen't show corretly the time when changing from 24
+      hours format to 12 hours (LP: #743394)
+
+ -- Ted Gould <ted@ubuntu.com>  Tue, 29 Mar 2011 20:41:10 -0500
+
 indicator-datetime (0.2.0-0ubuntu1) natty; urgency=low
 
   * New upstream release.
