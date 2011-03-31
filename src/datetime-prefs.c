@@ -53,6 +53,7 @@ GtkWidget * date_spin = NULL;
 guint       save_time_id = 0;
 gboolean    user_edited_time = FALSE;
 gboolean    changing_time = FALSE;
+GtkWidget * loc_dlg = NULL;
 
 /* Turns the boolean property into a string gsettings */
 static GVariant *
@@ -180,13 +181,50 @@ ntp_query_answered (GObject *object, GAsyncResult *res, gpointer user_data)
   g_variant_unref (answers);
 }
 
+static gchar *
+get_zone_name (const gchar * location)
+{
+  gchar * new_zone, * new_name;
+  gchar * old_zone, * old_name;
+  gchar * rv;
+
+  split_settings_location (location, &new_zone, &new_name);
+
+  GSettings * conf = g_settings_new (SETTINGS_INTERFACE);
+  gchar * tz_name = g_settings_get_string (conf, SETTINGS_TIMEZONE_NAME_S);
+  split_settings_location (tz_name, &old_zone, &old_name);
+  g_free (tz_name);
+  g_object_unref (conf);
+
+  // new_name is always just a sanitized version of a timezone.
+  // old_name is potentially a saved "pretty" version of a timezone name from
+  // geonames.  So we prefer to use it if available and the zones match.
+
+  if (g_strcmp0 (old_zone, new_zone) == 0) {
+    rv = old_name;
+    old_name = NULL;
+  }
+  else {
+    rv = new_name;
+    new_name = NULL;
+  }
+
+  g_free (new_zone);
+  g_free (old_zone);
+  g_free (new_name);
+  g_free (old_name);
+
+  return rv;
+}
+
 static void
 sync_entry (const gchar * location)
 {
-  gchar * name;
-  split_settings_location (location, NULL, &name);
+  gchar * name = get_zone_name (location);
   gtk_entry_set_text (GTK_ENTRY (tz_entry), name);
   g_free (name);
+
+  gtk_entry_set_icon_from_stock (GTK_ENTRY (tz_entry), GTK_ENTRY_ICON_SECONDARY, NULL);
 }
 
 static void
@@ -495,48 +533,89 @@ setup_time_spinners (GtkWidget * time, GtkWidget * date)
 }
 
 static void
+hide_locations ()
+{
+  if (loc_dlg != NULL)
+    gtk_widget_destroy (loc_dlg);
+}
+
+static void
 show_locations (GtkWidget * button, GtkWidget * dlg)
 {
-  GtkWidget * locationsDlg = datetime_setup_locations_dialog (GTK_WINDOW (dlg), tzmap);
-  gtk_widget_show_all (locationsDlg);
+  if (loc_dlg == NULL) {
+    loc_dlg = datetime_setup_locations_dialog (tzmap);
+    gtk_window_set_transient_for (GTK_WINDOW (loc_dlg), GTK_WINDOW (dlg));
+    g_signal_connect (loc_dlg, "destroy", G_CALLBACK (gtk_widget_destroyed), &loc_dlg);
+    g_signal_connect (dlg, "focus-in-event", G_CALLBACK (hide_locations), NULL);
+    gtk_widget_show_all (loc_dlg);
+  }
+  else {
+    gtk_window_present_with_time (GTK_WINDOW (loc_dlg), gtk_get_current_event_time ());
+  }
 }
 
 static gboolean
 timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
                    GtkTreeIter * iter, gpointer user_data)
 {
-  GValue value = {0};
-  const gchar * strval;
+  const gchar * name, * zone;
 
-  gtk_tree_model_get_value (model, iter, TIMEZONE_COMPLETION_ZONE, &value);
-  strval = g_value_get_string (&value);
+  gtk_tree_model_get (model, iter,
+                      TIMEZONE_COMPLETION_NAME, &name,
+                      TIMEZONE_COMPLETION_ZONE, &zone,
+                      -1);
 
-  if (strval != NULL && strval[0] != 0) {
-    cc_timezone_map_set_timezone (tzmap, strval);
-  }
-  else {
-    GValue lon_value = {0}, lat_value = {0};
+  if (zone == NULL || zone[0] == 0) {
     const gchar * strlon, * strlat;
     gdouble lon = 0.0, lat = 0.0;
 
-    gtk_tree_model_get_value (model, iter, TIMEZONE_COMPLETION_LONGITUDE, &lon_value);
-    strlon = g_value_get_string (&lon_value);
+    gtk_tree_model_get (model, iter,
+                        TIMEZONE_COMPLETION_LONGITUDE, &strlon,
+                        TIMEZONE_COMPLETION_LATITUDE, &strlat,
+                        -1);
+
     if (strlon != NULL && strlon[0] != 0) {
       lon = strtod(strlon, NULL);
     }
 
-    gtk_tree_model_get_value (model, iter, TIMEZONE_COMPLETION_LATITUDE, &lat_value);
-    strlat = g_value_get_string (&lat_value);
     if (strlat != NULL && strlat[0] != 0) {
       lat = strtod(strlat, NULL);
     }
 
-    cc_timezone_map_set_coords (tzmap, lon, lat);
+    zone = cc_timezone_map_get_timezone_at_coords (tzmap, lon, lat);
   }
 
-  g_value_unset (&value);
+  GSettings * conf = g_settings_new (SETTINGS_INTERFACE);
+  gchar * tz_name = g_strdup_printf ("%s %s", zone, name);
+  g_settings_set_string (conf, SETTINGS_TIMEZONE_NAME_S, tz_name);
+  g_free (tz_name);
+  g_object_unref (conf);
+
+  cc_timezone_map_set_timezone (tzmap, zone);
 
   return FALSE; // Do normal action too
+}
+
+static gboolean
+entry_focus_out (GtkEntry * entry, GdkEventFocus * event)
+{
+  // If the name left in the entry doesn't match the current timezone name,
+  // show an error icon.  It's always an error for the user to manually type in
+  // a timezone.
+  TzLocation * location = cc_timezone_map_get_location (tzmap);
+  if (location == NULL)
+    return FALSE;
+
+  gchar * name = get_zone_name (location->zone);
+  gboolean correct = (g_strcmp0 (gtk_entry_get_text (entry), name) == 0);
+  g_free (name);
+
+  gtk_entry_set_icon_from_stock (entry, GTK_ENTRY_ICON_SECONDARY,
+                                 correct ? NULL : GTK_STOCK_DIALOG_ERROR);
+  gtk_entry_set_icon_tooltip_text (entry, GTK_ENTRY_ICON_SECONDARY,
+                                   _("You need to choose a location to change the time zone."));
+  gtk_entry_set_icon_activatable (entry, GTK_ENTRY_ICON_SECONDARY, FALSE);
+  return FALSE;
 }
 
 static gboolean
@@ -604,10 +683,9 @@ create_dialog (void)
 
   /* And completion entry */
   TimezoneCompletion * completion = timezone_completion_new ();
-  gtk_entry_set_completion (GTK_ENTRY (WIG ("timezoneEntry")),
-                            GTK_ENTRY_COMPLETION (completion));
   timezone_completion_watch_entry (completion, GTK_ENTRY (WIG ("timezoneEntry")));
   g_signal_connect (completion, "match-selected", G_CALLBACK (timezone_selected), NULL);
+  g_signal_connect (WIG ("timezoneEntry"), "focus-out-event", G_CALLBACK (entry_focus_out), NULL);
 
   /* Set up settings bindings */
   g_settings_bind (conf, SETTINGS_SHOW_CLOCK_S, WIG ("showClockCheck"),
