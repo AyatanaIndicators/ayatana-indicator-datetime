@@ -35,6 +35,15 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define DATETIME_DIALOG_UI_FILE PKGDATADIR "/datetime-dialog.ui"
 
+#define COL_NAME         0
+#define COL_TIME         1
+#define COL_ZONE         2
+#define COL_VISIBLE_NAME 3
+#define COL_ICON         4
+
+static gboolean update_times (GtkWidget * dlg);
+static void save_when_idle (GtkWidget * dlg);
+
 static void
 handle_add (GtkWidget * button, GtkTreeView * tree)
 {
@@ -83,37 +92,45 @@ handle_edit (GtkCellRendererText * renderer, gchar * path, gchar * new_text,
 {
   GtkTreeIter iter;
 
+  // Manual user edits are always wrong (unless they are undoing a previous
+  // edit), so we set the error icon here if needed.  Common way to get to
+  // this code path is to lose entry focus.
   if (gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL (store), &iter, path)) {
-    gtk_list_store_set (store, &iter, 0, new_text, -1);
+    const gchar * name;
+    gtk_tree_model_get (GTK_TREE_MODEL (store), &iter, COL_NAME, &name, -1);
+    gboolean correct = g_strcmp0 (name, new_text) == 0;
+
+    gtk_list_store_set (store, &iter,
+                        COL_VISIBLE_NAME, new_text,
+                        COL_ICON, correct ? NULL : GTK_STOCK_DIALOG_ERROR,
+                        -1);
   }
 }
 
 static gboolean
 timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
-                   GtkTreeIter * iter, gpointer user_data)
+                   GtkTreeIter * iter, GtkWidget * dlg)
 {
-  GValue zone_value = {0}, name_value = {0};
   const gchar * zone, * name;
 
-  gtk_tree_model_get_value (model, iter, TIMEZONE_COMPLETION_ZONE, &zone_value);
-  zone = g_value_get_string (&zone_value);
-
-  gtk_tree_model_get_value (model, iter, TIMEZONE_COMPLETION_NAME, &name_value);
-  name = g_value_get_string (&name_value);
+  gtk_tree_model_get (model, iter,
+                      TIMEZONE_COMPLETION_ZONE, &zone,
+                      TIMEZONE_COMPLETION_NAME, &name,
+                      -1);
 
   if (zone == NULL || zone[0] == 0) {
-    GValue lon_value = {0}, lat_value = {0};
     const gchar * strlon, * strlat;
     gdouble lon = 0.0, lat = 0.0;
 
-    gtk_tree_model_get_value (model, iter, TIMEZONE_COMPLETION_LONGITUDE, &lon_value);
-    strlon = g_value_get_string (&lon_value);
+    gtk_tree_model_get (model, iter,
+                        TIMEZONE_COMPLETION_LONGITUDE, &strlon,
+                        TIMEZONE_COMPLETION_LATITUDE, &strlat,
+                        -1);
+
     if (strlon != NULL && strlon[0] != 0) {
       lon = strtod(strlon, NULL);
     }
 
-    gtk_tree_model_get_value (model, iter, TIMEZONE_COMPLETION_LATITUDE, &lat_value);
-    strlat = g_value_get_string (&lat_value);
     if (strlat != NULL && strlat[0] != 0) {
       lat = strtod(strlat, NULL);
     }
@@ -125,13 +142,37 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
   GtkListStore * store = GTK_LIST_STORE (g_object_get_data (G_OBJECT (widget), "store"));
   GtkTreeIter * store_iter = (GtkTreeIter *)g_object_get_data (G_OBJECT (widget), "store_iter");
   if (store != NULL && store_iter != NULL) {
-    gtk_list_store_set (store, store_iter, 0, name, 2, zone, -1);
+    gtk_list_store_set (store, store_iter,
+                        COL_VISIBLE_NAME, name,
+                        COL_ICON, NULL,
+                        COL_NAME, name,
+                        COL_ZONE, zone, -1);
   }
 
-  g_value_unset (&name_value);
-  g_value_unset (&zone_value);
+  update_times (dlg);
 
   return FALSE; // Do normal action too
+}
+
+static gboolean
+query_tooltip (GtkTreeView * tree, gint x, gint y, gboolean keyboard_mode,
+               GtkTooltip * tooltip, GtkCellRenderer * cell)
+{
+  GtkTreeModel * model;
+  GtkTreeIter iter;
+  if (!gtk_tree_view_get_tooltip_context (tree, &x, &y, keyboard_mode,
+                                          &model, NULL, &iter))
+    return FALSE;
+
+  const gchar * icon;
+  gtk_tree_model_get (model, &iter, COL_ICON, &icon, -1);
+  if (icon == NULL)
+    return FALSE;
+
+  GtkTreeViewColumn * col = gtk_tree_view_get_column (tree, 0);
+  gtk_tree_view_set_tooltip_cell (tree, tooltip, NULL, col, cell);
+  gtk_tooltip_set_text (tooltip, _("You need to complete this location for it to appear in the menu."));
+  return TRUE;
 }
 
 static void
@@ -140,7 +181,6 @@ handle_edit_started (GtkCellRendererText * renderer, GtkCellEditable * editable,
 {
   if (GTK_IS_ENTRY (editable)) {
     GtkEntry *entry = GTK_ENTRY (editable);
-    gtk_entry_set_completion (entry, GTK_ENTRY_COMPLETION (completion));
     timezone_completion_watch_entry (completion, entry);
 
     GtkListStore * store = GTK_LIST_STORE (g_object_get_data (G_OBJECT (completion), "store"));
@@ -152,9 +192,10 @@ handle_edit_started (GtkCellRendererText * renderer, GtkCellEditable * editable,
 }
 
 static gboolean
-update_times (TimezoneCompletion * completion)
+update_times (GtkWidget * dlg)
 {
   /* For each entry, check zone in column 2 and set column 1 to it's time */
+  TimezoneCompletion * completion = TIMEZONE_COMPLETION (g_object_get_data (G_OBJECT (dlg), "completion"));
   GtkListStore * store = GTK_LIST_STORE (g_object_get_data (G_OBJECT (completion), "store"));
   GObject * cell = G_OBJECT (g_object_get_data (G_OBJECT (completion), "name-cell"));
 
@@ -164,16 +205,16 @@ update_times (TimezoneCompletion * completion)
     return TRUE;
   }
 
+  g_signal_handlers_block_by_func (store, save_when_idle, dlg);
+
   GDateTime * now = g_date_time_new_now_local ();
 
   GtkTreeIter iter;
   if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter)) {
     do {
-      GValue zone_value = {0};
       const gchar * strzone;
 
-      gtk_tree_model_get_value (GTK_TREE_MODEL (store), &iter, 2, &zone_value);
-      strzone = g_value_get_string (&zone_value);
+      gtk_tree_model_get (GTK_TREE_MODEL (store), &iter, COL_ZONE, &strzone, -1);
 
       if (strzone != NULL && strzone[0] != 0) {
         GTimeZone * tz = g_time_zone_new (strzone);
@@ -181,19 +222,20 @@ update_times (TimezoneCompletion * completion)
         gchar * format = generate_format_string_at_time (now_tz);
         gchar * time_str = g_date_time_format (now_tz, format);
 
-        gtk_list_store_set (store, &iter, 1, time_str, -1);
+        gtk_list_store_set (store, &iter, COL_TIME, time_str, -1);
 
         g_free (time_str);
         g_free (format);
         g_date_time_unref (now_tz);
         g_time_zone_unref (tz);
       }
-
-      g_value_unset (&zone_value);
     } while (gtk_tree_model_iter_next (GTK_TREE_MODEL (store), &iter));
   }
 
   g_date_time_unref (now);
+
+  g_signal_handlers_unblock_by_func (store, save_when_idle, dlg);
+
   return TRUE;
 }
 
@@ -211,7 +253,11 @@ fill_from_settings (GObject * store, GSettings * conf)
     split_settings_location (*striter, &zone, &name);
 
     gtk_list_store_append (GTK_LIST_STORE (store), &iter);
-    gtk_list_store_set (GTK_LIST_STORE (store), &iter, 0, name, 2, zone, -1);
+    gtk_list_store_set (GTK_LIST_STORE (store), &iter,
+                        COL_VISIBLE_NAME, name,
+                        COL_ICON, NULL,
+                        COL_NAME, name,
+                        COL_ZONE, zone, -1);
 
     g_free (zone);
     g_free (name);
@@ -221,45 +267,78 @@ fill_from_settings (GObject * store, GSettings * conf)
 }
 
 static void
-dialog_closed (GtkWidget * dlg, GObject * store)
+save_to_settings (GObject * store, GSettings * conf)
 {
-  /* Cleanup a tad */
-  guint time_id = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (dlg), "time-id"));
-  g_source_remove (time_id);
-
-  /* Now save to settings */
+  gboolean empty = TRUE;
   GVariantBuilder builder;
   g_variant_builder_init (&builder, G_VARIANT_TYPE_ARRAY);
 
   GtkTreeIter iter;
   if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter)) {
     do {
-      GValue zone_value = {0}, name_value = {0};
       const gchar * strzone, * strname;
 
-      gtk_tree_model_get_value (GTK_TREE_MODEL (store), &iter, 0, &name_value);
-      gtk_tree_model_get_value (GTK_TREE_MODEL (store), &iter, 2, &zone_value);
-
-      strzone = g_value_get_string (&zone_value);
-      strname = g_value_get_string (&name_value);
+      gtk_tree_model_get (GTK_TREE_MODEL (store), &iter,
+                          COL_NAME, &strname,
+                          COL_ZONE, &strzone,
+                          -1);
 
       if (strzone != NULL && strzone[0] != 0 && strname != NULL && strname[0] != 0) {
         gchar * settings_string = g_strdup_printf("%s %s", strzone, strname);
         g_variant_builder_add (&builder, "s", settings_string);
         g_free (settings_string);
+        empty = FALSE;
       }
-
-      g_value_unset (&zone_value);
-      g_value_unset (&name_value);
     } while (gtk_tree_model_iter_next (GTK_TREE_MODEL (store), &iter));
   }
 
-  GVariant * locations = g_variant_builder_end (&builder);
+  if (empty) {
+    /* Empty list */
+    g_variant_builder_clear (&builder);
+    g_settings_set_strv (conf, SETTINGS_LOCATIONS_S, NULL);
+  }
+  else {
+    GVariant * locations = g_variant_builder_end (&builder);
+    g_settings_set_strv (conf, SETTINGS_LOCATIONS_S, g_variant_get_strv (locations, NULL));
+    g_variant_unref (locations);
+  }
+}
 
+static gboolean
+save_now (GtkWidget *dlg)
+{
   GSettings * conf = G_SETTINGS (g_object_get_data (G_OBJECT (dlg), "conf"));
-  g_settings_set_strv (conf, SETTINGS_LOCATIONS_S, g_variant_get_strv (locations, NULL));
+  GObject * completion = G_OBJECT (g_object_get_data (G_OBJECT (dlg), "completion"));
+  GObject * store = G_OBJECT (g_object_get_data (completion, "store"));
 
-  g_variant_unref (locations);
+  save_to_settings (store, conf);
+
+  g_object_set_data (G_OBJECT (dlg), "save-id", GINT_TO_POINTER(0));
+
+  return FALSE;
+}
+
+static void
+save_when_idle (GtkWidget *dlg)
+{
+  guint save_id = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (dlg), "save-id"));
+
+  if (save_id == 0) {
+    save_id = g_idle_add ((GSourceFunc)save_now, dlg);
+    g_object_set_data (G_OBJECT (dlg), "save-id", GINT_TO_POINTER(save_id));
+  }
+}
+
+static void
+dialog_closed (GtkWidget * dlg, GObject * store)
+{
+  /* Cleanup a tad */
+  guint time_id = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (dlg), "time-id"));
+  g_source_remove (time_id);
+
+  guint save_id = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (dlg), "save-id"));
+  if (save_id > 0)
+    g_source_remove (save_id);
 }
 
 static void
@@ -270,7 +349,7 @@ selection_changed (GtkTreeSelection * selection, GtkWidget * remove_button)
 }
 
 GtkWidget *
-datetime_setup_locations_dialog (GtkWindow * parent, CcTimezoneMap * map)
+datetime_setup_locations_dialog (CcTimezoneMap * map)
 {
   GError * error = NULL;
   GtkBuilder * builder = gtk_builder_new ();
@@ -296,7 +375,7 @@ datetime_setup_locations_dialog (GtkWindow * parent, CcTimezoneMap * map)
   TimezoneCompletion * completion = timezone_completion_new ();
   g_object_set_data (G_OBJECT (completion), "tzmap", map);
   g_object_set_data (G_OBJECT (completion), "store", store);
-  g_signal_connect (completion, "match-selected", G_CALLBACK (timezone_selected), NULL);
+  g_signal_connect (completion, "match-selected", G_CALLBACK (timezone_selected), dlg);
 
   GtkCellRenderer * cell = gtk_cell_renderer_text_new ();
   g_object_set (cell, "editable", TRUE, NULL);
@@ -304,15 +383,22 @@ datetime_setup_locations_dialog (GtkWindow * parent, CcTimezoneMap * map)
   g_signal_connect (cell, "edited", G_CALLBACK (handle_edit), store);
   gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (tree), -1,
                                                _("Location"), cell,
-                                               "text", 0, NULL);
+                                               "text", COL_VISIBLE_NAME, NULL);
   GtkTreeViewColumn * loc_col = gtk_tree_view_get_column (GTK_TREE_VIEW (tree), 0);
   gtk_tree_view_column_set_expand (loc_col, TRUE);
   g_object_set_data (G_OBJECT (completion), "name-cell", cell);
 
+  cell = gtk_cell_renderer_pixbuf_new ();
+  gtk_tree_view_column_pack_start (loc_col, cell, FALSE);
+  gtk_tree_view_column_add_attribute (loc_col, cell, "icon-name", COL_ICON);
+
+  gtk_widget_set_has_tooltip (tree, TRUE);
+  g_signal_connect (tree, "query-tooltip", G_CALLBACK (query_tooltip), cell);
+
   cell = gtk_cell_renderer_text_new ();
   gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (tree), -1,
                                                _("Time"), cell,
-                                               "text", 1, NULL);
+                                               "text", COL_TIME, NULL);
 
   GtkTreeSelection * selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (tree));
   gtk_tree_selection_set_mode (selection, GTK_SELECTION_MULTIPLE);
@@ -323,16 +409,18 @@ datetime_setup_locations_dialog (GtkWindow * parent, CcTimezoneMap * map)
   g_signal_connect (WIG ("removeButton"), "clicked", G_CALLBACK (handle_remove), tree);
 
   fill_from_settings (store, conf);
-
-  guint time_id = g_timeout_add_seconds (2, (GSourceFunc)update_times, completion);
-  update_times (completion);
+  g_signal_connect_swapped (store, "row-deleted", G_CALLBACK (save_when_idle), dlg);
+  g_signal_connect_swapped (store, "row-inserted", G_CALLBACK (save_when_idle), dlg);
+  g_signal_connect_swapped (store, "row-changed", G_CALLBACK (save_when_idle), dlg);
+  g_signal_connect_swapped (store, "rows-reordered", G_CALLBACK (save_when_idle), dlg);
 
   g_object_set_data_full (G_OBJECT (dlg), "conf", g_object_ref (conf), g_object_unref);
   g_object_set_data_full (G_OBJECT (dlg), "completion", completion, g_object_unref);
-  g_object_set_data (G_OBJECT (dlg), "time-id", GINT_TO_POINTER(time_id));
   g_signal_connect (dlg, "destroy", G_CALLBACK (dialog_closed), store);
 
-  gtk_window_set_transient_for (GTK_WINDOW (dlg), parent);
+  guint time_id = g_timeout_add_seconds (2, (GSourceFunc)update_times, dlg);
+  g_object_set_data (G_OBJECT (dlg), "time-id", GINT_TO_POINTER(time_id));
+  update_times (dlg);
 
 #undef WIG
 

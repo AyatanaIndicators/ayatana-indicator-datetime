@@ -34,6 +34,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SETTINGS_SHOW_EVENTS_S          "show-events"
 #define SETTINGS_SHOW_LOCATIONS_S       "show-locations"
 #define SETTINGS_LOCATIONS_S            "locations"
+#define SETTINGS_TIMEZONE_NAME_S        "timezone-name"
 
 enum {
 	SETTINGS_TIME_LOCALE = 0,
@@ -50,8 +51,8 @@ enum {
    a clock showing 24-hour time without seconds. */
 #define DEFAULT_TIME_24_FORMAT   N_("%H:%M")
 
-#define DEFAULT_TIME_FORMAT      DEFAULT_TIME_12_FORMAT
-#define DEFAULT_TIME_FORMAT_WITH_DAY DEFAULT_TIME_12_FORMAT
+#define DEFAULT_TIME_FORMAT          DEFAULT_TIME_12_FORMAT
+#define DEFAULT_TIME_FORMAT_WITH_DAY DEFAULT_TIME_12_FORMAT_WITH_DAY
 
 /* TRANSLATORS: A format string for the strftime function for
    a clock showing the day of the week and the time in 12-hour format without
