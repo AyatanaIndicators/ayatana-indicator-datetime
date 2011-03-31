@@ -1,4 +1,4 @@
-indicator-datetime (0.2.1-0ubuntu1~ppa1) UNRELEASED; urgency=low
+indicator-datetime (0.2.1-0ubuntu1~ppa1) natty; urgency=low
 
   * New upstream release.
     * indicator-datetime-preferences crashed with SIGSEGV in
@@ -27,7 +27,7 @@ indicator-datetime (0.2.1-0ubuntu1~ppa1) UNRELEASED; urgency=low
     * Use day when timezone is set to 'locale'
     * Reset time when coming back from suspend (LP: #726053)
 
- -- Ted Gould <ted@ubuntu.com>  Thu, 31 Mar 2011 14:29:37 -0500
+ -- Ted Gould <ted@ubuntu.com>  Thu, 31 Mar 2011 14:32:40 -0500
 
 indicator-datetime (0.2.0-0ubuntu1) natty; urgency=low
 
