@@ -830,7 +830,7 @@ session_active_change_cb (GDBusProxy * proxy, gchar * sender_name, gchar * signa
 {
 	// Just returned from suspend
 	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
-	if (g_strcmp0(signal_name, "ActiveChanged") == 0) {
+	if (g_strcmp0(signal_name, "SystemIdleHintChanged") == 0 && g_variant_get_boolean(parameters) == FALSE) {
 		update_time(self);
 	}
 	return;

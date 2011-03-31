@@ -1,16 +1,6 @@
-indicator-datetime (0.2.0-0ubuntu2~ppa2) natty; urgency=low
+indicator-datetime (0.2.1-0ubuntu1~ppa1) UNRELEASED; urgency=low
 
-  * Upstream Merge
-    * Add tooltips on the error icons
-    * Fix marking to refresh as the calendar changes
-    * Recycle old entries to make the refresh cleaner
-    * Use day when timezone is set to 'locale'
-
- -- Ted Gould <ted@ubuntu.com>  Wed, 30 Mar 2011 17:11:49 -0500
-
-indicator-datetime (0.2.0-0ubuntu2~ppa1) natty; urgency=low
-
-  * Upstream Merge
+  * New upstream release.
     * indicator-datetime-preferences crashed with SIGSEGV in
       g_utf8_normalize() (LP: #727089)
     * Uninstalling Evolution removes calendar from clock applet (LP: #691953)
@@ -31,8 +21,13 @@ indicator-datetime (0.2.0-0ubuntu2~ppa1) natty; urgency=low
       g_atomic_int_exchange_and_add() (LP: #740978)
     * inicator-datetime dosen't show corretly the time when changing from 24
       hours format to 12 hours (LP: #743394)
+    * Add tooltips on the error icons
+    * Fix marking to refresh as the calendar changes
+    * Recycle old entries to make the refresh cleaner
+    * Use day when timezone is set to 'locale'
+    * Reset time when coming back from suspend (LP: #726053)
 
- -- Ted Gould <ted@ubuntu.com>  Tue, 29 Mar 2011 20:55:14 -0500
+ -- Ted Gould <ted@ubuntu.com>  Thu, 31 Mar 2011 14:29:37 -0500
 
 indicator-datetime (0.2.0-0ubuntu1) natty; urgency=low
 
