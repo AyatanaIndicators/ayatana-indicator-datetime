@@ -276,22 +276,70 @@ activate_cb (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
 }
 
 static gboolean
+update_appointment_menu_items_idle (gpointer user_data)
+{
+	update_appointment_menu_items(user_data);
+	return FALSE;
+}
+
+static gboolean
 month_changed_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, guint timestamp)
 {
 	start_time_appointments = (time_t)g_variant_get_uint32(variant);
 	
 	g_debug("Received month changed with timestamp: %d -> %s",(int)start_time_appointments, ctime(&start_time_appointments));	
-	update_appointment_menu_items(NULL);
+	/* By default one of the first things we do is
+	   clear the marks as we don't know the correct
+	   ones yet and we don't want to confuse the
+	   user. */
+	dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
+
+	GList * appointment;
+	for (appointment = appointments; appointment != NULL; appointment = g_list_next(appointment)) {
+		DbusmenuMenuitem * mi = DBUSMENU_MENUITEM(appointment->data);
+		dbusmenu_menuitem_property_set_bool(mi, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+	}
+
+	g_idle_add(update_appointment_menu_items_idle, NULL);
 	return TRUE;
 }
 
 static gboolean
 day_selected_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, guint timestamp)
 {
-	start_time_appointments = (time_t)g_variant_get_uint32(variant);
-	
+	time_t new_time = (time_t)g_variant_get_uint32(variant);
+	g_warn_if_fail(new_time != 0);
+
+	if (start_time_appointments == 0 || new_time == 0) {
+		/* If we've got nothing, assume everyhting is going to
+		   get repopulated, let's start with a clean slate */
+		dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
+	} else {
+		/* No check to see if we changed months.  If we did we'll
+		   want to clear the marks.  Otherwise we're cool keeping
+		   them around. */
+		struct tm start_tm;
+		struct tm new_tm;
+
+		localtime_r(&start_time_appointments, &start_tm);
+		localtime_r(&new_time, &new_tm);
+
+		if (start_tm.tm_mon != new_tm.tm_mon) {
+			dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
+		}
+	}
+
+	GList * appointment;
+	for (appointment = appointments; appointment != NULL; appointment = g_list_next(appointment)) {
+		DbusmenuMenuitem * mi = DBUSMENU_MENUITEM(appointment->data);
+		dbusmenu_menuitem_property_set_bool(mi, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+	}
+
+	start_time_appointments = new_time;
+
 	g_debug("Received day-selected with timestamp: %d -> %s",(int)start_time_appointments, ctime(&start_time_appointments));	
-	update_appointment_menu_items(NULL);
+	g_idle_add(update_appointment_menu_items_idle, NULL);
+
 	return TRUE;
 }
 
@@ -372,14 +420,13 @@ show_events_changed (void)
 		dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 		/* Remove all of the previous appointments */
 		if (appointments != NULL) {
-			g_debug("Freeing old appointments");
-			while (appointments != NULL) {
-				DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(appointments->data);
-				g_debug("Freeing old appointment: %p", litem);
+			g_debug("Hiding old appointments");
+			GList * appointment;
+			for (appointment = appointments; appointment != NULL; appointment = g_list_next(appointment)) {
+				DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(appointment->data);
+				g_debug("Hiding old appointment: %p", litem);
 				// Remove all the existing menu items which are in appointments.
-				appointments = g_list_remove(appointments, litem);
-				dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(litem));
-				g_object_unref(G_OBJECT(litem));
+				dbusmenu_menuitem_property_set_bool(DBUSMENU_MENUITEM(litem), DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 			}
 		}
 		stop_ecal_timer();
@@ -392,12 +439,13 @@ static gboolean
 check_for_calendar (gpointer user_data)
 {
 	g_return_val_if_fail (calendar != NULL, FALSE);
-
+	// Always enable the calendar even if it does nothing
+	dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+	dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+	
 	gchar *evo = g_find_program_in_path("evolution");
 	if (evo != NULL) {
 		g_debug("Found the calendar application: %s", evo);
-		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
-		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
 
 		dbusmenu_menuitem_property_set_bool(date, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		g_signal_connect (G_OBJECT(date), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
@@ -465,11 +513,11 @@ update_timezone_menu_items(gpointer user_data) {
 	
 	gboolean show = g_settings_get_boolean (conf, SETTINGS_SHOW_LOCATIONS_S);
 
-	if (len > 0) {
-		dbusmenu_menuitem_property_set_bool (locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
-		dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
-		dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
-	} else {
+	dbusmenu_menuitem_property_set_bool (locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
+	dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
+	dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+
+	if (len == 0) {
 		g_debug("No locations configured (Empty List)");
 		return FALSE;
 	}
@@ -607,7 +655,7 @@ update_appointment_menu_items (gpointer user_data)
 	const int mday = today->tm_mday;
 	const int mon = today->tm_mon;
 	const int year = today->tm_year;
-	
+
   	struct tm *start_tm = NULL;
 	int this_year = today->tm_year + 1900;
 	int days[12]={31,28,31,30,31,30,31,31,30,31,30,31};
@@ -677,16 +725,15 @@ update_appointment_menu_items (gpointer user_data)
 	comp_instances = NULL;
 	g_debug("Components sorted");
 	
-	/* Remove all of the previous appointments */
+	/* Hiding all of the previous appointments */
 	if (appointments != NULL) {
-		g_debug("Freeing old appointments");
-		while (appointments != NULL) {
-			DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(appointments->data);
-			g_debug("Freeing old appointment: %p", litem);
+		g_debug("Hiding old appointments");
+		GList * appointment;
+		for (appointment = appointments; appointment != NULL; appointment = g_list_next(appointment)) {
+			DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(appointment->data);
+			g_debug("Hiding old appointment: %p", litem);
 			// Remove all the existing menu items which are in appointments.
-			appointments = g_list_remove(appointments, litem);
-			dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(litem));
-			g_object_unref(G_OBJECT(litem));
+			dbusmenu_menuitem_property_set_bool(DBUSMENU_MENUITEM(litem), DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 		}
 	}
 
@@ -703,13 +750,18 @@ update_appointment_menu_items (gpointer user_data)
 	} else if (g_strcmp0(time_format_str, "24-hour") == 0) {
 		apt_output = SETTINGS_TIME_24_HOUR;
 	} else {
-		apt_output = SETTINGS_TIME_LOCALE;
+		if (is_locale_12h()) {
+			apt_output = SETTINGS_TIME_12_HOUR;
+		} else {
+			apt_output = SETTINGS_TIME_24_HOUR;
+		}
 	}
 	
 	GVariantBuilder markeddays;
 	g_variant_builder_init (&markeddays, G_VARIANT_TYPE_ARRAY);
 	
 	i = 0;
+	GList * cached_appointment = appointments;
 	for (l = sorted_comp_instances; l; l = l->next) {
 		struct comp_instance *ci = l->data;
 		ECalComponent *ecalcomp = ci->comp;
@@ -744,12 +796,28 @@ update_appointment_menu_items (gpointer user_data)
 		if (i >= 5) continue;
 		i++;
 
-		g_debug("Create menu item");
-		
-		item = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set       (item, DBUSMENU_MENUITEM_PROP_TYPE, APPOINTMENT_MENUITEM_TYPE);
+		if (cached_appointment == NULL) {
+			g_debug("Create menu item");
+			
+			item = dbusmenu_menuitem_new();
+			dbusmenu_menuitem_property_set       (item, DBUSMENU_MENUITEM_PROP_TYPE, APPOINTMENT_MENUITEM_TYPE);
+
+			dbusmenu_menuitem_child_add_position (root, item, 2+i);
+			appointments = g_list_append (appointments, item); // Keep track of the items here to make them easy to remove
+		} else {
+			item = DBUSMENU_MENUITEM(cached_appointment->data);
+			cached_appointment = g_list_next(cached_appointment);
+
+			/* Remove the icon as we might not replace it on error */
+			dbusmenu_menuitem_property_remove(item, APPOINTMENT_MENUITEM_PROP_ICON);
+
+			/* Remove the activate handler */
+			g_signal_handlers_disconnect_matched(G_OBJECT(item), G_SIGNAL_MATCH_FUNC, 0, 0, NULL, G_CALLBACK(activate_cb), NULL);
+		}
+
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+
 	
         // Label text        
 		e_cal_component_get_summary (ecalcomp, &valuetext);
@@ -770,11 +838,6 @@ update_appointment_menu_items (gpointer user_data)
 				strftime(right, 20, _(DEFAULT_TIME_24_FORMAT), due);
 			else
 				strftime(right, 20, _(DEFAULT_TIME_24_FORMAT_WITH_DAY), due);
-		} else {
-			if ((mday == dmday) && (mon == dmon) && (year == dyear))
-				strftime(right, 20, _(DEFAULT_TIME_FORMAT), due);
-			else
-				strftime(right, 20, _(DEFAULT_TIME_FORMAT_WITH_DAY), due);
 		}
 		g_debug("Appointment time: %s, for date %s", right, asctime(due));
 		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, right);
@@ -847,8 +910,6 @@ update_appointment_menu_items (gpointer user_data)
 			cairo_surface_destroy (surface);
 			cairo_destroy(cr);
 		}
-		dbusmenu_menuitem_child_add_position (root, item, 2+i);
-		appointments = g_list_append         (appointments, item); // Keep track of the items here to make them easy to remove
 		g_debug("Adding appointment: %p", item);
 	}
 	
@@ -860,7 +921,7 @@ update_appointment_menu_items (gpointer user_data)
 	g_list_free(sorted_comp_instances);
 	
 	GVariant * marks = g_variant_builder_end (&markeddays);
-	dbusmenu_menuitem_property_set_variant (calendar, CALENDAR_MENUITEM_PROP_MARK, marks);
+	dbusmenu_menuitem_property_set_variant (calendar, CALENDAR_MENUITEM_PROP_MARKS, marks);
 	
 	updating_appointments = FALSE;
 	g_debug("End of objects");

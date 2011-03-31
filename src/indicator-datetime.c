@@ -101,6 +101,8 @@ struct _IndicatorDatetimePrivate {
 	GList * timezone_items;
 
 	GSettings * settings;
+
+	GtkSizeGroup * indicator_right_group;
 };
 
 /* Enum for the properties so that they can be quickly
@@ -175,14 +177,15 @@ static void system_proxy_cb  (GObject * object, GAsyncResult * res, gpointer use
 static void service_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data);
 static gint generate_strftime_bitmask     (const char *time_str);
 static void timezone_update_labels        (indicator_item_t * mi_data);
+static gboolean new_calendar_item         (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, DbusmenuClient   * client, gpointer user_data);
+static gboolean new_appointment_item      (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, DbusmenuClient * client, gpointer user_data);
+static gboolean new_timezone_item         (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, DbusmenuClient   * client, gpointer user_data);
 
 /* Indicator Module Config */
 INDICATOR_SET_VERSION
 INDICATOR_SET_TYPE(INDICATOR_DATETIME_TYPE)
 
 G_DEFINE_TYPE (IndicatorDatetime, indicator_datetime, INDICATOR_OBJECT_TYPE);
-
-static GtkSizeGroup * indicator_right_group = NULL;
 
 static void
 indicator_datetime_class_init (IndicatorDatetimeClass *klass)
@@ -341,6 +344,14 @@ indicator_datetime_init (IndicatorDatetime *self)
 	}
 
 	self->priv->sm = indicator_service_manager_new_version(SERVICE_NAME, SERVICE_VERSION);
+	self->priv->indicator_right_group = GTK_SIZE_GROUP(gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL));
+
+	self->priv->menu = dbusmenu_gtkmenu_new(SERVICE_NAME, MENU_OBJ);
+
+	DbusmenuGtkClient *client = dbusmenu_gtkmenu_get_client(self->priv->menu);
+	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), DBUSMENU_CALENDAR_MENUITEM_TYPE, new_calendar_item, self, NULL);
+	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), APPOINTMENT_MENUITEM_TYPE, new_appointment_item, self, NULL);
+	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), TIMEZONE_MENUITEM_TYPE, new_timezone_item, self, NULL);
 
 	self->priv->service_proxy_cancel = g_cancellable_new();
 
@@ -458,6 +469,11 @@ indicator_datetime_dispose (GObject *object)
 		self->priv->service_proxy = NULL;
 	}
 
+	if (self->priv->indicator_right_group != NULL) {
+		g_object_unref(G_OBJECT(self->priv->indicator_right_group));
+		self->priv->indicator_right_group = NULL;
+	}
+
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->dispose (object);
 	return;
 }
@@ -540,7 +556,9 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 	case PROP_SHOW_CLOCK: {
 		if (g_value_get_boolean(value) != self->priv->show_clock) {
 			self->priv->show_clock = g_value_get_boolean(value);
-			gtk_widget_set_visible (GTK_WIDGET (self->priv->label), self->priv->show_clock);
+			if (self->priv->label != NULL) {
+				gtk_widget_set_visible (GTK_WIDGET (self->priv->label), self->priv->show_clock);
+			}
 		}
 		break;
 	}
@@ -553,7 +571,7 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 		}
 		break;
 	}
-	case PROP_SHOW_SECONDS:
+	case PROP_SHOW_SECONDS: {
 		if (g_value_get_boolean(value) != self->priv->show_seconds) {
 			self->priv->show_seconds = !self->priv->show_seconds;
 			if (self->priv->time_mode != SETTINGS_TIME_CUSTOM) {
@@ -562,7 +580,8 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 			}
 		}
 		break;
-	case PROP_SHOW_DAY:
+	}
+	case PROP_SHOW_DAY: {
 		if (g_value_get_boolean(value) != self->priv->show_day) {
 			self->priv->show_day = !self->priv->show_day;
 			if (self->priv->time_mode != SETTINGS_TIME_CUSTOM) {
@@ -570,7 +589,8 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 			}
 		}
 		break;
-	case PROP_SHOW_DATE:
+	}
+	case PROP_SHOW_DATE: {
 		if (g_value_get_boolean(value) != self->priv->show_date) {
 			self->priv->show_date = !self->priv->show_date;
 			if (self->priv->time_mode != SETTINGS_TIME_CUSTOM) {
@@ -578,6 +598,7 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 			}
 		}
 		break;
+	}
 	case PROP_CUSTOM_TIME_FORMAT: {
 		const gchar * newstr = g_value_get_string(value);
 		if (g_strcmp0(newstr, self->priv->custom_string) != 0) {
@@ -610,13 +631,16 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 	case PROP_SHOW_CALENDAR: {
 		if (g_value_get_boolean(value) != self->priv->show_calendar) {
 			self->priv->show_calendar = g_value_get_boolean(value);
-			gtk_widget_set_visible (GTK_WIDGET (self->priv->ido_calendar), self->priv->show_calendar);
+			if (self->priv->ido_calendar != NULL) {
+				gtk_widget_set_visible (GTK_WIDGET (self->priv->ido_calendar), self->priv->show_calendar);
+			}
 		}
 		break;
-	}
-	default:
+	} 
+	default: {
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
 		return;
+	}
 	}
 
 	if (!update) {
@@ -853,7 +877,7 @@ setup_timer (IndicatorDatetime * self, GDateTime * datetime)
 	
 	if (self->priv->show_seconds ||
 		(self->priv->time_mode == SETTINGS_TIME_CUSTOM && self->priv->custom_show_seconds)) {
-		self->priv->timer = g_timeout_add_full(G_PRIORITY_HIGH, 865, timer_func, self, NULL);
+		self->priv->timer = g_timeout_add_full(G_PRIORITY_HIGH, 999, timer_func, self, NULL);
 	} else {
 		if (datetime == NULL) {
 			datetime = g_date_time_new_now_local();
@@ -1184,8 +1208,6 @@ indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, 
 		timezone_update_labels(mi_data);
 	} else if (!g_strcmp0(prop, TIMEZONE_MENUITEM_PROP_RADIO)) {
 		gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(mi_data->gmi), g_variant_get_boolean(value));
-	} else {
-		g_warning("Indicator Item property '%s' unknown", prop);
 	}
 	return;
 }
@@ -1193,39 +1215,31 @@ indicator_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, 
 static void
 calendar_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, IdoCalendarMenuItem * mi_data)
 {
-	g_debug("Changing calendar property");
-	if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_MARK)) {
+	g_debug("Changing calendar property: %s", prop);
+	if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_MARKS)) {
 		ido_calendar_menu_item_clear_marks (IDO_CALENDAR_MENU_ITEM (mi_data));
-		g_debug("Marks: Cleared");
-		GVariantIter *iter;
-		gint day;
 
-		g_variant_get (value, "ai", &iter);
-	  	while (g_variant_iter_loop (iter, "i", &day)) {
-			ido_calendar_menu_item_mark_day (IDO_CALENDAR_MENU_ITEM (mi_data), day);
-			g_debug("Marks: Marked day: %d", day);
-		}
-		g_variant_iter_free (iter);
-	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_UNMARK)) {
-		GVariantIter *iter;
-		gint day;
+		if (value != NULL) {
+			GVariantIter *iter;
+			gint day;
 
-		g_variant_get (value, "ai", &iter);
-	  	while (g_variant_iter_loop (iter, "i", &day)) {
-			g_debug("Unmarked day: %d", day);
-			ido_calendar_menu_item_unmark_day (IDO_CALENDAR_MENU_ITEM (mi_data), day);
+			g_debug("\tMarks: %s", g_variant_print(value, FALSE));
+
+			g_variant_get (value, "ai", &iter);
+			while (g_variant_iter_loop (iter, "i", &day)) {
+				ido_calendar_menu_item_mark_day (IDO_CALENDAR_MENU_ITEM (mi_data), day);
+			}
+			g_variant_iter_free (iter);
+		} else {
+			g_debug("\tMarks: <cleared>");
 		}
-		g_variant_iter_free (iter);
-	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_CLEAR_MARKS)) {
-		ido_calendar_menu_item_clear_marks (IDO_CALENDAR_MENU_ITEM (mi_data));
-		g_debug("Cleared Marks");
 	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_SET_DATE)) {
-		gsize size = 3;
-		const gint * array = g_variant_get_fixed_array(value, &size, sizeof(gint));
-		g_debug("Setting date y-m-d: %d-%d-%d", array[0], array[1], array[2]);
-		ido_calendar_menu_item_set_date (IDO_CALENDAR_MENU_ITEM (mi_data), array[0], array[1], array[2]);
-	} else {
-		g_warning("Indicator Item property '%s' unknown", prop);
+		if (value != NULL) {
+			gsize size = 3;
+			const gint * array = g_variant_get_fixed_array(value, &size, sizeof(gint));
+			g_debug("Setting date y-m-d: %d-%d-%d", array[0], array[1], array[2]);
+			ido_calendar_menu_item_set_date (IDO_CALENDAR_MENU_ITEM (mi_data), array[0], array[1], array[2]);
+		}
 	}
 	return;
 }
@@ -1241,7 +1255,9 @@ new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, Dbu
 {
 	g_return_val_if_fail(DBUSMENU_IS_MENUITEM(newitem), FALSE);
 	g_return_val_if_fail(DBUSMENU_IS_GTKCLIENT(client), FALSE);
+	g_return_val_if_fail(IS_INDICATOR_DATETIME(user_data), FALSE);
 	/* Note: not checking parent, it's reasonable for it to be NULL */
+	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
 
 	indicator_item_t * mi_data = g_new0(indicator_item_t, 1);
 
@@ -1291,7 +1307,7 @@ new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, Dbu
 	/* Usually either the time or the count on the individual
 	   item. */
 	mi_data->right = gtk_label_new(dbusmenu_menuitem_property_get(newitem, APPOINTMENT_MENUITEM_PROP_RIGHT));
-	gtk_size_group_add_widget(indicator_right_group, mi_data->right);
+	gtk_size_group_add_widget(self->priv->indicator_right_group, mi_data->right);
 	gtk_misc_set_alignment(GTK_MISC(mi_data->right), 1.0, 0.5);
 	gtk_box_pack_start(GTK_BOX(hbox), mi_data->right, FALSE, FALSE, 0);
 	gtk_widget_show(mi_data->right);
@@ -1365,17 +1381,13 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 				   DbusmenuClient   * client,
 				   gpointer           user_data)
 {
+	g_debug("New calendar item");
 	g_return_val_if_fail(DBUSMENU_IS_MENUITEM(newitem), FALSE);
 	g_return_val_if_fail(DBUSMENU_IS_GTKCLIENT(client), FALSE);
+	g_return_val_if_fail(IS_INDICATOR_DATETIME(user_data), FALSE);
 	/* Note: not checking parent, it's reasonable for it to be NULL */
 
-	IndicatorObject *io = g_object_get_data (G_OBJECT (client), "indicator");
-	if (io == NULL) {
-		g_warning ("found no indicator to attach the caledar to");
-		return FALSE;
-	}
-
-	IndicatorDatetime *self = INDICATOR_DATETIME(io);
+	IndicatorDatetime *self = INDICATOR_DATETIME(user_data);
 	self->priv = INDICATOR_DATETIME_GET_PRIVATE(self);
 	
 	IdoCalendarMenuItem *ido = IDO_CALENDAR_MENU_ITEM (ido_calendar_menu_item_new ());
@@ -1391,11 +1403,26 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 	gtk_widget_set_visible (GTK_WIDGET (self->priv->ido_calendar), self->priv->show_calendar);
 
 	dbusmenu_gtkclient_newitem_base(DBUSMENU_GTKCLIENT(client), newitem, GTK_MENU_ITEM(ido), parent);
+
 	g_signal_connect_after(ido, "month-changed", G_CALLBACK(month_changed_cb), (gpointer)newitem);
 	g_signal_connect_after(ido, "day-selected", G_CALLBACK(day_selected_cb), (gpointer)newitem);
 	g_signal_connect_after(ido, "day-selected-double-click", G_CALLBACK(day_selected_double_click_cb), (gpointer)newitem);
 
 	g_signal_connect(G_OBJECT(newitem), DBUSMENU_MENUITEM_SIGNAL_PROPERTY_CHANGED, G_CALLBACK(calendar_prop_change_cb), ido);
+
+	/* Run the current values through prop changed */
+	GVariant * propval = NULL;
+
+	propval = dbusmenu_menuitem_property_get_variant(newitem, CALENDAR_MENUITEM_PROP_MARKS);
+	if (propval != NULL) {
+		calendar_prop_change_cb(newitem, CALENDAR_MENUITEM_PROP_MARKS, propval, ido);
+	}
+
+	propval = dbusmenu_menuitem_property_get_variant(newitem, CALENDAR_MENUITEM_PROP_SET_DATE);
+	if (propval != NULL) {
+		calendar_prop_change_cb(newitem, CALENDAR_MENUITEM_PROP_SET_DATE, propval, ido);
+	}
+
 	return TRUE;
 }
 
@@ -1425,15 +1452,10 @@ new_timezone_item(DbusmenuMenuitem * newitem,
 {
 	g_return_val_if_fail(DBUSMENU_IS_MENUITEM(newitem), FALSE);
 	g_return_val_if_fail(DBUSMENU_IS_GTKCLIENT(client), FALSE);
+	g_return_val_if_fail(IS_INDICATOR_DATETIME(user_data), FALSE);
 	/* Note: not checking parent, it's reasonable for it to be NULL */
-	
-	IndicatorObject *io = g_object_get_data (G_OBJECT (client), "indicator");
-	if (io == NULL) {
-		g_warning ("found no indicator to attach the timezone to");
-		return FALSE;
-	}
 
-	IndicatorDatetime *self = INDICATOR_DATETIME(io);
+	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
 	IndicatorDatetimePrivate *priv = INDICATOR_DATETIME_GET_PRIVATE(self);
 
 	// Menu item with a radio button and a right aligned time
@@ -1460,7 +1482,7 @@ new_timezone_item(DbusmenuMenuitem * newitem,
 	/* Usually either the time or the count on the individual
 	   item. */
 	mi_data->right = gtk_label_new("");
-	gtk_size_group_add_widget(indicator_right_group, mi_data->right);
+	gtk_size_group_add_widget(self->priv->indicator_right_group, mi_data->right);
 	gtk_misc_set_alignment(GTK_MISC(mi_data->right), 1.0, 0.5);
 	gtk_box_pack_start(GTK_BOX(hbox), mi_data->right, FALSE, FALSE, 0);
 	gtk_widget_show(mi_data->right);
@@ -1509,17 +1531,6 @@ static GtkMenu *
 get_menu (IndicatorObject * io)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(io);
-
-	if (self->priv->menu == NULL) {
-		self->priv->menu = dbusmenu_gtkmenu_new(SERVICE_NAME, MENU_OBJ);
-	}
-
-	DbusmenuGtkClient *client = dbusmenu_gtkmenu_get_client(self->priv->menu);
-	g_object_set_data (G_OBJECT (client), "indicator", io);
-
-	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), DBUSMENU_CALENDAR_MENUITEM_TYPE, new_calendar_item);
-	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), APPOINTMENT_MENUITEM_TYPE, new_appointment_item);
-	dbusmenu_client_add_type_handler(DBUSMENU_CLIENT(client), TIMEZONE_MENUITEM_TYPE, new_timezone_item);
 
 	return GTK_MENU(self->priv->menu);
 }

@@ -100,5 +100,12 @@
 			  indicator-datetime menu.
 			</description>
 		</key>
+		<key name="timezone-name" type="s">
+			<default>''</default>
+			<summary>The name of the current timezone</summary>
+			<description>
+			  Some timezones can be known by many different cities or names.  This setting describes how the current zone prefers to be named.  Format is "TIMEZONE NAME" (e.g. "America/New_York Boston" to name the New_York zone Boston).
+			</description>
+		</key>
 	</schema>
 </schemalist>

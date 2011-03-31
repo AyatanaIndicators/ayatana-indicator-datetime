@@ -1,11 +1,11 @@
 
-AC_INIT(indicator-datetime, 0.1.98, ted@canonical.com)
+AC_INIT(indicator-datetime, 0.2.0, ted@canonical.com)
 AC_COPYRIGHT([Copyright 2009,2010 Canonical])
 
 AC_PREREQ(2.53)
 
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(indicator-datetime, 0.1.98)
+AM_INIT_AUTOMAKE(indicator-datetime, 0.2.0)
 
 AM_MAINTAINER_MODE
 
