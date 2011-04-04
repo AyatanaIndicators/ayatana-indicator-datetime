@@ -1,4 +1,4 @@
-indicator-datetime (0.2.1-0ubuntu1~ppa1) natty; urgency=low
+indicator-datetime (0.2.1-0ubuntu1) natty; urgency=low
 
   * New upstream release.
     * indicator-datetime-preferences crashed with SIGSEGV in
