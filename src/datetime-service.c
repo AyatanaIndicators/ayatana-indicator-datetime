@@ -656,6 +656,8 @@ update_appointment_menu_items (gpointer user_data)
 	const int mon = today->tm_mon;
 	const int year = today->tm_year;
 
+	int start_month_saved = mon;
+
   	struct tm *start_tm = NULL;
 	int this_year = today->tm_year + 1900;
 	int days[12]={31,28,31,30,31,30,31,31,30,31,30,31};
@@ -667,6 +669,7 @@ update_appointment_menu_items (gpointer user_data)
 	if (start_time_appointments > 0) {
   		start_tm = localtime(&start_time_appointments);
 		int start_month = start_tm->tm_mon;
+		start_month_saved = start_month;
 		int start_year = start_tm->tm_year + 1900;
 		if ((start_month != mon) || (start_year != this_year)) {
 			// Set t1 to the start of that month.
@@ -681,6 +684,7 @@ update_appointment_menu_items (gpointer user_data)
 	
 	g_debug("Will highlight %d days from %s", highlightdays, ctime(&t1));
 
+	highlightdays = highlightdays + 7; // Minimum of 7 days ahead 
 	t2 = t1 + (time_t) (highlightdays * 24 * 60 * 60);
 	
 	if (!e_cal_get_sources(&sources, E_CAL_SOURCE_TYPE_EVENT, &gerror)) {
@@ -781,10 +785,12 @@ update_appointment_menu_items (gpointer user_data)
 		const int dmon = due->tm_mon;
 		const int dyear = due->tm_year;
 		
-		// Mark day
-		g_debug("Adding marked date %s, %d", ctime(&ci->start), dmday);
-		g_variant_builder_add (&markeddays, "i", dmday);
-
+		if (start_month_saved == dmon) {
+			// Mark day if our query hasn't hit the next month. 
+			g_debug("Adding marked date %s, %d", ctime(&ci->start), dmday);
+			g_variant_builder_add (&markeddays, "i", dmday);
+		}
+		
 		// If the appointment time is less than the selected date, 
 		// don't create an appointment item for it.
 		if (vtype == E_CAL_COMPONENT_EVENT) {
