@@ -1,11 +1,11 @@
-indicator-datetime (0.2.1-0ubuntu2~ppa1) UNRELEASED; urgency=low
+indicator-datetime (0.2.1-0ubuntu2~ppa1) natty; urgency=low
 
   * Upstream Merge
     * Make sure the calendar follows the user setting (LP: #748772)
     * Ensure that events handle month boundries correctly (LP: #746713)
     * Only show calendars the user has configured (LP: #729033)
 
- -- Ted Gould <ted@ubuntu.com>  Mon, 04 Apr 2011 11:14:57 -0500
+ -- Ted Gould <ted@ubuntu.com>  Mon, 04 Apr 2011 11:16:44 -0500
 
 indicator-datetime (0.2.1-0ubuntu1) natty; urgency=low
 
