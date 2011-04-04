@@ -28,6 +28,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 #include <math.h>
+#include <gconf/gconf-client.h>
 
 #include <libdbusmenu-gtk/menuitem.h>
 #include <libdbusmenu-glib/server.h>
@@ -82,6 +83,7 @@ static GList			* comp_instances = NULL;
 static gboolean           updating_appointments = FALSE;
 static time_t			  start_time_appointments = (time_t) 0;
 GSettings *conf;
+GConfClient* gconf;
 
 
 /* Geoclue trackers */
@@ -708,7 +710,13 @@ update_appointment_menu_items (gpointer user_data)
 			comp_instances = NULL;
 		}
 	}
-	
+	GSList *cal_list = gconf_client_get_list(gconf, "/apps/evolution/calendar/display/selected_calendars", GCONF_VALUE_STRING, &gerror);
+	if (gerror) {
+	  g_debug("Failed to get evolution preference for enabled calendars");
+	  g_error_free(gerror);
+	  gerror = NULL;
+	  cal_list = NULL;
+	}
 	// Generate instances for all sources
 	for (g = e_source_list_peek_groups (sources); g; g = g->next) {
 		ESourceGroup *group = E_SOURCE_GROUP (g->data);
@@ -726,6 +734,18 @@ update_appointment_menu_items (gpointer user_data)
 				gerror = NULL;
 				continue;
         	}
+			const gchar *ecal_uid = e_source_peek_uid(source);
+			gboolean match = FALSE;
+			g_debug("Checking ecal_uid is enabled: %s", ecal_uid);
+			for (i = 0; i<g_slist_length(cal_list);i++) {
+				char *cuid = (char *)g_slist_nth_data(cal_list, i);
+				if (g_strcmp0(cuid, ecal_uid) == 0) {
+					match = TRUE;
+					break;
+				}
+			}
+			if (!match) continue;
+			g_debug("ecal_uid is enabled, generating instances");
 			
 			e_cal_generate_instances (ecal, t1, t2, (ECalRecurInstanceFn) populate_appointment_instances, (gpointer) source);
 		}
@@ -1312,6 +1332,8 @@ main (int argc, char ** argv)
 
 	/* Set up GSettings */
 	conf = g_settings_new(SETTINGS_INTERFACE);
+	/* Set up gconf for getting evolution enabled calendars */
+	gconf = gconf_client_get_default();
 	// TODO Add a signal handler to catch gsettings changes and respond to them
 
 	/* Building the base menu */
