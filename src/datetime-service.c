@@ -724,11 +724,18 @@ update_appointment_menu_items (gpointer user_data)
 				gerror = NULL;
 				continue;
         	}
-			const gchar *ecal_uri = e_cal_get_uri(ecal);
-			g_debug("Checking ecal_uri is enabled: %s, %s", ecal_uri);
-			// If source URI is not in source_list continue
-			if (cal_list != NULL && g_slist_find(cal_list, ecal_uri) == NULL) continue;
-			g_debug("ecal_uri is enabled, generating instances");
+			const gchar *ecal_uid = e_source_peek_uid(source);
+			gboolean match = FALSE;
+			g_debug("Checking ecal_uid is enabled: %s", ecal_uid);
+			for (i = 0; i<g_slist_length(cal_list);i++) {
+				char *cuid = (char *)g_slist_nth_data(cal_list, i);
+				if (g_strcmp0(cuid, ecal_uid) == 0) {
+					match = TRUE;
+					break;
+				}
+			}
+			if (!match) continue;
+			g_debug("ecal_uid is enabled, generating instances");
 			
 			e_cal_generate_instances (ecal, t1, t2, (ECalRecurInstanceFn) populate_appointment_instances, (gpointer) source);
 		}
