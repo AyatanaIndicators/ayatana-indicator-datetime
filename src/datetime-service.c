@@ -28,6 +28,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 #include <math.h>
+#include <gconf/gconf-client.h>
 
 #include <libdbusmenu-gtk/menuitem.h>
 #include <libdbusmenu-glib/server.h>
@@ -82,6 +83,7 @@ static GList			* comp_instances = NULL;
 static gboolean           updating_appointments = FALSE;
 static time_t			  start_time_appointments = (time_t) 0;
 GSettings *conf;
+GConfClient* gconf;
 
 
 /* Geoclue trackers */
@@ -439,18 +441,16 @@ static gboolean
 check_for_calendar (gpointer user_data)
 {
 	g_return_val_if_fail (calendar != NULL, FALSE);
-	// Always enable the calendar even if it does nothing
-	dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
-	dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+	
+	dbusmenu_menuitem_property_set_bool(date, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 	
 	gchar *evo = g_find_program_in_path("evolution");
 	if (evo != NULL) {
 		g_debug("Found the calendar application: %s", evo);
-
-		dbusmenu_menuitem_property_set_bool(date, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+		
 		g_signal_connect (G_OBJECT(date), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
-						  G_CALLBACK (activate_cb), "evolution -c calendar");
-						  
+		                  G_CALLBACK (activate_cb), "evolution -c calendar");
+		
 		events_separator = dbusmenu_menuitem_new();
 		dbusmenu_menuitem_property_set(events_separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
 		dbusmenu_menuitem_child_add_position(root, events_separator, 2);
@@ -478,8 +478,16 @@ check_for_calendar (gpointer user_data)
 		g_free(evo);
 	} else {
 		g_debug("Unable to find calendar app.");
-		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+	}
+	
+	if (g_settings_get_boolean(conf, SETTINGS_SHOW_CALENDAR_S)) {
+		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+	} else {
+		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 	}
 
 	return FALSE;
@@ -656,6 +664,8 @@ update_appointment_menu_items (gpointer user_data)
 	const int mon = today->tm_mon;
 	const int year = today->tm_year;
 
+	int start_month_saved = mon;
+
   	struct tm *start_tm = NULL;
 	int this_year = today->tm_year + 1900;
 	int days[12]={31,28,31,30,31,30,31,31,30,31,30,31};
@@ -667,6 +677,7 @@ update_appointment_menu_items (gpointer user_data)
 	if (start_time_appointments > 0) {
   		start_tm = localtime(&start_time_appointments);
 		int start_month = start_tm->tm_mon;
+		start_month_saved = start_month;
 		int start_year = start_tm->tm_year + 1900;
 		if ((start_month != mon) || (start_year != this_year)) {
 			// Set t1 to the start of that month.
@@ -681,6 +692,7 @@ update_appointment_menu_items (gpointer user_data)
 	
 	g_debug("Will highlight %d days from %s", highlightdays, ctime(&t1));
 
+	highlightdays = highlightdays + 7; // Minimum of 7 days ahead 
 	t2 = t1 + (time_t) (highlightdays * 24 * 60 * 60);
 	
 	if (!e_cal_get_sources(&sources, E_CAL_SOURCE_TYPE_EVENT, &gerror)) {
@@ -698,7 +710,13 @@ update_appointment_menu_items (gpointer user_data)
 			comp_instances = NULL;
 		}
 	}
-	
+	GSList *cal_list = gconf_client_get_list(gconf, "/apps/evolution/calendar/display/selected_calendars", GCONF_VALUE_STRING, &gerror);
+	if (gerror) {
+	  g_debug("Failed to get evolution preference for enabled calendars");
+	  g_error_free(gerror);
+	  gerror = NULL;
+	  cal_list = NULL;
+	}
 	// Generate instances for all sources
 	for (g = e_source_list_peek_groups (sources); g; g = g->next) {
 		ESourceGroup *group = E_SOURCE_GROUP (g->data);
@@ -716,6 +734,18 @@ update_appointment_menu_items (gpointer user_data)
 				gerror = NULL;
 				continue;
         	}
+			const gchar *ecal_uid = e_source_peek_uid(source);
+			gboolean match = FALSE;
+			g_debug("Checking ecal_uid is enabled: %s", ecal_uid);
+			for (i = 0; i<g_slist_length(cal_list);i++) {
+				char *cuid = (char *)g_slist_nth_data(cal_list, i);
+				if (g_strcmp0(cuid, ecal_uid) == 0) {
+					match = TRUE;
+					break;
+				}
+			}
+			if (!match) continue;
+			g_debug("ecal_uid is enabled, generating instances");
 			
 			e_cal_generate_instances (ecal, t1, t2, (ECalRecurInstanceFn) populate_appointment_instances, (gpointer) source);
 		}
@@ -781,10 +811,12 @@ update_appointment_menu_items (gpointer user_data)
 		const int dmon = due->tm_mon;
 		const int dyear = due->tm_year;
 		
-		// Mark day
-		g_debug("Adding marked date %s, %d", ctime(&ci->start), dmday);
-		g_variant_builder_add (&markeddays, "i", dmday);
-
+		if (start_month_saved == dmon) {
+			// Mark day if our query hasn't hit the next month. 
+			g_debug("Adding marked date %s, %d", ctime(&ci->start), dmday);
+			g_variant_builder_add (&markeddays, "i", dmday);
+		}
+		
 		// If the appointment time is less than the selected date, 
 		// don't create an appointment item for it.
 		if (vtype == E_CAL_COMPONENT_EVENT) {
@@ -1300,6 +1332,8 @@ main (int argc, char ** argv)
 
 	/* Set up GSettings */
 	conf = g_settings_new(SETTINGS_INTERFACE);
+	/* Set up gconf for getting evolution enabled calendars */
+	gconf = gconf_client_get_default();
 	// TODO Add a signal handler to catch gsettings changes and respond to them
 
 	/* Building the base menu */
