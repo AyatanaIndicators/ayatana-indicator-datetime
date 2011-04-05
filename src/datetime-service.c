@@ -859,25 +859,33 @@ update_appointment_menu_items (gpointer user_data)
 		g_debug("Summary: %s", summary);
 		g_free (summary);
 
+		gboolean full_day = FALSE;
+		if (vtype == E_CAL_COMPONENT_EVENT) {
+			time_t start = ci->start;
+			if (time_add_day(start, 1) == ci->end) {
+				full_day = TRUE;
+			}
+		}
+
 		// Due text
-		if (time_add_day(ci->start, 1) == ci->end) {
+		if (full_day) {
 			/* TRANSLATORS: This is a strftime string for the day for full day events
 			   in the menu.  It should most likely be either '%A' for a full text day
 			   (Wednesday) or '%a' for a shortened one (Wed).  You should only need to
 			   change for '%a' in the case of langauges with very long day names. */
 			strftime(right, 20, _("%A"), due);
 		} else {
-		if (apt_output == SETTINGS_TIME_12_HOUR) {
-			if ((mday == dmday) && (mon == dmon) && (year == dyear))
-				strftime(right, 20, _(DEFAULT_TIME_12_FORMAT), due);
-			else
-				strftime(right, 20, _(DEFAULT_TIME_12_FORMAT_WITH_DAY), due);
-		} else if (apt_output == SETTINGS_TIME_24_HOUR) {
-			if ((mday == dmday) && (mon == dmon) && (year == dyear))
-				strftime(right, 20, _(DEFAULT_TIME_24_FORMAT), due);
-			else
-				strftime(right, 20, _(DEFAULT_TIME_24_FORMAT_WITH_DAY), due);
-		}
+			if (apt_output == SETTINGS_TIME_12_HOUR) {
+				if ((mday == dmday) && (mon == dmon) && (year == dyear))
+					strftime(right, 20, _(DEFAULT_TIME_12_FORMAT), due);
+				else
+					strftime(right, 20, _(DEFAULT_TIME_12_FORMAT_WITH_DAY), due);
+			} else if (apt_output == SETTINGS_TIME_24_HOUR) {
+				if ((mday == dmday) && (mon == dmon) && (year == dyear))
+					strftime(right, 20, _(DEFAULT_TIME_24_FORMAT), due);
+				else
+					strftime(right, 20, _(DEFAULT_TIME_24_FORMAT_WITH_DAY), due);
+			}
 		}
 		g_debug("Appointment time: %s, for date %s", right, asctime(due));
 		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, right);
