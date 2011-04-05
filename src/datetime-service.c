@@ -861,7 +861,11 @@ update_appointment_menu_items (gpointer user_data)
 
 		// Due text
 		if (time_add_day(ci->start, 1) == ci->end) {
-			strftime(right, 20, "%A", due);
+			/* TRANSLATORS: This is a strftime string for the day for full day events
+			   in the menu.  It should most likely be either '%A' for a full text day
+			   (Wednesday) or '%a' for a shortened one (Wed).  You should only need to
+			   change for '%a' in the case of langauges with very long day names. */
+			strftime(right, 20, _("%A"), due);
 		} else {
 		if (apt_output == SETTINGS_TIME_12_HOUR) {
 			if ((mday == dmday) && (mon == dmon) && (year == dyear))
