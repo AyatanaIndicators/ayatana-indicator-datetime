@@ -860,6 +860,9 @@ update_appointment_menu_items (gpointer user_data)
 		g_free (summary);
 
 		// Due text
+		if (time_add_day(ci->start, 1) == ci->end) {
+			strftime(right, 20, "%A", due);
+		} else {
 		if (apt_output == SETTINGS_TIME_12_HOUR) {
 			if ((mday == dmday) && (mon == dmon) && (year == dyear))
 				strftime(right, 20, _(DEFAULT_TIME_12_FORMAT), due);
@@ -870,6 +873,7 @@ update_appointment_menu_items (gpointer user_data)
 				strftime(right, 20, _(DEFAULT_TIME_24_FORMAT), due);
 			else
 				strftime(right, 20, _(DEFAULT_TIME_24_FORMAT_WITH_DAY), due);
+		}
 		}
 		g_debug("Appointment time: %s, for date %s", right, asctime(due));
 		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, right);
