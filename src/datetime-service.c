@@ -802,9 +802,10 @@ update_appointment_menu_items (gpointer user_data)
 		DbusmenuMenuitem * item;
 		
 		ECalComponentVType vtype = e_cal_component_get_vtype (ecalcomp);
+		struct tm due_data = {0};
 		struct tm *due = NULL;
-		if (vtype == E_CAL_COMPONENT_EVENT) due = localtime(&ci->start);
-		else if (vtype == E_CAL_COMPONENT_TODO) due = localtime(&ci->end);
+		if (vtype == E_CAL_COMPONENT_EVENT) due = localtime_r(&ci->start, &due_data);
+		else if (vtype == E_CAL_COMPONENT_TODO) due = localtime_r(&ci->end, &due_data);
 		else continue;
 		
 		const int dmday = due->tm_mday;
