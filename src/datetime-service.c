@@ -802,9 +802,10 @@ update_appointment_menu_items (gpointer user_data)
 		DbusmenuMenuitem * item;
 		
 		ECalComponentVType vtype = e_cal_component_get_vtype (ecalcomp);
+		struct tm due_data = {0};
 		struct tm *due = NULL;
-		if (vtype == E_CAL_COMPONENT_EVENT) due = localtime(&ci->start);
-		else if (vtype == E_CAL_COMPONENT_TODO) due = localtime(&ci->end);
+		if (vtype == E_CAL_COMPONENT_EVENT) due = localtime_r(&ci->start, &due_data);
+		else if (vtype == E_CAL_COMPONENT_TODO) due = localtime_r(&ci->end, &due_data);
 		else continue;
 		
 		const int dmday = due->tm_mday;
@@ -859,17 +860,36 @@ update_appointment_menu_items (gpointer user_data)
 		g_debug("Summary: %s", summary);
 		g_free (summary);
 
+		gboolean full_day = FALSE;
+		if (vtype == E_CAL_COMPONENT_EVENT) {
+			time_t start = ci->start;
+			if (time_add_day(start, 1) == ci->end) {
+				full_day = TRUE;
+			}
+		}
+
 		// Due text
-		if (apt_output == SETTINGS_TIME_12_HOUR) {
-			if ((mday == dmday) && (mon == dmon) && (year == dyear))
-				strftime(right, 20, _(DEFAULT_TIME_12_FORMAT), due);
-			else
-				strftime(right, 20, _(DEFAULT_TIME_12_FORMAT_WITH_DAY), due);
-		} else if (apt_output == SETTINGS_TIME_24_HOUR) {
-			if ((mday == dmday) && (mon == dmon) && (year == dyear))
-				strftime(right, 20, _(DEFAULT_TIME_24_FORMAT), due);
-			else
-				strftime(right, 20, _(DEFAULT_TIME_24_FORMAT_WITH_DAY), due);
+		if (full_day) {
+			struct tm fulldaytime = {0};
+			gmtime_r(&ci->start, &fulldaytime);
+
+			/* TRANSLATORS: This is a strftime string for the day for full day events
+			   in the menu.  It should most likely be either '%A' for a full text day
+			   (Wednesday) or '%a' for a shortened one (Wed).  You should only need to
+			   change for '%a' in the case of langauges with very long day names. */
+			strftime(right, 20, _("%A"), &fulldaytime);
+		} else {
+			if (apt_output == SETTINGS_TIME_12_HOUR) {
+				if ((mday == dmday) && (mon == dmon) && (year == dyear))
+					strftime(right, 20, _(DEFAULT_TIME_12_FORMAT), due);
+				else
+					strftime(right, 20, _(DEFAULT_TIME_12_FORMAT_WITH_DAY), due);
+			} else if (apt_output == SETTINGS_TIME_24_HOUR) {
+				if ((mday == dmday) && (mon == dmon) && (year == dyear))
+					strftime(right, 20, _(DEFAULT_TIME_24_FORMAT), due);
+				else
+					strftime(right, 20, _(DEFAULT_TIME_24_FORMAT_WITH_DAY), due);
+			}
 		}
 		g_debug("Appointment time: %s, for date %s", right, asctime(due));
 		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, right);
