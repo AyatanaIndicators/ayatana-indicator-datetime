@@ -50,7 +50,7 @@ struct _TimezoneCompletionPrivate
 
 #define TIMEZONE_COMPLETION_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE((o), TIMEZONE_COMPLETION_TYPE, TimezoneCompletionPrivate))
 
-#define GEONAME_URL "http://geoname-lookup.ubuntu.com/?query=%s&release=%s"
+#define GEONAME_URL "http://geoname-lookup.ubuntu.com/?query=%s&release=%s&lang=%s"
 
 /* Prototypes */
 static void timezone_completion_class_init (TimezoneCompletionClass *klass);
@@ -280,6 +280,58 @@ geonames_data_ready (GObject *object, GAsyncResult *res, gpointer user_data)
                                       json_parse_ready, user_data);
 }
 
+/* Returns message locale, with possible country info too like en_US */
+static gchar *
+get_locale (void)
+{
+  /* Check LANGUAGE, LC_ALL, LC_MESSAGES, and LANG, treat as colon-separated */
+  const gchar *env_names[] = {"LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG", NULL};
+  const gchar *env = NULL;
+  gint i;
+
+  for (i = 0; env_names[i]; i++) {
+    env = g_getenv (env_names[i]);
+    if (env != NULL && env[0] != 0)
+      break;
+  }
+
+  if (env == NULL)
+    return NULL;
+
+  /* Now, we split on colons as expected, but also on . and @ to filter out
+     extra pieces of locale we don't care about as we only use first chunk. */
+  gchar **split = g_strsplit_set (env, ":.@", 2);
+  if (split == NULL)
+    return NULL;
+
+  if (split[0] == NULL) {
+    g_strfreev (split);
+    return NULL;
+  }
+
+  gchar *locale = g_strdup (split[0]);
+  g_strfreev (split);
+  return locale;
+}
+
+static gchar *
+get_version (void)
+{
+  static gchar *version = NULL;
+
+  if (version == NULL) {
+    gchar *stdout = NULL;
+    g_spawn_command_line_sync ("lsb_release -rs", &stdout, NULL, NULL, NULL);
+
+    if (stdout != NULL)
+      version = g_strstrip (stdout);
+    else
+      version = "";
+  }
+
+  return version;
+}
+
 static gboolean
 request_zones (TimezoneCompletion * completion)
 {
@@ -302,9 +354,17 @@ request_zones (TimezoneCompletion * completion)
   priv->request_text = g_strdup (text);
 
   gchar * escaped = g_uri_escape_string (text, NULL, FALSE);
-  gchar * url = g_strdup_printf (GEONAME_URL, escaped, "11.04"); // FIXME: don't hardcode
+  gchar * version = get_version ();
+  gchar * locale = get_locale ();
+  gchar * url = g_strdup_printf (GEONAME_URL, escaped, version, locale);
+  g_debug("url: %s", url);
+  g_free (locale);
+  g_free (version);
+  g_free (escaped);
 
   GFile * file =  g_file_new_for_uri (url);
+  g_free (url);
+
   g_file_read_async (file, G_PRIORITY_DEFAULT, priv->cancel,
                      geonames_data_ready, completion);
 
