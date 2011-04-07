@@ -114,6 +114,17 @@ set_timezone_label (DbusmenuMenuitem * mi, const gchar * location)
 	g_free (name);
 }
 
+static void
+set_current_timezone_label (DbusmenuMenuitem * mi, const gchar * location)
+{
+	gchar * name = get_current_zone_name (location);
+
+	dbusmenu_menuitem_property_set (mi, TIMEZONE_MENUITEM_PROP_NAME, name);
+	dbusmenu_menuitem_property_set (mi, TIMEZONE_MENUITEM_PROP_ZONE, location);
+
+	g_free (name);
+}
+
 /* Check to see if our timezones are the same */
 static void
 check_timezone_sync (void) {
@@ -168,7 +179,7 @@ check_timezone_sync (void) {
 			
 			if (label != NULL) {
 				// TODO work out the current location name in a nice way
-				set_timezone_label (current_location, label);
+				set_current_timezone_label (current_location, label);
 				// TODO work out the current time at that location 
 				dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
 				dbusmenu_menuitem_property_set_bool(current_location, TIMEZONE_MENUITEM_PROP_RADIO, TRUE);
@@ -177,18 +188,18 @@ check_timezone_sync (void) {
 			}
 			if (geo_timezone != NULL) {	
 				// TODO work out the geo location name in a nice way
-				set_timezone_label (geo_location, geo_timezone);
+				set_current_timezone_label (geo_location, geo_timezone);
 				// TODO work out the current time at that location 
 				dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
 			}
 		} else {
 			// TODO work out the geo location name in a nice way
-			set_timezone_label (geo_location, geo_timezone);
+			set_current_timezone_label (geo_location, geo_timezone);
 			// TODO work out the current time at that location 
 			dbusmenu_menuitem_property_set_bool(geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
 			
 			// TODO work out the current location name in a nice way
-			set_timezone_label (current_location, current_timezone);
+			set_current_timezone_label (current_location, current_timezone);
 			// TODO work out the current time at that location 
 			dbusmenu_menuitem_property_set_bool(current_location, TIMEZONE_MENUITEM_PROP_RADIO, TRUE);
 			dbusmenu_menuitem_property_set_bool(current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
@@ -233,6 +244,69 @@ update_current_timezone (void) {
 	check_timezone_sync();
 
     if (error != NULL) g_error_free(error);
+	return;
+}
+
+static void
+quick_set_tz_cb (GObject *object, GAsyncResult *res, gpointer data)
+{
+  GError * error = NULL;
+  GVariant * answers = g_dbus_proxy_call_finish (G_DBUS_PROXY (object), res, &error);
+
+  if (error != NULL) {
+    g_warning("Could not set timezone for SettingsDaemon: %s", error->message);
+    g_error_free(error);
+    return;
+  }
+
+  g_variant_unref (answers);
+}
+
+static void
+quick_set_tz_proxy_cb (GObject *object, GAsyncResult *res, gpointer zone)
+{
+	GError * error = NULL;
+
+	GDBusProxy * proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
+
+	if (error != NULL) {
+		g_warning("Could not grab DBus proxy for SettingsDaemon: %s", error->message);
+		g_error_free(error);
+		g_free (zone);
+		return;
+	}
+
+	gchar * file = g_build_filename ("/usr/share/zoneinfo", (char *)zone, NULL);
+	g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", file),
+	                   G_DBUS_CALL_FLAGS_NONE, -1, NULL, quick_set_tz_cb, NULL);
+	g_free (file);
+	g_free (zone);
+	g_object_unref (proxy);
+}
+
+static void
+quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, gpointer user_data)
+{
+	const gchar * tz = dbusmenu_menuitem_property_get(menuitem, TIMEZONE_MENUITEM_PROP_ZONE);
+	g_debug("Quick setting timezone to: %s", tz);
+
+	g_return_if_fail(tz != NULL);
+
+	const gchar * name = dbusmenu_menuitem_property_get(menuitem, TIMEZONE_MENUITEM_PROP_NAME);
+
+	/* Set it in gsettings so we don't lose user's preferred name */
+	GSettings * conf = g_settings_new (SETTINGS_INTERFACE);
+	gchar * tz_full = g_strdup_printf ("%s %s", tz, name);
+	g_settings_set_string (conf, SETTINGS_TIMEZONE_NAME_S, tz_full);
+	g_free (tz_full);
+	g_object_unref (conf);
+
+	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_NONE, NULL,
+	                          "org.gnome.SettingsDaemon.DateTimeMechanism",
+	                          "/",                            
+	                          "org.gnome.SettingsDaemon.DateTimeMechanism",
+	                          NULL, quick_set_tz_proxy_cb, g_strdup (tz));
+
 	return;
 }
 
@@ -543,6 +617,7 @@ update_timezone_menu_items(gpointer user_data) {
 			dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 			dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
 			dbusmenu_menuitem_child_add_position (root, item, offset++);
+			g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
 			dconflocations = g_list_append(dconflocations, item);
 		}
 	}
@@ -1048,14 +1123,15 @@ build_menus (DbusmenuMenuitem * root)
 
 	geo_location = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set      (geo_location, DBUSMENU_MENUITEM_PROP_TYPE, TIMEZONE_MENUITEM_TYPE);
-	set_timezone_label (geo_location, "");
+	set_current_timezone_label (geo_location, "");
 	dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 	dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+	g_signal_connect(G_OBJECT(geo_location), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
 	dbusmenu_menuitem_child_append(root, geo_location);
 
 	current_location = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set      (current_location, DBUSMENU_MENUITEM_PROP_TYPE, TIMEZONE_MENUITEM_TYPE);
-	set_timezone_label (current_location, "");
+	set_current_timezone_label (current_location, "");
 	dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 	dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 	dbusmenu_menuitem_child_append(root, current_location);
