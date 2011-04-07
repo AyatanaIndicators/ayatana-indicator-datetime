@@ -1,4 +1,4 @@
-indicator-datetime (0.2.2-0ubuntu1~ppa1) UNRELEASED; urgency=low
+indicator-datetime (0.2.2-0ubuntu1~ppa1) natty; urgency=low
 
   * New upstream release.
     ∘ Add language and proper distro version to geonames URL to allow
@@ -9,7 +9,7 @@ indicator-datetime (0.2.2-0ubuntu1~ppa1) UNRELEASED; urgency=low
     ∘ Only show calendars the user has configured (LP: #729033)
     ∘ Reenable clicking on the timezone in the menu to set it.
 
- -- Ted Gould <ted@ubuntu.com>  Thu, 07 Apr 2011 13:20:49 -0500
+ -- Ted Gould <ted@ubuntu.com>  Thu, 07 Apr 2011 13:23:25 -0500
 
 indicator-datetime (0.2.1-0ubuntu1) natty; urgency=low
 
