@@ -1,3 +1,21 @@
+indicator-datetime (0.2.2-0ubuntu1) natty; urgency=low
+
+  [ Ted Gould ]
+  * New upstream release.
+    ∘ Add language and proper distro version to geonames URL to allow
+      for proper server side fixes
+    ∘ Give full day events the day name instead of a time
+    ∘ Make sure the calendar follows the user setting (LP: #748772)
+    ∘ Ensure that events handle month boundaries correctly (LP: #746713)
+    ∘ Only show calendars the user has configured (LP: #729033)
+    ∘ Reenable clicking on the timezone in the menu to set it.
+
+  [ Ken VanDine ]
+  * debian/control
+    - Added build depends for libgconf2-dev
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Thu, 07 Apr 2011 14:53:52 -0400
+
 indicator-datetime (0.2.1-0ubuntu1) natty; urgency=low
 
   * New upstream release.

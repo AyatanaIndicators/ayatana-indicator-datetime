@@ -28,6 +28,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 #include <math.h>
+#include <gconf/gconf-client.h>
 
 #include <libdbusmenu-gtk/menuitem.h>
 #include <libdbusmenu-glib/server.h>
@@ -82,6 +83,7 @@ static GList			* comp_instances = NULL;
 static gboolean           updating_appointments = FALSE;
 static time_t			  start_time_appointments = (time_t) 0;
 GSettings *conf;
+GConfClient* gconf;
 
 
 /* Geoclue trackers */
@@ -109,6 +111,17 @@ set_timezone_label (DbusmenuMenuitem * mi, const gchar * location)
 	dbusmenu_menuitem_property_set (mi, TIMEZONE_MENUITEM_PROP_ZONE, zone);
 
 	g_free (zone);
+	g_free (name);
+}
+
+static void
+set_current_timezone_label (DbusmenuMenuitem * mi, const gchar * location)
+{
+	gchar * name = get_current_zone_name (location);
+
+	dbusmenu_menuitem_property_set (mi, TIMEZONE_MENUITEM_PROP_NAME, name);
+	dbusmenu_menuitem_property_set (mi, TIMEZONE_MENUITEM_PROP_ZONE, location);
+
 	g_free (name);
 }
 
@@ -166,7 +179,7 @@ check_timezone_sync (void) {
 			
 			if (label != NULL) {
 				// TODO work out the current location name in a nice way
-				set_timezone_label (current_location, label);
+				set_current_timezone_label (current_location, label);
 				// TODO work out the current time at that location 
 				dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
 				dbusmenu_menuitem_property_set_bool(current_location, TIMEZONE_MENUITEM_PROP_RADIO, TRUE);
@@ -175,18 +188,18 @@ check_timezone_sync (void) {
 			}
 			if (geo_timezone != NULL) {	
 				// TODO work out the geo location name in a nice way
-				set_timezone_label (geo_location, geo_timezone);
+				set_current_timezone_label (geo_location, geo_timezone);
 				// TODO work out the current time at that location 
 				dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
 			}
 		} else {
 			// TODO work out the geo location name in a nice way
-			set_timezone_label (geo_location, geo_timezone);
+			set_current_timezone_label (geo_location, geo_timezone);
 			// TODO work out the current time at that location 
 			dbusmenu_menuitem_property_set_bool(geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
 			
 			// TODO work out the current location name in a nice way
-			set_timezone_label (current_location, current_timezone);
+			set_current_timezone_label (current_location, current_timezone);
 			// TODO work out the current time at that location 
 			dbusmenu_menuitem_property_set_bool(current_location, TIMEZONE_MENUITEM_PROP_RADIO, TRUE);
 			dbusmenu_menuitem_property_set_bool(current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
@@ -231,6 +244,69 @@ update_current_timezone (void) {
 	check_timezone_sync();
 
     if (error != NULL) g_error_free(error);
+	return;
+}
+
+static void
+quick_set_tz_cb (GObject *object, GAsyncResult *res, gpointer data)
+{
+  GError * error = NULL;
+  GVariant * answers = g_dbus_proxy_call_finish (G_DBUS_PROXY (object), res, &error);
+
+  if (error != NULL) {
+    g_warning("Could not set timezone for SettingsDaemon: %s", error->message);
+    g_error_free(error);
+    return;
+  }
+
+  g_variant_unref (answers);
+}
+
+static void
+quick_set_tz_proxy_cb (GObject *object, GAsyncResult *res, gpointer zone)
+{
+	GError * error = NULL;
+
+	GDBusProxy * proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
+
+	if (error != NULL) {
+		g_warning("Could not grab DBus proxy for SettingsDaemon: %s", error->message);
+		g_error_free(error);
+		g_free (zone);
+		return;
+	}
+
+	gchar * file = g_build_filename ("/usr/share/zoneinfo", (char *)zone, NULL);
+	g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", file),
+	                   G_DBUS_CALL_FLAGS_NONE, -1, NULL, quick_set_tz_cb, NULL);
+	g_free (file);
+	g_free (zone);
+	g_object_unref (proxy);
+}
+
+static void
+quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, gpointer user_data)
+{
+	const gchar * tz = dbusmenu_menuitem_property_get(menuitem, TIMEZONE_MENUITEM_PROP_ZONE);
+	g_debug("Quick setting timezone to: %s", tz);
+
+	g_return_if_fail(tz != NULL);
+
+	const gchar * name = dbusmenu_menuitem_property_get(menuitem, TIMEZONE_MENUITEM_PROP_NAME);
+
+	/* Set it in gsettings so we don't lose user's preferred name */
+	GSettings * conf = g_settings_new (SETTINGS_INTERFACE);
+	gchar * tz_full = g_strdup_printf ("%s %s", tz, name);
+	g_settings_set_string (conf, SETTINGS_TIMEZONE_NAME_S, tz_full);
+	g_free (tz_full);
+	g_object_unref (conf);
+
+	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_NONE, NULL,
+	                          "org.gnome.SettingsDaemon.DateTimeMechanism",
+	                          "/",                            
+	                          "org.gnome.SettingsDaemon.DateTimeMechanism",
+	                          NULL, quick_set_tz_proxy_cb, g_strdup (tz));
+
 	return;
 }
 
@@ -439,18 +515,16 @@ static gboolean
 check_for_calendar (gpointer user_data)
 {
 	g_return_val_if_fail (calendar != NULL, FALSE);
-	// Always enable the calendar even if it does nothing
-	dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
-	dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+	
+	dbusmenu_menuitem_property_set_bool(date, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 	
 	gchar *evo = g_find_program_in_path("evolution");
 	if (evo != NULL) {
 		g_debug("Found the calendar application: %s", evo);
-
-		dbusmenu_menuitem_property_set_bool(date, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+		
 		g_signal_connect (G_OBJECT(date), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
-						  G_CALLBACK (activate_cb), "evolution -c calendar");
-						  
+		                  G_CALLBACK (activate_cb), "evolution -c calendar");
+		
 		events_separator = dbusmenu_menuitem_new();
 		dbusmenu_menuitem_property_set(events_separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
 		dbusmenu_menuitem_child_add_position(root, events_separator, 2);
@@ -478,8 +552,16 @@ check_for_calendar (gpointer user_data)
 		g_free(evo);
 	} else {
 		g_debug("Unable to find calendar app.");
-		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+	}
+	
+	if (g_settings_get_boolean(conf, SETTINGS_SHOW_CALENDAR_S)) {
+		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+	} else {
+		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 	}
 
 	return FALSE;
@@ -535,6 +617,7 @@ update_timezone_menu_items(gpointer user_data) {
 			dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 			dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
 			dbusmenu_menuitem_child_add_position (root, item, offset++);
+			g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
 			dconflocations = g_list_append(dconflocations, item);
 		}
 	}
@@ -656,6 +739,8 @@ update_appointment_menu_items (gpointer user_data)
 	const int mon = today->tm_mon;
 	const int year = today->tm_year;
 
+	int start_month_saved = mon;
+
   	struct tm *start_tm = NULL;
 	int this_year = today->tm_year + 1900;
 	int days[12]={31,28,31,30,31,30,31,31,30,31,30,31};
@@ -667,6 +752,7 @@ update_appointment_menu_items (gpointer user_data)
 	if (start_time_appointments > 0) {
   		start_tm = localtime(&start_time_appointments);
 		int start_month = start_tm->tm_mon;
+		start_month_saved = start_month;
 		int start_year = start_tm->tm_year + 1900;
 		if ((start_month != mon) || (start_year != this_year)) {
 			// Set t1 to the start of that month.
@@ -681,6 +767,7 @@ update_appointment_menu_items (gpointer user_data)
 	
 	g_debug("Will highlight %d days from %s", highlightdays, ctime(&t1));
 
+	highlightdays = highlightdays + 7; // Minimum of 7 days ahead 
 	t2 = t1 + (time_t) (highlightdays * 24 * 60 * 60);
 	
 	if (!e_cal_get_sources(&sources, E_CAL_SOURCE_TYPE_EVENT, &gerror)) {
@@ -698,7 +785,13 @@ update_appointment_menu_items (gpointer user_data)
 			comp_instances = NULL;
 		}
 	}
-	
+	GSList *cal_list = gconf_client_get_list(gconf, "/apps/evolution/calendar/display/selected_calendars", GCONF_VALUE_STRING, &gerror);
+	if (gerror) {
+	  g_debug("Failed to get evolution preference for enabled calendars");
+	  g_error_free(gerror);
+	  gerror = NULL;
+	  cal_list = NULL;
+	}
 	// Generate instances for all sources
 	for (g = e_source_list_peek_groups (sources); g; g = g->next) {
 		ESourceGroup *group = E_SOURCE_GROUP (g->data);
@@ -716,6 +809,18 @@ update_appointment_menu_items (gpointer user_data)
 				gerror = NULL;
 				continue;
         	}
+			const gchar *ecal_uid = e_source_peek_uid(source);
+			gboolean match = FALSE;
+			g_debug("Checking ecal_uid is enabled: %s", ecal_uid);
+			for (i = 0; i<g_slist_length(cal_list);i++) {
+				char *cuid = (char *)g_slist_nth_data(cal_list, i);
+				if (g_strcmp0(cuid, ecal_uid) == 0) {
+					match = TRUE;
+					break;
+				}
+			}
+			if (!match) continue;
+			g_debug("ecal_uid is enabled, generating instances");
 			
 			e_cal_generate_instances (ecal, t1, t2, (ECalRecurInstanceFn) populate_appointment_instances, (gpointer) source);
 		}
@@ -772,19 +877,22 @@ update_appointment_menu_items (gpointer user_data)
 		DbusmenuMenuitem * item;
 		
 		ECalComponentVType vtype = e_cal_component_get_vtype (ecalcomp);
+		struct tm due_data = {0};
 		struct tm *due = NULL;
-		if (vtype == E_CAL_COMPONENT_EVENT) due = localtime(&ci->start);
-		else if (vtype == E_CAL_COMPONENT_TODO) due = localtime(&ci->end);
+		if (vtype == E_CAL_COMPONENT_EVENT) due = localtime_r(&ci->start, &due_data);
+		else if (vtype == E_CAL_COMPONENT_TODO) due = localtime_r(&ci->end, &due_data);
 		else continue;
 		
 		const int dmday = due->tm_mday;
 		const int dmon = due->tm_mon;
 		const int dyear = due->tm_year;
 		
-		// Mark day
-		g_debug("Adding marked date %s, %d", ctime(&ci->start), dmday);
-		g_variant_builder_add (&markeddays, "i", dmday);
-
+		if (start_month_saved == dmon) {
+			// Mark day if our query hasn't hit the next month. 
+			g_debug("Adding marked date %s, %d", ctime(&ci->start), dmday);
+			g_variant_builder_add (&markeddays, "i", dmday);
+		}
+		
 		// If the appointment time is less than the selected date, 
 		// don't create an appointment item for it.
 		if (vtype == E_CAL_COMPONENT_EVENT) {
@@ -827,17 +935,36 @@ update_appointment_menu_items (gpointer user_data)
 		g_debug("Summary: %s", summary);
 		g_free (summary);
 
+		gboolean full_day = FALSE;
+		if (vtype == E_CAL_COMPONENT_EVENT) {
+			time_t start = ci->start;
+			if (time_add_day(start, 1) == ci->end) {
+				full_day = TRUE;
+			}
+		}
+
 		// Due text
-		if (apt_output == SETTINGS_TIME_12_HOUR) {
-			if ((mday == dmday) && (mon == dmon) && (year == dyear))
-				strftime(right, 20, _(DEFAULT_TIME_12_FORMAT), due);
-			else
-				strftime(right, 20, _(DEFAULT_TIME_12_FORMAT_WITH_DAY), due);
-		} else if (apt_output == SETTINGS_TIME_24_HOUR) {
-			if ((mday == dmday) && (mon == dmon) && (year == dyear))
-				strftime(right, 20, _(DEFAULT_TIME_24_FORMAT), due);
-			else
-				strftime(right, 20, _(DEFAULT_TIME_24_FORMAT_WITH_DAY), due);
+		if (full_day) {
+			struct tm fulldaytime = {0};
+			gmtime_r(&ci->start, &fulldaytime);
+
+			/* TRANSLATORS: This is a strftime string for the day for full day events
+			   in the menu.  It should most likely be either '%A' for a full text day
+			   (Wednesday) or '%a' for a shortened one (Wed).  You should only need to
+			   change for '%a' in the case of langauges with very long day names. */
+			strftime(right, 20, _("%A"), &fulldaytime);
+		} else {
+			if (apt_output == SETTINGS_TIME_12_HOUR) {
+				if ((mday == dmday) && (mon == dmon) && (year == dyear))
+					strftime(right, 20, _(DEFAULT_TIME_12_FORMAT), due);
+				else
+					strftime(right, 20, _(DEFAULT_TIME_12_FORMAT_WITH_DAY), due);
+			} else if (apt_output == SETTINGS_TIME_24_HOUR) {
+				if ((mday == dmday) && (mon == dmon) && (year == dyear))
+					strftime(right, 20, _(DEFAULT_TIME_24_FORMAT), due);
+				else
+					strftime(right, 20, _(DEFAULT_TIME_24_FORMAT_WITH_DAY), due);
+			}
 		}
 		g_debug("Appointment time: %s, for date %s", right, asctime(due));
 		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_RIGHT, right);
@@ -996,14 +1123,15 @@ build_menus (DbusmenuMenuitem * root)
 
 	geo_location = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set      (geo_location, DBUSMENU_MENUITEM_PROP_TYPE, TIMEZONE_MENUITEM_TYPE);
-	set_timezone_label (geo_location, "");
+	set_current_timezone_label (geo_location, "");
 	dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 	dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+	g_signal_connect(G_OBJECT(geo_location), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
 	dbusmenu_menuitem_child_append(root, geo_location);
 
 	current_location = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set      (current_location, DBUSMENU_MENUITEM_PROP_TYPE, TIMEZONE_MENUITEM_TYPE);
-	set_timezone_label (current_location, "");
+	set_current_timezone_label (current_location, "");
 	dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 	dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 	dbusmenu_menuitem_child_append(root, current_location);
@@ -1300,6 +1428,8 @@ main (int argc, char ** argv)
 
 	/* Set up GSettings */
 	conf = g_settings_new(SETTINGS_INTERFACE);
+	/* Set up gconf for getting evolution enabled calendars */
+	gconf = gconf_client_get_default();
 	// TODO Add a signal handler to catch gsettings changes and respond to them
 
 	/* Building the base menu */

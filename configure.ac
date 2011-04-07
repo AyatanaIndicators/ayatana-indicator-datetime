@@ -1,11 +1,11 @@
 
-AC_INIT(indicator-datetime, 0.2.1, ted@canonical.com)
+AC_INIT(indicator-datetime, 0.2.2, ted@canonical.com)
 AC_COPYRIGHT([Copyright 2009,2010 Canonical])
 
 AC_PREREQ(2.53)
 
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(indicator-datetime, 0.2.1)
+AM_INIT_AUTOMAKE(indicator-datetime, 0.2.2)
 
 AM_MAINTAINER_MODE
 
@@ -66,6 +66,7 @@ GDK_REQUIRED_VERSION=2.22
 GLIB_REQUIRED_VERSION=2.26
 GTK_REQUIRED_VERSION=2.12
 GTK3_REQUIRED_VERSION=3.0
+GCONF_REQUIRED_VERSION=2.31
 
 AS_IF([test "x$with_gtk" = x3],
     [PKG_CHECK_MODULES(INDICATOR, indicator3 >= $INDICATOR_REQUIRED_VERSION
@@ -86,7 +87,7 @@ AS_IF([test "x$with_gtk" = x3],
 
 AS_IF([test "x$with_gtk" = x3],
 	[PKG_CHECK_MODULES(SERVICE,  indicator >= $INDICATOR_REQUIRED_VERSION
-                                     glib-2.0 >= $GLIB_REQUIRED_VERSION
+                                 glib-2.0 >= $GLIB_REQUIRED_VERSION
 	                             dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
                                  dbusmenu-gtk3-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
 	                             libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
@@ -97,11 +98,12 @@ AS_IF([test "x$with_gtk" = x3],
 	                             libedataserver-1.2 >= EDS_REQUIRED_VERSION
 	                             libedataserverui-1.2 >= EDS_REQUIRED_VERSION
 	                             cairo >= CAIRO_REQUIRED_VERSION
-	                             gdk-2.0 >= GDK_REQUIRED_VERSION)
+	                             gdk-2.0 >= GDK_REQUIRED_VERSION
+	                             gconf-2.0 >= GCONF_REQUIRED_VERSION)
 		],
       [test "x$with_gtk" = x2],
 	[PKG_CHECK_MODULES(SERVICE,  indicator >= $INDICATOR_REQUIRED_VERSION
-                                     glib-2.0 >= $GLIB_REQUIRED_VERSION
+                                 glib-2.0 >= $GLIB_REQUIRED_VERSION
 	                             dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
                                  dbusmenu-gtk-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
 	                             libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS
@@ -112,7 +114,8 @@ AS_IF([test "x$with_gtk" = x3],
 	                             libedataserver-1.2 >= EDS_REQUIRED_VERSION
 	                             libedataserverui-1.2 >= EDS_REQUIRED_VERSION
 	                             cairo >= CAIRO_REQUIRED_VERSION
-	                             gdk-2.0 >= GDK_REQUIRED_VERSION)
+	                             gdk-2.0 >= GDK_REQUIRED_VERSION
+	                             gconf-2.0 >= GCONF_REQUIRED_VERSION)
         ],
     [AC_MSG_FAILURE([Value for --with-gtk was neither 2 nor 3])]
 )

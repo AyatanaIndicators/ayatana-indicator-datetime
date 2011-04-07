@@ -29,6 +29,7 @@ G_BEGIN_DECLS
 
 gboolean is_locale_12h (void);
 void split_settings_location (const gchar * location, gchar ** zone, gchar ** name);
+gchar * get_current_zone_name (const gchar * location);
 gchar * generate_format_string_full (gboolean show_day, gboolean show_date);
 gchar * generate_format_string_at_time (GDateTime * time);
 
