@@ -81,6 +81,42 @@ split_settings_location (const gchar * location, gchar ** zone, gchar ** name)
   }
 }
 
+gchar *
+get_current_zone_name (const gchar * location)
+{
+  gchar * new_zone, * new_name;
+  gchar * old_zone, * old_name;
+  gchar * rv;
+
+  split_settings_location (location, &new_zone, &new_name);
+
+  GSettings * conf = g_settings_new (SETTINGS_INTERFACE);
+  gchar * tz_name = g_settings_get_string (conf, SETTINGS_TIMEZONE_NAME_S);
+  split_settings_location (tz_name, &old_zone, &old_name);
+  g_free (tz_name);
+  g_object_unref (conf);
+
+  // new_name is always just a sanitized version of a timezone.
+  // old_name is potentially a saved "pretty" version of a timezone name from
+  // geonames.  So we prefer to use it if available and the zones match.
+
+  if (g_strcmp0 (old_zone, new_zone) == 0) {
+    rv = old_name;
+    old_name = NULL;
+  }
+  else {
+    rv = new_name;
+    new_name = NULL;
+  }
+
+  g_free (new_zone);
+  g_free (old_zone);
+  g_free (new_name);
+  g_free (old_name);
+
+  return rv;
+}
+
 /* Translate msg according to the locale specified by LC_TIME */
 static char *
 T_(const char *msg)

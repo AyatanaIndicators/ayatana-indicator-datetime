@@ -1,18 +1,15 @@
-indicator-datetime (0.2.1-0ubuntu2~ppa2) natty; urgency=low
+indicator-datetime (0.2.2-0ubuntu1~ppa1) UNRELEASED; urgency=low
 
-  * Upstream Merge
-    * Give full day events the day name instead of a time
+  * New upstream release.
+    ∘ Add language and proper distro version to geonames URL to allow
+      for proper server side fixes
+    ∘ Give full day events the day name instead of a time
+    ∘ Make sure the calendar follows the user setting (LP: #748772)
+    ∘ Ensure that events handle month boundaries correctly (LP: #746713)
+    ∘ Only show calendars the user has configured (LP: #729033)
+    ∘ Reenable clicking on the timezone in the menu to set it.
 
- -- Ted Gould <ted@ubuntu.com>  Wed, 06 Apr 2011 08:39:30 -0500
-
-indicator-datetime (0.2.1-0ubuntu2~ppa1) natty; urgency=low
-
-  * Upstream Merge
-    * Make sure the calendar follows the user setting (LP: #748772)
-    * Ensure that events handle month boundries correctly (LP: #746713)
-    * Only show calendars the user has configured (LP: #729033)
-
- -- Ted Gould <ted@ubuntu.com>  Mon, 04 Apr 2011 11:16:44 -0500
+ -- Ted Gould <ted@ubuntu.com>  Thu, 07 Apr 2011 13:20:49 -0500
 
 indicator-datetime (0.2.1-0ubuntu1) natty; urgency=low
 

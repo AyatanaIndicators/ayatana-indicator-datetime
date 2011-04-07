@@ -181,46 +181,10 @@ ntp_query_answered (GObject *object, GAsyncResult *res, gpointer user_data)
   g_variant_unref (answers);
 }
 
-static gchar *
-get_zone_name (const gchar * location)
-{
-  gchar * new_zone, * new_name;
-  gchar * old_zone, * old_name;
-  gchar * rv;
-
-  split_settings_location (location, &new_zone, &new_name);
-
-  GSettings * conf = g_settings_new (SETTINGS_INTERFACE);
-  gchar * tz_name = g_settings_get_string (conf, SETTINGS_TIMEZONE_NAME_S);
-  split_settings_location (tz_name, &old_zone, &old_name);
-  g_free (tz_name);
-  g_object_unref (conf);
-
-  // new_name is always just a sanitized version of a timezone.
-  // old_name is potentially a saved "pretty" version of a timezone name from
-  // geonames.  So we prefer to use it if available and the zones match.
-
-  if (g_strcmp0 (old_zone, new_zone) == 0) {
-    rv = old_name;
-    old_name = NULL;
-  }
-  else {
-    rv = new_name;
-    new_name = NULL;
-  }
-
-  g_free (new_zone);
-  g_free (old_zone);
-  g_free (new_name);
-  g_free (old_name);
-
-  return rv;
-}
-
 static void
 sync_entry (const gchar * location)
 {
-  gchar * name = get_zone_name (location);
+  gchar * name = get_current_zone_name (location);
   gtk_entry_set_text (GTK_ENTRY (tz_entry), name);
   g_free (name);
 
@@ -606,7 +570,7 @@ entry_focus_out (GtkEntry * entry, GdkEventFocus * event)
   if (location == NULL)
     return FALSE;
 
-  gchar * name = get_zone_name (location->zone);
+  gchar * name = get_current_zone_name (location->zone);
   gboolean correct = (g_strcmp0 (gtk_entry_get_text (entry), name) == 0);
   g_free (name);
 
