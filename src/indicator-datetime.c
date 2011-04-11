@@ -269,6 +269,28 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 }
 
 static void
+menu_visible_notfy_cb(GtkWidget * menu, gpointer user_data)
+{
+	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
+	int y,m,d;
+	time_t curtime;
+	
+	time(&curtime);
+  	struct tm *today = localtime(&curtime);
+  	int y = today->tm_year;
+  	int m = today->tm_mon;
+  	int d = today->tm_mday;
+  	
+  	// Set the calendar to todays date
+	ido_calendar_menu_item_set_date (IDO_CALENDAR_MENU_ITEM (mi_data), y, m, d);
+	
+	// Make sure the day-selected signal is sent so the menu updates - may duplicate
+	GVariant *variant = g_variant_new_uint32((guint)curtime);
+	guint timestamp = (guint)time(NULL);
+	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(item), "day-selected", variant, timestamp);
+}
+
+static void
 indicator_datetime_init (IndicatorDatetime *self)
 {
 	self->priv = INDICATOR_DATETIME_GET_PRIVATE(self);
@@ -348,6 +370,8 @@ indicator_datetime_init (IndicatorDatetime *self)
 
 	self->priv->menu = dbusmenu_gtkmenu_new(SERVICE_NAME, MENU_OBJ);
 
+	g_signal_connect(self->priv->menu, "notify::visible", G_CALLBACK(menu_visible_notfy_cb), self);
+	
 	DbusmenuGtkClient *client = dbusmenu_gtkmenu_get_client(self->priv->menu);
 	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), DBUSMENU_CALENDAR_MENUITEM_TYPE, new_calendar_item, self, NULL);
 	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), APPOINTMENT_MENUITEM_TYPE, new_appointment_item, self, NULL);
@@ -1232,13 +1256,6 @@ calendar_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, I
 			g_variant_iter_free (iter);
 		} else {
 			g_debug("\tMarks: <cleared>");
-		}
-	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_SET_DATE)) {
-		if (value != NULL) {
-			gsize size = 3;
-			const gint * array = g_variant_get_fixed_array(value, &size, sizeof(gint));
-			g_debug("Setting date y-m-d: %d-%d-%d", array[0], array[1], array[2]);
-			ido_calendar_menu_item_set_date (IDO_CALENDAR_MENU_ITEM (mi_data), array[0], array[1], array[2]);
 		}
 	}
 	return;
