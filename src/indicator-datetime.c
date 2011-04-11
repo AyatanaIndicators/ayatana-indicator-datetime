@@ -272,6 +272,14 @@ static void
 menu_visible_notfy_cb(GtkWidget * menu, gpointer user_data)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
+	g_debug("notify visible signal recieved");
+	
+	// we should only react if we're currently visible
+	gboolean visible;
+	g_object_get(G_OBJECT(menu), "visible", &visible, NULL);
+	if (visible) return;
+	g_debug("notify visible menu hidden, resetting date");
+	
 	int y,m,d;
 	time_t curtime;
 	
