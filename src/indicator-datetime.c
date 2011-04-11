@@ -280,7 +280,6 @@ menu_visible_notfy_cb(GtkWidget * menu, gpointer user_data)
 	if (visible) return;
 	g_debug("notify visible menu hidden, resetting date");
 	
-	int y,m,d;
 	time_t curtime;
 	
 	time(&curtime);
@@ -290,12 +289,12 @@ menu_visible_notfy_cb(GtkWidget * menu, gpointer user_data)
   	int d = today->tm_mday;
   	
   	// Set the calendar to todays date
-	ido_calendar_menu_item_set_date (IDO_CALENDAR_MENU_ITEM (mi_data), y, m, d);
+	ido_calendar_menu_item_set_date (IDO_CALENDAR_MENU_ITEM (self->priv->ido_calendar), y, m, d);
 	
 	// Make sure the day-selected signal is sent so the menu updates - may duplicate
 	GVariant *variant = g_variant_new_uint32((guint)curtime);
 	guint timestamp = (guint)time(NULL);
-	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(item), "day-selected", variant, timestamp);
+	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(self->priv->ido_calendar), "day-selected", variant, timestamp);
 }
 
 static void
@@ -1441,11 +1440,6 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 	propval = dbusmenu_menuitem_property_get_variant(newitem, CALENDAR_MENUITEM_PROP_MARKS);
 	if (propval != NULL) {
 		calendar_prop_change_cb(newitem, CALENDAR_MENUITEM_PROP_MARKS, propval, ido);
-	}
-
-	propval = dbusmenu_menuitem_property_get_variant(newitem, CALENDAR_MENUITEM_PROP_SET_DATE);
-	if (propval != NULL) {
-		calendar_prop_change_cb(newitem, CALENDAR_MENUITEM_PROP_SET_DATE, propval, ido);
 	}
 
 	return TRUE;
