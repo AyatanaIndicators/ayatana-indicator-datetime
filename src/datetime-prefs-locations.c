@@ -77,13 +77,81 @@ handle_remove (GtkWidget * button, GtkTreeView * tree)
     gtk_tree_path_free (iter->data);
   }
   g_list_free (paths);
-
+  
+  // Find the next item to select
+  GtkTreeIter *last_selected = g_list_nth_data(tree_iters, 0);
+  GtkTreePath *path = gtk_tree_model_get_path(GTK_TREE_MODEL (store), last_selected);
+  GtkTreeIter titer;
+  if (!gtk_tree_model_get_iter(GTK_TREE_MODEL (store), &titer, path)) {
+    g_debug("Failed to get last selected iter from path");
+  	last_selected = NULL;
+  } else {
+	  if (!gtk_tree_model_iter_next(GTK_TREE_MODEL (store), &titer)) {
+	  	if (gtk_tree_path_prev(path)) {
+	  	  	if (!gtk_tree_model_get_iter(GTK_TREE_MODEL (store), &titer, path)) {
+	  			g_debug("Failed to get iter from path");
+	  			last_selected = NULL;
+	  		} else {
+		  		last_selected = &titer;
+		  	}
+	  	} else {
+	  		g_debug("handle_remove: Failed to find another location to select (assume single selected)");
+	  		last_selected = NULL;
+	  	}
+	  } else {
+	  	g_debug("Got next item in model");
+		last_selected = &titer;
+	  }
+  }
+ 
+  if (last_selected) {
+	  gboolean clear = TRUE;
+	  path = gtk_tree_model_get_path(GTK_TREE_MODEL (store), last_selected);
+	  
+      // Step over the path to find an item which isn't in the delete list
+	  if (g_list_length(tree_iters) > 1) {
+		  for (iter = tree_iters; iter; iter = iter->next) {
+		  	GtkTreePath *ipath = gtk_tree_model_get_path(GTK_TREE_MODEL (store), (GtkTreeIter *)iter->data);
+		  	if (gtk_tree_path_compare(path, ipath) == 0) {
+		  		clear = FALSE;
+		  		break;
+		  	}
+		  }
+	  	  while (clear == FALSE) {
+			if (gtk_tree_path_prev(path)) {
+				clear = TRUE;
+		  	  	for (iter = tree_iters; iter; iter = iter->next) {
+		  			GtkTreePath *ipath = gtk_tree_model_get_path(GTK_TREE_MODEL (store), (GtkTreeIter *)iter->data);
+		  			if (gtk_tree_path_compare(path, ipath) == 0) {
+		  				clear = FALSE;
+		  				break;
+		  			}
+		  		}
+		  		if (clear) {
+			  		if (!gtk_tree_model_get_iter(GTK_TREE_MODEL (store), &titer, path)) {
+			  			g_debug("Failed to get iter from path");
+			  			last_selected = NULL;
+			  		} else {
+				  		last_selected = &titer;
+				  	}
+				}
+		  	} else {
+		  		last_selected = NULL;
+		  		break;
+		  	}
+		  }
+	  }
+  }
+  
   /* Now delete each iterator */
   for (iter = tree_iters; iter; iter = iter->next) {
     gtk_list_store_remove (store, (GtkTreeIter *)iter->data);
     g_free (iter->data);
   }
   g_list_free (tree_iters);
+  
+  if (last_selected)
+	  gtk_tree_selection_select_iter(selection, last_selected);
 }
 
 static void
