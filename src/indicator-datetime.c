@@ -269,7 +269,7 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 }
 
 static void
-menu_visible_notfy_cb(GtkWidget * menu, gpointer user_data)
+menu_visible_notfy_cb(GtkWidget * menu, G_GNUC_UNUSED GParamSpec *pspec, gpointer user_data)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
 	g_debug("notify visible signal recieved");
@@ -289,12 +289,12 @@ menu_visible_notfy_cb(GtkWidget * menu, gpointer user_data)
   	int d = today->tm_mday;
   	
   	// Set the calendar to todays date
-	ido_calendar_menu_item_set_date (IDO_CALENDAR_MENU_ITEM (self->priv->ido_calendar), y, m, d);
+	ido_calendar_menu_item_set_date (self->priv->ido_calendar, y+1900, m, d);
 	
 	// Make sure the day-selected signal is sent so the menu updates - may duplicate
-	GVariant *variant = g_variant_new_uint32((guint)curtime);
+	/*GVariant *variant = g_variant_new_uint32((guint)curtime);
 	guint timestamp = (guint)time(NULL);
-	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(self->priv->ido_calendar), "day-selected", variant, timestamp);
+	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(self->priv->ido_calendar), "day-selected", variant, timestamp);*/
 }
 
 static void
