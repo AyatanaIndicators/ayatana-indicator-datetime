@@ -1,4 +1,4 @@
-indicator-datetime (0.2.2-0ubuntu2~ppa1) UNRELEASED; urgency=low
+indicator-datetime (0.2.2-0ubuntu2~ppa1) natty; urgency=low
 
   * Upstream Merge
     * Use GTK directly for detecting when the menu appears and disappears
@@ -6,7 +6,7 @@ indicator-datetime (0.2.2-0ubuntu2~ppa1) UNRELEASED; urgency=low
     * Handle items being removed from the locations list by choosing
       another item in the list (LP: #740948)
 
- -- Ted Gould <ted@ubuntu.com>  Tue, 12 Apr 2011 22:30:25 -0500
+ -- Ted Gould <ted@ubuntu.com>  Tue, 12 Apr 2011 22:33:45 -0500
 
 indicator-datetime (0.2.2-0ubuntu1) natty; urgency=low
 
