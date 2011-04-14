@@ -1199,6 +1199,40 @@ setup_timer (void)
 	return;
 }
 
+static void
+session_active_change_cb (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name,
+                          GVariant * parameters, gpointer user_data)
+{
+	// Just returned from suspend
+	if (g_strcmp0(signal_name, "SystemIdleHintChanged") == 0) {
+		gboolean idle = FALSE;
+		g_variant_get(parameters, "(b)", &idle);
+		if (!idle) {
+			datetime_interface_update(DATETIME_INTERFACE(user_data));
+			update_datetime(NULL);
+			setup_timer();
+		}
+	}
+	return;
+}
+
+/* for hooking into console kit signal on wake from suspend */
+static void
+system_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
+{
+	GError * error = NULL;
+	
+	GDBusProxy * proxy = g_dbus_proxy_new_for_bus_finish(res, &error);
+
+	if (error != NULL) {
+		g_warning("Could not grab DBus proxy for ConsoleKit: %s", error->message);
+		g_error_free(error);
+		return;
+	}
+
+	g_signal_connect(proxy, "g-signal", G_CALLBACK(session_active_change_cb), user_data);
+}
+
 /* Callback from getting the address */
 static void
 geo_address_cb (GeoclueAddress * address, int timestamp, GHashTable * addy_data, GeoclueAccuracy * accuracy, GError * error, gpointer user_data)
@@ -1432,6 +1466,15 @@ main (int argc, char ** argv)
 
 	/* Setup the timer */
 	setup_timer();
+
+	/* And watch for system resumes */
+	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
+		                  G_DBUS_PROXY_FLAGS_NONE,
+		                  NULL,
+		                  "org.freedesktop.ConsoleKit",
+		                  "/org/freedesktop/ConsoleKit/Manager",
+		                  "org.freedesktop.ConsoleKit.Manager",
+		                  NULL, system_proxy_cb, dbus);
 
 	mainloop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(mainloop);
