@@ -1,4 +1,4 @@
-indicator-datetime (0.2.3-0ubuntu1~ppa1) UNRELEASED; urgency=low
+indicator-datetime (0.2.3-0ubuntu1~ppa1) natty; urgency=low
 
   * New upstream release.
     ∘ Use GTK directly for detecting when the menu appears and disappears
@@ -8,7 +8,7 @@ indicator-datetime (0.2.3-0ubuntu1~ppa1) UNRELEASED; urgency=low
     ∘ Check for resume in the service and update the label as well
       (LP: #759854)
 
- -- Ted Gould <ted@ubuntu.com>  Thu, 14 Apr 2011 14:48:55 -0500
+ -- Ted Gould <ted@ubuntu.com>  Thu, 14 Apr 2011 14:51:20 -0500
 
 indicator-datetime (0.2.2-0ubuntu1) natty; urgency=low
 
