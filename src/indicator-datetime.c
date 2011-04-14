@@ -171,9 +171,7 @@ static void update_label                  (IndicatorDatetime * io, GDateTime ** 
 static void guess_label_size              (IndicatorDatetime * self);
 static void setup_timer                   (IndicatorDatetime * self, GDateTime * datetime);
 static void update_time                   (IndicatorDatetime * self);
-static void session_active_change_cb      (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name, GVariant * parameters, gpointer user_data);
 static void receive_signal                (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name, GVariant * parameters, gpointer user_data);
-static void system_proxy_cb  (GObject * object, GAsyncResult * res, gpointer user_data);
 static void service_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data);
 static gint generate_strftime_bitmask     (const char *time_str);
 static void timezone_update_labels        (indicator_item_t * mi_data);
@@ -269,6 +267,35 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 }
 
 static void
+menu_visible_notfy_cb(GtkWidget * menu, G_GNUC_UNUSED GParamSpec *pspec, gpointer user_data)
+{
+	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
+	g_debug("notify visible signal recieved");
+	
+	// we should only react if we're currently visible
+	gboolean visible;
+	g_object_get(G_OBJECT(menu), "visible", &visible, NULL);
+	if (visible) return;
+	g_debug("notify visible menu hidden, resetting date");
+	
+	time_t curtime;
+	
+	time(&curtime);
+  	struct tm *today = localtime(&curtime);
+  	int y = today->tm_year;
+  	int m = today->tm_mon;
+  	int d = today->tm_mday;
+  	
+  	// Set the calendar to todays date
+	ido_calendar_menu_item_set_date (self->priv->ido_calendar, y+1900, m, d);
+	
+	// Make sure the day-selected signal is sent so the menu updates - may duplicate
+	/*GVariant *variant = g_variant_new_uint32((guint)curtime);
+	guint timestamp = (guint)time(NULL);
+	dbusmenu_menuitem_handle_event(DBUSMENU_MENUITEM(self->priv->ido_calendar), "day-selected", variant, timestamp);*/
+}
+
+static void
 indicator_datetime_init (IndicatorDatetime *self)
 {
 	self->priv = INDICATOR_DATETIME_GET_PRIVATE(self);
@@ -348,6 +375,8 @@ indicator_datetime_init (IndicatorDatetime *self)
 
 	self->priv->menu = dbusmenu_gtkmenu_new(SERVICE_NAME, MENU_OBJ);
 
+	g_signal_connect(self->priv->menu, "notify::visible", G_CALLBACK(menu_visible_notfy_cb), self);
+	
 	DbusmenuGtkClient *client = dbusmenu_gtkmenu_get_client(self->priv->menu);
 	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), DBUSMENU_CALENDAR_MENUITEM_TYPE, new_calendar_item, self, NULL);
 	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), APPOINTMENT_MENUITEM_TYPE, new_appointment_item, self, NULL);
@@ -365,33 +394,7 @@ indicator_datetime_init (IndicatorDatetime *self)
 		                  service_proxy_cb,
                                   self);
 
-	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
-		                  G_DBUS_PROXY_FLAGS_NONE,
-		                  NULL,
-		                  "org.freedesktop.ConsoleKit",
-		                  "/org/freedesktop/ConsoleKit/Manager",
-		                  "org.freedesktop.ConsoleKit.Manager",
-		                  NULL, system_proxy_cb, self);
 	return;
-}
-/* for hooking into console kit signal on wake from suspend */
-static void
-system_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
-{
-	GError * error = NULL;
-	
-	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
-	g_return_if_fail(self != NULL);
-	
-	GDBusProxy * proxy = g_dbus_proxy_new_for_bus_finish(res, &error);
-
-	if (error != NULL) {
-		g_warning("Could not grab DBus proxy for %s: %s", SERVICE_NAME, error->message);
-		g_error_free(error);
-		return;
-	}
-	g_signal_connect(proxy, "g-signal", G_CALLBACK(session_active_change_cb), self);
-
 }
 
 /* Callback from trying to create the proxy for the serivce, this
@@ -824,18 +827,6 @@ update_time (IndicatorDatetime * self)
 	return;
 }
 
-static void
-session_active_change_cb (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name,
-                GVariant * parameters, gpointer user_data)
-{
-	// Just returned from suspend
-	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
-	if (g_strcmp0(signal_name, "SystemIdleHintChanged") == 0 && g_variant_get_boolean(parameters) == FALSE) {
-		update_time(self);
-	}
-	return;
-}
-
 /* Receives all signals from the service, routed to the appropriate functions */
 static void
 receive_signal (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name,
@@ -1233,13 +1224,6 @@ calendar_prop_change_cb (DbusmenuMenuitem * mi, gchar * prop, GVariant *value, I
 		} else {
 			g_debug("\tMarks: <cleared>");
 		}
-	} else if (!g_strcmp0(prop, CALENDAR_MENUITEM_PROP_SET_DATE)) {
-		if (value != NULL) {
-			gsize size = 3;
-			const gint * array = g_variant_get_fixed_array(value, &size, sizeof(gint));
-			g_debug("Setting date y-m-d: %d-%d-%d", array[0], array[1], array[2]);
-			ido_calendar_menu_item_set_date (IDO_CALENDAR_MENU_ITEM (mi_data), array[0], array[1], array[2]);
-		}
 	}
 	return;
 }
@@ -1416,11 +1400,6 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 	propval = dbusmenu_menuitem_property_get_variant(newitem, CALENDAR_MENUITEM_PROP_MARKS);
 	if (propval != NULL) {
 		calendar_prop_change_cb(newitem, CALENDAR_MENUITEM_PROP_MARKS, propval, ido);
-	}
-
-	propval = dbusmenu_menuitem_property_get_variant(newitem, CALENDAR_MENUITEM_PROP_SET_DATE);
-	if (propval != NULL) {
-		calendar_prop_change_cb(newitem, CALENDAR_MENUITEM_PROP_SET_DATE, propval, ido);
 	}
 
 	return TRUE;

@@ -440,28 +440,6 @@ day_selected_double_click_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant
 	return TRUE;
 }
 
-static gboolean
-close_menu_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant) 
-{
-	if (calendar == NULL) return FALSE;
-	g_debug("Resetting date on menu close");
-	start_time_appointments = 0;
-	// TODO create a variant which will be an array of 3 ints {y,m,d}
-	GVariant *date_variant;
-	time_t curtime;
-	struct tm *t1;
-	time(&curtime);
-	t1 = localtime(&curtime);
-	GVariant *date[3];
-	date[0] = g_variant_new_uint32(t1->tm_year + 1900);
-	date[1] = g_variant_new_uint32(t1->tm_mon);
-	date[2] = g_variant_new_uint32(t1->tm_mday);
-	date_variant = g_variant_new_array(NULL, date, 3);
-	
-	dbusmenu_menuitem_property_set_variant (calendar, CALENDAR_MENUITEM_PROP_SET_DATE, date_variant);
-	return TRUE;
-}
-
 static guint ecaltimer = 0;
 
 static void
@@ -1221,6 +1199,40 @@ setup_timer (void)
 	return;
 }
 
+static void
+session_active_change_cb (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name,
+                          GVariant * parameters, gpointer user_data)
+{
+	// Just returned from suspend
+	if (g_strcmp0(signal_name, "SystemIdleHintChanged") == 0) {
+		gboolean idle = FALSE;
+		g_variant_get(parameters, "(b)", &idle);
+		if (!idle) {
+			datetime_interface_update(DATETIME_INTERFACE(user_data));
+			update_datetime(NULL);
+			setup_timer();
+		}
+	}
+	return;
+}
+
+/* for hooking into console kit signal on wake from suspend */
+static void
+system_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
+{
+	GError * error = NULL;
+	
+	GDBusProxy * proxy = g_dbus_proxy_new_for_bus_finish(res, &error);
+
+	if (error != NULL) {
+		g_warning("Could not grab DBus proxy for ConsoleKit: %s", error->message);
+		g_error_free(error);
+		return;
+	}
+
+	g_signal_connect(proxy, "g-signal", G_CALLBACK(session_active_change_cb), user_data);
+}
+
 /* Callback from getting the address */
 static void
 geo_address_cb (GeoclueAddress * address, int timestamp, GHashTable * addy_data, GeoclueAccuracy * accuracy, GError * error, gpointer user_data)
@@ -1439,9 +1451,6 @@ main (int argc, char ** argv)
 	
 	build_menus(root);
 	
-	// Connect to the close signal to reset the calendar date 
-	g_signal_connect(root, "event::closed", G_CALLBACK(close_menu_cb), NULL);
-	
 	/* Cache the timezone */
 	update_current_timezone();
 
@@ -1457,6 +1466,15 @@ main (int argc, char ** argv)
 
 	/* Setup the timer */
 	setup_timer();
+
+	/* And watch for system resumes */
+	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
+		                  G_DBUS_PROXY_FLAGS_NONE,
+		                  NULL,
+		                  "org.freedesktop.ConsoleKit",
+		                  "/org/freedesktop/ConsoleKit/Manager",
+		                  "org.freedesktop.ConsoleKit.Manager",
+		                  NULL, system_proxy_cb, dbus);
 
 	mainloop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(mainloop);
