@@ -29,11 +29,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define DBUSMENU_CALENDAR_MENUITEM_TYPE    "x-canonical-calendar-item"
 
-// The following properties are not *really* properties, but are just
-// a way of accessing the calendar from the service
 #define CALENDAR_MENUITEM_PROP_MARKS       "calendar-marks"
-#define CALENDAR_MENUITEM_PROP_SET_DATE    "calendar-set-date"
-
 
 #define APPOINTMENT_MENUITEM_TYPE          "appointment-item"	
 #define APPOINTMENT_MENUITEM_PROP_LABEL    "appointment-label"

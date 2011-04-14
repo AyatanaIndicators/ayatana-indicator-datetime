@@ -1,3 +1,15 @@
+indicator-datetime (0.2.3-0ubuntu1) natty; urgency=low
+
+  * New upstream release.
+    ∘ Use GTK directly for detecting when the menu appears and disappears
+      to reset the date (LP: #649800)
+    ∘ Handle items being removed from the locations list by choosing
+      another item in the list (LP: #740948)
+    ∘ Check for resume in the service and update the label as well
+      (LP: #759854)
+
+ -- Ted Gould <ted@ubuntu.com>  Thu, 14 Apr 2011 14:51:20 -0500
+
 indicator-datetime (0.2.2-0ubuntu1) natty; urgency=low
 
   [ Ted Gould ]
