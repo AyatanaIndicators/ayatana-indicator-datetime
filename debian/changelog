@@ -1,3 +1,12 @@
+indicator-datetime (0.2.3-0ubuntu3) natty; urgency=low
+
+  * debian/patches/lp_762976.patch
+    - Set minimum width for appointments to prevent continuous resizing 
+      when the calendar is hiden and ensure there is enough of the 
+      event description visible (LP: #762976)
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Mon, 18 Apr 2011 10:05:41 -0400
+
 indicator-datetime (0.2.3-0ubuntu2) natty; urgency=low
 
   * debian/patches/lp_750671.patch
