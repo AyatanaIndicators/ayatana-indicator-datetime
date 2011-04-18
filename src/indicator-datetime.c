@@ -1287,8 +1287,8 @@ new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, Dbu
 	gtk_misc_set_alignment(GTK_MISC(mi_data->label), 0.0, 0.5);
 	
 	GtkStyle * style = gtk_widget_get_style(GTK_WIDGET(mi_data->label));
-    PangoContext * context = gtk_widget_get_pango_context(GTK_WIDGET(mi_data->label));
-    gint length = measure_string(style, context, "GGGGGGGGGGGGGGG"); // 15 char wide string max
+	PangoContext * context = gtk_widget_get_pango_context(GTK_WIDGET(mi_data->label));
+	gint length = measure_string(style, context, "GGGGGGGGGGGGGGG"); // 15 char wide string max
 	gtk_widget_set_size_request(GTK_WIDGET(mi_data->label), length, -1); // Set the min size in pixels
 	
 	gtk_label_set_ellipsize(GTK_LABEL(mi_data->label), PANGO_ELLIPSIZE_END);
