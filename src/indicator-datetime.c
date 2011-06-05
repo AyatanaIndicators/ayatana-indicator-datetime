@@ -270,7 +270,7 @@ static void
 menu_visible_notfy_cb(GtkWidget * menu, G_GNUC_UNUSED GParamSpec *pspec, gpointer user_data)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
-	g_debug("notify visible signal recieved");
+	g_debug("notify visible signal received");
 	
 	// we should only react if we're currently visible
 	gboolean visible;
@@ -1077,7 +1077,7 @@ guess_label_size (IndicatorDatetime * self)
 	GArray * timevals = g_array_new(FALSE, TRUE, sizeof(struct tm));
 	build_timeval_array(timevals, posibilitymask);
 
-	g_debug("Checking against %d posible times", timevals->len);
+	g_debug("Checking against %d possible times", timevals->len);
 	gint check_time;
 	for (check_time = 0; check_time < timevals->len; check_time++) {
 		gchar longstr[256];
