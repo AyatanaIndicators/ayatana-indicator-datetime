@@ -1,8 +1,15 @@
 indicator-datetime (0.2.90-0ubuntu1) UNRELEASED; urgency=low
 
   * New upstream release.
+    - Set minimum width for appointments to prevent continuous resizing 
+      when the calendar is hiden and ensure there is enough of the 
+      event description visible (LP: #762976)
+    - ellipsize long appointment descriptions (LP: #750671)
+    - GTK3 build
+  * Dropping debian/patches/lp_762976.patch and debian/patches/lp_750671.patch
+    as merged upstream.
 
- -- Ted Gould <ted@ubuntu.com>  Tue, 21 Jun 2011 14:13:01 -0500
+ -- Ted Gould <ted@ubuntu.com>  Tue, 21 Jun 2011 14:24:41 -0500
 
 indicator-datetime (0.2.3-0ubuntu3) natty; urgency=low
 
