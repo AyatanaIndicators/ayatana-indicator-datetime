@@ -33,7 +33,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 #include <unique/unique.h>
-#include <polkitgtk/polkitgtk.h>
+#include <polkit/polkit.h>
 
 #include "dbus-shared.h"
 #include "settings-shared.h"
@@ -115,23 +115,49 @@ add_widget_dependency (GtkWidget * parent, GtkWidget * dependent)
 }
 
 static void
-polkit_dependency_cb (GtkWidget * parent, GParamSpec *pspec, GtkWidget * dependent)
+polkit_dependency_cb (GPermission * permission, GParamSpec *pspec, GtkWidget * dependent)
 {
-  gboolean authorized, sensitive;
-  g_object_get (G_OBJECT (parent),
-                "is-authorized", &authorized,
-                "sensitive", &sensitive, NULL);
-  gtk_widget_set_sensitive (dependent, authorized && sensitive);
+  gboolean allowed = FALSE;
+
+  g_object_get (G_OBJECT (permission),
+                "allowed", &allowed, NULL);
+
+  gtk_widget_set_sensitive (dependent, allowed);
+}
+
+static void
+add_polkit_dependency_helper (GtkWidget * parent, GParamSpec *pspec, GtkWidget * dependent)
+{
+  GtkLockButton * button = GTK_LOCK_BUTTON (parent);
+  GPermission * permission = gtk_lock_button_get_permission (button);
+  g_signal_connect (permission, "notify::allowed",
+                    G_CALLBACK(polkit_dependency_cb), dependent);
+  polkit_dependency_cb (permission, NULL, dependent);
 }
 
 static void
 add_polkit_dependency (GtkWidget * parent, GtkWidget * dependent)
 {
-  g_signal_connect (parent, "notify::is-authorized", G_CALLBACK(polkit_dependency_cb),
+  /* polkit async hasn't finished at this point, so wait for permission to come in */
+  g_signal_connect (parent, "notify::permission", G_CALLBACK(add_polkit_dependency_helper),
                     dependent);
-  g_signal_connect (parent, "notify::sensitive", G_CALLBACK(polkit_dependency_cb),
-                    dependent);
-  polkit_dependency_cb (parent, NULL, dependent);
+  gtk_widget_set_sensitive (dependent, FALSE);
+}
+
+static void
+polkit_perm_ready (GObject *source_object, GAsyncResult *res, gpointer user_data)
+{
+  GError * error = NULL;
+  GPermission * permission = polkit_permission_new_finish (res, &error);
+
+  if (error != NULL) {
+    g_warning ("Could not get permission object: %s", error->message);
+    g_error_free (error);
+    return;
+  }
+
+  GtkLockButton * button = GTK_LOCK_BUTTON (user_data);
+  gtk_lock_button_set_permission (button, permission);
 }
 
 static void
@@ -594,21 +620,6 @@ key_pressed (GtkWidget * widget, GdkEventKey * event, gpointer user_data)
 }
 
 static GtkWidget *
-get_child_of_type (GtkContainer * parent, GType type)
-{
-  GList * children, * iter;
-
-  children = gtk_container_get_children (parent);
-  for (iter = children; iter; iter = iter->next) {
-    if (G_TYPE_CHECK_INSTANCE_TYPE (iter->data, type)) {
-      return GTK_WIDGET (iter->data);
-    }
-  }
-
-  return NULL;
-}
-
-static GtkWidget *
 create_dialog (void)
 {
   GError * error = NULL;
@@ -629,15 +640,17 @@ create_dialog (void)
 #define WIG(name) GTK_WIDGET (gtk_builder_get_object (builder, name))
 
   /* Add policykit button */
-  GtkWidget * polkit_button = polkit_lock_button_new ("org.gnome.settingsdaemon.datetimemechanism.configure");
-  polkit_lock_button_set_unlock_text (POLKIT_LOCK_BUTTON (polkit_button), _("Unlock to change these settings"));
-  polkit_lock_button_set_lock_text (POLKIT_LOCK_BUTTON (polkit_button), _("Lock to prevent further changes"));
-  gtk_box_pack_start (GTK_BOX (WIG ("timeDateBox")), polkit_button, FALSE, TRUE, 0);
-  /* Make sure border around button is visible */
-  GtkWidget * polkit_button_button = get_child_of_type (GTK_CONTAINER (polkit_button), GTK_TYPE_BUTTON);
-  if (polkit_button_button != NULL) {
-    gtk_button_set_relief (GTK_BUTTON (polkit_button_button), GTK_RELIEF_NORMAL);
-  }
+  GtkWidget * polkit_button = gtk_lock_button_new (NULL);
+  g_object_set (G_OBJECT (polkit_button),
+                "text-unlock", _("Unlock to change these settings"),
+                "text-lock", _("Lock to prevent further changes"),
+                NULL);
+  GtkWidget * alignment = gtk_alignment_new (0.0, 0.5, 0.0, 0.0);
+  gtk_container_add (GTK_CONTAINER (alignment), polkit_button);
+  gtk_box_pack_start (GTK_BOX (WIG ("timeDateBox")), alignment, FALSE, TRUE, 0);
+
+  const gchar * polkit_name = "org.gnome.settingsdaemon.datetimemechanism.configure";
+  polkit_permission_new (polkit_name, NULL, NULL, polkit_perm_ready, polkit_button);
 
   /* Add map */
   tzmap = cc_timezone_map_new ();
