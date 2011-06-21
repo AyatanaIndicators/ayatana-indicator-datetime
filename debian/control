@@ -19,7 +19,7 @@ Build-Depends: cdbs,
                libunique-dev,
                libpolkit-gtk-1-dev,
                libedataserver1.2-dev (>= 2.30),
-               libedataserverui1.2-dev (>= 2.30),
+               libedataserverui-3.0-dev,
                libgconf2-dev (>= 2.31),
                dh-autoreconf
 Standards-Version: 3.9.1
