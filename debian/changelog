@@ -1,3 +1,9 @@
+indicator-datetime (0.2.90-0ubuntu1) UNRELEASED; urgency=low
+
+  * New upstream release.
+
+ -- Ted Gould <ted@ubuntu.com>  Tue, 21 Jun 2011 14:13:01 -0500
+
 indicator-datetime (0.2.3-0ubuntu3) natty; urgency=low
 
   * debian/patches/lp_762976.patch

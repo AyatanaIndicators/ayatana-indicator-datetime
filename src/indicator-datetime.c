@@ -270,7 +270,7 @@ static void
 menu_visible_notfy_cb(GtkWidget * menu, G_GNUC_UNUSED GParamSpec *pspec, gpointer user_data)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
-	g_debug("notify visible signal recieved");
+	g_debug("notify visible signal received");
 	
 	// we should only react if we're currently visible
 	gboolean visible;
@@ -1077,7 +1077,7 @@ guess_label_size (IndicatorDatetime * self)
 	GArray * timevals = g_array_new(FALSE, TRUE, sizeof(struct tm));
 	build_timeval_array(timevals, posibilitymask);
 
-	g_debug("Checking against %d posible times", timevals->len);
+	g_debug("Checking against %d possible times", timevals->len);
 	gint check_time;
 	for (check_time = 0; check_time < timevals->len; check_time++) {
 		gchar longstr[256];
@@ -1285,6 +1285,12 @@ new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, Dbu
 	/* Label, probably a username, chat room or mailbox name */
 	mi_data->label = gtk_label_new(dbusmenu_menuitem_property_get(newitem, APPOINTMENT_MENUITEM_PROP_LABEL));
 	gtk_misc_set_alignment(GTK_MISC(mi_data->label), 0.0, 0.5);
+	
+	GtkStyle * style = gtk_widget_get_style(GTK_WIDGET(mi_data->label));
+	PangoContext * context = gtk_widget_get_pango_context(GTK_WIDGET(mi_data->label));
+	gint length = measure_string(style, context, "MMMMMMMMMMMMMMM"); // 15 char wide string max
+	gtk_widget_set_size_request(GTK_WIDGET(mi_data->label), length, -1); // Set the min size in pixels
+	
 	gtk_label_set_ellipsize(GTK_LABEL(mi_data->label), PANGO_ELLIPSIZE_END);
 	gtk_box_pack_start(GTK_BOX(hbox), mi_data->label, TRUE, TRUE, 0);
 	gtk_widget_show(mi_data->label);
