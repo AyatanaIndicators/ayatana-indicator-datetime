@@ -455,9 +455,9 @@ find_popup_treeview (GtkWidget * widget, GtkTreeModel * model)
 static gboolean
 entry_keypress (GtkEntry * entry, GdkEventKey  *event, TimezoneCompletion * completion)
 {
-  if (event->keyval == GDK_ISO_Enter ||
-      event->keyval == GDK_KP_Enter ||
-	    event->keyval == GDK_Return) {
+  if (event->keyval == GDK_KEY_ISO_Enter ||
+      event->keyval == GDK_KEY_KP_Enter ||
+	    event->keyval == GDK_KEY_Return) {
     /* Make sure that user has a selection to choose, otherwise ignore */
     GtkTreeModel * model = gtk_entry_completion_get_model (GTK_ENTRY_COMPLETION (completion));
     GtkTreeView * view = find_popup_treeview (GTK_WIDGET (entry), model);

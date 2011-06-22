@@ -601,7 +601,6 @@ cc_timezone_map_finalize (GObject *object)
 }
 
 /* GtkWidget functions */
-#ifdef CCGTK3
 static void
 cc_timezone_map_get_preferred_width (GtkWidget *widget,
                                      gint      *minimum,
@@ -633,25 +632,6 @@ cc_timezone_map_get_preferred_height (GtkWidget *widget,
   if (natural != NULL)
     *natural = size;
 }
-
-#else
-
-static void
-cc_timezone_map_size_request (GtkWidget *widget,
-                              GtkRequisition *requisition)
-{
-  CcTimezoneMapPrivate *priv = CC_TIMEZONE_MAP (widget)->priv;
-
-  if (!requisition)
-    return;
-
-  /* The + 20 here is a slight tweak to make the map fill the
-   * panel better without causing horizontal growing
-   */
-  requisition->height = 300 * gdk_pixbuf_get_height (priv->orig_background) / gdk_pixbuf_get_width (priv->orig_background) + 20;
-  requisition->width = 300;
-}
-#endif
 
 static void
 cc_timezone_map_size_allocate (GtkWidget     *widget,
@@ -853,21 +833,6 @@ cc_timezone_map_draw (GtkWidget *widget,
   return TRUE;
 }
 
-#ifndef CCGTK3
-static gboolean
-cc_timezone_map_expose_event (GtkWidget *widget,
-                              GdkEventExpose  *event)
-{
-  gboolean   rv;
-  cairo_t   *cr;
-  cr = gdk_cairo_create (widget->window);
-  rv = cc_timezone_map_draw (widget, cr);
-  cairo_destroy (cr);
-  return rv;
-}
-#endif
-
-
 static void
 cc_timezone_map_class_init (CcTimezoneMapClass *klass)
 {
@@ -881,19 +846,11 @@ cc_timezone_map_class_init (CcTimezoneMapClass *klass)
   object_class->dispose = cc_timezone_map_dispose;
   object_class->finalize = cc_timezone_map_finalize;
 
-#ifdef CCGTK3
   widget_class->get_preferred_width = cc_timezone_map_get_preferred_width;
   widget_class->get_preferred_height = cc_timezone_map_get_preferred_height;
-#else
-  widget_class->size_request = cc_timezone_map_size_request;
-#endif
   widget_class->size_allocate = cc_timezone_map_size_allocate;
   widget_class->realize = cc_timezone_map_realize;
-#ifdef CCGTK3
   widget_class->draw = cc_timezone_map_draw;
-#else
-  widget_class->expose_event = cc_timezone_map_expose_event;
-#endif
 
   signals[LOCATION_CHANGED] = g_signal_new ("location-changed",
                                             CC_TYPE_TIMEZONE_MAP,
@@ -1015,6 +972,13 @@ button_press_event (GtkWidget      *widget,
 }
 
 static void
+state_flags_changed (GtkWidget *widget)
+{
+  // To catch sensitivity changes
+  gtk_widget_queue_draw (widget);
+}
+
+static void
 load_backward_tz (CcTimezoneMap *self)
 {
   GError *error = NULL;
@@ -1107,6 +1071,8 @@ cc_timezone_map_init (CcTimezoneMap *self)
   priv->tzdb = tz_load_db ();
 
   g_signal_connect (self, "button-press-event", G_CALLBACK (button_press_event),
+                    NULL);
+  g_signal_connect (self, "state-flags-changed", G_CALLBACK (state_flags_changed),
                     NULL);
 
   load_backward_tz (self);

@@ -1,3 +1,17 @@
+indicator-datetime (0.2.90-0ubuntu1~ppa1) oneiric; urgency=low
+
+  * New upstream release.
+    - Set minimum width for appointments to prevent continuous resizing 
+      when the calendar is hiden and ensure there is enough of the 
+      event description visible (LP: #762976)
+    - ellipsize long appointment descriptions (LP: #750671)
+    - GTK3 build
+  * Dropping debian/patches/lp_762976.patch and debian/patches/lp_750671.patch
+    as merged upstream.
+  * debian/control: Switching dep to libedataserverui-3.0-dev
+
+ -- Ted Gould <ted@ubuntu.com>  Tue, 21 Jun 2011 14:29:24 -0500
+
 indicator-datetime (0.2.3-0ubuntu3) natty; urgency=low
 
   * debian/patches/lp_762976.patch
@@ -13,6 +27,13 @@ indicator-datetime (0.2.3-0ubuntu2) natty; urgency=low
     - ellipsize long appointment descriptions (LP: #750671)
 
  -- Ken VanDine <ken.vandine@canonical.com>  Fri, 15 Apr 2011 10:00:41 -0400
+
+indicator-datetime (0.2.3-0ubuntu2~ppa1) natty; urgency=low
+
+  * Upstream Merge
+    * Ellipsize calendar entries that are too long (LP: #750671)
+
+ -- Ted Gould <ted@ubuntu.com>  Fri, 15 Apr 2011 09:32:43 -0500
 
 indicator-datetime (0.2.3-0ubuntu1) natty; urgency=low
 
