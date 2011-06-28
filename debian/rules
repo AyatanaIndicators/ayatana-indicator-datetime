@@ -3,6 +3,7 @@
 DEB_BUILDDIR = build
 DEB_MAKE_FLAVORS = gtk2 gtk3
 
+include /usr/share/cdbs/1/rules/autoreconf.mk
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/gnome.mk
 

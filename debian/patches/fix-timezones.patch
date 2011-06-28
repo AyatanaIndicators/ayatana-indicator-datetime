@@ -1,0 +1,168 @@
+Index: indicator-datetime.ubu/src/Makefile.am
+===================================================================
+--- indicator-datetime.ubu.orig/src/Makefile.am	2011-06-28 15:42:04.085059003 +0100
++++ indicator-datetime.ubu/src/Makefile.am	2011-06-28 15:42:19.553059167 +0100
+@@ -34,6 +34,7 @@
+ libdatetime_la_CFLAGS = \
+ 	$(INDICATOR_CFLAGS) \
+ 	-Wall -Werror \
++	-DTIMEZONE_FILE="\"/etc/timezone\"" \
+ 	-DG_LOG_DOMAIN=\"Indicator-Datetime\"
+ libdatetime_la_LIBADD = \
+ 	$(INDICATOR_LIBS)
+@@ -55,6 +56,7 @@
+ 	-Werror \
+ 	-I$(top_srcdir)/libmap \
+ 	$(PREF_CFLAGS) \
++	-DTIMEZONE_FILE="\"/etc/timezone\"" \
+ 	-DPKGDATADIR="\"$(pkgdatadir)\""
+ indicator_datetime_preferences_LDADD = \
+ 	 $(top_builddir)/libmap/libmap.la \
+Index: indicator-datetime.ubu/src/datetime-prefs.c
+===================================================================
+--- indicator-datetime.ubu.orig/src/datetime-prefs.c	2011-06-28 15:42:04.129059003 +0100
++++ indicator-datetime.ubu/src/datetime-prefs.c	2011-06-28 15:42:19.553059167 +0100
+@@ -223,10 +223,8 @@
+   if (location == NULL)
+     return;
+ 
+-  gchar * file = g_build_filename ("/usr/share/zoneinfo", location->zone, NULL);
+-  g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", file),
++  g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", location->zone),
+                      G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "timezone");
+-  g_free (file);
+ 
+   sync_entry (location->zone);
+ }
+Index: indicator-datetime.ubu/src/datetime-service.c
+===================================================================
+--- indicator-datetime.ubu.orig/src/datetime-service.c	2011-06-28 15:42:04.249059005 +0100
++++ indicator-datetime.ubu/src/datetime-service.c	2011-06-28 15:42:19.561059167 +0100
+@@ -221,29 +221,15 @@
+ 		current_timezone = NULL;
+ 	}
+ 
+-	GError * error = NULL;
+-	gchar * tempzone = NULL;
+-	if (!g_file_get_contents(TIMEZONE_FILE, &tempzone, NULL, &error)) {
+-		g_warning("Unable to read timezone file '" TIMEZONE_FILE "': %s", error->message);
+-		g_error_free(error);
++	current_timezone = read_timezone ();
++	if (current_timezone == NULL) {
+ 		return;
+ 	}
+ 
+-	/* This shouldn't happen, so let's make it a big boom! */
+-	g_return_if_fail(tempzone != NULL);
+-
+-	/* Note: this really makes sense as strstrip works in place
+-	   so we end up with something a little odd without the dup
+-	   so we have the dup to make sure everything is as expected
+-	   for everyone else. */
+-	current_timezone = g_strdup(g_strstrip(tempzone));
+-	g_free(tempzone);
+-
+ 	g_debug("System timezone is: %s", current_timezone);
+ 
+ 	check_timezone_sync();
+ 
+-    if (error != NULL) g_error_free(error);
+ 	return;
+ }
+ 
+@@ -276,10 +262,8 @@
+ 		return;
+ 	}
+ 
+-	gchar * file = g_build_filename ("/usr/share/zoneinfo", (char *)zone, NULL);
+-	g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", file),
++	g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", zone),
+ 	                   G_DBUS_CALL_FLAGS_NONE, -1, NULL, quick_set_tz_cb, NULL);
+-	g_free (file);
+ 	g_free (zone);
+ 	g_object_unref (proxy);
+ }
+Index: indicator-datetime.ubu/src/indicator-datetime.c
+===================================================================
+--- indicator-datetime.ubu.orig/src/indicator-datetime.c	2011-06-28 15:42:04.293059005 +0100
++++ indicator-datetime.ubu/src/indicator-datetime.c	2011-06-28 15:42:19.565059167 +0100
+@@ -761,11 +761,18 @@
+                            GTimeZone * tz, const gchar * format,
+                            GDateTime ** datetime)
+ {
++	gboolean unref_tz = FALSE;
++	if (tz == NULL) {
++		gchar * zone = read_timezone ();
++		if (zone == NULL)
++			return;
++		tz = g_time_zone_new(zone);
++		unref_tz = TRUE;
++		g_free (zone);
++	}
++
+ 	GDateTime * datetime_now;
+-	if (tz == NULL)
+-		datetime_now = g_date_time_new_now_local();
+-	else
+-		datetime_now = g_date_time_new_now(tz);
++	datetime_now = g_date_time_new_now(tz);
+ 
+ 	gchar * timestr;
+ 	if (format == NULL) {
+@@ -793,6 +800,9 @@
+ 	else
+ 		g_date_time_unref(datetime_now);
+ 
++	if (unref_tz)
++		g_time_zone_unref(tz);
++
+ 	return;
+ }
+ 
+Index: indicator-datetime.ubu/src/utils.c
+===================================================================
+--- indicator-datetime.ubu.orig/src/utils.c	2011-06-28 15:42:04.169059004 +0100
++++ indicator-datetime.ubu/src/utils.c	2011-06-28 15:42:19.565059167 +0100
+@@ -117,6 +117,30 @@
+   return rv;
+ }
+ 
++gchar *
++read_timezone ()
++{
++	GError * error = NULL;
++	gchar * tempzone = NULL;
++	if (!g_file_get_contents(TIMEZONE_FILE, &tempzone, NULL, &error)) {
++		g_warning("Unable to read timezone file '" TIMEZONE_FILE "': %s", error->message);
++		g_error_free(error);
++		return NULL;
++	}
++
++	/* This shouldn't happen, so let's make it a big boom! */
++	g_return_val_if_fail(tempzone != NULL, NULL);
++
++	/* Note: this really makes sense as strstrip works in place
++	   so we end up with something a little odd without the dup
++	   so we have the dup to make sure everything is as expected
++	   for everyone else. */
++	gchar * rv = g_strdup(g_strstrip(tempzone));
++	g_free(tempzone);
++
++  return rv;
++}
++
+ /* Translate msg according to the locale specified by LC_TIME */
+ static char *
+ T_(const char *msg)
+Index: indicator-datetime.ubu/src/utils.h
+===================================================================
+--- indicator-datetime.ubu.orig/src/utils.h	2011-06-28 15:42:04.209059004 +0100
++++ indicator-datetime.ubu/src/utils.h	2011-06-28 15:42:19.569059167 +0100
+@@ -30,6 +30,7 @@
+ gboolean is_locale_12h (void);
+ void split_settings_location (const gchar * location, gchar ** zone, gchar ** name);
+ gchar * get_current_zone_name (const gchar * location);
++gchar * read_timezone ();
+ gchar * generate_format_string_full (gboolean show_day, gboolean show_date);
+ gchar * generate_format_string_at_time (GDateTime * time);
+ 

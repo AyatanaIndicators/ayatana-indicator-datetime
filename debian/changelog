@@ -1,3 +1,15 @@
+indicator-datetime (0.2.90-0ubuntu2) oneiric; urgency=low
+
+  * debian/control:
+    - Drop -gtk2 recommends for the gtk3 indicator
+  * debian/rules:
+    - Use dh-autoreconf
+  * debian/patches/fix-timezones.patch:
+    - Add patch to handle g-s-d DBus API change for timezones and to
+      be more robust about querying what the current timezone is
+
+ -- Michael Terry <mterry@ubuntu.com>  Tue, 28 Jun 2011 15:42:39 +0100
+
 indicator-datetime (0.2.90-0ubuntu1) oneiric; urgency=low
 
   [ Ted Gould ]

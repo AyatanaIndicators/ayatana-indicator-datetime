@@ -36,8 +36,7 @@ Architecture: any
 Depends: ${shlibs:Depends}, 
          ${misc:Depends},
          geoclue-ubuntu-geoip | geoclue-provider
-Recommends: indicator-applet | indicator-renderer,
-            indicator-datetime-gtk2
+Recommends: indicator-applet | indicator-renderer
 Description: Simple clock
  A simple clock appearing in the indicator bar
 
