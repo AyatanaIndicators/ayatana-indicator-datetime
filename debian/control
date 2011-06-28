@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: Ubuntu Desktop Team <ubuntu-desktop@lists.ubuntu.com>
 Build-Depends: cdbs, 
                debhelper (>= 5), 
+               quilt,
                intltool (>= 0.35.0), 
                libindicator-dev (>= 0.3.19),
                libindicator3-dev (>= 0.3.19),

@@ -1,3 +1,17 @@
+indicator-datetime (0.2.90-0ubuntu4) oneiric; urgency=low
+
+  * No change rebuild to fix badly packaged diff.gz from last time
+
+ -- Michael Terry <mterry@ubuntu.com>  Tue, 28 Jun 2011 17:55:25 +0100
+
+indicator-datetime (0.2.90-0ubuntu3) oneiric; urgency=low
+
+  * debian/rules, debian/control:
+    - Arg, this wasn't source format 3.0, so add quilt so that the patch
+      applies.
+
+ -- Michael Terry <mterry@ubuntu.com>  Tue, 28 Jun 2011 17:05:59 +0100
+
 indicator-datetime (0.2.90-0ubuntu2) oneiric; urgency=low
 
   * debian/control:
