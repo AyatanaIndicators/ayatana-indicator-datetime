@@ -34,6 +34,7 @@ libdatetime_la_SOURCES = \
 libdatetime_la_CFLAGS = \
 	$(INDICATOR_CFLAGS) \
 	-Wall -Werror \
+	-DTIMEZONE_FILE="\"/etc/timezone\"" \
 	-DG_LOG_DOMAIN=\"Indicator-Datetime\"
 libdatetime_la_LIBADD = \
 	$(INDICATOR_LIBS)
@@ -55,6 +56,7 @@ indicator_datetime_preferences_CFLAGS = \
 	-Werror \
 	-I$(top_srcdir)/libmap \
 	$(PREF_CFLAGS) \
+	-DTIMEZONE_FILE="\"/etc/timezone\"" \
 	-DPKGDATADIR="\"$(pkgdatadir)\""
 indicator_datetime_preferences_LDADD = \
 	 $(top_builddir)/libmap/libmap.la \

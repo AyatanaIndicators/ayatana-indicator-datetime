@@ -221,29 +221,15 @@ update_current_timezone (void) {
 		current_timezone = NULL;
 	}
 
-	GError * error = NULL;
-	gchar * tempzone = NULL;
-	if (!g_file_get_contents(TIMEZONE_FILE, &tempzone, NULL, &error)) {
-		g_warning("Unable to read timezone file '" TIMEZONE_FILE "': %s", error->message);
-		g_error_free(error);
+	current_timezone = read_timezone ();
+	if (current_timezone == NULL) {
 		return;
 	}
-
-	/* This shouldn't happen, so let's make it a big boom! */
-	g_return_if_fail(tempzone != NULL);
-
-	/* Note: this really makes sense as strstrip works in place
-	   so we end up with something a little odd without the dup
-	   so we have the dup to make sure everything is as expected
-	   for everyone else. */
-	current_timezone = g_strdup(g_strstrip(tempzone));
-	g_free(tempzone);
 
 	g_debug("System timezone is: %s", current_timezone);
 
 	check_timezone_sync();
 
-    if (error != NULL) g_error_free(error);
 	return;
 }
 
@@ -276,10 +262,8 @@ quick_set_tz_proxy_cb (GObject *object, GAsyncResult *res, gpointer zone)
 		return;
 	}
 
-	gchar * file = g_build_filename ("/usr/share/zoneinfo", (char *)zone, NULL);
-	g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", file),
+	g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", zone),
 	                   G_DBUS_CALL_FLAGS_NONE, -1, NULL, quick_set_tz_cb, NULL);
-	g_free (file);
 	g_free (zone);
 	g_object_unref (proxy);
 }

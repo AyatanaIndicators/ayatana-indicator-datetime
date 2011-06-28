@@ -223,10 +223,8 @@ tz_changed (CcTimezoneMap * map, TzLocation * location)
   if (location == NULL)
     return;
 
-  gchar * file = g_build_filename ("/usr/share/zoneinfo", location->zone, NULL);
-  g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", file),
+  g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", location->zone),
                      G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "timezone");
-  g_free (file);
 
   sync_entry (location->zone);
 }
