@@ -34,6 +34,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <gtk/gtk.h>
 #include <unique/unique.h>
 #include <polkit/polkit.h>
+#include <libgnome-control-center/cc-panel.h>
 
 #include "dbus-shared.h"
 #include "settings-shared.h"
@@ -44,16 +45,40 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define DATETIME_DIALOG_UI_FILE PKGDATADIR "/datetime-dialog.ui"
 
-GDBusProxy * proxy = NULL;
-GtkWidget * auto_radio = NULL;
-GtkWidget * tz_entry = NULL;
-CcTimezoneMap * tzmap = NULL;
-GtkWidget * time_spin = NULL;
-GtkWidget * date_spin = NULL;
-guint       save_time_id = 0;
-gboolean    user_edited_time = FALSE;
-gboolean    changing_time = FALSE;
-GtkWidget * loc_dlg = NULL;
+#define INDICATOR_DATETIME_TYPE_PANEL indicator_datetime_panel_get_type()
+
+typedef struct _IndicatorDatetimePanel IndicatorDatetimePanel;
+typedef struct _IndicatorDatetimePanelPrivate IndicatorDatetimePanelPrivate;
+typedef struct _IndicatorDatetimePanelClass IndicatorDatetimePanelClass;
+
+struct _IndicatorDatetimePanel
+{
+  CcPanel parent;
+  IndicatorDatetimePanelPrivate * priv;
+};
+
+struct _IndicatorDatetimePanelPrivate
+{
+  GtkBuilder *         builder;
+  GDBusProxy *         proxy;
+  GtkWidget *          auto_radio;
+  GtkWidget *          tz_entry;
+  CcTimezoneMap *      tzmap;
+  GtkWidget *          time_spin;
+  GtkWidget *          date_spin;
+  guint                save_time_id;
+  gboolean             user_edited_time;
+  gboolean             changing_time;
+  GtkWidget *          loc_dlg;
+  TimezoneCompletion * completion;
+};
+
+struct _IndicatorDatetimePanelClass
+{
+  CcPanelClass parent_class;
+};
+
+G_DEFINE_DYNAMIC_TYPE (IndicatorDatetimePanel, indicator_datetime_panel, CC_TYPE_PANEL)
 
 /* Turns the boolean property into a string gsettings */
 static GVariant *
@@ -164,7 +189,7 @@ static void
 dbus_set_answered (GObject *object, GAsyncResult *res, gpointer command)
 {
   GError * error = NULL;
-  GVariant * answers = g_dbus_proxy_call_finish (proxy, res, &error);
+  GVariant * answers = g_dbus_proxy_call_finish (G_DBUS_PROXY (object), res, &error);
 
   if (error != NULL) {
     g_warning("Could not set '%s' for SettingsDaemon: %s", (gchar *)command, error->message);
@@ -176,19 +201,19 @@ dbus_set_answered (GObject *object, GAsyncResult *res, gpointer command)
 }
 
 static void
-toggle_ntp (GtkWidget * radio, GParamSpec * pspec, gpointer user_data)
+toggle_ntp (GtkWidget * radio, GParamSpec * pspec, IndicatorDatetimePanel * self)
 {
   gboolean active = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (radio));
 
-  g_dbus_proxy_call (proxy, "SetUsingNtp", g_variant_new ("(b)", active),
+  g_dbus_proxy_call (self->priv->proxy, "SetUsingNtp", g_variant_new ("(b)", active),
                      G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "using_ntp");
 }
 
 static void
-ntp_query_answered (GObject *object, GAsyncResult *res, gpointer user_data)
+ntp_query_answered (GObject *object, GAsyncResult *res, IndicatorDatetimePanel * self)
 {
   GError * error = NULL;
-  GVariant * answers = g_dbus_proxy_call_finish (proxy, res, &error);
+  GVariant * answers = g_dbus_proxy_call_finish (G_DBUS_PROXY (object), res, &error);
 
   if (error != NULL) {
     g_warning("Could not query DBus proxy for SettingsDaemon: %s", error->message);
@@ -199,41 +224,42 @@ ntp_query_answered (GObject *object, GAsyncResult *res, gpointer user_data)
   gboolean can_use_ntp, is_using_ntp;
   g_variant_get (answers, "(bb)", &can_use_ntp, &is_using_ntp);
 
-  gtk_widget_set_sensitive (GTK_WIDGET (auto_radio), can_use_ntp);
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (auto_radio), is_using_ntp);
+  gtk_widget_set_sensitive (GTK_WIDGET (self->priv->auto_radio), can_use_ntp);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (self->priv->auto_radio), is_using_ntp);
 
-  g_signal_connect (auto_radio, "notify::active", G_CALLBACK (toggle_ntp), NULL);
+  g_signal_connect (self->priv->auto_radio, "notify::active", G_CALLBACK (toggle_ntp), self);
 
   g_variant_unref (answers);
 }
 
 static void
-sync_entry (const gchar * location)
+sync_entry (IndicatorDatetimePanel * self, const gchar * location)
 {
   gchar * name = get_current_zone_name (location);
-  gtk_entry_set_text (GTK_ENTRY (tz_entry), name);
+  gtk_entry_set_text (GTK_ENTRY (self->priv->tz_entry), name);
   g_free (name);
 
-  gtk_entry_set_icon_from_stock (GTK_ENTRY (tz_entry), GTK_ENTRY_ICON_SECONDARY, NULL);
+  gtk_entry_set_icon_from_stock (GTK_ENTRY (self->priv->tz_entry),
+                                 GTK_ENTRY_ICON_SECONDARY, NULL);
 }
 
 static void
-tz_changed (CcTimezoneMap * map, TzLocation * location)
+tz_changed (CcTimezoneMap * map, TzLocation * location, IndicatorDatetimePanel * self)
 {
   if (location == NULL)
     return;
 
-  g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", location->zone),
+  g_dbus_proxy_call (self->priv->proxy, "SetTimezone", g_variant_new ("(s)", location->zone),
                      G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "timezone");
 
-  sync_entry (location->zone);
+  sync_entry (self, location->zone);
 }
 
 static void
-tz_query_answered (GObject *object, GAsyncResult *res, gpointer user_data)
+tz_query_answered (GObject *object, GAsyncResult *res, IndicatorDatetimePanel * self)
 {
   GError * error = NULL;
-  GVariant * answers = g_dbus_proxy_call_finish (proxy, res, &error);
+  GVariant * answers = g_dbus_proxy_call_finish (G_DBUS_PROXY (object), res, &error);
 
   if (error != NULL) {
     g_warning("Could not query DBus proxy for SettingsDaemon: %s", error->message);
@@ -244,20 +270,20 @@ tz_query_answered (GObject *object, GAsyncResult *res, gpointer user_data)
   const gchar * timezone;
   g_variant_get (answers, "(&s)", &timezone);
 
-  cc_timezone_map_set_timezone (tzmap, timezone);
+  cc_timezone_map_set_timezone (self->priv->tzmap, timezone);
 
-  sync_entry (timezone);
-  g_signal_connect (tzmap, "location-changed", G_CALLBACK (tz_changed), NULL);
+  sync_entry (self, timezone);
+  g_signal_connect (self->priv->tzmap, "location-changed", G_CALLBACK (tz_changed), self);
 
   g_variant_unref (answers);
 }
 
 static void
-proxy_ready (GObject *object, GAsyncResult *res, gpointer user_data)
+proxy_ready (GObject *object, GAsyncResult *res, IndicatorDatetimePanel * self)
 {
   GError * error = NULL;
 
-  proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
+  self->priv->proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
 
   if (error != NULL) {
     g_critical("Could not grab DBus proxy for SettingsDaemon: %s", error->message);
@@ -266,10 +292,10 @@ proxy_ready (GObject *object, GAsyncResult *res, gpointer user_data)
   }
 
   /* And now, do initial proxy configuration */
-  g_dbus_proxy_call (proxy, "GetUsingNtp", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
-                     NULL, ntp_query_answered, auto_radio);
-  g_dbus_proxy_call (proxy, "GetTimezone", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
-                     NULL, tz_query_answered, NULL);
+  g_dbus_proxy_call (self->priv->proxy, "GetUsingNtp", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
+                     NULL, (GAsyncReadyCallback)ntp_query_answered, self);
+  g_dbus_proxy_call (self->priv->proxy, "GetTimezone", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
+                     NULL, (GAsyncReadyCallback)tz_query_answered, self);
 }
 
 static void
@@ -288,7 +314,7 @@ service_proxy_ready (GObject *object, GAsyncResult *res, gpointer user_data)
 {
   GError * error = NULL;
 
-  proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
+  GDBusProxy * proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
 
   if (error != NULL) {
     g_critical("Could not grab DBus proxy for indicator-datetime-service: %s", error->message);
@@ -302,51 +328,53 @@ service_proxy_ready (GObject *object, GAsyncResult *res, gpointer user_data)
 }
 
 static gboolean
-are_spinners_focused (void)
+are_spinners_focused (IndicatorDatetimePanel * self)
 {
   // save_time_id means that we were in focus and haven't finished our save
   // yet, so act like we are still focused.
-  return save_time_id || gtk_widget_has_focus (time_spin) || gtk_widget_has_focus (date_spin);
+  return self->priv->save_time_id ||
+         gtk_widget_has_focus (self->priv->time_spin) ||
+         gtk_widget_has_focus (self->priv->date_spin);
 }
 
 static gboolean
-save_time (gpointer user_data)
+save_time (IndicatorDatetimePanel * self)
 {
-  if (user_edited_time) {
-    gdouble current_value = gtk_spin_button_get_value (GTK_SPIN_BUTTON (date_spin));
-    g_dbus_proxy_call (proxy, "SetTime", g_variant_new ("(x)", (guint64)current_value),
+  if (self->priv->user_edited_time) {
+    gdouble current_value = gtk_spin_button_get_value (GTK_SPIN_BUTTON (self->priv->date_spin));
+    g_dbus_proxy_call (self->priv->proxy, "SetTime", g_variant_new ("(x)", (guint64)current_value),
                        G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "time");
   }
-  user_edited_time = FALSE;
-  save_time_id = 0;
+  self->priv->user_edited_time = FALSE;
+  self->priv->save_time_id = 0;
   return FALSE;
 }
 
 static gboolean
-spin_focus_in (void)
+spin_focus_in (IndicatorDatetimePanel * self)
 {
-  if (save_time_id > 0) {
-    g_source_remove (save_time_id);
-    save_time_id = 0;
+  if (self->priv->save_time_id > 0) {
+    g_source_remove (self->priv->save_time_id);
+    self->priv->save_time_id = 0;
   }
   return FALSE;
 }
 
 static gboolean
-spin_focus_out (void)
+spin_focus_out (IndicatorDatetimePanel * self)
 {
   /* We want to only save when both spinners are unfocused.  But it's difficult
      to tell who is about to get focus during a focus-out.  So we set an idle
      callback to save the time if we don't focus in to another spinner by that
      time. */
-  if (save_time_id == 0) {
-    save_time_id = g_idle_add ((GSourceFunc)save_time, NULL);
+  if (self->priv->save_time_id == 0) {
+    self->priv->save_time_id = g_idle_add ((GSourceFunc)save_time, self);
   }
   return FALSE;
 }
 
 static int
-input_time_text (GtkWidget * spinner, gdouble * value, gpointer user_data)
+input_time_text (GtkWidget * spinner, gdouble * value, IndicatorDatetimePanel * self)
 {
   gboolean is_time = (gboolean)GPOINTER_TO_INT (g_object_get_data (G_OBJECT (spinner), "is-time"));
   const gchar * text = gtk_entry_get_text (GTK_ENTRY (spinner));
@@ -425,13 +453,13 @@ input_time_text (GtkWidget * spinner, gdouble * value, gpointer user_data)
     return TRUE;
   }
 
-  gboolean prev_changing = changing_time;
-  changing_time = TRUE;
+  gboolean prev_changing = self->priv->changing_time;
+  self->priv->changing_time = TRUE;
   GDateTime * new_time = g_date_time_new_local (year, month, day, hour, minute, second);
   *value = g_date_time_to_unix (new_time);
-  user_edited_time = TRUE;
+  self->priv->user_edited_time = TRUE;
   g_date_time_unref (new_time);
-  changing_time = prev_changing;
+  self->priv->changing_time = prev_changing;
 
   return TRUE;
 }
@@ -462,89 +490,98 @@ format_time_text (GtkWidget * spinner, gpointer user_data)
 }
 
 static void
-spin_copy_value (GtkSpinButton * spinner, GtkSpinButton * other)
+spin_copy_value (GtkSpinButton * spinner, IndicatorDatetimePanel * self)
 {
+  GtkSpinButton * other = NULL;
+  if (GTK_WIDGET (spinner) == self->priv->date_spin)
+    other = GTK_SPIN_BUTTON (self->priv->time_spin);
+  else
+    other = GTK_SPIN_BUTTON (self->priv->date_spin);
+
   if (gtk_spin_button_get_value (spinner) != gtk_spin_button_get_value (other)) {
     gtk_spin_button_set_value (other, gtk_spin_button_get_value (spinner));
   }
-  if (!changing_time) { /* Means user pressed spin buttons */
-    user_edited_time = TRUE;
+  if (!self->priv->changing_time) { /* Means user pressed spin buttons */
+    self->priv->user_edited_time = TRUE;
   }
 }
 
 static gboolean
-update_spinners (void)
+update_spinners (IndicatorDatetimePanel * self)
 {
   /* Add datetime object to spinner, which will hold the real time value, rather
      then using the value of the spinner itself.  And don't update while user is
      editing. */
-  if (!are_spinners_focused ()) {
-    gboolean prev_changing = changing_time;
-    changing_time = TRUE;
+  if (!are_spinners_focused (self)) {
+    gboolean prev_changing = self->priv->changing_time;
+    self->priv->changing_time = TRUE;
     GDateTime * now = g_date_time_new_now_local ();
-    gtk_spin_button_set_value (GTK_SPIN_BUTTON (time_spin), (gdouble)g_date_time_to_unix (now));
+    gtk_spin_button_set_value (GTK_SPIN_BUTTON (self->priv->time_spin),
+                               (gdouble)g_date_time_to_unix (now));
     /* will be copied to other spin button */
     g_date_time_unref (now);
-    changing_time = prev_changing;
+    self->priv->changing_time = prev_changing;
   }
   return TRUE;
 }
 
 static void
-setup_time_spinners (GtkWidget * time, GtkWidget * date)
+setup_time_spinners (IndicatorDatetimePanel * self, GtkWidget * time, GtkWidget * date)
 {
-  g_signal_connect (time, "input", G_CALLBACK (input_time_text), date);
-  g_signal_connect (date, "input", G_CALLBACK (input_time_text), time);
+  g_signal_connect (time, "input", G_CALLBACK (input_time_text), self);
+  g_signal_connect (date, "input", G_CALLBACK (input_time_text), self);
 
   g_signal_connect (time, "output", G_CALLBACK (format_time_text), date);
   g_signal_connect (date, "output", G_CALLBACK (format_time_text), time);
 
-  g_signal_connect (time, "focus-in-event", G_CALLBACK (spin_focus_in), date);
-  g_signal_connect (date, "focus-in-event", G_CALLBACK (spin_focus_in), time);
+  g_signal_connect_swapped (time, "focus-in-event", G_CALLBACK (spin_focus_in), self);
+  g_signal_connect_swapped (date, "focus-in-event", G_CALLBACK (spin_focus_in), self);
 
-  g_signal_connect (time, "focus-out-event", G_CALLBACK (spin_focus_out), date);
-  g_signal_connect (date, "focus-out-event", G_CALLBACK (spin_focus_out), time);
+  g_signal_connect_swapped (time, "focus-out-event", G_CALLBACK (spin_focus_out), self);
+  g_signal_connect_swapped (date, "focus-out-event", G_CALLBACK (spin_focus_out), self);
 
-  g_signal_connect (time, "value-changed", G_CALLBACK (spin_copy_value), date);
-  g_signal_connect (date, "value-changed", G_CALLBACK (spin_copy_value), time);
+  g_signal_connect (time, "value-changed", G_CALLBACK (spin_copy_value), self);
+  g_signal_connect (date, "value-changed", G_CALLBACK (spin_copy_value), self);
 
   g_object_set_data (G_OBJECT (time), "is-time", GINT_TO_POINTER (TRUE));
   g_object_set_data (G_OBJECT (date), "is-time", GINT_TO_POINTER (FALSE));
 
-  time_spin = time;
-  date_spin = date;
+  self->priv->time_spin = time;
+  self->priv->date_spin = date;
 
   /* 2 seconds is what the indicator itself uses */
-  guint time_id = g_timeout_add_seconds (2, (GSourceFunc)update_spinners, NULL);
-  g_signal_connect_swapped (time_spin, "destroy", G_CALLBACK (g_source_remove), GINT_TO_POINTER (time_id));
-  update_spinners ();
+  guint time_id = g_timeout_add_seconds (2, (GSourceFunc)update_spinners, self);
+  g_signal_connect_swapped (self->priv->time_spin, "destroy",
+                            G_CALLBACK (g_source_remove), GINT_TO_POINTER (time_id));
+  update_spinners (self);
 }
 
 static void
-hide_locations ()
+hide_locations (IndicatorDatetimePanel * self)
 {
-  if (loc_dlg != NULL)
-    gtk_widget_destroy (loc_dlg);
+  if (self->priv->loc_dlg != NULL)
+    gtk_widget_destroy (self->priv->loc_dlg);
 }
 
 static void
-show_locations (GtkWidget * button, GtkWidget * dlg)
+show_locations (IndicatorDatetimePanel * self)
 {
-  if (loc_dlg == NULL) {
-    loc_dlg = datetime_setup_locations_dialog (tzmap);
-    gtk_window_set_transient_for (GTK_WINDOW (loc_dlg), GTK_WINDOW (dlg));
-    g_signal_connect (loc_dlg, "destroy", G_CALLBACK (gtk_widget_destroyed), &loc_dlg);
-    g_signal_connect (dlg, "focus-in-event", G_CALLBACK (hide_locations), NULL);
-    gtk_widget_show_all (loc_dlg);
+  if (self->priv->loc_dlg == NULL) {
+    self->priv->loc_dlg = datetime_setup_locations_dialog (self->priv->tzmap);
+    GtkWidget * dlg = gtk_widget_get_toplevel (GTK_WIDGET (self));
+    gtk_window_set_transient_for (GTK_WINDOW (self->priv->loc_dlg), GTK_WINDOW (dlg));
+    g_signal_connect (self->priv->loc_dlg, "destroy", G_CALLBACK (gtk_widget_destroyed), &self->priv->loc_dlg);
+    g_signal_connect_swapped (dlg, "focus-in-event", G_CALLBACK (hide_locations), self);
+    gtk_widget_show_all (self->priv->loc_dlg);
   }
   else {
-    gtk_window_present_with_time (GTK_WINDOW (loc_dlg), gtk_get_current_event_time ());
+    gtk_window_present_with_time (GTK_WINDOW (self->priv->loc_dlg), gtk_get_current_event_time ());
   }
 }
 
 static gboolean
 timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
-                   GtkTreeIter * iter, gpointer user_data)
+                   GtkTreeIter * iter, IndicatorDatetimePanel * self)
 {
   const gchar * name, * zone;
 
@@ -570,7 +607,7 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
       lat = strtod(strlat, NULL);
     }
 
-    zone = cc_timezone_map_get_timezone_at_coords (tzmap, lon, lat);
+    zone = cc_timezone_map_get_timezone_at_coords (self->priv->tzmap, lon, lat);
   }
 
   GSettings * conf = g_settings_new (SETTINGS_INTERFACE);
@@ -579,18 +616,18 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
   g_free (tz_name);
   g_object_unref (conf);
 
-  cc_timezone_map_set_timezone (tzmap, zone);
+  cc_timezone_map_set_timezone (self->priv->tzmap, zone);
 
   return FALSE; // Do normal action too
 }
 
 static gboolean
-entry_focus_out (GtkEntry * entry, GdkEventFocus * event)
+entry_focus_out (GtkEntry * entry, GdkEventFocus * event, IndicatorDatetimePanel * self)
 {
   // If the name left in the entry doesn't match the current timezone name,
   // show an error icon.  It's always an error for the user to manually type in
   // a timezone.
-  TzLocation * location = cc_timezone_map_get_location (tzmap);
+  TzLocation * location = cc_timezone_map_get_location (self->priv->tzmap);
   if (location == NULL)
     return FALSE;
 
@@ -606,36 +643,29 @@ entry_focus_out (GtkEntry * entry, GdkEventFocus * event)
   return FALSE;
 }
 
-static gboolean
-key_pressed (GtkWidget * widget, GdkEventKey * event, gpointer user_data)
+static void
+indicator_datetime_panel_init (IndicatorDatetimePanel * self)
 {
-  switch (event->keyval) {
-  case GDK_KEY_Escape:
-    gtk_widget_destroy (widget);
-    return TRUE;
-  }
-  return FALSE;
-}
+  self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self,
+                                            INDICATOR_DATETIME_TYPE_PANEL,
+                                            IndicatorDatetimePanelPrivate);
 
-static GtkWidget *
-create_dialog (void)
-{
   GError * error = NULL;
 
-  GtkBuilder * builder = gtk_builder_new ();
-  gtk_builder_add_from_file (builder, DATETIME_DIALOG_UI_FILE, &error);
+  self->priv->builder = gtk_builder_new ();
+  gtk_builder_add_from_file (self->priv->builder, DATETIME_DIALOG_UI_FILE, &error);
   if (error != NULL) {
     /* We have to abort, we can't continue without the ui file */
     g_error ("Could not load ui file %s: %s", DATETIME_DIALOG_UI_FILE, error->message);
     g_error_free (error);
-    return NULL;
+    return;
   }
 
-  gtk_builder_set_translation_domain (builder, GETTEXT_PACKAGE);
+  gtk_builder_set_translation_domain (self->priv->builder, GETTEXT_PACKAGE);
 
   GSettings * conf = g_settings_new (SETTINGS_INTERFACE);
 
-#define WIG(name) GTK_WIDGET (gtk_builder_get_object (builder, name))
+#define WIG(name) GTK_WIDGET (gtk_builder_get_object (self->priv->builder, name))
 
   /* Add policykit button */
   GtkWidget * polkit_button = gtk_lock_button_new (NULL);
@@ -651,16 +681,16 @@ create_dialog (void)
   polkit_permission_new (polkit_name, NULL, NULL, polkit_perm_ready, polkit_button);
 
   /* Add map */
-  tzmap = cc_timezone_map_new ();
-  gtk_container_add (GTK_CONTAINER (WIG ("mapBox")), GTK_WIDGET (tzmap));
+  self->priv->tzmap = cc_timezone_map_new ();
+  gtk_container_add (GTK_CONTAINER (WIG ("mapBox")), GTK_WIDGET (self->priv->tzmap));
   /* Fufill the CC by Attribution license requirements for the Geonames lookup */
-  cc_timezone_map_set_watermark (tzmap, "Geonames.org");
+  cc_timezone_map_set_watermark (self->priv->tzmap, "Geonames.org");
 
   /* And completion entry */
-  TimezoneCompletion * completion = timezone_completion_new ();
-  timezone_completion_watch_entry (completion, GTK_ENTRY (WIG ("timezoneEntry")));
-  g_signal_connect (completion, "match-selected", G_CALLBACK (timezone_selected), NULL);
-  g_signal_connect (WIG ("timezoneEntry"), "focus-out-event", G_CALLBACK (entry_focus_out), NULL);
+  self->priv->completion = timezone_completion_new ();
+  timezone_completion_watch_entry (self->priv->completion, GTK_ENTRY (WIG ("timezoneEntry")));
+  g_signal_connect (self->priv->completion, "match-selected", G_CALLBACK (timezone_selected), self);
+  g_signal_connect (WIG ("timezoneEntry"), "focus-out-event", G_CALLBACK (entry_focus_out), self);
 
   /* Set up settings bindings */
   g_settings_bind (conf, SETTINGS_SHOW_CLOCK_S, WIG ("showClockCheck"),
@@ -702,21 +732,20 @@ create_dialog (void)
   gtk_widget_set_sensitive (WIG ("showEventsCheck"), (evo_path != NULL));
   g_free (evo_path);
 
-  setup_time_spinners (WIG ("timeSpinner"), WIG ("dateSpinner"));
+  setup_time_spinners (self, WIG ("timeSpinner"), WIG ("dateSpinner"));
 
-  GtkWidget * dlg = WIG ("timeDateDialog");
-  auto_radio = WIG ("automaticTimeRadio");
-  tz_entry = WIG ("timezoneEntry");
+  GtkWidget * panel = WIG ("timeDatePanel");
+  self->priv->auto_radio = WIG ("automaticTimeRadio");
+  self->priv->tz_entry = WIG ("timezoneEntry");
 
-  g_signal_connect (WIG ("locationsButton"), "clicked", G_CALLBACK (show_locations), dlg);
-  g_signal_connect (dlg, "key-press-event", G_CALLBACK (key_pressed), NULL);
+  g_signal_connect_swapped (WIG ("locationsButton"), "clicked", G_CALLBACK (show_locations), self);
 
   /* Grab proxy for settings daemon */
   g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_NONE, NULL,
                             "org.gnome.SettingsDaemon.DateTimeMechanism",
                             "/",                            
                             "org.gnome.SettingsDaemon.DateTimeMechanism",
-                            NULL, proxy_ready, NULL);
+                            NULL, (GAsyncReadyCallback)proxy_ready, self);
 
   /* Grab proxy for datetime service, to see if it's running.  It would
      actually be more ideal to see if the indicator module itself is running,
@@ -725,56 +754,92 @@ create_dialog (void)
      us if there *was* a datetime module run this session. */
   g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION, G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START, NULL,
                             SERVICE_NAME, SERVICE_OBJ, SERVICE_IFACE,
-                            NULL, service_proxy_ready, WIG ("showClockCheck"));
+                            NULL, (GAsyncReadyCallback)service_proxy_ready,
+                            WIG ("showClockCheck"));
 
 #undef WIG
 
   g_object_unref (conf);
-  g_object_unref (builder);
 
-  return dlg;
+  gtk_widget_show_all (panel);
+  gtk_container_add (GTK_CONTAINER (self), panel);
 }
 
-static UniqueResponse
-message_received (UniqueApp * app, gint command, UniqueMessageData *message_data,
-                  guint time, gpointer user_data)
+static void
+indicator_datetime_panel_dispose (GObject * object)
 {
-  if (command == UNIQUE_ACTIVATE) {
-    gtk_window_present_with_time (GTK_WINDOW (user_data), time);
-    return UNIQUE_RESPONSE_OK;
+  IndicatorDatetimePanel * self = (IndicatorDatetimePanel *) object;
+
+  if (self->priv->builder) {
+    g_object_unref (self->priv->builder);
+    self->priv->builder = NULL;
   }
-  return UNIQUE_RESPONSE_PASSTHROUGH;
+
+  if (self->priv->proxy) {
+    g_object_unref (self->priv->proxy);
+    self->priv->proxy = NULL;
+  }
+
+  if (self->priv->loc_dlg) {
+    gtk_widget_destroy (self->priv->loc_dlg);
+    self->priv->loc_dlg = NULL;
+  }
+
+  if (self->priv->save_time_id) {
+    g_source_remove (self->priv->save_time_id);
+    self->priv->save_time_id = 0;
+  }
+
+  if (self->priv->completion) {
+    timezone_completion_watch_entry (self->priv->completion, NULL);
+    g_object_unref (self->priv->completion);
+    self->priv->completion = NULL;
+  }
+
+  if (self->priv->tz_entry) {
+    gtk_widget_destroy (self->priv->tz_entry);
+    self->priv->tz_entry = NULL;
+  }
+
+  if (self->priv->time_spin) {
+    gtk_widget_destroy (self->priv->time_spin);
+    self->priv->time_spin = NULL;
+  }
+
+  if (self->priv->date_spin) {
+    gtk_widget_destroy (self->priv->date_spin);
+    self->priv->date_spin = NULL;
+  }
 }
 
-int
-main (int argc, char ** argv)
+static void
+indicator_datetime_panel_class_finalize (IndicatorDatetimePanelClass *klass)
 {
-  g_type_init ();
+}
 
-  /* Setting up i18n and gettext.  Apparently, we need
-     all of these. */
-  setlocale (LC_ALL, "");
+static void
+indicator_datetime_panel_class_init (IndicatorDatetimePanelClass *klass)
+{
+  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+  g_type_class_add_private (klass, sizeof (IndicatorDatetimePanelPrivate));
+
+  gobject_class->dispose = indicator_datetime_panel_dispose;
+}
+
+void
+g_io_module_load (GIOModule *module)
+{
   bindtextdomain (GETTEXT_PACKAGE, GNOMELOCALEDIR);
-  textdomain (GETTEXT_PACKAGE);
+  bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 
-  gtk_init (&argc, &argv);
-
-  UniqueApp * app = unique_app_new ("com.canonical.indicator.datetime.preferences", NULL);
-
-  if (unique_app_is_running (app)) {
-    unique_app_send_message (app, UNIQUE_ACTIVATE, NULL);
-  } else {
-    // We're first instance.  Yay!
-    GtkWidget * dlg = create_dialog ();
-
-    g_signal_connect (app, "message-received", G_CALLBACK(message_received), dlg);
-    unique_app_watch_window (app, GTK_WINDOW (dlg));
-
-    gtk_widget_show_all (dlg);
-    g_signal_connect (dlg, "destroy", G_CALLBACK(gtk_main_quit), NULL);
-    gtk_main ();
-  }
-
-  return 0;
+  indicator_datetime_panel_register_type (G_TYPE_MODULE (module));
+  g_io_extension_point_implement (CC_SHELL_PANEL_EXTENSION_POINT,
+                                  INDICATOR_DATETIME_TYPE_PANEL,
+                                  "indicator-datetime", 0);
 }
 
+void
+g_io_module_unload (GIOModule *module)
+{
+}

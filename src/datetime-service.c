@@ -1024,13 +1024,13 @@ check_for_timeadmin (gpointer user_data)
 {
 	g_return_val_if_fail (settings != NULL, FALSE);
 
-	gchar * timeadmin = g_find_program_in_path("indicator-datetime-preferences");
+	gchar * timeadmin = g_find_program_in_path("gnome-control-center");
 	if (timeadmin != NULL) {
-		g_debug("Found the indicator-datetime-preferences application: %s", timeadmin);
+		g_debug("Found the gnome-control-center application: %s", timeadmin);
 		dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		g_free(timeadmin);
 	} else {
-		g_debug("Unable to find indicator-datetime-preferences app.");
+		g_debug("Unable to find gnome-control-center app.");
 		dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 	}
 
@@ -1113,7 +1113,7 @@ build_menus (DbusmenuMenuitem * root)
 	dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Time & Date Settings..."));
 	/* insensitive until we check for available apps */
 	dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-	g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "indicator-datetime-preferences");
+	g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "gnome-control-center indicator-datetime");
 	dbusmenu_menuitem_child_append(root, settings);
 	g_idle_add(check_for_timeadmin, NULL);
 

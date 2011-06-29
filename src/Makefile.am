@@ -1,5 +1,7 @@
 
-bin_PROGRAMS = indicator-datetime-preferences
+ccpaneldir = $(CCPANELDIR)
+ccpanel_LTLIBRARIES = libindicator-datetime.la
+
 libexec_PROGRAMS = indicator-datetime-service
 
 indicator_datetime_service_SOURCES = \
@@ -42,7 +44,7 @@ libdatetime_la_LDFLAGS = \
 	-module \
 	-avoid-version
 
-indicator_datetime_preferences_SOURCES =\
+libindicator_datetime_la_SOURCES =\
 	datetime-prefs.c \
 	datetime-prefs-locations.c \
 	datetime-prefs-locations.h \
@@ -51,16 +53,17 @@ indicator_datetime_preferences_SOURCES =\
 	utils.c \
 	utils.h \
 	settings-shared.h
-indicator_datetime_preferences_CFLAGS = \
+libindicator_datetime_la_CFLAGS = \
 	-Wall \
 	-Werror \
 	-I$(top_srcdir)/libmap \
 	$(PREF_CFLAGS) \
 	-DTIMEZONE_FILE="\"/etc/timezone\"" \
 	-DPKGDATADIR="\"$(pkgdatadir)\""
-indicator_datetime_preferences_LDADD = \
+libindicator_datetime_la_LIBADD = \
 	 $(top_builddir)/libmap/libmap.la \
 	$(PREF_LIBS)
+libindicator_datetime_la_LDFLAGS = -module -avoid-version
 
 gen-%.xml.c: %.xml
 	@echo "Building $@ from $<"
