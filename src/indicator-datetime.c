@@ -41,9 +41,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libindicator/indicator-service-manager.h>
 
 /* DBusMenu */
-#include <libdbusmenu-gtk/menu.h>
+#include <libdbusmenu-gtk3/menu.h>
 #include <libido/libido.h>
-#include <libdbusmenu-gtk/menuitem.h>
+#include <libdbusmenu-gtk3/menuitem.h>
 
 #include "utils.h"
 #include "dbus-shared.h"
@@ -761,11 +761,18 @@ set_label_to_time_in_zone (IndicatorDatetime * self, GtkLabel * label,
                            GTimeZone * tz, const gchar * format,
                            GDateTime ** datetime)
 {
+	gboolean unref_tz = FALSE;
+	if (tz == NULL) {
+		gchar * zone = read_timezone ();
+		if (zone == NULL)
+			return;
+		tz = g_time_zone_new(zone);
+		unref_tz = TRUE;
+		g_free (zone);
+	}
+
 	GDateTime * datetime_now;
-	if (tz == NULL)
-		datetime_now = g_date_time_new_now_local();
-	else
-		datetime_now = g_date_time_new_now(tz);
+	datetime_now = g_date_time_new_now(tz);
 
 	gchar * timestr;
 	if (format == NULL) {
@@ -792,6 +799,9 @@ set_label_to_time_in_zone (IndicatorDatetime * self, GtkLabel * label,
 		*datetime = datetime_now;
 	else
 		g_date_time_unref(datetime_now);
+
+	if (unref_tz)
+		g_time_zone_unref(tz);
 
 	return;
 }
