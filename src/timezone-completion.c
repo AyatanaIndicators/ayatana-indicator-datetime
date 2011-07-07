@@ -492,21 +492,26 @@ timezone_completion_watch_entry (TimezoneCompletion * completion, GtkEntry * ent
   }
   if (priv->entry) {
     g_signal_handler_disconnect (priv->entry, priv->changed_id);
+    priv->changed_id = 0;
     g_signal_handler_disconnect (priv->entry, priv->keypress_id);
+    priv->keypress_id = 0;
     g_object_remove_weak_pointer (G_OBJECT (priv->entry), (gpointer *)&priv->entry);
     gtk_entry_set_completion (priv->entry, NULL);
   }
 
-  guint id = g_signal_connect (entry, "changed", G_CALLBACK (entry_changed), completion);
-  priv->changed_id = id;
-
-  id = g_signal_connect (entry, "key-press-event", G_CALLBACK (entry_keypress), completion);
-  priv->keypress_id = id;
-
   priv->entry = entry;
-  g_object_add_weak_pointer (G_OBJECT (entry), (gpointer *)&priv->entry);
 
-  gtk_entry_set_completion (entry, GTK_ENTRY_COMPLETION (completion));
+  if (entry) {
+    guint id = g_signal_connect (entry, "changed", G_CALLBACK (entry_changed), completion);
+    priv->changed_id = id;
+
+    id = g_signal_connect (entry, "key-press-event", G_CALLBACK (entry_keypress), completion);
+    priv->keypress_id = id;
+
+    g_object_add_weak_pointer (G_OBJECT (entry), (gpointer *)&priv->entry);
+
+    gtk_entry_set_completion (entry, GTK_ENTRY_COMPLETION (completion));
+  }
 }
 
 static GtkListStore *
@@ -640,7 +645,9 @@ timezone_completion_dispose (GObject * object)
   }
 
   if (priv->entry != NULL) {
+    gtk_entry_set_completion (priv->entry, NULL);
     g_object_remove_weak_pointer (G_OBJECT (priv->entry), (gpointer *)&priv->entry);
+    priv->entry = NULL;
   }
 
   if (priv->initial_model != NULL) {

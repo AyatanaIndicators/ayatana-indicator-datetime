@@ -102,6 +102,7 @@ PKG_CHECK_MODULES(PREF, gio-2.0 >= $GIO_REQUIRED_VERSION
 	                      gtk+-3.0 >= $GTK3_REQUIRED_VERSION
 	                      unique-3.0
 	                      json-glib-1.0
+	                      libgnome-control-center
 	                      polkit-gobject-1)
 
 PKG_CHECK_MODULES(LIBMAP, gio-2.0 >= $GIO_REQUIRED_VERSION
@@ -154,6 +155,20 @@ AS_IF([test "x$with_localinstall" = "xyes"],
 
 AC_SUBST(INDICATORDIR)
 AC_SUBST(INDICATORICONSDIR)
+
+###########################
+# Control Center Info
+###########################
+
+AS_IF([test "x$with_localinstall" = "xyes"],
+	[
+	CCPANELDIR="${libdir}/control-center-1/panels/"
+	],
+	[
+	CCPANELDIR=`$PKG_CONFIG --variable=extensiondir libgnome-control-center`
+	])
+
+AC_SUBST(CCPANELDIR)
 
 ###########################
 # DBus Service Info
@@ -216,4 +231,5 @@ Date and Time Indicator Configuration:
 
 	Prefix:        $prefix
 	Indicator Dir: $INDICATORDIR
+	CC Panel Dir:  $CCPANELDIR
 ])
