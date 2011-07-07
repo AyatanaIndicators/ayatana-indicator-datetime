@@ -41,9 +41,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libindicator/indicator-service-manager.h>
 
 /* DBusMenu */
-#include <libdbusmenu-gtk/menu.h>
+#include <libdbusmenu-gtk3/menu.h>
 #include <libido/libido.h>
-#include <libdbusmenu-gtk/menuitem.h>
+#include <libdbusmenu-gtk3/menuitem.h>
 
 #include "utils.h"
 #include "dbus-shared.h"
