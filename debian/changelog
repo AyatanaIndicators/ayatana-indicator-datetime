@@ -1,4 +1,4 @@
-indicator-datetime (0.2.91-0ubuntu1~ppa1) UNRELEASED; urgency=low
+indicator-datetime (0.2.91-0ubuntu1~ppa1) oneiric; urgency=low
 
   * New upstream release.
     * libindicator 0.4 transition
@@ -7,7 +7,7 @@ indicator-datetime (0.2.91-0ubuntu1~ppa1) UNRELEASED; urgency=low
     * Fixing timezone setting with new gsd
   * Dropped debian/patches/fix-timezones.patch: merged upstream
 
- -- Ted Gould <ted@ubuntu.com>  Thu, 07 Jul 2011 16:24:21 -0500
+ -- Ted Gould <ted@ubuntu.com>  Thu, 07 Jul 2011 16:26:11 -0500
 
 indicator-datetime (0.2.90-0ubuntu4) oneiric; urgency=low
 
