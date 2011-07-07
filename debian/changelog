@@ -1,5 +1,32 @@
-indicator-datetime (0.2.90-0ubuntu1~ppa1) oneiric; urgency=low
+indicator-datetime (0.2.90-0ubuntu4) oneiric; urgency=low
 
+  * No change rebuild to fix badly packaged diff.gz from last time
+
+ -- Michael Terry <mterry@ubuntu.com>  Tue, 28 Jun 2011 17:55:25 +0100
+
+indicator-datetime (0.2.90-0ubuntu3) oneiric; urgency=low
+
+  * debian/rules, debian/control:
+    - Arg, this wasn't source format 3.0, so add quilt so that the patch
+      applies.
+
+ -- Michael Terry <mterry@ubuntu.com>  Tue, 28 Jun 2011 17:05:59 +0100
+
+indicator-datetime (0.2.90-0ubuntu2) oneiric; urgency=low
+
+  * debian/control:
+    - Drop -gtk2 recommends for the gtk3 indicator
+  * debian/rules:
+    - Use dh-autoreconf
+  * debian/patches/fix-timezones.patch:
+    - Add patch to handle g-s-d DBus API change for timezones and to
+      be more robust about querying what the current timezone is
+
+ -- Michael Terry <mterry@ubuntu.com>  Tue, 28 Jun 2011 15:42:39 +0100
+
+indicator-datetime (0.2.90-0ubuntu1) oneiric; urgency=low
+
+  [ Ted Gould ]
   * New upstream release.
     - Set minimum width for appointments to prevent continuous resizing 
       when the calendar is hiden and ensure there is enough of the 
@@ -10,7 +37,18 @@ indicator-datetime (0.2.90-0ubuntu1~ppa1) oneiric; urgency=low
     as merged upstream.
   * debian/control: Switching dep to libedataserverui-3.0-dev
 
- -- Ted Gould <ted@ubuntu.com>  Tue, 21 Jun 2011 14:29:24 -0500
+  [ Ken VanDine ]
+  * debian/control
+    - Bumped standards version to 3.9.2
+    - Add new binary for indicator-datetime-gtk2 
+    - Make indicator-datetime recommend indicator-datetime-gtk2 (until unity 
+      can load gtk3 indicators)
+    - indicator-datetime-gtk2 replaces indicator-datetime << 0.2.90
+    - Added build depends for libdbusmenu-gtk3-dev and libindicator3-dev
+  * debian/rules
+    - build for both gtk2 and gtk3
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Wed, 22 Jun 2011 11:46:55 -0400
 
 indicator-datetime (0.2.3-0ubuntu3) natty; urgency=low
 
