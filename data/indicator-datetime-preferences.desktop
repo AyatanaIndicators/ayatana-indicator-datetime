@@ -4,11 +4,13 @@ Version=1.0
 Name=Time & Date
 Comment=Change your clock and date settings
 
-Icon=time-admin
-TryExec=indicator-datetime-preferences
-Exec=indicator-datetime-preferences
+Icon=preferences-system-time
+TryExec=gnome-control-center
+Exec=gnome-control-center indicator-datetime
 
 StartupNotify=true
 
 Type=Application
-Categories=GNOME;GTK;Utility;DesktopSettings;Settings;
+Categories=GNOME;GTK;Utility;DesktopSettings;Settings;X-GNOME-SystemSettings;X-GNOME-Settings-Panel;
+X-GNOME-Settings-Panel=indicator-datetime
+OnlyShowIn=Unity;
