@@ -30,7 +30,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include <gconf/gconf-client.h>
 
-#include <libdbusmenu-gtk/menuitem.h>
+#include <libdbusmenu-gtk3/menuitem.h>
 #include <libdbusmenu-glib/server.h>
 #include <libdbusmenu-glib/client.h>
 #include <libdbusmenu-glib/menuitem.h>
@@ -221,29 +221,15 @@ update_current_timezone (void) {
 		current_timezone = NULL;
 	}
 
-	GError * error = NULL;
-	gchar * tempzone = NULL;
-	if (!g_file_get_contents(TIMEZONE_FILE, &tempzone, NULL, &error)) {
-		g_warning("Unable to read timezone file '" TIMEZONE_FILE "': %s", error->message);
-		g_error_free(error);
+	current_timezone = read_timezone ();
+	if (current_timezone == NULL) {
 		return;
 	}
-
-	/* This shouldn't happen, so let's make it a big boom! */
-	g_return_if_fail(tempzone != NULL);
-
-	/* Note: this really makes sense as strstrip works in place
-	   so we end up with something a little odd without the dup
-	   so we have the dup to make sure everything is as expected
-	   for everyone else. */
-	current_timezone = g_strdup(g_strstrip(tempzone));
-	g_free(tempzone);
 
 	g_debug("System timezone is: %s", current_timezone);
 
 	check_timezone_sync();
 
-    if (error != NULL) g_error_free(error);
 	return;
 }
 
@@ -276,10 +262,8 @@ quick_set_tz_proxy_cb (GObject *object, GAsyncResult *res, gpointer zone)
 		return;
 	}
 
-	gchar * file = g_build_filename ("/usr/share/zoneinfo", (char *)zone, NULL);
-	g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", file),
+	g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", zone),
 	                   G_DBUS_CALL_FLAGS_NONE, -1, NULL, quick_set_tz_cb, NULL);
-	g_free (file);
 	g_free (zone);
 	g_object_unref (proxy);
 }
@@ -1040,13 +1024,13 @@ check_for_timeadmin (gpointer user_data)
 {
 	g_return_val_if_fail (settings != NULL, FALSE);
 
-	gchar * timeadmin = g_find_program_in_path("indicator-datetime-preferences");
+	gchar * timeadmin = g_find_program_in_path("gnome-control-center");
 	if (timeadmin != NULL) {
-		g_debug("Found the indicator-datetime-preferences application: %s", timeadmin);
+		g_debug("Found the gnome-control-center application: %s", timeadmin);
 		dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		g_free(timeadmin);
 	} else {
-		g_debug("Unable to find indicator-datetime-preferences app.");
+		g_debug("Unable to find gnome-control-center app.");
 		dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 	}
 
@@ -1129,7 +1113,7 @@ build_menus (DbusmenuMenuitem * root)
 	dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Time & Date Settings..."));
 	/* insensitive until we check for available apps */
 	dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-	g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "indicator-datetime-preferences");
+	g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "gnome-control-center indicator-datetime");
 	dbusmenu_menuitem_child_append(root, settings);
 	g_idle_add(check_for_timeadmin, NULL);
 

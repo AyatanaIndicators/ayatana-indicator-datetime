@@ -1,11 +1,11 @@
 
-AC_INIT(indicator-datetime, 0.2.90, ted@canonical.com)
+AC_INIT(indicator-datetime, 0.2.91, ted@canonical.com)
 AC_COPYRIGHT([Copyright 2009,2010 Canonical])
 
 AC_PREREQ(2.53)
 
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(indicator-datetime, 0.2.90)
+AM_INIT_AUTOMAKE(indicator-datetime, 0.2.91)
 
 AM_MAINTAINER_MODE
 
@@ -67,14 +67,14 @@ GTK3_REQUIRED_VERSION=3.1.4
 GCONF_REQUIRED_VERSION=2.31
 
 AS_IF([test "x$with_gtk" = x3],
-    [PKG_CHECK_MODULES(INDICATOR, indicator3 >= $INDICATOR_REQUIRED_VERSION
+    [PKG_CHECK_MODULES(INDICATOR, indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
                                   glib-2.0 >= $GLIB_REQUIRED_VERSION
                                   dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
                                   dbusmenu-gtk3-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
                                   libido3-0.1 >= $INDICATOR_DISPLAY_OBJECTS)
         ],
       [test "x$with_gtk" = x2],
-    [PKG_CHECK_MODULES(INDICATOR, indicator >= $INDICATOR_REQUIRED_VERSION
+    [PKG_CHECK_MODULES(INDICATOR, indicator-0.4 >= $INDICATOR_REQUIRED_VERSION
                                   glib-2.0 >= $GLIB_REQUIRED_VERSION
                                   dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
                                   dbusmenu-gtk-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
@@ -83,7 +83,7 @@ AS_IF([test "x$with_gtk" = x3],
     [AC_MSG_FAILURE([Value for --with-gtk was neither 2 nor 3])]
 )
 
-PKG_CHECK_MODULES(SERVICE, indicator3 >= $INDICATOR_REQUIRED_VERSION
+PKG_CHECK_MODULES(SERVICE, indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
                            glib-2.0 >= $GLIB_REQUIRED_VERSION
                            dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
                            dbusmenu-gtk3-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
@@ -102,6 +102,7 @@ PKG_CHECK_MODULES(PREF, gio-2.0 >= $GIO_REQUIRED_VERSION
 	                      gtk+-3.0 >= $GTK3_REQUIRED_VERSION
 	                      unique-3.0
 	                      json-glib-1.0
+	                      libgnome-control-center
 	                      polkit-gobject-1)
 
 PKG_CHECK_MODULES(LIBMAP, gio-2.0 >= $GIO_REQUIRED_VERSION
@@ -144,16 +145,30 @@ AS_IF([test "x$with_localinstall" = "xyes"],
 	],
 	[AS_IF([test "x$with_gtk" = "x2"],
 		[
-		INDICATORDIR=`$PKG_CONFIG --variable=indicatordir indicator`
-		INDICATORICONSDIR=`$PKG_CONFIG --variable=iconsdir indicator`
+		INDICATORDIR=`$PKG_CONFIG --variable=indicatordir indicator-0.4`
+		INDICATORICONSDIR=`$PKG_CONFIG --variable=iconsdir indicator-0.4`
 		],
 		[
-		INDICATORDIR=`$PKG_CONFIG --variable=indicatordir indicator3`
-		INDICATORICONSDIR=`$PKG_CONFIG --variable=iconsdir indicator3`
+		INDICATORDIR=`$PKG_CONFIG --variable=indicatordir indicator3-0.4`
+		INDICATORICONSDIR=`$PKG_CONFIG --variable=iconsdir indicator3-0.4`
 		])])
 
 AC_SUBST(INDICATORDIR)
 AC_SUBST(INDICATORICONSDIR)
+
+###########################
+# Control Center Info
+###########################
+
+AS_IF([test "x$with_localinstall" = "xyes"],
+	[
+	CCPANELDIR="${libdir}/control-center-1/panels/"
+	],
+	[
+	CCPANELDIR=`$PKG_CONFIG --variable=extensiondir libgnome-control-center`
+	])
+
+AC_SUBST(CCPANELDIR)
 
 ###########################
 # DBus Service Info
@@ -216,4 +231,5 @@ Date and Time Indicator Configuration:
 
 	Prefix:        $prefix
 	Indicator Dir: $INDICATORDIR
+	CC Panel Dir:  $CCPANELDIR
 ])

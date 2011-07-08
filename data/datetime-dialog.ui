@@ -134,13 +134,9 @@
     <property name="step_increment">60</property>
     <property name="page_increment">3600</property>
   </object>
-  <object class="GtkWindow" id="timeDateDialog">
+  <object class="GtkEventBox" id="timeDatePanel">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
-    <property name="title" translatable="yes">Time &amp; Date</property>
-    <property name="resizable">False</property>
-    <property name="icon_name">time-admin</property>
-    <property name="type_hint">dialog</property>
     <child>
       <object class="GtkNotebook" id="notebook1">
         <property name="visible">True</property>
