@@ -1,5 +1,6 @@
-indicator-datetime (0.2.91-0ubuntu1~ppa1) oneiric; urgency=low
+indicator-datetime (0.2.91-0ubuntu1) oneiric; urgency=low
 
+  [ Ted Gould ]
   * New upstream release.
     * libindicator 0.4 transition
     * Making preferences a gnome-control-center plugin
@@ -7,7 +8,13 @@ indicator-datetime (0.2.91-0ubuntu1~ppa1) oneiric; urgency=low
     * Fixing timezone setting with new gsd
   * Dropped debian/patches/fix-timezones.patch: merged upstream
 
- -- Ted Gould <ted@ubuntu.com>  Thu, 07 Jul 2011 16:26:11 -0500
+  [ Ken VanDine ]
+  * debian/control
+    - Bumped build depends for libindicator to >= 0.3.90
+    - Added build depends on libgnome-control-center-dev
+    - Added depends for gnome-control-center
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Fri, 08 Jul 2011 09:38:50 -0400
 
 indicator-datetime (0.2.90-0ubuntu4) oneiric; urgency=low
 
