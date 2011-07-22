@@ -1,27 +1,31 @@
-
-AC_INIT(indicator-datetime, 0.2.91, ted@canonical.com)
+AC_INIT([indicator-datetime],
+        [0.2.91],
+        [http://bugs.launchpad.net/indicator-datetime],
+        [indicator-datetime],
+        [http://launchpad.net/indicator-datetime])
 AC_COPYRIGHT([Copyright 2009,2010 Canonical])
 
-AC_PREREQ(2.53)
+AC_PREREQ([2.64])
 
-AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(indicator-datetime, 0.2.91)
+AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_SRCDIR([configure.ac])
+AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_AUX_DIR([build-aux])
 
-AM_MAINTAINER_MODE
+AM_INIT_AUTOMAKE([1.11 -Wall dist-xz])
+AM_MAINTAINER_MODE([enable])
 
-IT_PROG_INTLTOOL([0.35.0])
+AM_SILENT_RULES([yes])
 
-AC_ISC_POSIX
+# Check for programs
 AC_PROG_CC
 AM_PROG_CC_C_O
-AC_STDC_HEADERS
-AC_DISABLE_STATIC
-AC_PROG_LIBTOOL
+AC_HEADER_STDC
 
-AC_SUBST(VERSION)
-AC_CONFIG_MACRO_DIR([m4])
+# Initialize libtool
+LT_PREREQ([2.2])
+LT_INIT([disable-static])
 
-m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
 AC_ARG_ENABLE([deprecations],
   [AS_HELP_STRING([--enable-deprecations],
@@ -108,19 +112,6 @@ PKG_CHECK_MODULES(PREF, gio-2.0 >= $GIO_REQUIRED_VERSION
 PKG_CHECK_MODULES(LIBMAP, gio-2.0 >= $GIO_REQUIRED_VERSION
                           gtk+-3.0 >= $GTK3_REQUIRED_VERSION)
 
-AC_SUBST(INDICATOR_CFLAGS)
-AC_SUBST(INDICATOR_LIBS)
-
-AC_SUBST(SERVICE_CFLAGS)
-AC_SUBST(SERVICE_LIBS)
-
-AC_SUBST(PREF_CFLAGS)
-AC_SUBST(PREF_LIBS)
-
-AC_SUBST(LIBMAP_CFLAGS)
-AC_SUBST(LIBMAP_LIBS)
-AC_SUBST(LIBMAP_LDFLAGS)
-
 ###########################
 # Grab the GSettings Macros
 ###########################
@@ -200,6 +191,7 @@ AC_DEFUN([AC_DEFINE_PATH], [
 ###########################
 # Internationalization
 ###########################
+IT_PROG_INTLTOOL([0.41.0])
 
 GETTEXT_PACKAGE=indicator-datetime
 AC_SUBST(GETTEXT_PACKAGE)
@@ -212,7 +204,7 @@ AM_GLIB_GNU_GETTEXT
 # Files
 ###########################
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 Makefile
 libmap/Makefile
 src/Makefile
@@ -220,6 +212,7 @@ data/Makefile
 tests/Makefile
 po/Makefile.in
 ])
+AC_OUTPUT
 
 ###########################
 # Results
