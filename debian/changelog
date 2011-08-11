@@ -1,10 +1,10 @@
-indicator-datetime (0.2.92-0ubuntu1~ppa1) UNRELEASED; urgency=low
+indicator-datetime (0.2.92-0ubuntu1~ppa1) oneiric; urgency=low
 
   * New upstream release.
     * Adding in a new greeter mode
     * Fixing autotools
 
- -- Ted Gould <ted@ubuntu.com>  Thu, 11 Aug 2011 11:28:17 -0500
+ -- Ted Gould <ted@ubuntu.com>  Thu, 11 Aug 2011 11:30:50 -0500
 
 indicator-datetime (0.2.91-0ubuntu2) oneiric; urgency=low
 
