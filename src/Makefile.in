@@ -39,10 +39,13 @@ libexec_PROGRAMS = indicator-datetime-service$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/intltool.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
+	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
+	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+mkinstalldirs = $(SHELL) $(top_srcdir)/build-aux/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
@@ -110,7 +113,7 @@ indicator_datetime_service_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(indicator_datetime_service_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
-depcomp = $(SHELL) $(top_srcdir)/depcomp
+depcomp = $(SHELL) $(top_srcdir)/build-aux/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
@@ -202,7 +205,6 @@ INTLTOOL_UPDATE = @INTLTOOL_UPDATE@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBMAP_CFLAGS = @LIBMAP_CFLAGS@
-LIBMAP_LDFLAGS = @LIBMAP_LDFLAGS@
 LIBMAP_LIBS = @LIBMAP_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@

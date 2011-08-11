@@ -829,11 +829,13 @@ update_label (IndicatorDatetime * io, GDateTime ** datetime)
 static void
 update_time (IndicatorDatetime * self)
 {
-	GDateTime * dt;
+	GDateTime * dt = NULL;
 	update_label(self, &dt);
 	timezone_update_all_labels(self);
-	setup_timer(self, dt);
-	g_date_time_unref(dt);
+	if (dt != NULL) {
+		setup_timer(self, dt);
+		g_date_time_unref(dt);
+  }
 	return;
 }
 
@@ -857,11 +859,13 @@ timer_func (gpointer user_data)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
 	self->priv->timer = 0;
-	GDateTime * dt;
+	GDateTime * dt = NULL;
 	update_label(self, &dt);
 	timezone_update_all_labels(self);
-	setup_timer(self, dt);
-	g_date_time_unref(dt);
+	if (dt != NULL) {
+		setup_timer(self, dt);
+		g_date_time_unref(dt);
+  }
 	return FALSE;
 }
 
