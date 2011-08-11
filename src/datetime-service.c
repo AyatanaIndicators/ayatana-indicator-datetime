@@ -60,6 +60,7 @@ static gboolean update_timezone_menu_items(gpointer user_data);
 static void setup_timer (void);
 static void geo_client_invalid (GeoclueMasterClient * client, gpointer user_data);
 static void geo_address_change (GeoclueMasterClient * client, gchar * a, gchar * b, gchar * c, gchar * d, gpointer user_data);
+static gboolean get_greeter_mode (void);
 
 static IndicatorService * service = NULL;
 static GMainLoop * mainloop = NULL;
@@ -533,6 +534,10 @@ check_for_calendar (gpointer user_data)
 static gboolean
 update_timezone_menu_items(gpointer user_data) {
 	g_debug("Updating timezone menu items");
+
+	if (locations_separator == NULL || current_location == NULL) {
+		return FALSE;
+	}
 
 	gchar ** locations = g_settings_get_strv(conf, SETTINGS_LOCATIONS_S);
 
@@ -1077,45 +1082,47 @@ build_menus (DbusmenuMenuitem * root)
 
 		g_idle_add(check_for_calendar, NULL);
 	}
+
+	if (!get_greeter_mode ()) {
+		locations_separator = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set(locations_separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
+		dbusmenu_menuitem_property_set_bool (locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		dbusmenu_menuitem_child_append(root, locations_separator);
+
+		geo_location = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set      (geo_location, DBUSMENU_MENUITEM_PROP_TYPE, TIMEZONE_MENUITEM_TYPE);
+		set_current_timezone_label (geo_location, "");
+		dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+		dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+		g_signal_connect(G_OBJECT(geo_location), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
+		dbusmenu_menuitem_child_append(root, geo_location);
+
+		current_location = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set      (current_location, DBUSMENU_MENUITEM_PROP_TYPE, TIMEZONE_MENUITEM_TYPE);
+		set_current_timezone_label (current_location, "");
+		dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+		dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		dbusmenu_menuitem_child_append(root, current_location);
 	
-	locations_separator = dbusmenu_menuitem_new();
-	dbusmenu_menuitem_property_set(locations_separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
-	dbusmenu_menuitem_property_set_bool (locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-	dbusmenu_menuitem_child_append(root, locations_separator);
-
-	geo_location = dbusmenu_menuitem_new();
-	dbusmenu_menuitem_property_set      (geo_location, DBUSMENU_MENUITEM_PROP_TYPE, TIMEZONE_MENUITEM_TYPE);
-	set_current_timezone_label (geo_location, "");
-	dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-	dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
-	g_signal_connect(G_OBJECT(geo_location), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
-	dbusmenu_menuitem_child_append(root, geo_location);
-
-	current_location = dbusmenu_menuitem_new();
-	dbusmenu_menuitem_property_set      (current_location, DBUSMENU_MENUITEM_PROP_TYPE, TIMEZONE_MENUITEM_TYPE);
-	set_current_timezone_label (current_location, "");
-	dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-	dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-	dbusmenu_menuitem_child_append(root, current_location);
+		check_timezone_sync();
 	
-	check_timezone_sync();
-	
-	g_signal_connect (conf, "changed::" SETTINGS_SHOW_LOCATIONS_S, G_CALLBACK (show_locations_changed), NULL);
-	g_signal_connect (conf, "changed::" SETTINGS_LOCATIONS_S, G_CALLBACK (show_locations_changed), NULL);
-	g_signal_connect (conf, "changed::" SETTINGS_SHOW_EVENTS_S, G_CALLBACK (show_events_changed), NULL);
-	g_signal_connect (conf, "changed::" SETTINGS_TIME_FORMAT_S, G_CALLBACK (time_format_changed), NULL);
+		g_signal_connect (conf, "changed::" SETTINGS_SHOW_LOCATIONS_S, G_CALLBACK (show_locations_changed), NULL);
+		g_signal_connect (conf, "changed::" SETTINGS_LOCATIONS_S, G_CALLBACK (show_locations_changed), NULL);
+		g_signal_connect (conf, "changed::" SETTINGS_SHOW_EVENTS_S, G_CALLBACK (show_events_changed), NULL);
+		g_signal_connect (conf, "changed::" SETTINGS_TIME_FORMAT_S, G_CALLBACK (time_format_changed), NULL);
 
-	DbusmenuMenuitem * separator = dbusmenu_menuitem_new();
-	dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
-	dbusmenu_menuitem_child_append(root, separator);
+		DbusmenuMenuitem * separator = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
+		dbusmenu_menuitem_child_append(root, separator);
 
-	settings = dbusmenu_menuitem_new();
-	dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Time & Date Settings..."));
-	/* insensitive until we check for available apps */
-	dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-	g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "gnome-control-center indicator-datetime");
-	dbusmenu_menuitem_child_append(root, settings);
-	g_idle_add(check_for_timeadmin, NULL);
+		settings = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Time & Date Settings..."));
+		/* insensitive until we check for available apps */
+		dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+		g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "gnome-control-center indicator-datetime");
+		dbusmenu_menuitem_child_append(root, settings);
+		g_idle_add(check_for_timeadmin, NULL);
+	}
 
 	return;
 }
@@ -1394,6 +1401,14 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 	g_signal_connect(G_OBJECT(client), "address-provider-changed", G_CALLBACK(geo_address_change), NULL);
 
 	return;
+}
+
+static gboolean
+get_greeter_mode (void)
+{
+  const gchar *var;
+  var = g_getenv("INDICATOR_GREETER_MODE");
+  return (g_strcmp0(var, "1") == 0);
 }
 
 /* Repsonds to the service object saying it's time to shutdown.
