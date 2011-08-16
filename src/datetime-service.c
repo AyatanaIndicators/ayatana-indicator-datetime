@@ -299,25 +299,25 @@ quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, gpointer user_data)
 static gboolean
 update_datetime (gpointer user_data)
 {
+	GDateTime *datetime;
+	gchar *utf8;
+
 	g_debug("Updating Date/Time");
 
-	gchar longstr[128];
-	time_t t;
-	struct tm *ltime;
-
-	t = time(NULL);
-	ltime = localtime(&t);
-	if (ltime == NULL) {
+	datetime = g_date_time_new_now_local ();
+	if (datetime == NULL) {
 		g_warning("Error getting local time");
 		dbusmenu_menuitem_property_set(date, DBUSMENU_MENUITEM_PROP_LABEL, _("Error getting time"));
+		g_date_time_unref (datetime);
 		return FALSE;
 	}
 
-	/* Translators: strftime(3) style date format on top of the menu when you click on the clock */
-	strftime(longstr, 128, _("%A, %e %B %Y"), ltime);
-	
-	gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
+	/* eranslators: strftime(3) style date format on top of the menu when you click on the clock */
+        utf8 = g_date_time_format (datetime, _("%A, %e %B %Y"));
+
 	dbusmenu_menuitem_property_set(date, DBUSMENU_MENUITEM_PROP_LABEL, utf8);
+
+	g_date_time_unref (datetime);
 	g_free(utf8);
 
 	return FALSE;
@@ -701,7 +701,7 @@ update_appointment_menu_items (gpointer user_data)
 
 	// Get today & work out query times
 	time(&curtime);
-  	struct tm *today = localtime(&curtime);
+	struct tm *today = localtime(&curtime);
 	const int mday = today->tm_mday;
 	const int mon = today->tm_mon;
 	const int year = today->tm_year;

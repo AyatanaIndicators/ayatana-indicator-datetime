@@ -270,6 +270,9 @@ static void
 menu_visible_notfy_cb(GtkWidget * menu, G_GNUC_UNUSED GParamSpec *pspec, gpointer user_data)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
+	GDateTime *datetime;
+	gint y, m, d;
+
 	g_debug("notify visible signal received");
 	
 	// we should only react if we're currently visible
@@ -277,18 +280,14 @@ menu_visible_notfy_cb(GtkWidget * menu, G_GNUC_UNUSED GParamSpec *pspec, gpointe
 	g_object_get(G_OBJECT(menu), "visible", &visible, NULL);
 	if (visible) return;
 	g_debug("notify visible menu hidden, resetting date");
-	
-	time_t curtime;
-	
-	time(&curtime);
-  	struct tm *today = localtime(&curtime);
-  	int y = today->tm_year;
-  	int m = today->tm_mon;
-  	int d = today->tm_mday;
-  	
+
+	datetime = g_date_time_new_now_local ();
+	g_date_time_get_ymd (datetime, &y, &m, &d);
+	g_date_time_unref (datetime);
+
   	// Set the calendar to todays date
-	ido_calendar_menu_item_set_date (self->priv->ido_calendar, y+1900, m, d);
-	
+	ido_calendar_menu_item_set_date (self->priv->ido_calendar, y, m, d);
+
 	// Make sure the day-selected signal is sent so the menu updates - may duplicate
 	/*GVariant *variant = g_variant_new_uint32((guint)curtime);
 	guint timestamp = (guint)time(NULL);
