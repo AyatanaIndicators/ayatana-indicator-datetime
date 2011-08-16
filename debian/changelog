@@ -1,4 +1,4 @@
-indicator-datetime (0.2.92-0ubuntu1) UNRELEASED; urgency=low
+indicator-datetime (0.2.92-0ubuntu1) oneiric; urgency=low
 
   * New upstream release.
     * Adding in a new greeter mode
