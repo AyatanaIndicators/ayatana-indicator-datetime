@@ -478,7 +478,7 @@ format_time_text (GtkWidget * spinner, gpointer user_data)
     }
   }
   else {
-    format = "%Y-%m-%d";
+    format = "%x";
   }
 
   GDateTime * datetime = g_date_time_new_from_unix_local (gtk_spin_button_get_value (GTK_SPIN_BUTTON (spinner)));
