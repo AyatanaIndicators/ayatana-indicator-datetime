@@ -286,7 +286,7 @@ menu_visible_notfy_cb(GtkWidget * menu, G_GNUC_UNUSED GParamSpec *pspec, gpointe
 	g_date_time_unref (datetime);
 
   	// Set the calendar to todays date
-	ido_calendar_menu_item_set_date (self->priv->ido_calendar, y, m, d);
+	ido_calendar_menu_item_set_date (self->priv->ido_calendar, y, m-1, d);
 
 	// Make sure the day-selected signal is sent so the menu updates - may duplicate
 	/*GVariant *variant = g_variant_new_uint32((guint)curtime);
