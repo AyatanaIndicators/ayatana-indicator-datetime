@@ -1,4 +1,4 @@
-indicator-datetime (0.2.93-0ubuntu1~ppa1) oneiric; urgency=low
+indicator-datetime (0.2.93-0ubuntu1) oneiric; urgency=low
 
   * New upstream release.
     ∘ Use cleaner GDateTime API
