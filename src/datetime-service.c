@@ -299,25 +299,25 @@ quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, gpointer user_data)
 static gboolean
 update_datetime (gpointer user_data)
 {
+	GDateTime *datetime;
+	gchar *utf8;
+
 	g_debug("Updating Date/Time");
 
-	gchar longstr[128];
-	time_t t;
-	struct tm *ltime;
-
-	t = time(NULL);
-	ltime = localtime(&t);
-	if (ltime == NULL) {
+	datetime = g_date_time_new_now_local ();
+	if (datetime == NULL) {
 		g_warning("Error getting local time");
 		dbusmenu_menuitem_property_set(date, DBUSMENU_MENUITEM_PROP_LABEL, _("Error getting time"));
+		g_date_time_unref (datetime);
 		return FALSE;
 	}
 
-	/* Translators: strftime(3) style date format on top of the menu when you click on the clock */
-	strftime(longstr, 128, _("%A, %e %B %Y"), ltime);
-	
-	gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
+	/* eranslators: strftime(3) style date format on top of the menu when you click on the clock */
+        utf8 = g_date_time_format (datetime, _("%A, %e %B %Y"));
+
 	dbusmenu_menuitem_property_set(date, DBUSMENU_MENUITEM_PROP_LABEL, utf8);
+
+	g_date_time_unref (datetime);
 	g_free(utf8);
 
 	return FALSE;
@@ -492,7 +492,7 @@ check_for_calendar (gpointer user_data)
 		dbusmenu_menuitem_property_set(events_separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
 		dbusmenu_menuitem_child_add_position(root, events_separator, 2);
 		add_appointment = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set (add_appointment, DBUSMENU_MENUITEM_PROP_LABEL, _("Add Event..."));
+		dbusmenu_menuitem_property_set (add_appointment, DBUSMENU_MENUITEM_PROP_LABEL, _("Add Event…"));
 		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		g_signal_connect(G_OBJECT(add_appointment), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "evolution -c calendar");
 		dbusmenu_menuitem_child_add_position (root, add_appointment, 3);
@@ -701,7 +701,7 @@ update_appointment_menu_items (gpointer user_data)
 
 	// Get today & work out query times
 	time(&curtime);
-  	struct tm *today = localtime(&curtime);
+	struct tm *today = localtime(&curtime);
 	const int mday = today->tm_mday;
 	const int mon = today->tm_mon;
 	const int year = today->tm_year;
@@ -1064,7 +1064,7 @@ build_menus (DbusmenuMenuitem * root)
 	g_debug("Building Menus.");
 	if (date == NULL) {
 		date = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set     (date, DBUSMENU_MENUITEM_PROP_LABEL, _("No date yet..."));
+		dbusmenu_menuitem_property_set     (date, DBUSMENU_MENUITEM_PROP_LABEL, _("No date yet…"));
 		dbusmenu_menuitem_property_set_bool(date, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 		dbusmenu_menuitem_child_append(root, date);
 
@@ -1116,7 +1116,7 @@ build_menus (DbusmenuMenuitem * root)
 		dbusmenu_menuitem_child_append(root, separator);
 
 		settings = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Time & Date Settings..."));
+		dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Time & Date Settings…"));
 		/* insensitive until we check for available apps */
 		dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 		g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "gnome-control-center indicator-datetime");
