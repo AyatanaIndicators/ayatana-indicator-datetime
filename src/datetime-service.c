@@ -482,7 +482,7 @@ check_for_calendar (gpointer user_data)
 	dbusmenu_menuitem_property_set_bool(date, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 	
 	gchar *evo = g_find_program_in_path("evolution");
-	if (evo != NULL) {
+	if (!get_greeter_mode () && evo != NULL) {
 		g_debug("Found the calendar application: %s", evo);
 		
 		g_signal_connect (G_OBJECT(date), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
