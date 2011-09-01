@@ -770,6 +770,18 @@ update_appointment_menu_items (gpointer user_data)
 			ECal *ecal = e_cal_new(source, E_CAL_SOURCE_TYPE_EVENT);
 			e_cal_set_auth_func (ecal, (ECalAuthFunc) auth_func, NULL);
 			
+			icaltimezone* current_zone = icaltimezone_get_builtin_timezone(current_timezone);
+			if (!current_zone) {
+				// current_timezone may be a TZID?
+				current_zone = icaltimezone_get_builtin_timezone_from_tzid(current_timezone);
+			}
+			if (current_zone && !e_cal_set_default_timezone(ecal, current_zone, &gerror)) {
+				g_debug("Failed to set ecal default timezone %s", gerror->message);
+				g_error_free(gerror);
+				gerror = NULL;
+				continue;
+			}
+			
 			if (!e_cal_open(ecal, FALSE, &gerror)) {
 				g_debug("Failed to get ecal sources %s", gerror->message);
 				g_error_free(gerror);
