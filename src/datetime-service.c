@@ -1423,7 +1423,7 @@ main (int argc, char ** argv)
 
 	/* Setup the timer */
 	clock = g_object_new (GNOME_TYPE_WALL_CLOCK, NULL);
-	g_signal_connect (priv->clock_tracker, "notify::clock", G_CALLBACK (on_clock_changed), NULL);
+	g_signal_connect (clock, "notify::clock", G_CALLBACK (on_clock_changed), NULL);
 
 	/* And watch for system resumes */
 	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
