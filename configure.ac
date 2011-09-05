@@ -26,6 +26,7 @@ AC_HEADER_STDC
 LT_PREREQ([2.2])
 LT_INIT([disable-static])
 
+AC_CHECK_LIB([m],[pow])
 
 AC_ARG_ENABLE([deprecations],
   [AS_HELP_STRING([--enable-deprecations],
@@ -74,6 +75,7 @@ GCONF_REQUIRED_VERSION=2.31
 AS_IF([test "x$with_gtk" = x3],
     [PKG_CHECK_MODULES(INDICATOR, indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
                                   glib-2.0 >= $GLIB_REQUIRED_VERSION
+                                  gnome-desktop-3.0 >= $GNOME_DESKTOP_REQUIRED_VERSION
                                   dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
                                   dbusmenu-gtk3-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
                                   libido3-0.1 >= $INDICATOR_DISPLAY_OBJECTS)
