@@ -368,7 +368,7 @@ indicator_datetime_init (IndicatorDatetime *self)
 	}
 
 	self->priv->clock = g_object_new (GNOME_TYPE_WALL_CLOCK, NULL);
-	g_signal_connect (clock, "notify::clock", G_CALLBACK (on_clock_changed), self);
+	g_signal_connect (self->priv->clock, "notify::clock", G_CALLBACK (on_clock_changed), self);
 
 	self->priv->sm = indicator_service_manager_new_version(SERVICE_NAME, SERVICE_VERSION);
 	self->priv->indicator_right_group = GTK_SIZE_GROUP(gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL));
