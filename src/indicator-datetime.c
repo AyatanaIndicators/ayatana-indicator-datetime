@@ -104,6 +104,7 @@ struct _IndicatorDatetimePrivate {
 	GList * timezone_items;
 
 	GSettings * settings;
+	GSettings * gnome_settings;
 
 	GtkSizeGroup * indicator_right_group;
 
@@ -367,6 +368,8 @@ indicator_datetime_init (IndicatorDatetime *self)
 		g_warning("Unable to get settings for '" SETTINGS_INTERFACE "'");
 	}
 
+	self->priv->gnome_settings = g_settings_new ("org.gnome.desktop.interface");
+
 	self->priv->clock = g_object_new (GNOME_TYPE_WALL_CLOCK, NULL);
 	g_signal_connect (self->priv->clock, "notify::clock", G_CALLBACK (on_clock_changed), self);
 
@@ -581,6 +584,9 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 				update = TRUE;
 				update_time (self);
 			}
+			g_settings_set_boolean (self->priv->gnome_settings,
+			                        "clock-show-seconds",
+			                        self->priv->show_seconds);
 		}
 		break;
 	}
@@ -616,6 +622,9 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 				update = TRUE;
 				update_time (self);
 			}
+			g_settings_set_boolean (self->priv->gnome_settings,
+			                        "clock-show-seconds",
+			                        self->priv->show_seconds);
 		}
 		break;
 	}
