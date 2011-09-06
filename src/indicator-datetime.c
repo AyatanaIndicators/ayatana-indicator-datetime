@@ -138,9 +138,6 @@ struct _indicator_item_t {
 #define PROP_SHOW_WEEK_NUMBERS_S        "show-week-numbers"
 #define PROP_SHOW_CALENDAR_S            "show-calendar"
 
-#define INDICATOR_DATETIME_GET_PRIVATE(o) \
-(G_TYPE_INSTANCE_GET_PRIVATE ((o), INDICATOR_DATETIME_TYPE, IndicatorDatetimePrivate))
-
 enum {
 	STRFTIME_MASK_NONE    = 0,      /* Hours or minutes as we always test those */
 	STRFTIME_MASK_SECONDS = 1 << 0, /* Seconds count */
@@ -291,7 +288,9 @@ menu_visible_notfy_cb(GtkWidget * menu, G_GNUC_UNUSED GParamSpec *pspec, gpointe
 static void
 indicator_datetime_init (IndicatorDatetime *self)
 {
-	self->priv = INDICATOR_DATETIME_GET_PRIVATE(self);
+	self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self,
+                                                  INDICATOR_DATETIME_TYPE,
+                                                  IndicatorDatetimePrivate);
 
 	self->priv->label = NULL;
 	self->priv->timer = 0;
@@ -400,10 +399,9 @@ service_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
 
 	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
 	g_return_if_fail(self != NULL);
+	IndicatorDatetimePrivate * priv = self->priv;
 
 	GDBusProxy * proxy = g_dbus_proxy_new_for_bus_finish(res, &error);
-
-	IndicatorDatetimePrivate * priv = INDICATOR_DATETIME_GET_PRIVATE(self);
 
 	if (priv->service_proxy_cancel != NULL) {
 		g_object_unref(priv->service_proxy_cancel);
@@ -537,7 +535,8 @@ bind_enum_get (GValue * value, GVariant * variant, gpointer user_data)
 static void
 timezone_update_all_labels (IndicatorDatetime * self)
 {
-	IndicatorDatetimePrivate *priv = INDICATOR_DATETIME_GET_PRIVATE(self);
+	IndicatorDatetimePrivate *priv = self->priv;
+
 	g_list_foreach(priv->timezone_items, (GFunc)timezone_update_labels, NULL);
 }
 
@@ -1386,8 +1385,7 @@ new_calendar_item (DbusmenuMenuitem * newitem,
 	/* Note: not checking parent, it's reasonable for it to be NULL */
 
 	IndicatorDatetime *self = INDICATOR_DATETIME(user_data);
-	self->priv = INDICATOR_DATETIME_GET_PRIVATE(self);
-	
+
 	IdoCalendarMenuItem *ido = IDO_CALENDAR_MENU_ITEM (ido_calendar_menu_item_new ());
 	self->priv->ido_calendar = ido;
 	
@@ -1431,7 +1429,9 @@ timezone_toggled_cb (GtkCheckMenuItem *checkmenuitem, DbusmenuMenuitem * dbusite
 static void
 timezone_destroyed_cb (indicator_item_t * mi_data, DbusmenuMenuitem * dbusitem)
 {
-	IndicatorDatetimePrivate *priv = INDICATOR_DATETIME_GET_PRIVATE(mi_data->self);
+	IndicatorDatetime *self = INDICATOR_DATETIME (mi_data->self);
+	IndicatorDatetimePrivate *priv = self->priv;
+
 	priv->timezone_items = g_list_remove(priv->timezone_items, mi_data);
 	g_signal_handlers_disconnect_by_func(G_OBJECT(mi_data->gmi), G_CALLBACK(timezone_toggled_cb), dbusitem);
 	g_free(mi_data);
@@ -1449,7 +1449,7 @@ new_timezone_item(DbusmenuMenuitem * newitem,
 	/* Note: not checking parent, it's reasonable for it to be NULL */
 
 	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
-	IndicatorDatetimePrivate *priv = INDICATOR_DATETIME_GET_PRIVATE(self);
+	IndicatorDatetimePrivate *priv = self->priv;
 
 	// Menu item with a radio button and a right aligned time
 	indicator_item_t * mi_data = g_new0(indicator_item_t, 1);
