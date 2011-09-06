@@ -26,6 +26,7 @@ AC_HEADER_STDC
 LT_PREREQ([2.2])
 LT_INIT([disable-static])
 
+AC_CHECK_LIB([m],[pow])
 
 AC_ARG_ENABLE([deprecations],
   [AS_HELP_STRING([--enable-deprecations],
