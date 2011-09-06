@@ -34,15 +34,18 @@ G_BEGIN_DECLS
 #define IS_TIMEZONE_COMPLETION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TIMEZONE_COMPLETION_TYPE))
 #define TIMEZONE_COMPLETION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), TIMEZONE_COMPLETION_TYPE, TimezoneCompletionClass))
 
-typedef struct _TimezoneCompletion      TimezoneCompletion;
-typedef struct _TimezoneCompletionClass TimezoneCompletionClass;
-
-struct _TimezoneCompletionClass {
-  GtkEntryCompletionClass parent_class;
-};
+typedef struct _TimezoneCompletion             TimezoneCompletion;
+typedef struct _TimezoneCompletionPrivate      TimezoneCompletionPrivate;
+typedef struct _TimezoneCompletionClass        TimezoneCompletionClass;
 
 struct _TimezoneCompletion {
   GtkEntryCompletion parent;
+
+  TimezoneCompletionPrivate *priv;
+};
+
+struct _TimezoneCompletionClass {
+  GtkEntryCompletionClass parent_class;
 };
 
 #define TIMEZONE_COMPLETION_ZONE      0
@@ -53,7 +56,7 @@ struct _TimezoneCompletion {
 #define TIMEZONE_COMPLETION_LATITUDE  5
 #define TIMEZONE_COMPLETION_LAST      6
 
-GType timezone_completion_get_type (void);
+GType timezone_completion_get_type (void) G_GNUC_CONST;
 TimezoneCompletion * timezone_completion_new ();
 void timezone_completion_watch_entry (TimezoneCompletion * completion, GtkEntry * entry);
 
