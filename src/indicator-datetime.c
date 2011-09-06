@@ -150,7 +150,7 @@ enum {
 	STRFTIME_MASK_ALL     = (STRFTIME_MASK_SECONDS | STRFTIME_MASK_AMPM | STRFTIME_MASK_WEEK | STRFTIME_MASK_DAY | STRFTIME_MASK_MONTH | STRFTIME_MASK_YEAR)
 };
 
-GType indicator_datetime_get_type (void);
+GType indicator_datetime_get_type (void) G_GNUC_CONST;
 
 static void indicator_datetime_class_init (IndicatorDatetimeClass *klass);
 static void indicator_datetime_init       (IndicatorDatetime *self);
