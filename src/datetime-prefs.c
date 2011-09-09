@@ -653,6 +653,7 @@ indicator_datetime_panel_init (IndicatorDatetimePanel * self)
   GError * error = NULL;
 
   self->priv->builder = gtk_builder_new ();
+  gtk_builder_set_translation_domain (self->priv->builder, GETTEXT_PACKAGE);
   gtk_builder_add_from_file (self->priv->builder, DATETIME_DIALOG_UI_FILE, &error);
   if (error != NULL) {
     /* We have to abort, we can't continue without the ui file */
@@ -660,8 +661,6 @@ indicator_datetime_panel_init (IndicatorDatetimePanel * self)
     g_error_free (error);
     return;
   }
-
-  gtk_builder_set_translation_domain (self->priv->builder, GETTEXT_PACKAGE);
 
   GSettings * conf = g_settings_new (SETTINGS_INTERFACE);
 
