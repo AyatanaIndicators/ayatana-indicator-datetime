@@ -1,4 +1,11 @@
-indicator-datetime (0.2.93-0ubuntu1~ppa1) oneiric; urgency=low
+indicator-datetime (0.2.93-0ubuntu2) oneiric; urgency=low
+
+  * debian/rules
+    - dh_translations doesn't handle multibuilds, so manually add the domain
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Fri, 26 Aug 2011 10:35:45 -0400
+
+indicator-datetime (0.2.93-0ubuntu1) oneiric; urgency=low
 
   * New upstream release.
     ∘ Use cleaner GDateTime API

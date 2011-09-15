@@ -24,3 +24,9 @@ common-install-arch::
 	find debian/tmp -name \*.la -delete
 	find debian/tmp -name \*.a -delete
 	cd po; intltool-update --pot --verbose
+	# Language packs
+	for d in $$(find debian/tmp -type f \( -name "*.desktop" -o -name "*.directory" \) ); do \
+		sed -ri '/^(Name|GenericName|Comment|X-GNOME-FullName)\[/d' $$d; \
+		echo "X-Ubuntu-Gettext-Domain=indicator-datetime" >> $$d; \
+       	done;
+
