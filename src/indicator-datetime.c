@@ -212,7 +212,7 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 	                                 PROP_TIME_FORMAT,
 	                                 g_param_spec_int(PROP_TIME_FORMAT_S,
 	                                                  "A choice of which format should be used on the panel",
-	                                                  "Chooses between letting the locale choose the time, 12-hour time, 24-time or using the custom string passed to strftime().",
+	                                                  "Chooses between letting the locale choose the time, 12-hour time, 24-time or using the custom string passed to g_date_time_format().",
 	                                                  SETTINGS_TIME_LOCALE, /* min */
 	                                                  SETTINGS_TIME_CUSTOM, /* max */
 	                                                  SETTINGS_TIME_LOCALE, /* default */
@@ -242,7 +242,7 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 	                                 PROP_CUSTOM_TIME_FORMAT,
 	                                 g_param_spec_string(PROP_CUSTOM_TIME_FORMAT_S,
 	                                                     "The format that is used to show the time on the panel.",
-	                                                     "A format string in the form used to pass to strftime to make a string for displaying on the panel.",
+	                                                     "A format string in the form used to pass to g_date_time_format() to make a string for displaying on the panel.",
 	                                                     DEFAULT_TIME_FORMAT,
 	                                                     G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
@@ -774,6 +774,12 @@ set_label_to_time_in_zone (IndicatorDatetime * self, GtkLabel * label,
 	}
 	else {
 		timestr = g_date_time_format(datetime_now, format);
+		if (timestr == NULL) {
+			g_warning ("The custom date format is not valid, check the\n"
+			           "g_date_time_format() documentation for the supported\n"
+			           "format specifiers ");
+			timestr = g_strdup ("Date format not supported");
+		}
 	}
 
 	gboolean use_markup = FALSE;
