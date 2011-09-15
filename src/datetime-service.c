@@ -38,10 +38,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <geoclue/geoclue-master.h>
 #include <geoclue/geoclue-master-client.h>
 
-#define GNOME_DESKTOP_USE_UNSTABLE_API
-#include <gdesktop-enums.h>
-#include <libgnome-desktop/gnome-wall-clock.h>
-
 #include <time.h>
 #include <libecal/e-cal.h>
 #include <libical/ical.h>
@@ -61,6 +57,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 static void geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data);
 static gboolean update_appointment_menu_items (gpointer user_data);
 static gboolean update_timezone_menu_items(gpointer user_data);
+static void setup_timer (void);
 static void geo_client_invalid (GeoclueMasterClient * client, gpointer user_data);
 static void geo_address_change (GeoclueMasterClient * client, gchar * a, gchar * b, gchar * c, gchar * d, gpointer user_data);
 static gboolean get_greeter_mode (void);
@@ -1142,12 +1139,67 @@ build_menus (DbusmenuMenuitem * root)
 	return;
 }
 
+/* Run when the timezone file changes */
 static void
-on_clock_changed (GnomeWallClock *clock,
-                  GParamSpec     *pspec,
-                  gpointer        user_data)
+timezone_changed (GFileMonitor * monitor, GFile * file, GFile * otherfile, GFileMonitorEvent event, gpointer user_data)
 {
-  update_datetime (NULL);
+	update_current_timezone();
+	datetime_interface_update(DATETIME_INTERFACE(user_data));
+	update_datetime(NULL);
+	setup_timer();
+	return;
+}
+
+/* Set up monitoring the timezone file */
+static void
+build_timezone (DatetimeInterface * dbus)
+{
+	GFile * timezonefile = g_file_new_for_path(TIMEZONE_FILE);
+	GFileMonitor * monitor = g_file_monitor_file(timezonefile, G_FILE_MONITOR_NONE, NULL, NULL);
+	if (monitor != NULL) {
+		g_signal_connect(G_OBJECT(monitor), "changed", G_CALLBACK(timezone_changed), dbus);
+		g_debug("Monitoring timezone file: '" TIMEZONE_FILE "'");
+	} else {
+		g_warning("Unable to monitor timezone file: '" TIMEZONE_FILE "'");
+	}
+	return;
+}
+
+/* Source ID for the timer */
+static guint timer = 0;
+
+/* Execute at a given time, update and setup a new
+   timer to go again.  */
+static gboolean
+timer_func (gpointer user_data)
+{
+	timer = 0;
+	/* Reset up each time to reduce error */
+	setup_timer();
+	update_datetime(NULL);
+	return FALSE;
+}
+
+/* Sets up the time to launch the timer to update the
+   date in the datetime entry */
+static void
+setup_timer (void)
+{
+	if (timer != 0) {
+		g_source_remove(timer);
+		timer = 0;
+	}
+
+	time_t t;
+	t = time(NULL);
+	struct tm * ltime = localtime(&t);
+
+	timer = g_timeout_add_seconds(((23 - ltime->tm_hour) * 60 * 60) +
+	                              ((59 - ltime->tm_min) * 60) +
+	                              ((60 - ltime->tm_sec)) + 60 /* one minute past */,
+	                              timer_func, NULL);
+
+	return;
 }
 
 static void
@@ -1161,6 +1213,7 @@ session_active_change_cb (GDBusProxy * proxy, gchar * sender_name, gchar * signa
 		if (!idle) {
 			datetime_interface_update(DATETIME_INTERFACE(user_data));
 			update_datetime(NULL);
+			setup_timer();
 		}
 	}
 	return;
@@ -1384,8 +1437,6 @@ service_shutdown (IndicatorService * service, gpointer user_data)
 int
 main (int argc, char ** argv)
 {
-	GnomeWallClock *clock;
-
 	g_type_init();
 
 	/* Acknowledging the service init and setting up the interface */
@@ -1421,9 +1472,11 @@ main (int argc, char ** argv)
 	/* Setup dbus interface */
 	dbus = g_object_new(DATETIME_INTERFACE_TYPE, NULL);
 
+	/* Setup timezone watch */
+	build_timezone(dbus);
+
 	/* Setup the timer */
-	clock = g_object_new (GNOME_TYPE_WALL_CLOCK, NULL);
-	g_signal_connect (clock, "notify::clock", G_CALLBACK (on_clock_changed), NULL);
+	setup_timer();
 
 	/* And watch for system resumes */
 	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
