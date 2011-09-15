@@ -1,14 +1,13 @@
-indicator-datetime (0.2.94-0ubuntu1~ppa1) UNRELEASED; urgency=low
+indicator-datetime (0.2.95-0ubuntu1~ppa1) UNRELEASED; urgency=low
 
   * New upstream release.
     * Set default timezone on events without (LP: #837359)
     * Update docs to specify correct custom formats (LP: #775113)
-    * Use GNOME wall clock interface for time (LP: #837440)
     * Remove add event when using greeter (LP: #836521)
     * Fix gettext domain for builder files (LP: #845473)
     * Update date correctly when opening menu (LP: #793450)
 
- -- Ted Gould <ted@ubuntu.com>  Thu, 15 Sep 2011 10:08:06 -0500
+ -- Ted Gould <ted@ubuntu.com>  Thu, 15 Sep 2011 10:43:27 -0500
 
 indicator-datetime (0.2.93-0ubuntu2) oneiric; urgency=low
 
