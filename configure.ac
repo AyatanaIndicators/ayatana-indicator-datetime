@@ -1,9 +1,9 @@
 AC_INIT([indicator-datetime],
-        [0.2.93],
+        [0.2.94],
         [http://bugs.launchpad.net/indicator-datetime],
         [indicator-datetime],
         [http://launchpad.net/indicator-datetime])
-AC_COPYRIGHT([Copyright 2009,2010 Canonical])
+AC_COPYRIGHT([Copyright 2009-2011 Canonical])
 
 AC_PREREQ([2.64])
 
