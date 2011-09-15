@@ -1,4 +1,4 @@
-indicator-datetime (0.2.95-0ubuntu1~ppa1) oneiric; urgency=low
+indicator-datetime (0.2.95-0ubuntu1) oneiric; urgency=low
 
   [ Ted Gould ]
   * New upstream release.
