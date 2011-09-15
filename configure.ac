@@ -1,9 +1,9 @@
 AC_INIT([indicator-datetime],
-        [0.2.93],
+        [0.2.94],
         [http://bugs.launchpad.net/indicator-datetime],
         [indicator-datetime],
         [http://launchpad.net/indicator-datetime])
-AC_COPYRIGHT([Copyright 2009,2010 Canonical])
+AC_COPYRIGHT([Copyright 2009-2011 Canonical])
 
 AC_PREREQ([2.64])
 
@@ -26,6 +26,7 @@ AC_HEADER_STDC
 LT_PREREQ([2.2])
 LT_INIT([disable-static])
 
+AC_CHECK_LIB([m],[pow])
 
 AC_ARG_ENABLE([deprecations],
   [AS_HELP_STRING([--enable-deprecations],
@@ -64,15 +65,19 @@ GEOCLUE_REQUIRED_VERSION=0.12.0
 ECAL_REQUIRED_VERSION=2.30
 EDS_REQUIRED_VERSION=2.30
 ICAL_REQUIRED_VERSION=0.44
+GNOME_DESKTOP_REQUIRED_VERSION=3.1.91
+GSETTINGS_DESKTOP_SCHEMAS_REQUIRED=3.1.4
 CAIRO_REQUIRED_VERSION=1.10
 GDK_REQUIRED_VERSION=2.22
-GLIB_REQUIRED_VERSION=2.26
+GLIB_REQUIRED_VERSION=2.29.19
 GTK3_REQUIRED_VERSION=3.1.4
 GCONF_REQUIRED_VERSION=2.31
 
 AS_IF([test "x$with_gtk" = x3],
     [PKG_CHECK_MODULES(INDICATOR, indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
                                   glib-2.0 >= $GLIB_REQUIRED_VERSION
+                                  gnome-desktop-3.0 >= $GNOME_DESKTOP_REQUIRED_VERSION
+                                  gsettings-desktop-schemas >= $GSETTINGS_DESKTOP_SCHEMAS_REQUIRED
                                   dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
                                   dbusmenu-gtk3-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
                                   libido3-0.1 >= $INDICATOR_DISPLAY_OBJECTS)
@@ -100,6 +105,7 @@ PKG_CHECK_MODULES(SERVICE, indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
                            libedataserverui-3.0 >= EDS_REQUIRED_VERSION
                            cairo >= CAIRO_REQUIRED_VERSION
                            gdk-3.0 >= GDK_REQUIRED_VERSION
+                           gnome-desktop-3.0 >= $GNOME_DESKTOP_REQUIRED_VERSION
                            gconf-2.0 >= GCONF_REQUIRED_VERSION)
 
 PKG_CHECK_MODULES(PREF, gio-2.0 >= $GIO_REQUIRED_VERSION
