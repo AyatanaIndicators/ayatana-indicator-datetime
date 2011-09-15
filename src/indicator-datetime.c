@@ -45,6 +45,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libido/libido.h>
 #include <libdbusmenu-gtk3/menuitem.h>
 
+/* For GnomeWallClock */
+#define GNOME_DESKTOP_USE_UNSTABLE_API
+#include <libgnome-desktop/gnome-wall-clock.h>
+
 #include "utils.h"
 #include "dbus-shared.h"
 #include "settings-shared.h"
@@ -72,7 +76,6 @@ struct _IndicatorDatetime {
 
 struct _IndicatorDatetimePrivate {
 	GtkLabel * label;
-	guint timer;
 
 	gchar * time_string;
 
@@ -101,8 +104,11 @@ struct _IndicatorDatetimePrivate {
 	GList * timezone_items;
 
 	GSettings * settings;
+	GSettings * gnome_settings;
 
 	GtkSizeGroup * indicator_right_group;
+
+	GnomeWallClock *clock;
 };
 
 /* Enum for the properties so that they can be quickly
@@ -166,8 +172,8 @@ static gboolean bind_enum_get             (GValue * value, GVariant * variant, g
 static gchar * generate_format_string_now (IndicatorDatetime * self);
 static void update_label                  (IndicatorDatetime * io, GDateTime ** datetime);
 static void guess_label_size              (IndicatorDatetime * self);
-static void setup_timer                   (IndicatorDatetime * self, GDateTime * datetime);
 static void update_time                   (IndicatorDatetime * self);
+static void on_clock_changed              (GnomeWallClock *clock, GParamSpec *pspec, gpointer user_data);
 static void receive_signal                (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name, GVariant * parameters, gpointer user_data);
 static void service_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data);
 static gint generate_strftime_bitmask     (const char *time_str);
@@ -293,7 +299,6 @@ indicator_datetime_init (IndicatorDatetime *self)
                                                   IndicatorDatetimePrivate);
 
 	self->priv->label = NULL;
-	self->priv->timer = 0;
 
 	self->priv->idle_measure = 0;
 	self->priv->max_width = 0;
@@ -361,6 +366,11 @@ indicator_datetime_init (IndicatorDatetime *self)
 	} else {
 		g_warning("Unable to get settings for '" SETTINGS_INTERFACE "'");
 	}
+
+	self->priv->gnome_settings = g_settings_new ("org.gnome.desktop.interface");
+
+	self->priv->clock = g_object_new (GNOME_TYPE_WALL_CLOCK, NULL);
+	g_signal_connect (self->priv->clock, "notify::clock", G_CALLBACK (on_clock_changed), self);
 
 	self->priv->sm = indicator_service_manager_new_version(SERVICE_NAME, SERVICE_VERSION);
 	self->priv->indicator_right_group = GTK_SIZE_GROUP(gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL));
@@ -433,9 +443,9 @@ indicator_datetime_dispose (GObject *object)
 		self->priv->label = NULL;
 	}
 
-	if (self->priv->timer != 0) {
-		g_source_remove(self->priv->timer);
-		self->priv->timer = 0;
+	if (self->priv->clock != NULL) {
+		g_object_unref (self->priv->clock);
+		self->priv->clock = NULL;
 	}
 
 	if (self->priv->idle_measure != 0) {
@@ -562,7 +572,7 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 		if (newval != self->priv->time_mode) {
 			update = TRUE;
 			self->priv->time_mode = newval;
-			setup_timer(self, NULL);			
+			update_time (self);
 		}
 		break;
 	}
@@ -571,8 +581,11 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 			self->priv->show_seconds = !self->priv->show_seconds;
 			if (self->priv->time_mode != SETTINGS_TIME_CUSTOM) {
 				update = TRUE;
-				setup_timer(self, NULL);
+				update_time (self);
 			}
+			g_settings_set_boolean (self->priv->gnome_settings,
+			                        "clock-show-seconds",
+			                        self->priv->show_seconds);
 		}
 		break;
 	}
@@ -606,8 +619,11 @@ set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec 
 			self->priv->custom_show_seconds = (time_mask & STRFTIME_MASK_SECONDS);
 			if (self->priv->time_mode == SETTINGS_TIME_CUSTOM) {
 				update = TRUE;
-				setup_timer(self, NULL);
+				update_time (self);
 			}
+			g_settings_set_boolean (self->priv->gnome_settings,
+			                        "clock-show-seconds",
+			                        self->priv->show_seconds);
 		}
 		break;
 	}
@@ -830,11 +846,16 @@ update_time (IndicatorDatetime * self)
 	GDateTime * dt = NULL;
 	update_label(self, &dt);
 	timezone_update_all_labels(self);
-	if (dt != NULL) {
-		setup_timer(self, dt);
-		g_date_time_unref(dt);
-  }
-	return;
+}
+
+static void
+on_clock_changed (GnomeWallClock *clock,
+                  GParamSpec     *pspec,
+                  gpointer        user_data)
+{
+  IndicatorDatetime *self = INDICATOR_DATETIME (user_data);
+
+  update_time (self);
 }
 
 /* Receives all signals from the service, routed to the appropriate functions */
@@ -846,54 +867,6 @@ receive_signal (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name,
 
 	if (g_strcmp0(signal_name, "UpdateTime") == 0) {
 		update_time(self);
-	}
-
-	return;
-}
-
-/* Runs every minute and updates the time */
-gboolean
-timer_func (gpointer user_data)
-{
-	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
-	self->priv->timer = 0;
-	GDateTime * dt = NULL;
-	update_label(self, &dt);
-	timezone_update_all_labels(self);
-	if (dt != NULL) {
-		setup_timer(self, dt);
-		g_date_time_unref(dt);
-  }
-	return FALSE;
-}
-
-/* Configure the timer to run the next time through */
-static void
-setup_timer (IndicatorDatetime * self, GDateTime * datetime)
-{
-	gboolean unref = FALSE;
-
-	if (self->priv->timer != 0) {
-		g_source_remove(self->priv->timer);
-		self->priv->timer = 0;
-	}
-	
-	if (self->priv->show_seconds ||
-		(self->priv->time_mode == SETTINGS_TIME_CUSTOM && self->priv->custom_show_seconds)) {
-		self->priv->timer = g_timeout_add_full(G_PRIORITY_HIGH, 999, timer_func, self, NULL);
-	} else {
-		if (datetime == NULL) {
-			datetime = g_date_time_new_now_local();
-			unref = TRUE;
-		}
-
-		/* Plus 2 so we're just after the minute, don't want to be early. */
-		gint seconds = (gint)g_date_time_get_seconds(datetime);
-		self->priv->timer = g_timeout_add_seconds(60 - seconds + 2, timer_func, self);
-
-		if (unref) {
-			g_date_time_unref(datetime);
-		}
 	}
 
 	return;
@@ -1517,10 +1490,6 @@ get_label (IndicatorObject * io)
 		guess_label_size(self);
 		update_label(self, NULL);
 		gtk_widget_set_visible(GTK_WIDGET (self->priv->label), self->priv->show_clock);
-	}
-
-	if (self->priv->timer == 0) {
-		setup_timer(self, NULL);
 	}
 
 	return self->priv->label;
