@@ -35,7 +35,6 @@ enum {
 
 /* static guint signals[LAST_SIGNAL] = { }; */
 
-typedef struct _TimezoneCompletionPrivate TimezoneCompletionPrivate;
 struct _TimezoneCompletionPrivate
 {
   GtkTreeModel * initial_model;
@@ -47,8 +46,6 @@ struct _TimezoneCompletionPrivate
   gchar *        request_text;
   GHashTable *   request_table;
 };
-
-#define TIMEZONE_COMPLETION_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE((o), TIMEZONE_COMPLETION_TYPE, TimezoneCompletionPrivate))
 
 #define GEONAME_URL "http://geoname-lookup.ubuntu.com/?query=%s&release=%s&lang=%s"
 
@@ -71,7 +68,7 @@ match_func (GtkEntryCompletion *completion, const gchar *key,
 static void
 save_and_use_model (TimezoneCompletion * completion, GtkTreeModel * model)
 {
-  TimezoneCompletionPrivate * priv = TIMEZONE_COMPLETION_GET_PRIVATE(completion);
+  TimezoneCompletionPrivate * priv = completion->priv;
 
   g_hash_table_insert (priv->request_table, g_strdup (priv->request_text), g_object_ref_sink (model));
 
@@ -129,7 +126,7 @@ static void
 json_parse_ready (GObject *object, GAsyncResult *res, gpointer user_data)
 {
   TimezoneCompletion * completion = TIMEZONE_COMPLETION (user_data);
-  TimezoneCompletionPrivate * priv = TIMEZONE_COMPLETION_GET_PRIVATE(completion);
+  TimezoneCompletionPrivate * priv = completion->priv;
   GError * error = NULL;
   const gchar * prev_name = NULL;
   const gchar * prev_admin1 = NULL;
@@ -257,7 +254,7 @@ static void
 geonames_data_ready (GObject *object, GAsyncResult *res, gpointer user_data)
 {
   TimezoneCompletion * completion = TIMEZONE_COMPLETION (user_data);
-  TimezoneCompletionPrivate * priv = TIMEZONE_COMPLETION_GET_PRIVATE (completion);
+  TimezoneCompletionPrivate * priv = completion->priv;
   GError * error = NULL;
   GFileInputStream * stream;
 
@@ -335,7 +332,7 @@ get_version (void)
 static gboolean
 request_zones (TimezoneCompletion * completion)
 {
-  TimezoneCompletionPrivate * priv = TIMEZONE_COMPLETION_GET_PRIVATE (completion);
+  TimezoneCompletionPrivate * priv = completion->priv;
 
   priv->queued_request = 0;
 
@@ -373,7 +370,7 @@ request_zones (TimezoneCompletion * completion)
 static void
 entry_changed (GtkEntry * entry, TimezoneCompletion * completion)
 {
-  TimezoneCompletionPrivate * priv = TIMEZONE_COMPLETION_GET_PRIVATE (completion);
+  TimezoneCompletionPrivate * priv = completion->priv;
 
   if (priv->queued_request) {
     g_source_remove (priv->queued_request);
@@ -484,7 +481,7 @@ entry_keypress (GtkEntry * entry, GdkEventKey  *event, TimezoneCompletion * comp
 void
 timezone_completion_watch_entry (TimezoneCompletion * completion, GtkEntry * entry)
 {
-  TimezoneCompletionPrivate * priv = TIMEZONE_COMPLETION_GET_PRIVATE (completion);
+  TimezoneCompletionPrivate * priv = completion->priv;
 
   if (priv->queued_request) {
     g_source_remove (priv->queued_request);
@@ -604,7 +601,12 @@ timezone_completion_class_init (TimezoneCompletionClass *klass)
 static void
 timezone_completion_init (TimezoneCompletion * self)
 {
-  TimezoneCompletionPrivate * priv = TIMEZONE_COMPLETION_GET_PRIVATE (self);
+  TimezoneCompletionPrivate *priv;
+
+  self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self,
+                                            TIMEZONE_COMPLETION_TYPE,
+                                            TimezoneCompletionPrivate);
+  priv = self->priv;
 
   priv->initial_model = GTK_TREE_MODEL (get_initial_model ());
 
@@ -630,7 +632,7 @@ timezone_completion_dispose (GObject * object)
   G_OBJECT_CLASS (timezone_completion_parent_class)->dispose (object);
 
   TimezoneCompletion * completion = TIMEZONE_COMPLETION (object);
-  TimezoneCompletionPrivate * priv = TIMEZONE_COMPLETION_GET_PRIVATE (completion);
+  TimezoneCompletionPrivate * priv = completion->priv;
 
   if (priv->changed_id) {
     if (priv->entry)

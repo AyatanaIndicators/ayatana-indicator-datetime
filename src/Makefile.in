@@ -102,7 +102,6 @@ PROGRAMS = $(libexec_PROGRAMS)
 am_indicator_datetime_service_OBJECTS =  \
 	indicator_datetime_service-datetime-interface.$(OBJEXT) \
 	indicator_datetime_service-gen-datetime-service.xml.$(OBJEXT) \
-	indicator_datetime_service-calendar-menu-item.$(OBJEXT) \
 	indicator_datetime_service-datetime-service.$(OBJEXT) \
 	indicator_datetime_service-utils.$(OBJEXT)
 indicator_datetime_service_OBJECTS =  \
@@ -312,8 +311,6 @@ indicator_datetime_service_SOURCES = \
 	datetime-interface.c \
 	datetime-interface.h \
 	gen-datetime-service.xml.c \
-	calendar-menu-item.c \
-	calendar-menu-item.h \
 	datetime-service.c \
 	utils.c \
 	utils.h \
@@ -540,7 +537,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_service-calendar-menu-item.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_service-datetime-interface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_service-datetime-service.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indicator_datetime_service-gen-datetime-service.xml.Po@am__quote@
@@ -655,22 +651,6 @@ indicator_datetime_service-gen-datetime-service.xml.obj: gen-datetime-service.xm
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='gen-datetime-service.xml.c' object='indicator_datetime_service-gen-datetime-service.xml.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -c -o indicator_datetime_service-gen-datetime-service.xml.obj `if test -f 'gen-datetime-service.xml.c'; then $(CYGPATH_W) 'gen-datetime-service.xml.c'; else $(CYGPATH_W) '$(srcdir)/gen-datetime-service.xml.c'; fi`
-
-indicator_datetime_service-calendar-menu-item.o: calendar-menu-item.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -MT indicator_datetime_service-calendar-menu-item.o -MD -MP -MF $(DEPDIR)/indicator_datetime_service-calendar-menu-item.Tpo -c -o indicator_datetime_service-calendar-menu-item.o `test -f 'calendar-menu-item.c' || echo '$(srcdir)/'`calendar-menu-item.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_service-calendar-menu-item.Tpo $(DEPDIR)/indicator_datetime_service-calendar-menu-item.Po
-@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='calendar-menu-item.c' object='indicator_datetime_service-calendar-menu-item.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -c -o indicator_datetime_service-calendar-menu-item.o `test -f 'calendar-menu-item.c' || echo '$(srcdir)/'`calendar-menu-item.c
-
-indicator_datetime_service-calendar-menu-item.obj: calendar-menu-item.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -MT indicator_datetime_service-calendar-menu-item.obj -MD -MP -MF $(DEPDIR)/indicator_datetime_service-calendar-menu-item.Tpo -c -o indicator_datetime_service-calendar-menu-item.obj `if test -f 'calendar-menu-item.c'; then $(CYGPATH_W) 'calendar-menu-item.c'; else $(CYGPATH_W) '$(srcdir)/calendar-menu-item.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/indicator_datetime_service-calendar-menu-item.Tpo $(DEPDIR)/indicator_datetime_service-calendar-menu-item.Po
-@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='calendar-menu-item.c' object='indicator_datetime_service-calendar-menu-item.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -c -o indicator_datetime_service-calendar-menu-item.obj `if test -f 'calendar-menu-item.c'; then $(CYGPATH_W) 'calendar-menu-item.c'; else $(CYGPATH_W) '$(srcdir)/calendar-menu-item.c'; fi`
 
 indicator_datetime_service-datetime-service.o: datetime-service.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(indicator_datetime_service_CFLAGS) $(CFLAGS) -MT indicator_datetime_service-datetime-service.o -MD -MP -MF $(DEPDIR)/indicator_datetime_service-datetime-service.Tpo -c -o indicator_datetime_service-datetime-service.o `test -f 'datetime-service.c' || echo '$(srcdir)/'`datetime-service.c
