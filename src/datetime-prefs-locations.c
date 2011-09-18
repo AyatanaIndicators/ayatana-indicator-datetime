@@ -421,6 +421,7 @@ datetime_setup_locations_dialog (CcTimezoneMap * map)
 {
   GError * error = NULL;
   GtkBuilder * builder = gtk_builder_new ();
+  gtk_builder_set_translation_domain (builder, GETTEXT_PACKAGE);
   gtk_builder_add_from_file (builder, DATETIME_DIALOG_UI_FILE, &error);
   if (error != NULL) {
     /* We have to abort, we can't continue without the ui file */
@@ -428,8 +429,6 @@ datetime_setup_locations_dialog (CcTimezoneMap * map)
     g_error_free (error);
     return NULL;
   }
-
-  gtk_builder_set_translation_domain (builder, GETTEXT_PACKAGE);
 
   GSettings * conf = g_settings_new (SETTINGS_INTERFACE);
 
