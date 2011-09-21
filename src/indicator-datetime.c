@@ -1092,12 +1092,14 @@ guess_label_size (IndicatorDatetime * self)
 	g_debug("Checking against %d possible times", timevals->len);
 	gint check_time;
 	for (check_time = 0; check_time < timevals->len; check_time++) {
-		gchar longstr[256];
-		strftime(longstr, 256, self->priv->time_string, &(g_array_index(timevals, struct tm, check_time)));
+		struct tm * timeval = &g_array_index(timevals, struct tm, check_time);
+		GDateTime * dt = g_date_time_new_local(timeval->tm_year, timeval->tm_mon, timeval->tm_mday, timeval->tm_hour, timeval->tm_min, timeval->tm_sec);
+		gchar * timestr = g_date_time_format(dt, self->priv->time_string);
 
-		gchar * utf8 = g_locale_to_utf8(longstr, -1, NULL, NULL, NULL);
-		gint length = measure_string(style, context, utf8);
-		g_free(utf8);
+		gint length = measure_string(style, context, timestr);
+
+		g_free(timestr);
+		g_date_time_unref(dt);
 
 		if (length > *max_width) {
 			*max_width = length;
