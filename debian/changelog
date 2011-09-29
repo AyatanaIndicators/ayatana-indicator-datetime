@@ -1,9 +1,17 @@
-indicator-datetime (0.2.95-0ubuntu2) UNRELEASED; urgency=low
+indicator-datetime (0.3.0-0ubuntu1~ppa1) UNRELEASED; urgency=low
 
+  [ Ken VanDine ]
   * debian/control
     - Added recommends for e-d-s
 
- -- Ken VanDine <ken.vandine@canonical.com>  Thu, 29 Sep 2011 16:28:52 -0400
+  [ Ted Gould ]
+  * New upstream release.
+    * Fix corrupt environment when LANGUAGE not set (LP: #861123)
+    * Measure string size with GLib (LP: #730476)
+    * Free ECals when they have errors (LP: #774071)
+    * Fix untranslated string (LP: #853130)
+
+ -- Ted Gould <ted@ubuntu.com>  Thu, 29 Sep 2011 15:36:54 -0500
 
 indicator-datetime (0.2.95-0ubuntu1) oneiric; urgency=low
 
