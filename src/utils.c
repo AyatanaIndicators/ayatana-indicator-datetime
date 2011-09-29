@@ -161,7 +161,8 @@ T_(const char *msg)
 	char *time_locale = g_strdup(setlocale(LC_TIME, NULL));
 	char *language = g_strdup(g_getenv("LANGUAGE"));
 	char *rv;
-	g_unsetenv("LANGUAGE");
+	if (language)
+		g_unsetenv("LANGUAGE");
 	setlocale(LC_MESSAGES, time_locale);
 
 	/* Get the LC_TIME version */
@@ -169,7 +170,8 @@ T_(const char *msg)
 
 	/* Put everything back the way it was */
 	setlocale(LC_MESSAGES, message_locale);
-	g_setenv("LANGUAGE", language, TRUE);
+	if (language)
+		g_setenv("LANGUAGE", language, TRUE);
 	g_free(message_locale);
 	g_free(time_locale);
 	g_free(language);
