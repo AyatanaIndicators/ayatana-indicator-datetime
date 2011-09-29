@@ -1,3 +1,4 @@
+/*-*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
 An indicator to time and date related information in the menubar.
 
@@ -430,7 +431,10 @@ static guint ecaltimer = 0;
 static void
 start_ecal_timer(void)
 {
-	if (ecaltimer != 0) g_source_remove(ecaltimer);
+	if (ecaltimer != 0) {
+		g_source_remove(ecaltimer);
+		ecaltimer = 0;
+	}
 	if (update_appointment_menu_items(NULL))
 		ecaltimer = g_timeout_add_seconds(60*5, update_appointment_menu_items, NULL); 	
 }
@@ -438,7 +442,10 @@ start_ecal_timer(void)
 static void
 stop_ecal_timer(void)
 {
-	if (ecaltimer != 0) g_source_remove(ecaltimer);
+	if (ecaltimer != 0) {
+		g_source_remove(ecaltimer);
+		ecaltimer = 0;
+	}
 }
 static gboolean
 idle_start_ecal_timer (gpointer data)
@@ -748,9 +755,10 @@ update_appointment_menu_items (gpointer user_data)
 		for (l = comp_instances; l; l = l->next) {
 			const struct comp_instance *ci = l->data;
 			g_object_unref(ci->comp);
-			g_list_free(comp_instances);
-			comp_instances = NULL;
 		}
+		g_list_free(comp_instances);
+		comp_instances = NULL;
+
 	}
 	GSList *cal_list = gconf_client_get_list(gconf, "/apps/evolution/calendar/display/selected_calendars", GCONF_VALUE_STRING, &gerror);
 	if (gerror) {
@@ -759,6 +767,7 @@ update_appointment_menu_items (gpointer user_data)
 	  gerror = NULL;
 	  cal_list = NULL;
 	}
+	
 	// Generate instances for all sources
 	for (g = e_source_list_peek_groups (sources); g; g = g->next) {
 		ESourceGroup *group = E_SOURCE_GROUP (g->data);
@@ -779,6 +788,7 @@ update_appointment_menu_items (gpointer user_data)
 				g_debug("Failed to set ecal default timezone %s", gerror->message);
 				g_error_free(gerror);
 				gerror = NULL;
+				g_object_unref(ecal);
 				continue;
 			}
 			
@@ -786,8 +796,9 @@ update_appointment_menu_items (gpointer user_data)
 				g_debug("Failed to get ecal sources %s", gerror->message);
 				g_error_free(gerror);
 				gerror = NULL;
+				g_object_unref(ecal);
 				continue;
-        	}
+			}
 			const gchar *ecal_uid = e_source_peek_uid(source);
 			gboolean match = FALSE;
 			g_debug("Checking ecal_uid is enabled: %s", ecal_uid);
@@ -798,10 +809,14 @@ update_appointment_menu_items (gpointer user_data)
 					break;
 				}
 			}
-			if (!match) continue;
+			if (!match) {
+				g_object_unref(ecal);
+				continue;
+			}
 			g_debug("ecal_uid is enabled, generating instances");
 			
 			e_cal_generate_instances (ecal, t1, t2, (ECalRecurInstanceFn) populate_appointment_instances, (gpointer) source);
+			g_object_unref(ecal);
 		}
 	}
 	g_debug("Number of ECalComponents returned: %d", g_list_length(comp_instances));
