@@ -39,7 +39,7 @@ Depends: ${shlibs:Depends},
          ${misc:Depends},
          gnome-control-center,
          geoclue-ubuntu-geoip | geoclue-provider
-Recommends: indicator-applet | indicator-renderer
+Recommends: indicator-applet | indicator-renderer, evolution-data-server
 Description: Simple clock
  A simple clock appearing in the indicator bar
 

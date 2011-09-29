@@ -1,3 +1,10 @@
+indicator-datetime (0.2.95-0ubuntu2) UNRELEASED; urgency=low
+
+  * debian/control
+    - Added recommends for e-d-s
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Thu, 29 Sep 2011 16:28:52 -0400
+
 indicator-datetime (0.2.95-0ubuntu1) oneiric; urgency=low
 
   [ Ted Gould ]
