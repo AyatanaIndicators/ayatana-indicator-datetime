@@ -1,11 +1,23 @@
-indicator-datetime (0.2.95-0ubuntu1~ppa1) oneiric; urgency=low
+indicator-datetime (0.2.95-0ubuntu2) UNRELEASED; urgency=low
 
+  * debian/control
+    - Added recommends for e-d-s
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Thu, 29 Sep 2011 16:28:52 -0400
+
+indicator-datetime (0.2.95-0ubuntu1) oneiric; urgency=low
+
+  [ Ted Gould ]
   * New upstream release.
     * Set default timezone on events without (LP: #837359)
     * Update docs to specify correct custom formats (LP: #775113)
     * Remove add event when using greeter (LP: #836521)
     * Fix gettext domain for builder files (LP: #845473)
     * Update date correctly when opening menu (LP: #793450)
+
+  [ Didier Roche ]
+  * debian/control:
+    - bump the libglib build-dep
 
  -- Ted Gould <ted@ubuntu.com>  Thu, 15 Sep 2011 10:45:57 -0500
 
