@@ -498,11 +498,12 @@ check_for_calendar (gpointer user_data)
 		                  G_CALLBACK (activate_cb), "evolution -c calendar");
 
 		GSList *accounts_list = gconf_client_get_list (gconf, "/apps/evolution/mail/accounts", GCONF_VALUE_STRING, &error);
-		if (error != NULL || accounts_list == NULL) {
-			g_debug("%s: No mail accounts, do not show the 'Add Event...' menu item", G_STRFUNC);
+		if (error != NULL) {
+			g_debug("%s: Failed to get evolution mail accounts", G_STRFUNC);
 			g_clear_error (&error);
 			accounts_list = NULL;
-		} else {
+		} else if (accounts_list != NULL) {
+			g_slist_free (accounts_list);
 			events_separator = dbusmenu_menuitem_new();
 			dbusmenu_menuitem_property_set(events_separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
 			dbusmenu_menuitem_child_add_position(root, events_separator, 2);
