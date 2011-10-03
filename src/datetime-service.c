@@ -484,6 +484,8 @@ show_events_changed (void)
 static gboolean
 check_for_calendar (gpointer user_data)
 {
+	GError *error = NULL;
+
 	g_return_val_if_fail (calendar != NULL, FALSE);
 	
 	dbusmenu_menuitem_property_set_bool(date, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
@@ -494,16 +496,22 @@ check_for_calendar (gpointer user_data)
 		
 		g_signal_connect (G_OBJECT(date), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
 		                  G_CALLBACK (activate_cb), "evolution -c calendar");
-		
-		events_separator = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set(events_separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
-		dbusmenu_menuitem_child_add_position(root, events_separator, 2);
-		add_appointment = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set (add_appointment, DBUSMENU_MENUITEM_PROP_LABEL, _("Add Event…"));
-		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
-		g_signal_connect(G_OBJECT(add_appointment), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "evolution -c calendar");
-		dbusmenu_menuitem_child_add_position (root, add_appointment, 3);
 
+		GSList *accounts_list = gconf_client_get_list (gconf, "/apps/evolution/mail/accounts", GCONF_VALUE_STRING, &error);
+		if (error != NULL || accounts_list == NULL) {
+			g_debug("%s: No mail accounts, do not show the 'Add Event...' menu item", G_STRFUNC);
+			g_clear_error (&error);
+			accounts_list = NULL;
+		} else {
+			events_separator = dbusmenu_menuitem_new();
+			dbusmenu_menuitem_property_set(events_separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
+			dbusmenu_menuitem_child_add_position(root, events_separator, 2);
+			add_appointment = dbusmenu_menuitem_new();
+			dbusmenu_menuitem_property_set (add_appointment, DBUSMENU_MENUITEM_PROP_LABEL, _("Add Event…"));
+			dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+			g_signal_connect(G_OBJECT(add_appointment), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "evolution -c calendar");
+			dbusmenu_menuitem_child_add_position (root, add_appointment, 3);
+		}
 
 		if (g_settings_get_boolean(conf, SETTINGS_SHOW_EVENTS_S)) {
 			dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
