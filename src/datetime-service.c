@@ -501,7 +501,8 @@ check_for_calendar (gpointer user_data)
 		if (error != NULL) {
 			g_debug("%s: Failed to get evolution mail accounts", G_STRFUNC);
 			g_clear_error (&error);
-			accounts_list = NULL;
+			if (accounts_list)
+				g_slist_free (accounts_list);
 		} else if (accounts_list != NULL) {
 			g_slist_free (accounts_list);
 			events_separator = dbusmenu_menuitem_new();
