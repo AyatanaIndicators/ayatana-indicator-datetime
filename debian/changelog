@@ -1,3 +1,10 @@
+indicator-datetime (0.3.0-0ubuntu2) oneiric-proposed; urgency=low
+
+  * debian/patches/lp_844741.patch
+    - gnome-control-center crashed with SIGABRT in raise() (LP: #844741)
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Wed, 05 Oct 2011 11:59:21 -0400
+
 indicator-datetime (0.3.0-0ubuntu1) oneiric; urgency=low
 
   [ Ken VanDine ]
