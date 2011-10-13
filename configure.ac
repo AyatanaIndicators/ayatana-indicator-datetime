@@ -1,5 +1,5 @@
 AC_INIT([indicator-datetime],
-        [0.3.0],
+        [0.3.1],
         [http://bugs.launchpad.net/indicator-datetime],
         [indicator-datetime],
         [http://launchpad.net/indicator-datetime])
@@ -105,7 +105,6 @@ PKG_CHECK_MODULES(SERVICE, indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
 
 PKG_CHECK_MODULES(PREF, gio-2.0 >= $GIO_REQUIRED_VERSION
 	                      gtk+-3.0 >= $GTK3_REQUIRED_VERSION
-	                      unique-3.0
 	                      json-glib-1.0
 	                      libgnome-control-center
 	                      polkit-gobject-1)

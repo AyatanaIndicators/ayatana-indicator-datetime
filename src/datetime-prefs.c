@@ -32,7 +32,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib/gi18n-lib.h>
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
-#include <unique/unique.h>
 #include <polkit/polkit.h>
 #include <libgnome-control-center/cc-panel.h>
 
