@@ -1,3 +1,9 @@
+indicator-datetime (0.3.0-0ubuntu3) oneiric; urgency=low
+
+  * Reupload to oneiric final, the fix is safe and important enough.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Thu, 06 Oct 2011 06:50:30 +0200
+
 indicator-datetime (0.3.0-0ubuntu2) oneiric-proposed; urgency=low
 
   * debian/patches/lp_844741.patch
