@@ -1,4 +1,4 @@
-indicator-datetime (0.3.1-0ubuntu1~ppa1) oneiric; urgency=low
+indicator-datetime (0.3.1-0ubuntu1) oneiric-proposed; urgency=low
 
   * New upstream release.
     * Drop an unused icon (LP: #746176)
