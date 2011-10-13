@@ -581,8 +581,8 @@ update_timezone_menu_items(gpointer user_data) {
 	offset = dbusmenu_menuitem_get_position (current_location, root)+1;
 	for (i = 0; i < len; i++) {
 		// Iterate over configured places and add any which aren't already listed
-		if (g_strcmp0(locations[i], current_timezone) != 0 &&
-		    g_strcmp0(locations[i], geo_timezone) != 0) {
+		if ((current_timezone == NULL || !g_str_has_prefix(locations[i], current_timezone)) &&
+		    (geo_timezone == NULL || !g_str_has_prefix(locations[i], geo_timezone))) {
 			g_debug("Adding timezone in update_timezones %s", locations[i]);
 			item = dbusmenu_menuitem_new();
 			dbusmenu_menuitem_property_set      (item, DBUSMENU_MENUITEM_PROP_TYPE, TIMEZONE_MENUITEM_TYPE);
