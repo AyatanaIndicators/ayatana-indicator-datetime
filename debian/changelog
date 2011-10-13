@@ -1,4 +1,4 @@
-indicator-datetime (0.3.1-0ubuntu1~ppa1) UNRELEASED; urgency=low
+indicator-datetime (0.3.1-0ubuntu1~ppa1) oneiric; urgency=low
 
   * New upstream release.
     * Drop an unused icon (LP: #746176)
@@ -6,7 +6,7 @@ indicator-datetime (0.3.1-0ubuntu1~ppa1) UNRELEASED; urgency=low
     * Remove check for libunique as it's unused
   * debian/control: Drop libunique requirements
 
- -- Ted Gould <ted@ubuntu.com>  Thu, 13 Oct 2011 13:37:40 -0500
+ -- Ted Gould <ted@ubuntu.com>  Thu, 13 Oct 2011 13:40:21 -0500
 
 indicator-datetime (0.3.0-0ubuntu1~ppa1) oneiric; urgency=low
 
