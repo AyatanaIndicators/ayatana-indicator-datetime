@@ -1404,7 +1404,12 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 
 	geo_master = client;
 
-	if (geo_master != NULL) {
+	if (error != NULL) {
+		g_warning("Unable to get a GeoClue client!  '%s'  Geolocation based timezone support will not be available.", error->message);
+		return;
+	}
+
+	if (geo_master == NULL) {
 		g_warning(_("Unable to get a GeoClue client!  Geolocation based timezone support will not be available."));
 		return;
 	}
