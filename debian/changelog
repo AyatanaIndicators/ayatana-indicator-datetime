@@ -1,3 +1,10 @@
+indicator-datetime (0.3.1-0ubuntu2) precise; urgency=low
+
+  * debian/patches/lp_802384.patch
+    - Fixed a NULL check which prevented querying geoclue (LP: #802384)
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Fri, 28 Oct 2011 11:20:55 -0400
+
 indicator-datetime (0.3.1-0ubuntu1) oneiric-proposed; urgency=low
 
   * New upstream release.
