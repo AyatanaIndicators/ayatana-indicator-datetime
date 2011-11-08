@@ -161,6 +161,7 @@ static void indicator_datetime_finalize   (GObject *object);
 static GtkLabel * get_label               (IndicatorObject * io);
 static GtkMenu *  get_menu                (IndicatorObject * io);
 static const gchar * get_accessible_desc  (IndicatorObject * io);
+static const gchar * get_name_hint        (IndicatorObject * io);
 static GVariant * bind_enum_set           (const GValue * value, const GVariantType * type, gpointer user_data);
 static gboolean bind_enum_get             (GValue * value, GVariant * variant, gpointer user_data);
 static gchar * generate_format_string_now (IndicatorDatetime * self);
@@ -200,6 +201,7 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 	io_class->get_label = get_label;
 	io_class->get_menu  = get_menu;
 	io_class->get_accessible_desc = get_accessible_desc;
+	io_class->get_name_hint = get_name_hint;
 
 	g_object_class_install_property (object_class,
 	                                 PROP_SHOW_CLOCK,
@@ -1547,4 +1549,10 @@ get_accessible_desc (IndicatorObject * io)
 		return name;
 	}
 	return NULL;
+}
+
+static const gchar *
+get_name_hint (IndicatorObject * io)
+{
+	return PACKAGE_NAME;
 }
