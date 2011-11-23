@@ -1,7 +1,11 @@
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
+if BUILD_CCPANEL
+LIBMAP_SUBDIR = libmap
+endif
+
 SUBDIRS = \
-	libmap \
+	$(LIBMAP_SUBDIR) \
 	src \
 	data \
 	tests \

@@ -1146,7 +1146,11 @@ build_menus (DbusmenuMenuitem * root)
 		dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Time & Date Settings…"));
 		/* insensitive until we check for available apps */
 		dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+		#ifdef HAVE_CCPANEL
 		g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "gnome-control-center indicator-datetime");
+	 	#else
+		g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "gnome-control-center datetime");
+		#endif  /* HAVE_CCPANEL */
 		dbusmenu_menuitem_child_append(root, settings);
 		g_idle_add(check_for_timeadmin, NULL);
 	}
