@@ -17,10 +17,13 @@ indicator_datetime_service_CFLAGS = \
 	-Wall \
 	-Werror \
 	$(SERVICE_CFLAGS) \
+	$(COVERAGE_CFLAGS) \
 	-DTIMEZONE_FILE="\"/etc/timezone\"" \
 	-DG_LOG_DOMAIN=\"Indicator-Datetime\"
 indicator_datetime_service_LDADD = \
 	$(SERVICE_LIBS)
+indicator_datetime_service_LDFLAGS = \
+	$(COVERAGE_LDFLAGS)
 
 datetimelibdir = $(INDICATORDIR)
 datetimelib_LTLIBRARIES = libdatetime.la
@@ -33,12 +36,14 @@ libdatetime_la_SOURCES = \
 	indicator-datetime.c
 libdatetime_la_CFLAGS = \
 	$(INDICATOR_CFLAGS) \
+	$(COVERAGE_CFLAGS) \
 	-Wall -Werror \
 	-DTIMEZONE_FILE="\"/etc/timezone\"" \
 	-DG_LOG_DOMAIN=\"Indicator-Datetime\"
 libdatetime_la_LIBADD = \
 	$(INDICATOR_LIBS)
 libdatetime_la_LDFLAGS = \
+	$(COVERAGE_LDFLAGS) \
 	-module \
 	-avoid-version
 
@@ -56,12 +61,15 @@ libindicator_datetime_la_CFLAGS = \
 	-Werror \
 	-I$(top_srcdir)/libmap \
 	$(PREF_CFLAGS) \
+	$(COVERAGE_CFLAGS) \
 	-DTIMEZONE_FILE="\"/etc/timezone\"" \
 	-DPKGDATADIR="\"$(pkgdatadir)\""
 libindicator_datetime_la_LIBADD = \
 	 $(top_builddir)/libmap/libmap.la \
 	$(PREF_LIBS)
-libindicator_datetime_la_LDFLAGS = -module -avoid-version
+libindicator_datetime_la_LDFLAGS = \
+	$(COVERAGE_LDFLAGS) \
+	-module -avoid-version
 
 gen-%.xml.c: %.xml
 	@echo "Building $@ from $<"

@@ -119,6 +119,16 @@ PKG_CHECK_MODULES(LIBMAP, gio-2.0 >= $GIO_REQUIRED_VERSION
 GLIB_GSETTINGS
 
 ###########################
+# gcov coverage reporting
+###########################
+
+m4_include([m4/gcov.m4])
+AC_TDD_GCOV
+AC_SUBST(COVERAGE_CFLAGS)
+AC_SUBST(COVERAGE_CXXFLAGS)
+AC_SUBST(COVERAGE_LDFLAGS)
+
+###########################
 # Check to see if we're local
 ###########################
 
@@ -225,4 +235,5 @@ Date and Time Indicator Configuration:
 	Prefix:        $prefix
 	Indicator Dir: $INDICATORDIR
 	CC Panel Dir:  $CCPANELDIR
+	gcov:          $use_gcov
 ])
