@@ -46,8 +46,6 @@ libindicator_datetime_la_SOURCES =\
 	datetime-prefs.c \
 	datetime-prefs-locations.c \
 	datetime-prefs-locations.h \
-	timezone-completion.c \
-	timezone-completion.h \
 	utils.c \
 	utils.h \
 	settings-shared.h

@@ -35,12 +35,12 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <polkit/polkit.h>
 #include <libgnome-control-center/cc-panel.h>
 #include <timezonemap/cc-timezone-map.h>
+#include <timezonemap/timezone-completion.h>
 
 #include "dbus-shared.h"
 #include "settings-shared.h"
 #include "utils.h"
 #include "datetime-prefs-locations.h"
-#include "timezone-completion.h"
 
 #define DATETIME_DIALOG_UI_FILE PKGDATADIR "/datetime-dialog.ui"
 
@@ -69,7 +69,7 @@ struct _IndicatorDatetimePanelPrivate
   gboolean             user_edited_time;
   gboolean             changing_time;
   GtkWidget *          loc_dlg;
-  TimezoneCompletion * completion;
+  CcTimezoneCompletion * completion;
 };
 
 struct _IndicatorDatetimePanelClass
@@ -590,8 +590,8 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
   const gchar * name, * zone;
 
   gtk_tree_model_get (model, iter,
-                      TIMEZONE_COMPLETION_NAME, &name,
-                      TIMEZONE_COMPLETION_ZONE, &zone,
+                      CC_TIMEZONE_COMPLETION_NAME, &name,
+                      CC_TIMEZONE_COMPLETION_ZONE, &zone,
                       -1);
 
   if (zone == NULL || zone[0] == 0) {
@@ -599,8 +599,8 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
     gdouble lon = 0.0, lat = 0.0;
 
     gtk_tree_model_get (model, iter,
-                        TIMEZONE_COMPLETION_LONGITUDE, &strlon,
-                        TIMEZONE_COMPLETION_LATITUDE, &strlat,
+                        CC_TIMEZONE_COMPLETION_LONGITUDE, &strlon,
+                        CC_TIMEZONE_COMPLETION_LATITUDE, &strlat,
                         -1);
 
     if (strlon != NULL && strlon[0] != 0) {
@@ -694,8 +694,8 @@ indicator_datetime_panel_init (IndicatorDatetimePanel * self)
   cc_timezone_map_set_watermark (self->priv->tzmap, "Geonames.org");
 
   /* And completion entry */
-  self->priv->completion = timezone_completion_new ();
-  timezone_completion_watch_entry (self->priv->completion, GTK_ENTRY (WIG ("timezoneEntry")));
+  self->priv->completion = cc_timezone_completion_new ();
+  cc_timezone_completion_watch_entry (self->priv->completion, GTK_ENTRY (WIG ("timezoneEntry")));
   g_signal_connect (self->priv->completion, "match-selected", G_CALLBACK (timezone_selected), self);
   g_signal_connect (WIG ("timezoneEntry"), "focus-out-event", G_CALLBACK (entry_focus_out), self);
 
@@ -798,7 +798,7 @@ indicator_datetime_panel_dispose (GObject * object)
   }
 
   if (self->priv->completion) {
-    timezone_completion_watch_entry (self->priv->completion, NULL);
+    cc_timezone_completion_watch_entry (self->priv->completion, NULL);
     g_object_unref (self->priv->completion);
     self->priv->completion = NULL;
   }
