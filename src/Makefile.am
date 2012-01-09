@@ -54,12 +54,10 @@ libindicator_datetime_la_SOURCES =\
 libindicator_datetime_la_CFLAGS = \
 	-Wall \
 	-Werror \
-	-I$(top_srcdir)/libmap \
 	$(PREF_CFLAGS) \
 	-DTIMEZONE_FILE="\"/etc/timezone\"" \
 	-DPKGDATADIR="\"$(pkgdatadir)\""
 libindicator_datetime_la_LIBADD = \
-	 $(top_builddir)/libmap/libmap.la \
 	$(PREF_LIBS)
 libindicator_datetime_la_LDFLAGS = -module -avoid-version
 

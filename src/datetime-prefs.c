@@ -34,13 +34,13 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <gtk/gtk.h>
 #include <polkit/polkit.h>
 #include <libgnome-control-center/cc-panel.h>
+#include <timezonemap/cc-timezone-map.h>
 
 #include "dbus-shared.h"
 #include "settings-shared.h"
 #include "utils.h"
 #include "datetime-prefs-locations.h"
 #include "timezone-completion.h"
-#include "cc-timezone-map.h"
 
 #define DATETIME_DIALOG_UI_FILE PKGDATADIR "/datetime-dialog.ui"
 
@@ -243,15 +243,20 @@ sync_entry (IndicatorDatetimePanel * self, const gchar * location)
 }
 
 static void
-tz_changed (CcTimezoneMap * map, TzLocation * location, IndicatorDatetimePanel * self)
+tz_changed (CcTimezoneMap * map, CcTimezoneLocation * location, IndicatorDatetimePanel * self)
 {
   if (location == NULL)
     return;
 
-  g_dbus_proxy_call (self->priv->proxy, "SetTimezone", g_variant_new ("(s)", location->zone),
+  gchar * zone;
+  g_object_get (location, "zone", &zone, NULL);
+
+  g_dbus_proxy_call (self->priv->proxy, "SetTimezone", g_variant_new ("(s)", zone),
                      G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "timezone");
 
-  sync_entry (self, location->zone);
+  sync_entry (self, zone);
+
+  g_free (zone);
 }
 
 static void
@@ -626,13 +631,17 @@ entry_focus_out (GtkEntry * entry, GdkEventFocus * event, IndicatorDatetimePanel
   // If the name left in the entry doesn't match the current timezone name,
   // show an error icon.  It's always an error for the user to manually type in
   // a timezone.
-  TzLocation * location = cc_timezone_map_get_location (self->priv->tzmap);
+  CcTimezoneLocation * location = cc_timezone_map_get_location (self->priv->tzmap);
   if (location == NULL)
     return FALSE;
 
-  gchar * name = get_current_zone_name (location->zone);
+  gchar * zone;
+  g_object_get (location, "zone", &zone, NULL);
+
+  gchar * name = get_current_zone_name (zone);
   gboolean correct = (g_strcmp0 (gtk_entry_get_text (entry), name) == 0);
   g_free (name);
+  g_free (zone);
 
   gtk_entry_set_icon_from_stock (entry, GTK_ENTRY_ICON_SECONDARY,
                                  correct ? NULL : GTK_STOCK_DIALOG_ERROR);

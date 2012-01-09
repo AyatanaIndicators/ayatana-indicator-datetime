@@ -106,11 +106,9 @@ PKG_CHECK_MODULES(SERVICE, indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
 PKG_CHECK_MODULES(PREF, gio-2.0 >= $GIO_REQUIRED_VERSION
 	                      gtk+-3.0 >= $GTK3_REQUIRED_VERSION
 	                      json-glib-1.0
+	                      timezonemap
 	                      libgnome-control-center
 	                      polkit-gobject-1)
-
-PKG_CHECK_MODULES(LIBMAP, gio-2.0 >= $GIO_REQUIRED_VERSION
-                          gtk+-3.0 >= $GTK3_REQUIRED_VERSION)
 
 ###########################
 # Grab the GSettings Macros
@@ -206,7 +204,6 @@ AM_GLIB_GNU_GETTEXT
 
 AC_CONFIG_FILES([
 Makefile
-libmap/Makefile
 src/Makefile
 data/Makefile
 tests/Makefile

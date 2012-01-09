@@ -26,8 +26,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <gdk/gdk.h>
 #include <gdk/gdkkeysyms.h>
 #include <glib/gi18n.h>
+#include <timezonemap/tz.h>
 #include "timezone-completion.h"
-#include "tz.h"
 
 enum {
   LAST_SIGNAL
@@ -355,7 +355,6 @@ request_zones (TimezoneCompletion * completion)
   gchar * locale = get_locale ();
   gchar * url = g_strdup_printf (GEONAME_URL, escaped, version, locale);
   g_free (locale);
-  g_free (version);
   g_free (escaped);
 
   GFile * file =  g_file_new_for_uri (url);
@@ -527,14 +526,18 @@ get_initial_model (void)
 
   gint i;
   for (i = 0; i < locations->len; ++i) {
-    TzLocation * loc = g_ptr_array_index (locations, i);
+    CcTimezoneLocation * loc = g_ptr_array_index (locations, i);
     GtkTreeIter iter;
     gtk_list_store_append (store, &iter);
 
+    gchar * zone;
+    gchar * country;
+    g_object_get (loc, "zone", &zone, "country", &country, NULL);
+
     /* FIXME: need something better than below for non-English locales */
-    const gchar * last_bit = ((const gchar *)strrchr (loc->zone, '/')) + 1;
+    const gchar * last_bit = ((const gchar *)strrchr (zone, '/')) + 1;
     if (last_bit == NULL)
-      last_bit = loc->zone;
+      last_bit = zone;
     gchar * name = g_strdup (last_bit);
     gchar * underscore;
     while ((underscore = strchr (name, '_'))) {
@@ -542,12 +545,13 @@ get_initial_model (void)
     }
 
     gtk_list_store_set (store, &iter,
-                        TIMEZONE_COMPLETION_ZONE, loc->zone,
+                        TIMEZONE_COMPLETION_ZONE, zone,
                         TIMEZONE_COMPLETION_NAME, name,
-                        TIMEZONE_COMPLETION_COUNTRY, loc->country,
+                        TIMEZONE_COMPLETION_COUNTRY, country,
                         -1);
 
     g_free (name);
+    g_free (zone);
   }
 
   GtkTreeIter iter;
