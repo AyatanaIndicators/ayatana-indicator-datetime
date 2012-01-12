@@ -1,10 +1,10 @@
-indicator-datetime (0.3.1-0ubuntu3) UNRELEASED; urgency=low
+indicator-datetime (0.3.1-0ubuntu3) precise; urgency=low
 
   * Rebuild for the new e-d-s libraries.
   * debian/patches/gtk_box_api.patch: port gtk_hbox_new() to gtk_box_new() if
     building for GTK3, no change if building against GTK2.
 
- -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Thu, 12 Jan 2012 23:23:36 +0100
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Fri, 13 Jan 2012 00:03:40 +0100
 
 indicator-datetime (0.3.1-0ubuntu2) precise; urgency=low
 
