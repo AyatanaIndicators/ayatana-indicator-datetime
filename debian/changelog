@@ -1,3 +1,9 @@
+indicator-datetime (0.3.1-0ubuntu4) UNRELEASED; urgency=low
+
+  * Migrate from libpolkit-gtk-1-dev to libpolkit-gobject-1-dev.
+
+ -- Andreas Moog <amoog@ubuntu.com>  Sat, 24 Dec 2011 21:07:57 +0100
+
 indicator-datetime (0.3.1-0ubuntu3) precise; urgency=low
 
   * Rebuild for the new e-d-s libraries.
