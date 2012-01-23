@@ -1,4 +1,4 @@
-indicator-datetime (0.3.1-0ubuntu4) UNRELEASED; urgency=low
+indicator-datetime (0.3.1-0ubuntu4) precise; urgency=low
 
   [ Andreas Moog ]
   * Migrate from libpolkit-gtk-1-dev to libpolkit-gobject-1-dev.
@@ -7,7 +7,7 @@ indicator-datetime (0.3.1-0ubuntu4) UNRELEASED; urgency=low
   * Add disable_Werror.patch: Disable -Werror, causes build failures due to
     deprecated symbols.
 
- -- Andreas Moog <amoog@ubuntu.com>  Sat, 24 Dec 2011 21:07:57 +0100
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 23 Jan 2012 13:09:08 +0100
 
 indicator-datetime (0.3.1-0ubuntu3) precise; urgency=low
 
