@@ -1,6 +1,8 @@
 
+if BUILD_CCPANEL
 ccpaneldir = $(CCPANELDIR)
 ccpanel_LTLIBRARIES = libindicator-datetime.la
+endif
 
 libexec_PROGRAMS = indicator-datetime-service
 
@@ -42,6 +44,7 @@ libdatetime_la_LDFLAGS = \
 	-module \
 	-avoid-version
 
+if BUILD_CCPANEL
 libindicator_datetime_la_SOURCES =\
 	datetime-prefs.c \
 	datetime-prefs-locations.c \
@@ -58,6 +61,7 @@ libindicator_datetime_la_CFLAGS = \
 libindicator_datetime_la_LIBADD = \
 	$(PREF_LIBS)
 libindicator_datetime_la_LDFLAGS = -module -avoid-version
+endif
 
 gen-%.xml.c: %.xml
 	@echo "Building $@ from $<"

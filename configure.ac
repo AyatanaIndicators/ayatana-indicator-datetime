@@ -103,11 +103,35 @@ PKG_CHECK_MODULES(SERVICE, indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
                            gdk-3.0 >= GDK_REQUIRED_VERSION
                            gconf-2.0 >= GCONF_REQUIRED_VERSION)
 
-PKG_CHECK_MODULES(PREF, gio-2.0 >= $GIO_REQUIRED_VERSION
-	                      gtk+-3.0 >= $GTK3_REQUIRED_VERSION
-	                      timezonemap
-	                      libgnome-control-center
-	                      polkit-gobject-1)
+###########################
+# Control Center panel
+###########################
+
+AC_ARG_WITH([ccpanel],
+            AS_HELP_STRING([--with-ccpanel], [enable Control Center panel]),,
+            with_ccpanel=auto)
+
+if test x"$with_ccpanel" != x"no" ; then
+   PKG_CHECK_MODULES([PREF],
+                     [gio-2.0 >= $GIO_REQUIRED_VERSION
+                      gtk+-3.0 >= $GTK3_REQUIRED_VERSION
+                      timezonemap
+                      libgnome-control-center
+                      polkit-gobject-1],
+                     [have_ccpanel=yes],
+                     [have_ccpanel=no])
+   if test x${have_ccpanel} = xyes; then
+      AC_DEFINE(HAVE_CCPANEL, 1, [Define to 1 to enable Control Center panel])
+      PKG_CHECK_MODULES(LIBMAP, gio-2.0 >= $GIO_REQUIRED_VERSION
+                                      gtk+-3.0 >= $GTK3_REQUIRED_VERSION)
+   fi
+   if test x${with_ccpanel} = xyes && test x${have_ccpanel} = xno; then
+     AC_MSG_ERROR([Control Center panel configured but not found])
+   fi
+else
+   have_ccpanel=no
+fi
+AM_CONDITIONAL(BUILD_CCPANEL, test x${have_ccpanel} = xyes)
 
 ###########################
 # Grab the GSettings Macros
@@ -148,16 +172,18 @@ AC_SUBST(INDICATORICONSDIR)
 # Control Center Info
 ###########################
 
-AS_IF([test "x$with_localinstall" = "xyes"],
+AS_IF([test "x$have_ccpanel" = "xyes"],
 	[
-	CCPANELDIR="${libdir}/control-center-1/panels/"
-	],
-	[
-	CCPANELDIR=`$PKG_CONFIG --variable=extensiondir libgnome-control-center`
+	AS_IF([test "x$with_localinstall" = "xyes"],
+		[
+		CCPANELDIR="${libdir}/control-center-1/panels/"
+		],
+		[
+		CCPANELDIR=`$PKG_CONFIG --variable=extensiondir libgnome-control-center`
+		])
+
+	AC_SUBST(CCPANELDIR)
 	])
-
-AC_SUBST(CCPANELDIR)
-
 ###########################
 # DBus Service Info
 ###########################
@@ -220,5 +246,6 @@ Date and Time Indicator Configuration:
 
 	Prefix:        $prefix
 	Indicator Dir: $INDICATORDIR
+	CC Panel:      $have_ccpanel
 	CC Panel Dir:  $CCPANELDIR
 ])

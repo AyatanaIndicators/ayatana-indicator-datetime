@@ -54,6 +54,11 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "settings-shared.h"
 #include "utils.h"
 
+#ifdef HAVE_CCPANEL
+ #define SETTINGS_APP_INVOCATION "gnome-control-center indicator-datetime"
+#else
+ #define SETTINGS_APP_INVOCATION "gnome-control-center datetime"
+#endif
 
 static void geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data);
 static gboolean update_appointment_menu_items (gpointer user_data);
@@ -1167,7 +1172,7 @@ build_menus (DbusmenuMenuitem * root)
 		dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Time & Date Settings…"));
 		/* insensitive until we check for available apps */
 		dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-		g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "gnome-control-center indicator-datetime");
+		g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), SETTINGS_APP_INVOCATION);
 		dbusmenu_menuitem_child_append(root, settings);
 		g_idle_add(check_for_timeadmin, NULL);
 	}
