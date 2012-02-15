@@ -27,11 +27,11 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <glib/gi18n-lib.h>
 #include <gtk/gtk.h>
+#include <timezonemap/timezone-completion.h>
 
 #include "datetime-prefs-locations.h"
 #include "settings-shared.h"
 #include "utils.h"
-#include "timezone-completion.h"
 
 #define DATETIME_DIALOG_UI_FILE PKGDATADIR "/datetime-dialog.ui"
 
@@ -182,8 +182,8 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
   const gchar * zone, * name;
 
   gtk_tree_model_get (model, iter,
-                      TIMEZONE_COMPLETION_ZONE, &zone,
-                      TIMEZONE_COMPLETION_NAME, &name,
+                      CC_TIMEZONE_COMPLETION_ZONE, &zone,
+                      CC_TIMEZONE_COMPLETION_NAME, &name,
                       -1);
 
   if (zone == NULL || zone[0] == 0) {
@@ -191,8 +191,8 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
     gdouble lon = 0.0, lat = 0.0;
 
     gtk_tree_model_get (model, iter,
-                        TIMEZONE_COMPLETION_LONGITUDE, &strlon,
-                        TIMEZONE_COMPLETION_LATITUDE, &strlat,
+                        CC_TIMEZONE_COMPLETION_LONGITUDE, &strlon,
+                        CC_TIMEZONE_COMPLETION_LATITUDE, &strlat,
                         -1);
 
     if (strlon != NULL && strlon[0] != 0) {
@@ -245,11 +245,11 @@ query_tooltip (GtkTreeView * tree, gint x, gint y, gboolean keyboard_mode,
 
 static void
 handle_edit_started (GtkCellRendererText * renderer, GtkCellEditable * editable,
-                     gchar * path, TimezoneCompletion * completion)
+                     gchar * path, CcTimezoneCompletion * completion)
 {
   if (GTK_IS_ENTRY (editable)) {
     GtkEntry *entry = GTK_ENTRY (editable);
-    timezone_completion_watch_entry (completion, entry);
+    cc_timezone_completion_watch_entry (completion, entry);
 
     GtkListStore * store = GTK_LIST_STORE (g_object_get_data (G_OBJECT (completion), "store"));
     GtkTreeIter * store_iter = g_new(GtkTreeIter, 1);
@@ -263,7 +263,7 @@ static gboolean
 update_times (GtkWidget * dlg)
 {
   /* For each entry, check zone in column 2 and set column 1 to it's time */
-  TimezoneCompletion * completion = TIMEZONE_COMPLETION (g_object_get_data (G_OBJECT (dlg), "completion"));
+  CcTimezoneCompletion * completion = CC_TIMEZONE_COMPLETION (g_object_get_data (G_OBJECT (dlg), "completion"));
   GtkListStore * store = GTK_LIST_STORE (g_object_get_data (G_OBJECT (completion), "store"));
   GObject * cell = G_OBJECT (g_object_get_data (G_OBJECT (completion), "name-cell"));
 
@@ -439,7 +439,7 @@ datetime_setup_locations_dialog (CcTimezoneMap * map)
   GObject * store = gtk_builder_get_object (builder, "locationsStore");
 
   /* Configure tree */
-  TimezoneCompletion * completion = timezone_completion_new ();
+  CcTimezoneCompletion * completion = cc_timezone_completion_new ();
   g_object_set_data (G_OBJECT (completion), "tzmap", map);
   g_object_set_data (G_OBJECT (completion), "store", store);
   g_signal_connect (completion, "match-selected", G_CALLBACK (timezone_selected), dlg);

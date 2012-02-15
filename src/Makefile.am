@@ -46,32 +46,28 @@ libindicator_datetime_la_SOURCES =\
 	datetime-prefs.c \
 	datetime-prefs-locations.c \
 	datetime-prefs-locations.h \
-	timezone-completion.c \
-	timezone-completion.h \
 	utils.c \
 	utils.h \
 	settings-shared.h
 libindicator_datetime_la_CFLAGS = \
 	-Wall \
 	-Werror \
-	-I$(top_srcdir)/libmap \
 	$(PREF_CFLAGS) \
 	-DTIMEZONE_FILE="\"/etc/timezone\"" \
 	-DPKGDATADIR="\"$(pkgdatadir)\""
 libindicator_datetime_la_LIBADD = \
-	 $(top_builddir)/libmap/libmap.la \
 	$(PREF_LIBS)
 libindicator_datetime_la_LDFLAGS = -module -avoid-version
 
 gen-%.xml.c: %.xml
 	@echo "Building $@ from $<"
-	@echo "const char * _$(subst -,_,$(subst .,_,$(basename $<))) = " > $@
+	@echo "const char * _$(subst -,_,$(subst .,_,$(basename $(notdir $<)))) = " > $@
 	@sed -e "s:\":\\\\\":g" -e s:^:\": -e s:\$$:\\\\n\": $< >> $@
 	@echo ";" >> $@
 
 gen-%.xml.h: %.xml
 	@echo "Building $@ from $<"
-	@echo "extern const char * _$(subst -,_,$(subst .,_,$(basename $<)));" > $@
+	@echo "extern const char * _$(subst -,_,$(subst .,_,$(basename $(notdir $<))));" > $@
 
 BUILT_SOURCES = \
 	gen-datetime-service.xml.c \
