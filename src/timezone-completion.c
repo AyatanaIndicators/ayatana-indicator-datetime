@@ -311,7 +311,7 @@ get_locale (void)
   return locale;
 }
 
-static gchar *
+static const gchar *
 get_version (void)
 {
   static gchar *version = NULL;
@@ -351,11 +351,10 @@ request_zones (TimezoneCompletion * completion)
   priv->request_text = g_strdup (text);
 
   gchar * escaped = g_uri_escape_string (text, NULL, FALSE);
-  gchar * version = get_version ();
+  const gchar * version = get_version ();
   gchar * locale = get_locale ();
   gchar * url = g_strdup_printf (GEONAME_URL, escaped, version, locale);
   g_free (locale);
-  g_free (version);
   g_free (escaped);
 
   GFile * file =  g_file_new_for_uri (url);
