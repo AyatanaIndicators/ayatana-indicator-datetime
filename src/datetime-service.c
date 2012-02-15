@@ -479,6 +479,24 @@ show_events_changed (void)
 	}
 }
 
+static gboolean
+calendar_app_is_usable (void)
+{
+	/* confirm that it's installed... */
+	gchar *evo = g_find_program_in_path("evolution");
+	if (evo == NULL)
+		return FALSE;
+	g_debug ("found calendar app: '%s'", evo);
+	g_free (evo);
+
+	/* confirm that it's got an account set up... */
+	GSList *accounts_list = gconf_client_get_list (gconf, "/apps/evolution/mail/accounts", GCONF_VALUE_STRING, NULL);
+	const guint n = g_slist_length (accounts_list);
+	g_debug ("found %u evolution accounts", n);
+	g_slist_free (accounts_list);
+	return n > 0;
+}
+
 /* Looks for the calendar application and enables the item if
    we have one, starts ecal timer if events are turned on */
 static gboolean
@@ -488,9 +506,7 @@ check_for_calendar (gpointer user_data)
 	
 	dbusmenu_menuitem_property_set_bool(date, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 	
-	gchar *evo = g_find_program_in_path("evolution");
-	if (!get_greeter_mode () && evo != NULL) {
-		g_debug("Found the calendar application: %s", evo);
+	if (!get_greeter_mode () && calendar_app_is_usable()) {
 		
 		g_signal_connect (G_OBJECT(date), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
 		                  G_CALLBACK (activate_cb), "evolution -c calendar");
@@ -519,7 +535,6 @@ check_for_calendar (gpointer user_data)
 		g_signal_connect(calendar, "event::month-changed", G_CALLBACK(month_changed_cb), NULL);
 		g_signal_connect(calendar, "event::day-selected", G_CALLBACK(day_selected_cb), NULL);
 		g_signal_connect(calendar, "event::day-selected-double-click", G_CALLBACK(day_selected_double_click_cb), NULL);
-		g_free(evo);
 	} else {
 		g_debug("Unable to find calendar app.");
 		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
