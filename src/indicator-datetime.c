@@ -1261,7 +1261,11 @@ new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, Dbu
 
 	mi_data->gmi = gtk_menu_item_new();
 
+#if GTK_CHECK_VERSION(3,0,0)
+	GtkWidget * hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
+#else
 	GtkWidget * hbox = gtk_hbox_new(FALSE, 4);
+#endif
 
 	/* Icon, probably someone's face or avatar on an IM */
 	mi_data->icon = gtk_image_new();
@@ -1472,7 +1476,11 @@ new_timezone_item(DbusmenuMenuitem * newitem,
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(mi_data->gmi),
 		dbusmenu_menuitem_property_get_bool(newitem, TIMEZONE_MENUITEM_PROP_RADIO));
 
+#if GTK_CHECK_VERSION(3,0,0)
+	GtkWidget * hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
+#else
 	GtkWidget * hbox = gtk_hbox_new(FALSE, 4);
+#endif
 
   	/* Label, probably a username, chat room or mailbox name */
 	mi_data->label = gtk_label_new("");
