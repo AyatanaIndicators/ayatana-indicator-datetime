@@ -24,9 +24,11 @@ desktopdir = $(datadir)/applications
 desktop_DATA = indicator-datetime-preferences.desktop
 
 EXTRA_DIST += \
-	datetime-dialog.ui \
-	indicator-datetime-preferences.desktop \
-	indicator-datetime-preferences.desktop.in
+	indicator-datetime-preferences.desktop
 
 CLEANFILES += indicator-datetime-preferences.desktop
 endif
+
+EXTRA_DIST += \
+	datetime-dialog.ui \
+	indicator-datetime-preferences.desktop.in
