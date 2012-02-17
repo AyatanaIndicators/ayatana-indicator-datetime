@@ -1,0 +1,31 @@
+Description: Disable -Werror, causes build failures due to deprecated symbols.
+Author: Martin Pitt <martin.pitt@ubuntu.com>
+
+Index: indicator-datetime/src/Makefile.am
+===================================================================
+--- indicator-datetime.orig/src/Makefile.am	2011-10-06 06:50:07.814203000 +0200
++++ indicator-datetime/src/Makefile.am	2012-01-23 13:04:31.541545936 +0100
+@@ -15,7 +15,6 @@
+ 	settings-shared.h
+ indicator_datetime_service_CFLAGS = \
+ 	-Wall \
+-	-Werror \
+ 	$(SERVICE_CFLAGS) \
+ 	-DTIMEZONE_FILE="\"/etc/timezone\"" \
+ 	-DG_LOG_DOMAIN=\"Indicator-Datetime\"
+@@ -33,7 +32,6 @@
+ 	indicator-datetime.c
+ libdatetime_la_CFLAGS = \
+ 	$(INDICATOR_CFLAGS) \
+-	-Wall -Werror \
+ 	-DTIMEZONE_FILE="\"/etc/timezone\"" \
+ 	-DG_LOG_DOMAIN=\"Indicator-Datetime\"
+ libdatetime_la_LIBADD = \
+@@ -53,7 +51,6 @@
+ 	settings-shared.h
+ libindicator_datetime_la_CFLAGS = \
+ 	-Wall \
+-	-Werror \
+ 	-I$(top_srcdir)/libmap \
+ 	$(PREF_CFLAGS) \
+ 	-DTIMEZONE_FILE="\"/etc/timezone\"" \

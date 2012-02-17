@@ -1,14 +1,59 @@
-indicator-datetime (0.3.1-0ubuntu1~ppa1) oneiric; urgency=low
+indicator-datetime (0.3.1-0ubuntu5) precise; urgency=low
+
+  * no change rebuild for libindicator7
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Wed, 25 Jan 2012 09:54:53 -0500
+
+indicator-datetime (0.3.1-0ubuntu4) precise; urgency=low
+
+  [ Andreas Moog ]
+  * Migrate from libpolkit-gtk-1-dev to libpolkit-gobject-1-dev.
+
+  [ Martin Pitt ]
+  * Add disable_Werror.patch: Disable -Werror, causes build failures due to
+    deprecated symbols.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 23 Jan 2012 13:09:08 +0100
+
+indicator-datetime (0.3.1-0ubuntu3) precise; urgency=low
+
+  * Rebuild for the new e-d-s libraries.
+  * debian/patches/gtk_box_api.patch: port gtk_hbox_new() to gtk_box_new() if
+    building for GTK3, no change if building against GTK2.
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Fri, 13 Jan 2012 00:03:40 +0100
+
+indicator-datetime (0.3.1-0ubuntu2) precise; urgency=low
+
+  * debian/patches/lp_802384.patch
+    - Fixed a NULL check which prevented querying geoclue (LP: #802384)
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Fri, 28 Oct 2011 11:20:55 -0400
+
+indicator-datetime (0.3.1-0ubuntu1) oneiric-proposed; urgency=low
 
   * New upstream release.
     * Drop an unused icon (LP: #746176)
     * Fix showing a timezone that we're currently set to (LP: #833337)
     * Remove check for libunique as it's unused
-  * debian/control: Drop libunique requirements
+  * debian/control: Drop libunique requirements, it was unused
 
  -- Ted Gould <ted@ubuntu.com>  Thu, 13 Oct 2011 13:40:21 -0500
 
-indicator-datetime (0.3.0-0ubuntu1~ppa1) oneiric; urgency=low
+indicator-datetime (0.3.0-0ubuntu3) oneiric; urgency=low
+
+  * Reupload to oneiric final, the fix is safe and important enough.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Thu, 06 Oct 2011 06:50:30 +0200
+
+indicator-datetime (0.3.0-0ubuntu2) oneiric-proposed; urgency=low
+
+  * debian/patches/lp_844741.patch
+    - gnome-control-center crashed with SIGABRT in raise() (LP: #844741)
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Wed, 05 Oct 2011 11:59:21 -0400
+
+indicator-datetime (0.3.0-0ubuntu1) oneiric; urgency=low
 
   [ Ken VanDine ]
   * debian/control
