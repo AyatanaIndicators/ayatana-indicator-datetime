@@ -31,7 +31,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include <gconf/gconf-client.h>
 
-#include <libdbusmenu-gtk3/menuitem.h>
+#include <libdbusmenu-gtk/menuitem.h>
 #include <libdbusmenu-glib/server.h>
 #include <libdbusmenu-glib/client.h>
 #include <libdbusmenu-glib/menuitem.h>
@@ -54,6 +54,11 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "settings-shared.h"
 #include "utils.h"
 
+#ifdef HAVE_CCPANEL
+ #define SETTINGS_APP_INVOCATION "gnome-control-center indicator-datetime"
+#else
+ #define SETTINGS_APP_INVOCATION "gnome-control-center datetime"
+#endif
 
 static void geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data);
 static gboolean update_appointment_menu_items (gpointer user_data);
@@ -479,6 +484,24 @@ show_events_changed (void)
 	}
 }
 
+static gboolean
+calendar_app_is_usable (void)
+{
+	/* confirm that it's installed... */
+	gchar *evo = g_find_program_in_path("evolution");
+	if (evo == NULL)
+		return FALSE;
+	g_debug ("found calendar app: '%s'", evo);
+	g_free (evo);
+
+	/* confirm that it's got an account set up... */
+	GSList *accounts_list = gconf_client_get_list (gconf, "/apps/evolution/mail/accounts", GCONF_VALUE_STRING, NULL);
+	const guint n = g_slist_length (accounts_list);
+	g_debug ("found %u evolution accounts", n);
+	g_slist_free (accounts_list);
+	return n > 0;
+}
+
 /* Looks for the calendar application and enables the item if
    we have one, starts ecal timer if events are turned on */
 static gboolean
@@ -488,9 +511,7 @@ check_for_calendar (gpointer user_data)
 	
 	dbusmenu_menuitem_property_set_bool(date, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 	
-	gchar *evo = g_find_program_in_path("evolution");
-	if (!get_greeter_mode () && evo != NULL) {
-		g_debug("Found the calendar application: %s", evo);
+	if (!get_greeter_mode () && calendar_app_is_usable()) {
 		
 		g_signal_connect (G_OBJECT(date), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
 		                  G_CALLBACK (activate_cb), "evolution -c calendar");
@@ -519,7 +540,6 @@ check_for_calendar (gpointer user_data)
 		g_signal_connect(calendar, "event::month-changed", G_CALLBACK(month_changed_cb), NULL);
 		g_signal_connect(calendar, "event::day-selected", G_CALLBACK(day_selected_cb), NULL);
 		g_signal_connect(calendar, "event::day-selected-double-click", G_CALLBACK(day_selected_double_click_cb), NULL);
-		g_free(evo);
 	} else {
 		g_debug("Unable to find calendar app.");
 		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
@@ -979,13 +999,19 @@ update_appointment_menu_items (gpointer user_data)
 		// Draw the correct icon for the appointment type and then tint it using mask fill.
 		// For now we'll create a circle
         if (color_spec != NULL) {
-        	GdkColor color;
-        	gdk_color_parse (color_spec, &color);	
         	g_debug("Creating a cairo surface: size, %d by %d", width, height);         
         	cairo_surface_t *surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, width, height ); 
 
-    		cairo_t *cr = cairo_create(surface);
-			gdk_cairo_set_source_color(cr, &color);
+			cairo_t *cr = cairo_create(surface);
+#if GTK_CHECK_VERSION(3,0,0)
+        	GdkRGBA rgba;
+        	if (gdk_rgba_parse (&rgba, color_spec))
+        		gdk_cairo_set_source_rgba (cr, &rgba);
+#else
+			GdkColor color;
+			if (gdk_color_parse (color_spec, &color))
+				gdk_cairo_set_source_color (cr, &color);
+#endif
 			cairo_paint(cr);
     		cairo_set_source_rgba(cr, 0,0,0,0.5);
     		cairo_set_line_width(cr, 1);
@@ -1146,7 +1172,7 @@ build_menus (DbusmenuMenuitem * root)
 		dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Time & Date Settings…"));
 		/* insensitive until we check for available apps */
 		dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-		g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "gnome-control-center indicator-datetime");
+		g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), SETTINGS_APP_INVOCATION);
 		dbusmenu_menuitem_child_append(root, settings);
 		g_idle_add(check_for_timeadmin, NULL);
 	}
@@ -1404,7 +1430,12 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 
 	geo_master = client;
 
-	if (geo_master != NULL) {
+	if (error != NULL) {
+		g_warning("Unable to get a GeoClue client!  '%s'  Geolocation based timezone support will not be available.", error->message);
+		return;
+	}
+
+	if (geo_master == NULL) {
 		g_warning(_("Unable to get a GeoClue client!  Geolocation based timezone support will not be available."));
 		return;
 	}

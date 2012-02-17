@@ -24,7 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define __DATETIME_PREFS_LOCATIONS_H__
 
 #include <gtk/gtk.h>
-#include "cc-timezone-map.h"
+#include <timezonemap/cc-timezone-map.h>
 
 G_BEGIN_DECLS
 
