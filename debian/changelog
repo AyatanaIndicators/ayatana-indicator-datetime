@@ -9,8 +9,11 @@ indicator-datetime (0.3.90-0ubuntu1~ppa1) UNRELEASED; urgency=low
     * Add a name hint on the indicator
     * Build fixes for updated dependencies
     * Fixing Geoclue support
+  * debian/control:
+    * Bumping libdbusmenu requirement to 0.5.90
+    * Added dependency on libtimezonemap
 
- -- Ted Gould <ted@ubuntu.com>  Fri, 17 Feb 2012 16:16:23 -0600
+ -- Ted Gould <ted@ubuntu.com>  Fri, 17 Feb 2012 16:21:42 -0600
 
 indicator-datetime (0.3.1-0ubuntu5) precise; urgency=low
 
