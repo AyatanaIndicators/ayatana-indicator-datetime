@@ -140,6 +140,16 @@ AM_CONDITIONAL(BUILD_CCPANEL, test x${have_ccpanel} = xyes)
 GLIB_GSETTINGS
 
 ###########################
+# gcov coverage reporting
+###########################
+
+m4_include([m4/gcov.m4])
+AC_TDD_GCOV
+AC_SUBST(COVERAGE_CFLAGS)
+AC_SUBST(COVERAGE_CXXFLAGS)
+AC_SUBST(COVERAGE_LDFLAGS)
+
+###########################
 # Check to see if we're local
 ###########################
 
@@ -248,4 +258,5 @@ Date and Time Indicator Configuration:
 	Indicator Dir: $INDICATORDIR
 	CC Panel:      $have_ccpanel
 	CC Panel Dir:  $CCPANELDIR
+	gcov:          $use_gcov
 ])
