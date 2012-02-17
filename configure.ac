@@ -1,5 +1,5 @@
 AC_INIT([indicator-datetime],
-        [0.3.1],
+        [0.3.90],
         [http://bugs.launchpad.net/indicator-datetime],
         [indicator-datetime],
         [http://launchpad.net/indicator-datetime])
@@ -12,7 +12,7 @@ AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 
-AM_INIT_AUTOMAKE([1.11 -Wall dist-xz])
+AM_INIT_AUTOMAKE([1.11 -Wall])
 AM_MAINTAINER_MODE([enable])
 
 AM_SILENT_RULES([yes])
