@@ -1,5 +1,5 @@
 AC_INIT([indicator-datetime],
-        [0.3.1],
+        [0.3.90],
         [http://bugs.launchpad.net/indicator-datetime],
         [indicator-datetime],
         [http://launchpad.net/indicator-datetime])
@@ -12,7 +12,7 @@ AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 
-AM_INIT_AUTOMAKE([1.11 -Wall dist-xz])
+AM_INIT_AUTOMAKE([1.11 -Wall])
 AM_MAINTAINER_MODE([enable])
 
 AM_SILENT_RULES([yes])
@@ -58,7 +58,7 @@ AC_ARG_WITH([gtk],
 
 INDICATOR_REQUIRED_VERSION=0.3.19
 DBUSMENUGLIB_REQUIRED_VERSION=0.1.1
-DBUSMENUGTK_REQUIRED_VERSION=0.3.94
+DBUSMENUGTK_REQUIRED_VERSION=0.5.90
 GIO_REQUIRED_VERSION=2.25.11
 INDICATOR_DISPLAY_OBJECTS=0.2.2
 GEOCLUE_REQUIRED_VERSION=0.12.0
@@ -103,20 +103,51 @@ PKG_CHECK_MODULES(SERVICE, indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
                            gdk-3.0 >= GDK_REQUIRED_VERSION
                            gconf-2.0 >= GCONF_REQUIRED_VERSION)
 
-PKG_CHECK_MODULES(PREF, gio-2.0 >= $GIO_REQUIRED_VERSION
-	                      gtk+-3.0 >= $GTK3_REQUIRED_VERSION
-	                      json-glib-1.0
-	                      libgnome-control-center
-	                      polkit-gobject-1)
+###########################
+# Control Center panel
+###########################
 
-PKG_CHECK_MODULES(LIBMAP, gio-2.0 >= $GIO_REQUIRED_VERSION
-                          gtk+-3.0 >= $GTK3_REQUIRED_VERSION)
+AC_ARG_WITH([ccpanel],
+            AS_HELP_STRING([--with-ccpanel], [enable Control Center panel]),,
+            with_ccpanel=auto)
+
+if test x"$with_ccpanel" != x"no" ; then
+   PKG_CHECK_MODULES([PREF],
+                     [gio-2.0 >= $GIO_REQUIRED_VERSION
+                      gtk+-3.0 >= $GTK3_REQUIRED_VERSION
+                      timezonemap
+                      libgnome-control-center
+                      polkit-gobject-1],
+                     [have_ccpanel=yes],
+                     [have_ccpanel=no])
+   if test x${have_ccpanel} = xyes; then
+      AC_DEFINE(HAVE_CCPANEL, 1, [Define to 1 to enable Control Center panel])
+      PKG_CHECK_MODULES(LIBMAP, gio-2.0 >= $GIO_REQUIRED_VERSION
+                                      gtk+-3.0 >= $GTK3_REQUIRED_VERSION)
+   fi
+   if test x${with_ccpanel} = xyes && test x${have_ccpanel} = xno; then
+     AC_MSG_ERROR([Control Center panel configured but not found])
+   fi
+else
+   have_ccpanel=no
+fi
+AM_CONDITIONAL(BUILD_CCPANEL, test x${have_ccpanel} = xyes)
 
 ###########################
 # Grab the GSettings Macros
 ###########################
 
 GLIB_GSETTINGS
+
+###########################
+# gcov coverage reporting
+###########################
+
+m4_include([m4/gcov.m4])
+AC_TDD_GCOV
+AC_SUBST(COVERAGE_CFLAGS)
+AC_SUBST(COVERAGE_CXXFLAGS)
+AC_SUBST(COVERAGE_LDFLAGS)
 
 ###########################
 # Check to see if we're local
@@ -151,16 +182,18 @@ AC_SUBST(INDICATORICONSDIR)
 # Control Center Info
 ###########################
 
-AS_IF([test "x$with_localinstall" = "xyes"],
+AS_IF([test "x$have_ccpanel" = "xyes"],
 	[
-	CCPANELDIR="${libdir}/control-center-1/panels/"
-	],
-	[
-	CCPANELDIR=`$PKG_CONFIG --variable=extensiondir libgnome-control-center`
+	AS_IF([test "x$with_localinstall" = "xyes"],
+		[
+		CCPANELDIR="${libdir}/control-center-1/panels/"
+		],
+		[
+		CCPANELDIR=`$PKG_CONFIG --variable=extensiondir libgnome-control-center`
+		])
+
+	AC_SUBST(CCPANELDIR)
 	])
-
-AC_SUBST(CCPANELDIR)
-
 ###########################
 # DBus Service Info
 ###########################
@@ -206,7 +239,6 @@ AM_GLIB_GNU_GETTEXT
 
 AC_CONFIG_FILES([
 Makefile
-libmap/Makefile
 src/Makefile
 data/Makefile
 tests/Makefile
@@ -224,5 +256,7 @@ Date and Time Indicator Configuration:
 
 	Prefix:        $prefix
 	Indicator Dir: $INDICATORDIR
+	CC Panel:      $have_ccpanel
 	CC Panel Dir:  $CCPANELDIR
+	gcov:          $use_gcov
 ])
