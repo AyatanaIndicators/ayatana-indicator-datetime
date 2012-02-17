@@ -5,7 +5,13 @@ src/libdatetime_la-indicator-datetime.lo
 src/indicator-datetime-service
 po/indicator-datetime.pot
 indicator-datetime-[0-9].[0-9].[0-9].tar.gz
+indicator-datetime-[0-9].[0-9].[0-9].tar.xz
+indicator-datetime-[0-9].[0-9].[0-9].tar.gz.asc
+indicator-datetime-[0-9].[0-9].[0-9].tar.xz.asc
 data/indicator-datetime.service
 data/org.ayatana.indicator.datetime.gschema.valid
 src/gen-datetime-service.xml.c
 src/gen-datetime-service.xml.h
+build-aux
+data/com.canonical.indicator.datetime.gschema.valid
+src/libdatetime_la-utils.lo
