@@ -1,4 +1,4 @@
-indicator-datetime (0.3.90-0ubuntu1~ppa1) UNRELEASED; urgency=low
+indicator-datetime (0.3.90-0ubuntu1~ppa1) precise; urgency=low
 
   * New upstream release.
     * Still need to distribute these files even if we're not building it
@@ -14,7 +14,7 @@ indicator-datetime (0.3.90-0ubuntu1~ppa1) UNRELEASED; urgency=low
     * Added dependency on libtimezonemap
   * debian/patches: Removed, all upstream.
 
- -- Ted Gould <ted@ubuntu.com>  Fri, 17 Feb 2012 16:22:25 -0600
+ -- Ted Gould <ted@ubuntu.com>  Fri, 17 Feb 2012 16:24:51 -0600
 
 indicator-datetime (0.3.1-0ubuntu5) precise; urgency=low
 
