@@ -41,9 +41,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libindicator/indicator-service-manager.h>
 
 /* DBusMenu */
-#include <libdbusmenu-gtk3/menu.h>
+#include <libdbusmenu-gtk/menu.h>
 #include <libido/libido.h>
-#include <libdbusmenu-gtk3/menuitem.h>
+#include <libdbusmenu-gtk/menuitem.h>
 
 #include "utils.h"
 #include "dbus-shared.h"
@@ -161,6 +161,7 @@ static void indicator_datetime_finalize   (GObject *object);
 static GtkLabel * get_label               (IndicatorObject * io);
 static GtkMenu *  get_menu                (IndicatorObject * io);
 static const gchar * get_accessible_desc  (IndicatorObject * io);
+static const gchar * get_name_hint        (IndicatorObject * io);
 static GVariant * bind_enum_set           (const GValue * value, const GVariantType * type, gpointer user_data);
 static gboolean bind_enum_get             (GValue * value, GVariant * variant, gpointer user_data);
 static gchar * generate_format_string_now (IndicatorDatetime * self);
@@ -200,6 +201,7 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 	io_class->get_label = get_label;
 	io_class->get_menu  = get_menu;
 	io_class->get_accessible_desc = get_accessible_desc;
+	io_class->get_name_hint = get_name_hint;
 
 	g_object_class_install_property (object_class,
 	                                 PROP_SHOW_CLOCK,
@@ -1261,7 +1263,11 @@ new_appointment_item (DbusmenuMenuitem * newitem, DbusmenuMenuitem * parent, Dbu
 
 	mi_data->gmi = gtk_menu_item_new();
 
+#if GTK_CHECK_VERSION(3,0,0)
+	GtkWidget * hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
+#else
 	GtkWidget * hbox = gtk_hbox_new(FALSE, 4);
+#endif
 
 	/* Icon, probably someone's face or avatar on an IM */
 	mi_data->icon = gtk_image_new();
@@ -1472,7 +1478,11 @@ new_timezone_item(DbusmenuMenuitem * newitem,
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(mi_data->gmi),
 		dbusmenu_menuitem_property_get_bool(newitem, TIMEZONE_MENUITEM_PROP_RADIO));
 
+#if GTK_CHECK_VERSION(3,0,0)
+	GtkWidget * hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
+#else
 	GtkWidget * hbox = gtk_hbox_new(FALSE, 4);
+#endif
 
   	/* Label, probably a username, chat room or mailbox name */
 	mi_data->label = gtk_label_new("");
@@ -1547,4 +1557,10 @@ get_accessible_desc (IndicatorObject * io)
 		return name;
 	}
 	return NULL;
+}
+
+static const gchar *
+get_name_hint (IndicatorObject * io)
+{
+	return PACKAGE_NAME;
 }

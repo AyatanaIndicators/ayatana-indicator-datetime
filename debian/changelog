@@ -1,3 +1,21 @@
+indicator-datetime (0.3.90-0ubuntu1) precise; urgency=low
+
+  * New upstream release.
+    * Still need to distribute these files even if we're not building it
+    * Adding some extra ignore stuff in
+    * Adding in code coverage calculation
+    * Allow ccpanel to be optional
+    * Move to use libtimezone map
+    * Add a name hint on the indicator
+    * Build fixes for updated dependencies
+    * Fixing Geoclue support
+  * debian/control:
+    * Bumping libdbusmenu requirement to 0.5.90
+    * Added dependency on libtimezonemap
+  * debian/patches: Removed, all upstream.
+
+ -- Ted Gould <ted@ubuntu.com>  Fri, 17 Feb 2012 16:24:51 -0600
+
 indicator-datetime (0.3.1-0ubuntu5) precise; urgency=low
 
   * no change rebuild for libindicator7
