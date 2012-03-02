@@ -85,7 +85,7 @@ static DbusmenuMenuitem * current_location = NULL;
 //static DbusmenuMenuitem * ecal_location = NULL;
 static DbusmenuMenuitem * add_appointment = NULL;
 static GList            * appointments = NULL;
-static GList            * dconflocations = NULL;
+static GList            * location_menu_items = NULL;
 static GList            * comp_instances = NULL;
 static gboolean           updating_appointments = FALSE;
 static time_t             start_time_appointments = (time_t) 0;
@@ -585,14 +585,11 @@ update_location_menu_items(void) {
 	g_debug("Found %u locations from %s", len, SETTINGS_LOCATIONS_S);
 	
 	/* Remove all of the previous locations */
-	if (dconflocations != NULL) {
-		while (dconflocations != NULL) {
-			DbusmenuMenuitem * item =  DBUSMENU_MENUITEM(dconflocations->data);
-			// Remove all the existing menu items which are in dconflocations.
-			dconflocations = g_list_remove(dconflocations, item);
-			dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(item));
-			g_object_unref(G_OBJECT(item));
-		}
+	while (location_menu_items != NULL) {
+		DbusmenuMenuitem * item =  DBUSMENU_MENUITEM(location_menu_items->data);
+		location_menu_items = g_list_remove(location_menu_items, item);
+		dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(item));
+		g_object_unref(G_OBJECT(item));
 	}
 	
 	const gboolean show = g_settings_get_boolean (conf, SETTINGS_SHOW_LOCATIONS_S);
@@ -616,7 +613,7 @@ update_location_menu_items(void) {
 			dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
 			dbusmenu_menuitem_child_add_position (root, item, offset++);
 			g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
-			dconflocations = g_list_append(dconflocations, item);
+			location_menu_items = g_list_append(location_menu_items, item);
 		}
 	}
 	g_strfreev (locations);
