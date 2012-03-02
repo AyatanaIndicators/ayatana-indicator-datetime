@@ -420,9 +420,12 @@ day_selected_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, gu
 }
 
 static gboolean
-day_selected_double_click_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, guint timestamp)
+day_selected_double_click_cb (DbusmenuMenuitem * menuitem  G_GNUC_UNUSED,
+                              gchar            * name      G_GNUC_UNUSED,
+                              GVariant         * variant,
+                              guint              timestamp G_GNUC_UNUSED)
 {
-	time_t evotime = (time_t)g_variant_get_uint32(variant);
+	const time_t evotime = (time_t)g_variant_get_uint32(variant);
 	
 	g_debug("Received day-selected-double-click with timestamp: %d -> %s",(int)evotime, ctime(&evotime));	
 	
@@ -430,6 +433,9 @@ day_selected_double_click_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant
 	gchar *cmd = g_strconcat("evolution calendar:///?startdate=", ad, NULL);
 	
 	execute_command (cmd);
+
+	g_free (cmd);
+	g_free (ad);
 	
 	return TRUE;
 }
