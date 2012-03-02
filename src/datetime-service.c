@@ -84,13 +84,13 @@ static DbusmenuMenuitem * geo_location = NULL;
 static DbusmenuMenuitem * current_location = NULL;
 //static DbusmenuMenuitem * ecal_location = NULL;
 static DbusmenuMenuitem * add_appointment = NULL;
-static GList			* appointments = NULL;
-static GList			* dconflocations = NULL;
-static GList			* comp_instances = NULL;
+static GList            * appointments = NULL;
+static GList            * dconflocations = NULL;
+static GList            * comp_instances = NULL;
 static gboolean           updating_appointments = FALSE;
-static time_t			  start_time_appointments = (time_t) 0;
-GSettings *conf;
-GConfClient* gconf;
+static time_t             start_time_appointments = (time_t) 0;
+static GSettings        * conf = NULL;
+static GConfClient      * gconf = NULL;
 
 
 /* Geoclue trackers */
