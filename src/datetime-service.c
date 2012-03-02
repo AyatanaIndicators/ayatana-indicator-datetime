@@ -603,6 +603,7 @@ update_timezone_menu_items(gpointer user_data) {
 	dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 
 	if (len == 0) {
+		g_strfreev (locations);
 		g_debug("No locations configured (Empty List)");
 		return FALSE;
 	}
