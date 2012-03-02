@@ -124,10 +124,7 @@ bus_get_cb (GObject * object, GAsyncResult * res, gpointer user_data)
 	g_warn_if_fail(priv->bus == NULL);
 	priv->bus = connection;
 
-	if (priv->bus_cancel != NULL) {
-		g_object_unref(priv->bus_cancel);
-		priv->bus_cancel = NULL;
-	}
+	g_clear_object (&priv->bus_cancel);
 
 	/* Now register our object on our new connection */
 	priv->dbus_registration = g_dbus_connection_register_object(priv->bus,
@@ -158,15 +155,11 @@ datetime_interface_dispose (GObject *object)
 		priv->dbus_registration = 0;
 	}
 
-	if (priv->bus != NULL) {
-		g_object_unref(priv->bus);
-		priv->bus = NULL;
-	}
+	g_clear_object (&priv->bus);
 
 	if (priv->bus_cancel != NULL) {
 		g_cancellable_cancel(priv->bus_cancel);
-		g_object_unref(priv->bus_cancel);
-		priv->bus_cancel = NULL;
+		g_clear_object (&priv->bus_cancel);
 	}
 
 	G_OBJECT_CLASS (datetime_interface_parent_class)->dispose (object);
