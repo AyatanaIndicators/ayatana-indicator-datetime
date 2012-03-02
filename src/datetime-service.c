@@ -727,7 +727,6 @@ update_appointment_menu_items (gpointer user_data)
 	updating_appointments = TRUE;
 	
 	time_t curtime = 0, t1 = 0, t2 = 0;
-	gchar *ad;
 	GList *l;
 	GSList *g;
 	GError *gerror = NULL;
@@ -894,7 +893,7 @@ update_appointment_menu_items (gpointer user_data)
 		struct comp_instance *ci = l->data;
 		ECalComponent *ecalcomp = ci->comp;
 		ECalComponentText valuetext;
-		gchar *summary, *cmd;
+		gchar *summary;
 		char right[20];
 		//const gchar *uri;
 		DbusmenuMenuitem * item;
@@ -995,12 +994,12 @@ update_appointment_menu_items (gpointer user_data)
 		// Now we pull out the URI for the calendar event and try to create a URI that'll work when we execute evolution
 		// FIXME Because the URI stuff is really broken, we're going to open the calendar at todays date instead
 		//e_cal_component_get_uid(ecalcomp, &uri);
-		ad = isodate_from_time_t(mktime(due));
-		cmd = g_strconcat("evolution calendar:///?startdate=", ad, NULL);
-		g_signal_connect (G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
-						  G_CALLBACK (activate_cb), cmd);
-		
+		gchar * ad = isodate_from_time_t(mktime(due));
+		gchar * cmd = g_strconcat("evolution calendar:///?startdate=", ad, NULL);
 		g_debug("Command to Execute: %s", cmd);
+		g_signal_connect_data (G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
+		                       G_CALLBACK(activate_cb), cmd, (GClosureNotify)g_free, 0);
+		g_free (ad);
 
         const gchar *color_spec = e_source_peek_color_spec(ci->source);
         g_debug("Colour to use: %s", color_spec);
