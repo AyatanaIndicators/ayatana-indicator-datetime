@@ -62,7 +62,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 static void geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data);
 static gboolean update_appointment_menu_items (gpointer user_data);
-static gboolean update_timezone_menu_items(gpointer user_data);
+static void update_location_menu_items (void);
 static void setup_timer (void);
 static void geo_client_invalid (GeoclueMasterClient * client, gpointer user_data);
 static void geo_address_change (GeoclueMasterClient * client, gchar * a, gchar * b, gchar * c, gchar * d, gpointer user_data);
@@ -168,7 +168,7 @@ check_timezone_sync (void) {
 				dbusmenu_menuitem_property_set_bool(locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 				dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 				dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-				update_timezone_menu_items(NULL); // Update the timezone menu items 
+				update_location_menu_items();
 				return;
 			}
 			
@@ -214,7 +214,7 @@ check_timezone_sync (void) {
 		}
 	}
 	g_debug("Finished checking timezone sync");
-	update_timezone_menu_items(NULL); // Update the timezone menu items 
+	update_location_menu_items();
 
 	return;
 }
@@ -567,52 +567,46 @@ check_for_calendar (gpointer user_data)
 }
 
 
-static gboolean
-update_timezone_menu_items(gpointer user_data) {
+static void
+update_location_menu_items(void) {
 	g_debug("Updating timezone menu items");
 
 	if (locations_separator == NULL || current_location == NULL) {
-		return FALSE;
+		return;
 	}
 
 	gchar ** locations = g_settings_get_strv(conf, SETTINGS_LOCATIONS_S);
 
 	if (locations == NULL) { 
 		g_debug("No locations configured (NULL)");
-		return FALSE;
+		return;
 	} 
-	guint len = g_strv_length(locations);
-	DbusmenuMenuitem *item;
-	gint i, offset;
+	const guint len = g_strv_length(locations);
+	g_debug("Found %u locations from %s", len, SETTINGS_LOCATIONS_S);
 	
 	/* Remove all of the previous locations */
 	if (dconflocations != NULL) {
 		while (dconflocations != NULL) {
-			DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(dconflocations->data);
+			DbusmenuMenuitem * item =  DBUSMENU_MENUITEM(dconflocations->data);
 			// Remove all the existing menu items which are in dconflocations.
-			dconflocations = g_list_remove(dconflocations, litem);
-			dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(litem));
-			g_object_unref(G_OBJECT(litem));
+			dconflocations = g_list_remove(dconflocations, item);
+			dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(item));
+			g_object_unref(G_OBJECT(item));
 		}
 	}
 	
-	gboolean show = g_settings_get_boolean (conf, SETTINGS_SHOW_LOCATIONS_S);
-
+	const gboolean show = g_settings_get_boolean (conf, SETTINGS_SHOW_LOCATIONS_S);
 	dbusmenu_menuitem_property_set_bool (locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
 	dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
 	dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 
-	if (len == 0) {
-		g_strfreev (locations);
-		g_debug("No locations configured (Empty List)");
-		return FALSE;
-	}
-	
-	offset = dbusmenu_menuitem_get_position (current_location, root)+1;
+	gint i;
+	gint offset = dbusmenu_menuitem_get_position (current_location, root)+1;
 	for (i = 0; i < len; i++) {
 		// Iterate over configured places and add any which aren't already listed
 		if ((current_timezone == NULL || !g_str_has_prefix(locations[i], current_timezone)) &&
 		    (geo_timezone == NULL || !g_str_has_prefix(locations[i], geo_timezone))) {
+			DbusmenuMenuitem *item;
 			g_debug("Adding timezone in update_timezones %s", locations[i]);
 			item = dbusmenu_menuitem_new();
 			dbusmenu_menuitem_property_set      (item, DBUSMENU_MENUITEM_PROP_TYPE, TIMEZONE_MENUITEM_TYPE);
@@ -626,7 +620,6 @@ update_timezone_menu_items(gpointer user_data) {
 		}
 	}
 	g_strfreev (locations);
-	return FALSE;
 }
 
 // Authentication function
