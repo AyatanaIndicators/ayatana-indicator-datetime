@@ -444,7 +444,8 @@ indicator_datetime_dispose (GObject *object)
 	g_clear_object (&priv->settings);
 	g_clear_object (&priv->service_proxy);
 	g_clear_object (&priv->indicator_right_group);
-
+	g_clear_object (&priv->ido_calendar);
+	g_clear_object (&priv->service_proxy_cancel);
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->dispose (object);
 	return;
