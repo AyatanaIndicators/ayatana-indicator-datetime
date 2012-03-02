@@ -331,7 +331,7 @@ update_datetime (gpointer user_data)
 
 /* Run a particular program based on an activation */
 static void
-activate_cb (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
+execute_command (const gchar * command)
 {
 	GError * error = NULL;
 
@@ -340,6 +340,15 @@ activate_cb (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
 		g_warning("Unable to start %s: %s", (char *)command, error->message);
 		g_error_free(error);
 	}
+}
+
+/* Run a particular program based on an activation */
+static void
+activate_cb (DbusmenuMenuitem  * menuitem G_GNUC_UNUSED,
+             guint               timestamp G_GNUC_UNUSED,
+             const gchar       * command)
+{
+	execute_command (command);
 }
 
 static gboolean
@@ -420,13 +429,7 @@ day_selected_double_click_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant
 	gchar *ad = isodate_from_time_t(evotime);
 	gchar *cmd = g_strconcat("evolution calendar:///?startdate=", ad, NULL);
 	
-	GError * error = NULL;
-
-	g_debug("Issuing command '%s'", cmd);
-	if (!g_spawn_command_line_async(cmd, &error)) {
-		g_warning("Unable to start %s: %s", (char *)cmd, error->message);
-		g_error_free(error);
-	}
+	execute_command (cmd);
 	
 	return TRUE;
 }
