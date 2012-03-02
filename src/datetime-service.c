@@ -892,8 +892,6 @@ update_appointment_menu_items (gpointer user_data)
 	for (l = sorted_comp_instances; l; l = l->next) {
 		struct comp_instance *ci = l->data;
 		ECalComponent *ecalcomp = ci->comp;
-		ECalComponentText valuetext;
-		gchar *summary;
 		char right[20];
 		//const gchar *uri;
 		DbusmenuMenuitem * item;
@@ -950,12 +948,11 @@ update_appointment_menu_items (gpointer user_data)
 
 	
         // Label text        
+		ECalComponentText valuetext;
 		e_cal_component_get_summary (ecalcomp, &valuetext);
-		summary = g_strdup (valuetext.value);
-
-		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_LABEL, summary);
+		const gchar * summary = valuetext.value;
 		g_debug("Summary: %s", summary);
-		g_free (summary);
+		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_LABEL, summary);
 
 		gboolean full_day = FALSE;
 		if (vtype == E_CAL_COMPONENT_EVENT) {
