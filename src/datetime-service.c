@@ -169,9 +169,9 @@ update_location_menu_items (void)
 	if (get_greeter_mode ())
 		return;
 
-	g_assert (locations_separator != NULL);
-	g_assert (geo_location != NULL);
-	g_assert (current_location != NULL);
+	g_return_if_fail (locations_separator != NULL);
+	g_return_if_fail (geo_location != NULL);
+	g_return_if_fail (current_location != NULL);
 
 	GSList * visible_locations = NULL;
 	gchar ** locations = g_settings_get_strv(conf, SETTINGS_LOCATIONS_S);
