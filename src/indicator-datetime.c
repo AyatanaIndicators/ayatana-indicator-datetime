@@ -405,10 +405,7 @@ service_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
 
 	GDBusProxy * proxy = g_dbus_proxy_new_for_bus_finish(res, &error);
 
-	if (priv->service_proxy_cancel != NULL) {
-		g_object_unref(priv->service_proxy_cancel);
-		priv->service_proxy_cancel = NULL;
-	}
+	g_clear_object (&priv->service_proxy_cancel);
 
 	if (error != NULL) {
 		g_warning("Could not grab DBus proxy for %s: %s", SERVICE_NAME, error->message);
@@ -429,46 +426,26 @@ static void
 indicator_datetime_dispose (GObject *object)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(object);
+	IndicatorDatetimePrivate * priv = self->priv;
 
-	if (self->priv->label != NULL) {
-		g_object_unref(self->priv->label);
-		self->priv->label = NULL;
+	if (priv->timer != 0) {
+		g_source_remove(priv->timer);
+		priv->timer = 0;
 	}
 
-	if (self->priv->timer != 0) {
-		g_source_remove(self->priv->timer);
-		self->priv->timer = 0;
+	if (priv->idle_measure != 0) {
+		g_source_remove(priv->idle_measure);
+		priv->idle_measure = 0;
 	}
 
-	if (self->priv->idle_measure != 0) {
-		g_source_remove(self->priv->idle_measure);
-		self->priv->idle_measure = 0;
-	}
-
-	if (self->priv->menu != NULL) {
-		g_object_unref(G_OBJECT(self->priv->menu));
-		self->priv->menu = NULL;
-	}
-
-	if (self->priv->sm != NULL) {
-		g_object_unref(G_OBJECT(self->priv->sm));
-		self->priv->sm = NULL;
-	}
-
-	if (self->priv->settings != NULL) {
-		g_object_unref(G_OBJECT(self->priv->settings));
-		self->priv->settings = NULL;
-	}
-
-	if (self->priv->service_proxy != NULL) {
-		g_object_unref(self->priv->service_proxy);
-		self->priv->service_proxy = NULL;
-	}
-
-	if (self->priv->indicator_right_group != NULL) {
-		g_object_unref(G_OBJECT(self->priv->indicator_right_group));
-		self->priv->indicator_right_group = NULL;
-	}
+	g_clear_object (&priv->label);
+	g_clear_object (&priv->menu);
+	g_clear_object (&priv->sm);
+	g_clear_object (&priv->settings);
+	g_clear_object (&priv->service_proxy);
+	g_clear_object (&priv->indicator_right_group);
+	g_clear_object (&priv->ido_calendar);
+	g_clear_object (&priv->service_proxy_cancel);
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->dispose (object);
 	return;

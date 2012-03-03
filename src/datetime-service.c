@@ -62,11 +62,13 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 static void geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data);
 static gboolean update_appointment_menu_items (gpointer user_data);
-static gboolean update_timezone_menu_items(gpointer user_data);
+static void update_location_menu_items (void);
 static void setup_timer (void);
 static void geo_client_invalid (GeoclueMasterClient * client, gpointer user_data);
 static void geo_address_change (GeoclueMasterClient * client, gchar * a, gchar * b, gchar * c, gchar * d, gpointer user_data);
 static gboolean get_greeter_mode (void);
+
+static void quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, gpointer user_data);
 
 static IndicatorService * service = NULL;
 static GMainLoop * mainloop = NULL;
@@ -80,17 +82,14 @@ static DbusmenuMenuitem * calendar = NULL;
 static DbusmenuMenuitem * settings = NULL;
 static DbusmenuMenuitem * events_separator = NULL;
 static DbusmenuMenuitem * locations_separator = NULL;
-static DbusmenuMenuitem * geo_location = NULL;
-static DbusmenuMenuitem * current_location = NULL;
-//static DbusmenuMenuitem * ecal_location = NULL;
 static DbusmenuMenuitem * add_appointment = NULL;
-static GList			* appointments = NULL;
-static GList			* dconflocations = NULL;
-static GList			* comp_instances = NULL;
+static GList            * appointments = NULL;
+static GSList           * location_menu_items = NULL;
+static GList            * comp_instances = NULL;
 static gboolean           updating_appointments = FALSE;
-static time_t			  start_time_appointments = (time_t) 0;
-GSettings *conf;
-GConfClient* gconf;
+static time_t             start_time_appointments = (time_t) 0;
+static GSettings        * conf = NULL;
+static GConfClient      * gconf = NULL;
 
 
 /* Geoclue trackers */
@@ -108,115 +107,141 @@ struct comp_instance {
         ESource *source;
 };
 
-static void
-set_timezone_label (DbusmenuMenuitem * mi, const gchar * location)
+/**
+ * A temp struct used by update_location_menu_items() for pruning duplicates.
+ */
+struct TimeLocation
 {
-	gchar * zone, * name;
-	split_settings_location (location, &zone, &name);
-
-	dbusmenu_menuitem_property_set (mi, TIMEZONE_MENUITEM_PROP_NAME, name);
-	dbusmenu_menuitem_property_set (mi, TIMEZONE_MENUITEM_PROP_ZONE, zone);
-
-	g_free (zone);
-	g_free (name);
-}
-
+	gint32 offset;
+	gchar * zone;
+	gchar * name;
+};
 static void
-set_current_timezone_label (DbusmenuMenuitem * mi, const gchar * location)
+time_location_free (struct TimeLocation * loc)
 {
-	gchar * name = get_current_zone_name (location);
-
-	dbusmenu_menuitem_property_set (mi, TIMEZONE_MENUITEM_PROP_NAME, name);
-	dbusmenu_menuitem_property_set (mi, TIMEZONE_MENUITEM_PROP_ZONE, location);
-
-	g_free (name);
+	g_free (loc->name);
+	g_free (loc->zone);
+	g_free (loc);
 }
+static struct TimeLocation*
+time_location_new (const char * zone, const char * name)
+{
+	struct TimeLocation * loc = g_new (struct TimeLocation, 1);
+	GTimeZone * tz = g_time_zone_new (zone);
+	loc->offset = g_time_zone_get_offset (tz, 0);
+	loc->zone = g_strdup (zone);
+	loc->name = g_strdup (name);
+	g_time_zone_unref (tz);
+	return loc;
+}
+static int
+time_location_compare (const struct TimeLocation * a, const struct TimeLocation * b)
+{
+	int ret;
+	if (a->offset != b->offset) /* primary key s.t. we can sort by timezone order */
+		ret = a->offset - b->offset;
+	else
+		ret = g_strcmp0 (a->name, b->name); /* secondary key */
+	g_debug ("%s comparing '%s' (%d) to '%s' (%d), returning %d", G_STRLOC, a->name, (int)a->offset, b->name, (int)b->offset, ret);
+	return ret;
+}
+static GSList*
+locations_add (GSList * locations, const char * zone, const char * name)
+{
+	struct TimeLocation * loc = time_location_new (zone, name);
 
-/* Check to see if our timezones are the same */
-static void
-check_timezone_sync (void) {
-	gchar * label;
-	gboolean in_sync = FALSE;
-	
-	if (geo_timezone == NULL) {
-		in_sync = TRUE;
-	}
-
-	if (current_timezone == NULL) {
-		in_sync = TRUE;
-	}
-
-	if (!in_sync && g_strcmp0(geo_timezone, current_timezone) == 0) {
-		in_sync = TRUE;
-	}
-
-	if (in_sync) {
-		g_debug("Timezones in sync");
+	if (g_slist_find_custom (locations, loc, (GCompareFunc)time_location_compare) == NULL) {
+		g_debug ("%s Adding zone '%s', name '%s'", G_STRLOC, zone, name);
+		locations = g_slist_prepend (locations, loc);
 	} else {
-		g_debug("Timezones are different");
+		g_debug("%s Skipping duplicate zone '%s' name '%s'", G_STRLOC, zone, name);
+		time_location_free (loc);
+	}
+	return locations;
+}
+
+/* Update the timezone entries */
+static void
+update_location_menu_items (void)
+{
+	/* if we're in greeter mode, don't bother */
+	if (locations_separator == NULL)
+		return;
+
+	/* remove the previous locations */
+	while (location_menu_items != NULL) {
+		DbusmenuMenuitem * item = DBUSMENU_MENUITEM(location_menu_items->data);
+		location_menu_items = g_slist_remove(location_menu_items, item);
+		dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(item));
+		g_object_unref(G_OBJECT(item));
 	}
 
-	gboolean show = g_settings_get_boolean (conf, SETTINGS_SHOW_LOCATIONS_S);
+	/***
+	****  Build a list of locations to add: use geo_timezone,
+	****  current_timezone, and SETTINGS_LOCATIONS_S, but omit duplicates.
+	***/
 
-	if (geo_location != NULL && current_location != NULL) {
-		g_debug("Got timezone %s", current_timezone);
-		g_debug("Got timezone %s", geo_timezone);
-		// Show neither current location nor geo location if both are the same
-		// however, we want to set their time and label accordingly
-		if (in_sync) {
-			if (current_timezone == NULL && geo_timezone == NULL) {
-				dbusmenu_menuitem_property_set_bool(locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-				dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-				dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-				update_timezone_menu_items(NULL); // Update the timezone menu items 
-				return;
-			}
-			
-			dbusmenu_menuitem_property_set_bool (locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-			dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-			dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
-			dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-			dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
-			
-			if (current_timezone != NULL) {
-				label = current_timezone;
-			} else {
-				label = geo_timezone;
-			}
-			
-			if (label != NULL) {
-				// TODO work out the current location name in a nice way
-				set_current_timezone_label (current_location, label);
-				// TODO work out the current time at that location 
-				dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
-				dbusmenu_menuitem_property_set_bool(current_location, TIMEZONE_MENUITEM_PROP_RADIO, TRUE);
-			} else {
-				g_debug("Label for current location is null, this shouldn't happen");
-			}
-			if (geo_timezone != NULL) {	
-				// TODO work out the geo location name in a nice way
-				set_current_timezone_label (geo_location, geo_timezone);
-				// TODO work out the current time at that location 
-				dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
-			}
-		} else {
-			// TODO work out the geo location name in a nice way
-			set_current_timezone_label (geo_location, geo_timezone);
-			// TODO work out the current time at that location 
-			dbusmenu_menuitem_property_set_bool(geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
-			
-			// TODO work out the current location name in a nice way
-			set_current_timezone_label (current_location, current_timezone);
-			// TODO work out the current time at that location 
-			dbusmenu_menuitem_property_set_bool(current_location, TIMEZONE_MENUITEM_PROP_RADIO, TRUE);
-			dbusmenu_menuitem_property_set_bool(current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
-			dbusmenu_menuitem_property_set_bool(locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
+	GSList * locations = NULL;
+
+	/* maybe add geo_timezone */
+	if (geo_timezone != NULL) {
+		gchar * name = get_current_zone_name (geo_timezone);
+		locations = locations_add (locations, geo_timezone, name);
+		g_free (name);
+	}
+
+	/* maybe add current_timezone */
+	if (current_timezone != NULL) {
+		gchar * name = get_current_zone_name (current_timezone);
+		locations = locations_add (locations, current_timezone, name);
+		g_free (name);
+	}
+
+	/* maybe add the user-specified custom locations */
+	gchar ** user_locations = g_settings_get_strv (conf, SETTINGS_LOCATIONS_S);
+	if (user_locations != NULL) { 
+		gint i;
+		const guint location_count = g_strv_length (user_locations);
+		g_debug ("%s Found %u user-specified locations", G_STRLOC, location_count);
+		for (i=0; i<location_count; i++) {
+			gchar * zone;
+			gchar * name;
+			split_settings_location (user_locations[i], &zone, &name);
+			locations = locations_add (locations, zone, name);
+			g_free (name);
+			g_free (zone);
 		}
+		g_strfreev (user_locations);
+		user_locations = NULL;
 	}
-	g_debug("Finished checking timezone sync");
-	update_timezone_menu_items(NULL); // Update the timezone menu items 
 
-	return;
+	/* sort the list by timezone offset */
+	locations = g_slist_sort (locations, (GCompareFunc)time_location_compare);
+
+	/* finally create menuitems for each location */
+	gint offset = dbusmenu_menuitem_get_position (locations_separator, root)+1;
+	const gboolean show_locations = g_settings_get_boolean (conf, SETTINGS_SHOW_LOCATIONS_S);
+	GSList * l;
+	for (l=locations; l!=NULL; l=l->next) {
+		struct TimeLocation * loc = l->data;
+		g_debug("%s Adding location: zone '%s', name '%s'", G_STRLOC, loc->zone, loc->name);
+		DbusmenuMenuitem * item = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set      (item, DBUSMENU_MENUITEM_PROP_TYPE, TIMEZONE_MENUITEM_TYPE);
+		dbusmenu_menuitem_property_set      (item, TIMEZONE_MENUITEM_PROP_NAME, loc->name);
+		dbusmenu_menuitem_property_set      (item, TIMEZONE_MENUITEM_PROP_ZONE, loc->zone);
+		dbusmenu_menuitem_property_set_bool (item, TIMEZONE_MENUITEM_PROP_RADIO, FALSE);
+		dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+		dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_VISIBLE, show_locations);
+		dbusmenu_menuitem_child_add_position (root, item, offset++);
+		g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
+		location_menu_items = g_slist_append (location_menu_items, item);
+		time_location_free (loc);
+	}
+	g_slist_free (locations);
+	locations = NULL;
+
+	/* if there's at least one item being shown, show the separator too */
+	dbusmenu_menuitem_property_set_bool (locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, show_locations && (location_menu_items!=NULL));
 }
 
 /* Update the current timezone */
@@ -235,7 +260,7 @@ update_current_timezone (void) {
 
 	g_debug("System timezone is: %s", current_timezone);
 
-	check_timezone_sync();
+	update_location_menu_items();
 
 	return;
 }
@@ -331,7 +356,7 @@ update_datetime (gpointer user_data)
 
 /* Run a particular program based on an activation */
 static void
-activate_cb (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
+execute_command (const gchar * command)
 {
 	GError * error = NULL;
 
@@ -340,6 +365,15 @@ activate_cb (DbusmenuMenuitem * menuitem, guint timestamp, const gchar *command)
 		g_warning("Unable to start %s: %s", (char *)command, error->message);
 		g_error_free(error);
 	}
+}
+
+/* Run a particular program based on an activation */
+static void
+activate_cb (DbusmenuMenuitem  * menuitem  G_GNUC_UNUSED,
+             guint               timestamp G_GNUC_UNUSED,
+             const gchar       * command)
+{
+	execute_command (command);
 }
 
 static gboolean
@@ -411,22 +445,22 @@ day_selected_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, gu
 }
 
 static gboolean
-day_selected_double_click_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, guint timestamp)
+day_selected_double_click_cb (DbusmenuMenuitem * menuitem  G_GNUC_UNUSED,
+                              gchar            * name      G_GNUC_UNUSED,
+                              GVariant         * variant,
+                              guint              timestamp G_GNUC_UNUSED)
 {
-	time_t evotime = (time_t)g_variant_get_uint32(variant);
+	const time_t evotime = (time_t)g_variant_get_uint32(variant);
 	
 	g_debug("Received day-selected-double-click with timestamp: %d -> %s",(int)evotime, ctime(&evotime));	
 	
 	gchar *ad = isodate_from_time_t(evotime);
 	gchar *cmd = g_strconcat("evolution calendar:///?startdate=", ad, NULL);
 	
-	GError * error = NULL;
+	execute_command (cmd);
 
-	g_debug("Issuing command '%s'", cmd);
-	if (!g_spawn_command_line_async(cmd, &error)) {
-		g_warning("Unable to start %s: %s", (char *)cmd, error->message);
-		g_error_free(error);
-	}
+	g_free (cmd);
+	g_free (ad);
 	
 	return TRUE;
 }
@@ -557,68 +591,6 @@ check_for_calendar (gpointer user_data)
 	return FALSE;
 }
 
-
-static gboolean
-update_timezone_menu_items(gpointer user_data) {
-	g_debug("Updating timezone menu items");
-
-	if (locations_separator == NULL || current_location == NULL) {
-		return FALSE;
-	}
-
-	gchar ** locations = g_settings_get_strv(conf, SETTINGS_LOCATIONS_S);
-
-	if (locations == NULL) { 
-		g_debug("No locations configured (NULL)");
-		return FALSE;
-	} 
-	guint len = g_strv_length(locations);
-	DbusmenuMenuitem *item;
-	gint i, offset;
-	
-	/* Remove all of the previous locations */
-	if (dconflocations != NULL) {
-		while (dconflocations != NULL) {
-			DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(dconflocations->data);
-			// Remove all the existing menu items which are in dconflocations.
-			dconflocations = g_list_remove(dconflocations, litem);
-			dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(litem));
-			g_object_unref(G_OBJECT(litem));
-		}
-	}
-	
-	gboolean show = g_settings_get_boolean (conf, SETTINGS_SHOW_LOCATIONS_S);
-
-	dbusmenu_menuitem_property_set_bool (locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
-	dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
-	dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
-
-	if (len == 0) {
-		g_debug("No locations configured (Empty List)");
-		return FALSE;
-	}
-	
-	offset = dbusmenu_menuitem_get_position (current_location, root)+1;
-	for (i = 0; i < len; i++) {
-		// Iterate over configured places and add any which aren't already listed
-		if ((current_timezone == NULL || !g_str_has_prefix(locations[i], current_timezone)) &&
-		    (geo_timezone == NULL || !g_str_has_prefix(locations[i], geo_timezone))) {
-			g_debug("Adding timezone in update_timezones %s", locations[i]);
-			item = dbusmenu_menuitem_new();
-			dbusmenu_menuitem_property_set      (item, DBUSMENU_MENUITEM_PROP_TYPE, TIMEZONE_MENUITEM_TYPE);
-			set_timezone_label (item, locations[i]);
-			dbusmenu_menuitem_property_set_bool (item, TIMEZONE_MENUITEM_PROP_RADIO, FALSE);
-			dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
-			dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_VISIBLE, show);
-			dbusmenu_menuitem_child_add_position (root, item, offset++);
-			g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
-			dconflocations = g_list_append(dconflocations, item);
-		}
-	}
-	g_strfreev (locations);
-	return FALSE;
-}
-
 // Authentication function
 static gchar *
 auth_func (ECal *ecal, 
@@ -718,7 +690,6 @@ update_appointment_menu_items (gpointer user_data)
 	updating_appointments = TRUE;
 	
 	time_t curtime = 0, t1 = 0, t2 = 0;
-	gchar *ad;
 	GList *l;
 	GSList *g;
 	GError *gerror = NULL;
@@ -884,8 +855,6 @@ update_appointment_menu_items (gpointer user_data)
 	for (l = sorted_comp_instances; l; l = l->next) {
 		struct comp_instance *ci = l->data;
 		ECalComponent *ecalcomp = ci->comp;
-		ECalComponentText valuetext;
-		gchar *summary, *cmd;
 		char right[20];
 		//const gchar *uri;
 		DbusmenuMenuitem * item;
@@ -942,12 +911,11 @@ update_appointment_menu_items (gpointer user_data)
 
 	
         // Label text        
+		ECalComponentText valuetext;
 		e_cal_component_get_summary (ecalcomp, &valuetext);
-		summary = g_strdup (valuetext.value);
-
-		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_LABEL, summary);
+		const gchar * summary = valuetext.value;
 		g_debug("Summary: %s", summary);
-		g_free (summary);
+		dbusmenu_menuitem_property_set (item, APPOINTMENT_MENUITEM_PROP_LABEL, summary);
 
 		gboolean full_day = FALSE;
 		if (vtype == E_CAL_COMPONENT_EVENT) {
@@ -986,12 +954,12 @@ update_appointment_menu_items (gpointer user_data)
 		// Now we pull out the URI for the calendar event and try to create a URI that'll work when we execute evolution
 		// FIXME Because the URI stuff is really broken, we're going to open the calendar at todays date instead
 		//e_cal_component_get_uid(ecalcomp, &uri);
-		ad = isodate_from_time_t(mktime(due));
-		cmd = g_strconcat("evolution calendar:///?startdate=", ad, NULL);
-		g_signal_connect (G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
-						  G_CALLBACK (activate_cb), cmd);
-		
+		gchar * ad = isodate_from_time_t(mktime(due));
+		gchar * cmd = g_strconcat("evolution calendar:///?startdate=", ad, NULL);
 		g_debug("Command to Execute: %s", cmd);
+		g_signal_connect_data (G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
+		                       G_CALLBACK(activate_cb), cmd, (GClosureNotify)g_free, 0);
+		g_free (ad);
 
         const gchar *color_spec = e_source_peek_color_spec(ci->source);
         g_debug("Colour to use: %s", color_spec);
@@ -1099,7 +1067,7 @@ static void
 show_locations_changed (void)
 {
 	/* Re-calculate */
-	check_timezone_sync();
+	update_location_menu_items();
 }
 
 static void
@@ -1142,22 +1110,7 @@ build_menus (DbusmenuMenuitem * root)
 		dbusmenu_menuitem_property_set_bool (locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 		dbusmenu_menuitem_child_append(root, locations_separator);
 
-		geo_location = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set      (geo_location, DBUSMENU_MENUITEM_PROP_TYPE, TIMEZONE_MENUITEM_TYPE);
-		set_current_timezone_label (geo_location, "");
-		dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-		dbusmenu_menuitem_property_set_bool (geo_location, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
-		g_signal_connect(G_OBJECT(geo_location), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
-		dbusmenu_menuitem_child_append(root, geo_location);
-
-		current_location = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set      (current_location, DBUSMENU_MENUITEM_PROP_TYPE, TIMEZONE_MENUITEM_TYPE);
-		set_current_timezone_label (current_location, "");
-		dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-		dbusmenu_menuitem_property_set_bool (current_location, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-		dbusmenu_menuitem_child_append(root, current_location);
-	
-		check_timezone_sync();
+		update_location_menu_items();
 	
 		g_signal_connect (conf, "changed::" SETTINGS_SHOW_LOCATIONS_S, G_CALLBACK (show_locations_changed), NULL);
 		g_signal_connect (conf, "changed::" SETTINGS_LOCATIONS_S, G_CALLBACK (show_locations_changed), NULL);
@@ -1298,7 +1251,7 @@ geo_address_cb (GeoclueAddress * address, int timestamp, GHashTable * addy_data,
 		geo_timezone = g_strdup((gchar *)tz_hash);
 	}
 
-	check_timezone_sync();
+	update_location_menu_items();
 
 	return;
 }
@@ -1395,7 +1348,7 @@ geo_client_invalid (GeoclueMasterClient * client, gpointer user_data)
 		geo_timezone = NULL;
 	}
 
-	check_timezone_sync();
+	update_location_menu_items();
 
 	return;
 }
@@ -1417,7 +1370,7 @@ geo_address_change (GeoclueMasterClient * client, gchar * a, gchar * b, gchar * 
 		geo_timezone = NULL;
 	}
 
-	check_timezone_sync();
+	update_location_menu_items();
 
 	return;
 }
