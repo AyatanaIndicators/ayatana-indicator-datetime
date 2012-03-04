@@ -405,6 +405,7 @@ input_time_text (GtkWidget * spinner, gdouble * value, IndicatorDatetimePanel * 
     if (is_locale_12h ()) { // TODO: make this look-at/watch gsettings?
       char ampm[51];
 
+      /* coverity[secure_coding] */
       scanned = sscanf (text, "%u:%u:%u %50s", &hour_in, &minute_in, &second_in, ampm);
       passed = (scanned == 4);
 
@@ -415,6 +416,7 @@ input_time_text (GtkWidget * spinner, gdouble * value, IndicatorDatetimePanel * 
         }
       }
     } else {
+      /* coverity[secure_coding] */
       scanned = sscanf (text, "%u:%u:%u", &hour_in, &minute_in, &second_in);
       passed = (scanned == 3);
     }
@@ -433,6 +435,7 @@ input_time_text (GtkWidget * spinner, gdouble * value, IndicatorDatetimePanel * 
   else {
     gint year_in, month_in, day_in;
 
+    /* coverity[secure_coding] */
     scanned = sscanf (text, "%u-%u-%u", &year_in, &month_in, &day_in);
 
     if (scanned != 3 || year_in < 1 || year_in > 9999 ||
