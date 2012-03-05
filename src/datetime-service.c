@@ -640,25 +640,7 @@ populate_appointment_instances (ECalComponent *comp,
 	if (status == ICAL_STATUS_COMPLETED || status == ICAL_STATUS_CANCELLED) return FALSE;
 	
 	g_object_ref(comp);
-	
-	ECalComponentDateTime datetime;
-	icaltimezone *appointment_zone = NULL;
-	icaltimezone *current_zone = NULL;
-	
-	if (vtype == E_CAL_COMPONENT_EVENT)
-		e_cal_component_get_dtstart (comp, &datetime);
-	else
-	    e_cal_component_get_due (comp, &datetime);
 
-	appointment_zone = icaltimezone_get_builtin_timezone_from_tzid(datetime.tzid);
-	current_zone = icaltimezone_get_builtin_timezone_from_tzid(current_timezone);
-	if (!appointment_zone || datetime.value->is_date) { // If it's today put in the current timezone?
-		appointment_zone = current_zone;
-	}
-	
-	// TODO: Convert the timezone into a 3 letter abbreviation if it's different to current_timezone
-	// TODO: Add the appointment timezone to the list if it's not already there. 
-	
 	struct comp_instance *ci;
 	ci = g_new (struct comp_instance, 1);
 	
