@@ -1,4 +1,4 @@
-indicator-datetime (0.3.91-0ubuntu1~ppa1) UNRELEASED; urgency=low
+indicator-datetime (0.3.91-0ubuntu1~ppa1) precise; urgency=low
 
   * New upstream release.
     * Make GSettings readonly to fix DConf service starting on boot 
@@ -7,7 +7,7 @@ indicator-datetime (0.3.91-0ubuntu1~ppa1) UNRELEASED; urgency=low
     * Remove unused code (LP: #943746)
     * Fix timezone ordering in the menu (LP: #833325, LP: #833337)
 
- -- Ted Gould <ted@ubuntu.com>  Thu, 08 Mar 2012 16:50:23 -0600
+ -- Ted Gould <ted@ubuntu.com>  Thu, 08 Mar 2012 16:58:28 -0600
 
 indicator-datetime (0.3.90-0ubuntu1~ppa1) precise; urgency=low
 
