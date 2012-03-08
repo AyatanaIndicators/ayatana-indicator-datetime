@@ -162,7 +162,6 @@ static GtkLabel * get_label               (IndicatorObject * io);
 static GtkMenu *  get_menu                (IndicatorObject * io);
 static const gchar * get_accessible_desc  (IndicatorObject * io);
 static const gchar * get_name_hint        (IndicatorObject * io);
-static GVariant * bind_enum_set           (const GValue * value, const GVariantType * type, gpointer user_data);
 static gboolean bind_enum_get             (GValue * value, GVariant * variant, gpointer user_data);
 static gchar * generate_format_string_now (IndicatorDatetime * self);
 static void update_label                  (IndicatorDatetime * io, GDateTime ** datetime);
@@ -321,45 +320,44 @@ indicator_datetime_init (IndicatorDatetime *self)
 		                SETTINGS_SHOW_CLOCK_S,
 		                self,
 		                PROP_SHOW_CLOCK_S,
-		                G_SETTINGS_BIND_DEFAULT);
+		                G_SETTINGS_BIND_GET);
 		g_settings_bind_with_mapping(self->priv->settings,
 		                SETTINGS_TIME_FORMAT_S,
 		                self,
 		                PROP_TIME_FORMAT_S,
-		                G_SETTINGS_BIND_DEFAULT,
+		                G_SETTINGS_BIND_GET,
 		                bind_enum_get,
-		                bind_enum_set,
-		                NULL, NULL); /* Userdata and destroy func */
+		                NULL, NULL, NULL); /* set mapping, userdata and destroy func */
 		g_settings_bind(self->priv->settings,
 		                SETTINGS_SHOW_SECONDS_S,
 		                self,
 		                PROP_SHOW_SECONDS_S,
-		                G_SETTINGS_BIND_DEFAULT);
+		                G_SETTINGS_BIND_GET);
 		g_settings_bind(self->priv->settings,
 		                SETTINGS_SHOW_DAY_S,
 		                self,
 		                PROP_SHOW_DAY_S,
-		                G_SETTINGS_BIND_DEFAULT);
+		                G_SETTINGS_BIND_GET);
 		g_settings_bind(self->priv->settings,
 		                SETTINGS_SHOW_DATE_S,
 		                self,
 		                PROP_SHOW_DATE_S,
-		                G_SETTINGS_BIND_DEFAULT);
+		                G_SETTINGS_BIND_GET);
 		g_settings_bind(self->priv->settings,
 		                SETTINGS_CUSTOM_TIME_FORMAT_S,
 		                self,
 		                PROP_CUSTOM_TIME_FORMAT_S,
-		                G_SETTINGS_BIND_DEFAULT);
+		                G_SETTINGS_BIND_GET);
 		g_settings_bind(self->priv->settings,
 		                SETTINGS_SHOW_WEEK_NUMBERS_S,
 		                self,
 		                PROP_SHOW_WEEK_NUMBERS_S,
-		                G_SETTINGS_BIND_DEFAULT);
+		                G_SETTINGS_BIND_GET);
 		g_settings_bind(self->priv->settings,
 		                SETTINGS_SHOW_CALENDAR_S,
 		                self,
 		                PROP_SHOW_CALENDAR_S,
-		                G_SETTINGS_BIND_DEFAULT);
+		                G_SETTINGS_BIND_GET);
 	} else {
 		g_warning("Unable to get settings for '" SETTINGS_INTERFACE "'");
 	}
@@ -468,24 +466,6 @@ indicator_datetime_finalize (GObject *object)
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->finalize (object);
 	return;
-}
-
-/* Turns the int value into a string GVariant */
-static GVariant *
-bind_enum_set (const GValue * value, const GVariantType * type, gpointer user_data)
-{
-	switch (g_value_get_int(value)) {
-	case SETTINGS_TIME_LOCALE:
-		return g_variant_new_string("locale-default");
-	case SETTINGS_TIME_12_HOUR:
-		return g_variant_new_string("12-hour");
-	case SETTINGS_TIME_24_HOUR:
-		return g_variant_new_string("24-hour");
-	case SETTINGS_TIME_CUSTOM:
-		return g_variant_new_string("custom");
-	default:
-		return NULL;
-	}
 }
 
 /* Turns a string GVariant into an int value */
