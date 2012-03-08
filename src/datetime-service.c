@@ -830,7 +830,7 @@ update_appointment_menu_items (gpointer user_data)
 	}
 	
 	GVariantBuilder markeddays;
-	g_variant_builder_init (&markeddays, G_VARIANT_TYPE_ARRAY);
+	g_variant_builder_init (&markeddays, G_VARIANT_TYPE ("ai"));
 	
 	i = 0;
 	GList * cached_appointment = appointments;
