@@ -405,6 +405,7 @@ input_time_text (GtkWidget * spinner, gdouble * value, IndicatorDatetimePanel * 
     if (is_locale_12h ()) { // TODO: make this look-at/watch gsettings?
       char ampm[51];
 
+      /* coverity[secure_coding] */
       scanned = sscanf (text, "%u:%u:%u %50s", &hour_in, &minute_in, &second_in, ampm);
       passed = (scanned == 4);
 
@@ -415,6 +416,7 @@ input_time_text (GtkWidget * spinner, gdouble * value, IndicatorDatetimePanel * 
         }
       }
     } else {
+      /* coverity[secure_coding] */
       scanned = sscanf (text, "%u:%u:%u", &hour_in, &minute_in, &second_in);
       passed = (scanned == 3);
     }
@@ -433,6 +435,7 @@ input_time_text (GtkWidget * spinner, gdouble * value, IndicatorDatetimePanel * 
   else {
     gint year_in, month_in, day_in;
 
+    /* coverity[secure_coding] */
     scanned = sscanf (text, "%u-%u-%u", &year_in, &month_in, &day_in);
 
     if (scanned != 3 || year_in < 1 || year_in > 9999 ||
@@ -776,46 +779,39 @@ static void
 indicator_datetime_panel_dispose (GObject * object)
 {
   IndicatorDatetimePanel * self = (IndicatorDatetimePanel *) object;
+  IndicatorDatetimePanelPrivate * priv = self->priv;
 
-  if (self->priv->builder) {
-    g_object_unref (self->priv->builder);
-    self->priv->builder = NULL;
+  g_clear_object (&priv->builder);
+  g_clear_object (&priv->proxy);
+
+  if (priv->loc_dlg) {
+    gtk_widget_destroy (priv->loc_dlg);
+    priv->loc_dlg = NULL;
   }
 
-  if (self->priv->proxy) {
-    g_object_unref (self->priv->proxy);
-    self->priv->proxy = NULL;
+  if (priv->save_time_id) {
+    g_source_remove (priv->save_time_id);
+    priv->save_time_id = 0;
   }
 
-  if (self->priv->loc_dlg) {
-    gtk_widget_destroy (self->priv->loc_dlg);
-    self->priv->loc_dlg = NULL;
+  if (priv->completion) {
+    cc_timezone_completion_watch_entry (priv->completion, NULL);
+    g_clear_object (&priv->completion);
   }
 
-  if (self->priv->save_time_id) {
-    g_source_remove (self->priv->save_time_id);
-    self->priv->save_time_id = 0;
+  if (priv->tz_entry) {
+    gtk_widget_destroy (priv->tz_entry);
+    priv->tz_entry = NULL;
   }
 
-  if (self->priv->completion) {
-    cc_timezone_completion_watch_entry (self->priv->completion, NULL);
-    g_object_unref (self->priv->completion);
-    self->priv->completion = NULL;
+  if (priv->time_spin) {
+    gtk_widget_destroy (priv->time_spin);
+    priv->time_spin = NULL;
   }
 
-  if (self->priv->tz_entry) {
-    gtk_widget_destroy (self->priv->tz_entry);
-    self->priv->tz_entry = NULL;
-  }
-
-  if (self->priv->time_spin) {
-    gtk_widget_destroy (self->priv->time_spin);
-    self->priv->time_spin = NULL;
-  }
-
-  if (self->priv->date_spin) {
-    gtk_widget_destroy (self->priv->date_spin);
-    self->priv->date_spin = NULL;
+  if (priv->date_spin) {
+    gtk_widget_destroy (priv->date_spin);
+    priv->date_spin = NULL;
   }
 }
 

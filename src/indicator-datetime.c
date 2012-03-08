@@ -162,7 +162,6 @@ static GtkLabel * get_label               (IndicatorObject * io);
 static GtkMenu *  get_menu                (IndicatorObject * io);
 static const gchar * get_accessible_desc  (IndicatorObject * io);
 static const gchar * get_name_hint        (IndicatorObject * io);
-static GVariant * bind_enum_set           (const GValue * value, const GVariantType * type, gpointer user_data);
 static gboolean bind_enum_get             (GValue * value, GVariant * variant, gpointer user_data);
 static gchar * generate_format_string_now (IndicatorDatetime * self);
 static void update_label                  (IndicatorDatetime * io, GDateTime ** datetime);
@@ -321,45 +320,44 @@ indicator_datetime_init (IndicatorDatetime *self)
 		                SETTINGS_SHOW_CLOCK_S,
 		                self,
 		                PROP_SHOW_CLOCK_S,
-		                G_SETTINGS_BIND_DEFAULT);
+		                G_SETTINGS_BIND_GET);
 		g_settings_bind_with_mapping(self->priv->settings,
 		                SETTINGS_TIME_FORMAT_S,
 		                self,
 		                PROP_TIME_FORMAT_S,
-		                G_SETTINGS_BIND_DEFAULT,
+		                G_SETTINGS_BIND_GET,
 		                bind_enum_get,
-		                bind_enum_set,
-		                NULL, NULL); /* Userdata and destroy func */
+		                NULL, NULL, NULL); /* set mapping, userdata and destroy func */
 		g_settings_bind(self->priv->settings,
 		                SETTINGS_SHOW_SECONDS_S,
 		                self,
 		                PROP_SHOW_SECONDS_S,
-		                G_SETTINGS_BIND_DEFAULT);
+		                G_SETTINGS_BIND_GET);
 		g_settings_bind(self->priv->settings,
 		                SETTINGS_SHOW_DAY_S,
 		                self,
 		                PROP_SHOW_DAY_S,
-		                G_SETTINGS_BIND_DEFAULT);
+		                G_SETTINGS_BIND_GET);
 		g_settings_bind(self->priv->settings,
 		                SETTINGS_SHOW_DATE_S,
 		                self,
 		                PROP_SHOW_DATE_S,
-		                G_SETTINGS_BIND_DEFAULT);
+		                G_SETTINGS_BIND_GET);
 		g_settings_bind(self->priv->settings,
 		                SETTINGS_CUSTOM_TIME_FORMAT_S,
 		                self,
 		                PROP_CUSTOM_TIME_FORMAT_S,
-		                G_SETTINGS_BIND_DEFAULT);
+		                G_SETTINGS_BIND_GET);
 		g_settings_bind(self->priv->settings,
 		                SETTINGS_SHOW_WEEK_NUMBERS_S,
 		                self,
 		                PROP_SHOW_WEEK_NUMBERS_S,
-		                G_SETTINGS_BIND_DEFAULT);
+		                G_SETTINGS_BIND_GET);
 		g_settings_bind(self->priv->settings,
 		                SETTINGS_SHOW_CALENDAR_S,
 		                self,
 		                PROP_SHOW_CALENDAR_S,
-		                G_SETTINGS_BIND_DEFAULT);
+		                G_SETTINGS_BIND_GET);
 	} else {
 		g_warning("Unable to get settings for '" SETTINGS_INTERFACE "'");
 	}
@@ -405,10 +403,7 @@ service_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
 
 	GDBusProxy * proxy = g_dbus_proxy_new_for_bus_finish(res, &error);
 
-	if (priv->service_proxy_cancel != NULL) {
-		g_object_unref(priv->service_proxy_cancel);
-		priv->service_proxy_cancel = NULL;
-	}
+	g_clear_object (&priv->service_proxy_cancel);
 
 	if (error != NULL) {
 		g_warning("Could not grab DBus proxy for %s: %s", SERVICE_NAME, error->message);
@@ -429,46 +424,26 @@ static void
 indicator_datetime_dispose (GObject *object)
 {
 	IndicatorDatetime * self = INDICATOR_DATETIME(object);
+	IndicatorDatetimePrivate * priv = self->priv;
 
-	if (self->priv->label != NULL) {
-		g_object_unref(self->priv->label);
-		self->priv->label = NULL;
+	if (priv->timer != 0) {
+		g_source_remove(priv->timer);
+		priv->timer = 0;
 	}
 
-	if (self->priv->timer != 0) {
-		g_source_remove(self->priv->timer);
-		self->priv->timer = 0;
+	if (priv->idle_measure != 0) {
+		g_source_remove(priv->idle_measure);
+		priv->idle_measure = 0;
 	}
 
-	if (self->priv->idle_measure != 0) {
-		g_source_remove(self->priv->idle_measure);
-		self->priv->idle_measure = 0;
-	}
-
-	if (self->priv->menu != NULL) {
-		g_object_unref(G_OBJECT(self->priv->menu));
-		self->priv->menu = NULL;
-	}
-
-	if (self->priv->sm != NULL) {
-		g_object_unref(G_OBJECT(self->priv->sm));
-		self->priv->sm = NULL;
-	}
-
-	if (self->priv->settings != NULL) {
-		g_object_unref(G_OBJECT(self->priv->settings));
-		self->priv->settings = NULL;
-	}
-
-	if (self->priv->service_proxy != NULL) {
-		g_object_unref(self->priv->service_proxy);
-		self->priv->service_proxy = NULL;
-	}
-
-	if (self->priv->indicator_right_group != NULL) {
-		g_object_unref(G_OBJECT(self->priv->indicator_right_group));
-		self->priv->indicator_right_group = NULL;
-	}
+	g_clear_object (&priv->label);
+	g_clear_object (&priv->menu);
+	g_clear_object (&priv->sm);
+	g_clear_object (&priv->settings);
+	g_clear_object (&priv->service_proxy);
+	g_clear_object (&priv->indicator_right_group);
+	g_clear_object (&priv->ido_calendar);
+	g_clear_object (&priv->service_proxy_cancel);
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->dispose (object);
 	return;
@@ -491,24 +466,6 @@ indicator_datetime_finalize (GObject *object)
 
 	G_OBJECT_CLASS (indicator_datetime_parent_class)->finalize (object);
 	return;
-}
-
-/* Turns the int value into a string GVariant */
-static GVariant *
-bind_enum_set (const GValue * value, const GVariantType * type, gpointer user_data)
-{
-	switch (g_value_get_int(value)) {
-	case SETTINGS_TIME_LOCALE:
-		return g_variant_new_string("locale-default");
-	case SETTINGS_TIME_12_HOUR:
-		return g_variant_new_string("12-hour");
-	case SETTINGS_TIME_24_HOUR:
-		return g_variant_new_string("24-hour");
-	case SETTINGS_TIME_CUSTOM:
-		return g_variant_new_string("custom");
-	default:
-		return NULL;
-	}
 }
 
 /* Turns a string GVariant into an int value */

@@ -339,7 +339,7 @@ save_to_settings (GObject * store, GSettings * conf)
 {
   gboolean empty = TRUE;
   GVariantBuilder builder;
-  g_variant_builder_init (&builder, G_VARIANT_TYPE_ARRAY);
+  g_variant_builder_init (&builder, G_VARIANT_TYPE_STRING_ARRAY);
 
   GtkTreeIter iter;
   if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter)) {
