@@ -828,6 +828,7 @@ update_appointment_menu_items (gpointer user_data)
 			apt_output = SETTINGS_TIME_24_HOUR;
 		}
 	}
+	g_free (time_format_str);
 	
 	GVariantBuilder markeddays;
 	g_variant_builder_init (&markeddays, G_VARIANT_TYPE ("ai"));
