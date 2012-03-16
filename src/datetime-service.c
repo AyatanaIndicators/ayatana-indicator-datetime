@@ -821,13 +821,12 @@ update_appointment_menu_items (gpointer user_data)
 		apt_output = SETTINGS_TIME_12_HOUR;
 	} else if (g_strcmp0(time_format_str, "24-hour") == 0) {
 		apt_output = SETTINGS_TIME_24_HOUR;
+	} else if (is_locale_12h()) {
+		apt_output = SETTINGS_TIME_12_HOUR;
 	} else {
-		if (is_locale_12h()) {
-			apt_output = SETTINGS_TIME_12_HOUR;
-		} else {
-			apt_output = SETTINGS_TIME_24_HOUR;
-		}
+		apt_output = SETTINGS_TIME_24_HOUR;
 	}
+	g_free (time_format_str);
 	
 	GVariantBuilder markeddays;
 	g_variant_builder_init (&markeddays, G_VARIANT_TYPE ("ai"));
