@@ -367,7 +367,9 @@ save_to_settings (GObject * store, GSettings * conf)
   }
   else {
     GVariant * locations = g_variant_builder_end (&builder);
-    g_settings_set_strv (conf, SETTINGS_LOCATIONS_S, g_variant_get_strv (locations, NULL));
+    const gchar ** strings = g_variant_get_strv (locations, NULL);
+    g_settings_set_strv (conf, SETTINGS_LOCATIONS_S, strings);
+    g_free (strings);
     g_variant_unref (locations);
   }
 }
