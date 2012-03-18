@@ -719,6 +719,7 @@ update_appointment_menu_items (gpointer user_data)
 	
 	if (!e_cal_get_sources(&sources, E_CAL_SOURCE_TYPE_EVENT, &gerror)) {
 		g_debug("Failed to get ecal sources\n");
+		g_clear_error (&gerror);
 		return FALSE;
 	}
 	
@@ -1217,6 +1218,7 @@ geo_address_cb (GeoclueAddress * address, int timestamp, GHashTable * addy_data,
 {
 	if (error != NULL) {
 		g_warning("Unable to get Geoclue address: %s", error->message);
+		g_clear_error (&error);
 		return;
 	}
 
@@ -1278,6 +1280,7 @@ geo_create_address (GeoclueMasterClient * master, GeoclueAddress * address, GErr
 {
 	if (error != NULL) {
 		g_warning("Unable to create GeoClue address: %s", error->message);
+		g_clear_error (&error);
 		return;
 	}
 
@@ -1304,6 +1307,7 @@ geo_req_set (GeoclueMasterClient * master, GError * error, gpointer user_data)
 {
 	if (error != NULL) {
 		g_warning("Unable to set Geoclue requirements: %s", error->message);
+		g_clear_error (&error);
 	}
 	return;
 }
@@ -1366,6 +1370,7 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 
 	if (error != NULL) {
 		g_warning("Unable to get a GeoClue client!  '%s'  Geolocation based timezone support will not be available.", error->message);
+		g_clear_error (&error);
 		return;
 	}
 
