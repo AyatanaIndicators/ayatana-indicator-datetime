@@ -772,23 +772,17 @@ update_appointment_menu_items (gpointer user_data)
 				g_object_unref(ecal);
 				continue;
 			}
+
 			const gchar *ecal_uid = e_source_peek_uid(source);
-			gboolean match = FALSE;
 			g_debug("Checking ecal_uid is enabled: %s", ecal_uid);
-			for (i = 0; i<g_slist_length(cal_list);i++) {
-				char *cuid = (char *)g_slist_nth_data(cal_list, i);
-				if (g_strcmp0(cuid, ecal_uid) == 0) {
-					match = TRUE;
-					break;
-				}
-			}
-			if (!match) {
+			const gboolean in_list = g_slist_find_custom (cal_list, ecal_uid, (GCompareFunc)g_strcmp0) != NULL;
+			if (!in_list) {
 				g_object_unref(ecal);
 				continue;
 			}
+
 			g_debug("ecal_uid is enabled, generating instances");
-			
-			e_cal_generate_instances (ecal, t1, t2, (ECalRecurInstanceFn) populate_appointment_instances, (gpointer) source);
+			e_cal_generate_instances (ecal, t1, t2, (ECalRecurInstanceFn) populate_appointment_instances, source);
 			g_object_unref(ecal);
 		}
 	}
