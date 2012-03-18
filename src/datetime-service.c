@@ -624,11 +624,31 @@ compare_comp_instances (gconstpointer ga, gconstpointer gb)
 	return 0;
 }
 
+static struct comp_instance*
+comp_instance_new (ECalComponent * comp, time_t start, time_t end, ESource * source)
+{
+	g_object_ref(comp);
+	g_debug("Using times start %s, end %s", ctime(&start), ctime(&end));
+
+	struct comp_instance *ci = g_new (struct comp_instance, 1);
+	ci->comp = comp;
+	ci->source = source;
+	ci->start = start;
+	ci->end = end;
+	return ci;
+}
+static void
+comp_instance_free (struct comp_instance* ci)
+{
+	g_object_unref (ci->comp);
+	g_free (ci);
+}
+
 static gboolean
-populate_appointment_instances (ECalComponent *comp,
-                                time_t instance_start,
-                                time_t instance_end,
-                                gpointer data)
+populate_appointment_instances (ECalComponent * comp,
+                                time_t          start,
+                                time_t          end,
+                                gpointer        data)
 {
 	g_debug("Appending item %p", comp);
 	
@@ -638,20 +658,9 @@ populate_appointment_instances (ECalComponent *comp,
 	icalproperty_status status;
 	e_cal_component_get_status (comp, &status);
 	if (status == ICAL_STATUS_COMPLETED || status == ICAL_STATUS_CANCELLED) return FALSE;
-	
-	g_object_ref(comp);
 
-	struct comp_instance *ci;
-	ci = g_new (struct comp_instance, 1);
-	
-	g_debug("Using times start %s, end %s", ctime(&instance_start), ctime(&instance_end));
-	
-	ci->comp = comp;
-	ci->source = E_SOURCE(data);
-	ci->start = instance_start;
-	ci->end = instance_end;
-	
-	comp_instances = g_list_append(comp_instances, ci);
+	struct comp_instance *ci = comp_instance_new (comp, start, end, E_SOURCE(data));
+	comp_instances = g_list_append (comp_instances, ci);
 	return TRUE;
 }
 
@@ -723,17 +732,10 @@ update_appointment_menu_items (gpointer user_data)
 		return FALSE;
 	}
 	
-	// Free comp_instances if not NULL
-	if (comp_instances != NULL) {
-		g_debug("Freeing comp_instances: may be an overlap\n");
-		for (l = comp_instances; l; l = l->next) {
-			const struct comp_instance *ci = l->data;
-			g_object_unref(ci->comp);
-		}
-		g_list_free(comp_instances);
-		comp_instances = NULL;
+	// clear any previous comp_instances
+	g_list_free_full (comp_instances, (GDestroyNotify)comp_instance_free);
+	comp_instances = NULL;
 
-	}
 	GSList *cal_list = gconf_client_get_list(gconf, "/apps/evolution/calendar/display/selected_calendars", GCONF_VALUE_STRING, &gerror);
 	if (gerror) {
 	  g_debug("Failed to get evolution preference for enabled calendars");
@@ -1011,11 +1013,8 @@ update_appointment_menu_items (gpointer user_data)
 	
 	g_clear_error (&gerror);
 
-	for (l = sorted_comp_instances; l; l = l->next) { 
-		const struct comp_instance *ci = l->data;
-		g_object_unref(ci->comp);
-	}
-	g_list_free(sorted_comp_instances);
+	g_list_free_full (sorted_comp_instances, (GDestroyNotify)comp_instance_free);
+	sorted_comp_instances = NULL;
 	
 	GVariant * marks = g_variant_builder_end (&markeddays);
 	dbusmenu_menuitem_property_set_variant (calendar, CALENDAR_MENUITEM_PROP_MARKS, marks);
