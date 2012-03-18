@@ -273,7 +273,7 @@ quick_set_tz_cb (GObject *object, GAsyncResult *res, gpointer data)
 
   if (error != NULL) {
     g_warning("Could not set timezone for SettingsDaemon: %s", error->message);
-    g_error_free(error);
+    g_clear_error (&error);
     return;
   }
 
@@ -289,7 +289,7 @@ quick_set_tz_proxy_cb (GObject *object, GAsyncResult *res, gpointer zone)
 
 	if (error != NULL) {
 		g_warning("Could not grab DBus proxy for SettingsDaemon: %s", error->message);
-		g_error_free(error);
+		g_clear_error (&error);
 		g_free (zone);
 		return;
 	}
@@ -363,7 +363,7 @@ execute_command (const gchar * command)
 	g_debug("Issuing command '%s'", command);
 	if (!g_spawn_command_line_async(command, &error)) {
 		g_warning("Unable to start %s: %s", (char *)command, error->message);
-		g_error_free(error);
+		g_clear_error (&error);
 	}
 }
 
@@ -737,8 +737,7 @@ update_appointment_menu_items (gpointer user_data)
 	GSList *cal_list = gconf_client_get_list(gconf, "/apps/evolution/calendar/display/selected_calendars", GCONF_VALUE_STRING, &gerror);
 	if (gerror) {
 	  g_debug("Failed to get evolution preference for enabled calendars");
-	  g_error_free(gerror);
-	  gerror = NULL;
+	  g_clear_error (&gerror);
 	  cal_list = NULL;
 	}
 	
@@ -760,16 +759,14 @@ update_appointment_menu_items (gpointer user_data)
 			}
 			if (current_zone && !e_cal_set_default_timezone(ecal, current_zone, &gerror)) {
 				g_debug("Failed to set ecal default timezone %s", gerror->message);
-				g_error_free(gerror);
-				gerror = NULL;
+				g_clear_error (&gerror);
 				g_object_unref(ecal);
 				continue;
 			}
 			
 			if (!e_cal_open(ecal, FALSE, &gerror)) {
 				g_debug("Failed to get ecal sources %s", gerror->message);
-				g_error_free(gerror);
-				gerror = NULL;
+				g_clear_error (&gerror);
 				g_object_unref(ecal);
 				continue;
 			}
@@ -1010,7 +1007,8 @@ update_appointment_menu_items (gpointer user_data)
 		g_debug("Adding appointment: %p", item);
 	}
 	
-    if (gerror != NULL) g_error_free(gerror);
+	g_clear_error (&gerror);
+
 	for (l = sorted_comp_instances; l; l = l->next) { 
 		const struct comp_instance *ci = l->data;
 		g_object_unref(ci->comp);
@@ -1205,7 +1203,7 @@ system_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
 
 	if (error != NULL) {
 		g_warning("Could not grab DBus proxy for ConsoleKit: %s", error->message);
-		g_error_free(error);
+		g_clear_error (&error);
 		return;
 	}
 
