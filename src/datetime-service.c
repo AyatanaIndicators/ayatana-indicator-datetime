@@ -532,7 +532,7 @@ calendar_app_is_usable (void)
 	GSList *accounts_list = gconf_client_get_list (gconf, "/apps/evolution/mail/accounts", GCONF_VALUE_STRING, NULL);
 	const guint n = g_slist_length (accounts_list);
 	g_debug ("found %u evolution accounts", n);
-	g_slist_free (accounts_list);
+	g_slist_free_full (accounts_list, g_free);
 	return n > 0;
 }
 
@@ -790,6 +790,8 @@ update_appointment_menu_items (gpointer user_data)
 			g_object_unref(ecal);
 		}
 	}
+	g_slist_free_full (cal_list, g_free);
+
 	g_debug("Number of ECalComponents returned: %d", g_list_length(comp_instances));
 	GList *sorted_comp_instances = g_list_sort(comp_instances, compare_comp_instances);
 	comp_instances = NULL;
