@@ -996,6 +996,7 @@ update_appointment_menu_items (gpointer user_data)
 	  			}
 	  			
 				dbusmenu_menuitem_property_set_image (item, APPOINTMENT_MENUITEM_PROP_ICON, pixbuf);
+				g_clear_object (&pixbuf);
 			} else {
 				g_debug("Creating pixbuf from surface failed");
 			}
