@@ -613,15 +613,15 @@ auth_func (ECal *ecal,
 }
 
 static gint
-compare_comp_instances (gconstpointer a, 
-                        gconstpointer b)
+compare_comp_instances (gconstpointer ga, gconstpointer gb)
 {
-        const struct comp_instance *ci_a = a;
-        const struct comp_instance *ci_b = b;
-        time_t d = ci_a->start - ci_b->start;
-		if (d < 0) return -1;
-		else if (d > 0) return 1; 
-		return 0;
+        const struct comp_instance * a = ga;
+        const struct comp_instance * b = gb;
+
+	/* sort by start time */
+	if (a->start < b->start) return -1;
+	if (a->start > b->start) return  1;
+	return 0;
 }
 
 static gboolean
