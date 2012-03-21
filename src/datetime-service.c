@@ -273,7 +273,7 @@ quick_set_tz_cb (GObject *object, GAsyncResult *res, gpointer data)
 
   if (error != NULL) {
     g_warning("Could not set timezone for SettingsDaemon: %s", error->message);
-    g_error_free(error);
+    g_clear_error (&error);
     return;
   }
 
@@ -289,7 +289,7 @@ quick_set_tz_proxy_cb (GObject *object, GAsyncResult *res, gpointer zone)
 
 	if (error != NULL) {
 		g_warning("Could not grab DBus proxy for SettingsDaemon: %s", error->message);
-		g_error_free(error);
+		g_clear_error (&error);
 		g_free (zone);
 		return;
 	}
@@ -363,7 +363,7 @@ execute_command (const gchar * command)
 	g_debug("Issuing command '%s'", command);
 	if (!g_spawn_command_line_async(command, &error)) {
 		g_warning("Unable to start %s: %s", (char *)command, error->message);
-		g_error_free(error);
+		g_clear_error (&error);
 	}
 }
 
@@ -532,7 +532,7 @@ calendar_app_is_usable (void)
 	GSList *accounts_list = gconf_client_get_list (gconf, "/apps/evolution/mail/accounts", GCONF_VALUE_STRING, NULL);
 	const guint n = g_slist_length (accounts_list);
 	g_debug ("found %u evolution accounts", n);
-	g_slist_free (accounts_list);
+	g_slist_free_full (accounts_list, g_free);
 	return n > 0;
 }
 
@@ -613,22 +613,43 @@ auth_func (ECal *ecal,
 }
 
 static gint
-compare_comp_instances (gconstpointer a, 
-                        gconstpointer b)
+compare_comp_instances (gconstpointer ga, gconstpointer gb)
 {
-        const struct comp_instance *ci_a = a;
-        const struct comp_instance *ci_b = b;
-        time_t d = ci_a->start - ci_b->start;
-		if (d < 0) return -1;
-		else if (d > 0) return 1; 
-		return 0;
+	const struct comp_instance * a = ga;
+	const struct comp_instance * b = gb;
+
+	/* sort by start time */
+	if (a->start < b->start) return -1;
+	if (a->start > b->start) return  1;
+	return 0;
+}
+
+static struct comp_instance*
+comp_instance_new (ECalComponent * comp, time_t start, time_t end, ESource * source)
+{
+	g_debug("Using times start %s, end %s", ctime(&start), ctime(&end));
+
+	struct comp_instance *ci = g_new (struct comp_instance, 1);
+	ci->comp = g_object_ref (comp);
+	ci->source = source;
+	ci->start = start;
+	ci->end = end;
+	return ci;
+}
+static void
+comp_instance_free (struct comp_instance* ci)
+{
+	if (ci != NULL) {
+		g_clear_object (&ci->comp);
+		g_free (ci);
+	}
 }
 
 static gboolean
-populate_appointment_instances (ECalComponent *comp,
-                                time_t instance_start,
-                                time_t instance_end,
-                                gpointer data)
+populate_appointment_instances (ECalComponent * comp,
+                                time_t          start,
+                                time_t          end,
+                                gpointer        data)
 {
 	g_debug("Appending item %p", comp);
 	
@@ -638,20 +659,9 @@ populate_appointment_instances (ECalComponent *comp,
 	icalproperty_status status;
 	e_cal_component_get_status (comp, &status);
 	if (status == ICAL_STATUS_COMPLETED || status == ICAL_STATUS_CANCELLED) return FALSE;
-	
-	g_object_ref(comp);
 
-	struct comp_instance *ci;
-	ci = g_new (struct comp_instance, 1);
-	
-	g_debug("Using times start %s, end %s", ctime(&instance_start), ctime(&instance_end));
-	
-	ci->comp = comp;
-	ci->source = E_SOURCE(data);
-	ci->start = instance_start;
-	ci->end = instance_end;
-	
-	comp_instances = g_list_append(comp_instances, ci);
+	struct comp_instance *ci = comp_instance_new (comp, start, end, E_SOURCE(data));
+	comp_instances = g_list_append (comp_instances, ci);
 	return TRUE;
 }
 
@@ -719,25 +729,18 @@ update_appointment_menu_items (gpointer user_data)
 	
 	if (!e_cal_get_sources(&sources, E_CAL_SOURCE_TYPE_EVENT, &gerror)) {
 		g_debug("Failed to get ecal sources\n");
+		g_clear_error (&gerror);
 		return FALSE;
 	}
 	
-	// Free comp_instances if not NULL
-	if (comp_instances != NULL) {
-		g_debug("Freeing comp_instances: may be an overlap\n");
-		for (l = comp_instances; l; l = l->next) {
-			const struct comp_instance *ci = l->data;
-			g_object_unref(ci->comp);
-		}
-		g_list_free(comp_instances);
-		comp_instances = NULL;
+	// clear any previous comp_instances
+	g_list_free_full (comp_instances, (GDestroyNotify)comp_instance_free);
+	comp_instances = NULL;
 
-	}
 	GSList *cal_list = gconf_client_get_list(gconf, "/apps/evolution/calendar/display/selected_calendars", GCONF_VALUE_STRING, &gerror);
 	if (gerror) {
 	  g_debug("Failed to get evolution preference for enabled calendars");
-	  g_error_free(gerror);
-	  gerror = NULL;
+	  g_clear_error (&gerror);
 	  cal_list = NULL;
 	}
 	
@@ -759,39 +762,33 @@ update_appointment_menu_items (gpointer user_data)
 			}
 			if (current_zone && !e_cal_set_default_timezone(ecal, current_zone, &gerror)) {
 				g_debug("Failed to set ecal default timezone %s", gerror->message);
-				g_error_free(gerror);
-				gerror = NULL;
+				g_clear_error (&gerror);
 				g_object_unref(ecal);
 				continue;
 			}
 			
 			if (!e_cal_open(ecal, FALSE, &gerror)) {
 				g_debug("Failed to get ecal sources %s", gerror->message);
-				g_error_free(gerror);
-				gerror = NULL;
+				g_clear_error (&gerror);
 				g_object_unref(ecal);
 				continue;
 			}
+
 			const gchar *ecal_uid = e_source_peek_uid(source);
-			gboolean match = FALSE;
 			g_debug("Checking ecal_uid is enabled: %s", ecal_uid);
-			for (i = 0; i<g_slist_length(cal_list);i++) {
-				char *cuid = (char *)g_slist_nth_data(cal_list, i);
-				if (g_strcmp0(cuid, ecal_uid) == 0) {
-					match = TRUE;
-					break;
-				}
-			}
-			if (!match) {
+			const gboolean in_list = g_slist_find_custom (cal_list, ecal_uid, (GCompareFunc)g_strcmp0) != NULL;
+			if (!in_list) {
 				g_object_unref(ecal);
 				continue;
 			}
+
 			g_debug("ecal_uid is enabled, generating instances");
-			
-			e_cal_generate_instances (ecal, t1, t2, (ECalRecurInstanceFn) populate_appointment_instances, (gpointer) source);
+			e_cal_generate_instances (ecal, t1, t2, (ECalRecurInstanceFn) populate_appointment_instances, source);
 			g_object_unref(ecal);
 		}
 	}
+	g_slist_free_full (cal_list, g_free);
+
 	g_debug("Number of ECalComponents returned: %d", g_list_length(comp_instances));
 	GList *sorted_comp_instances = g_list_sort(comp_instances, compare_comp_instances);
 	comp_instances = NULL;
@@ -821,13 +818,12 @@ update_appointment_menu_items (gpointer user_data)
 		apt_output = SETTINGS_TIME_12_HOUR;
 	} else if (g_strcmp0(time_format_str, "24-hour") == 0) {
 		apt_output = SETTINGS_TIME_24_HOUR;
+	} else if (is_locale_12h()) {
+		apt_output = SETTINGS_TIME_12_HOUR;
 	} else {
-		if (is_locale_12h()) {
-			apt_output = SETTINGS_TIME_12_HOUR;
-		} else {
-			apt_output = SETTINGS_TIME_24_HOUR;
-		}
+		apt_output = SETTINGS_TIME_24_HOUR;
 	}
+	g_free (time_format_str);
 	
 	GVariantBuilder markeddays;
 	g_variant_builder_init (&markeddays, G_VARIANT_TYPE ("ai"));
@@ -1001,6 +997,7 @@ update_appointment_menu_items (gpointer user_data)
 	  			}
 	  			
 				dbusmenu_menuitem_property_set_image (item, APPOINTMENT_MENUITEM_PROP_ICON, pixbuf);
+				g_clear_object (&pixbuf);
 			} else {
 				g_debug("Creating pixbuf from surface failed");
 			}
@@ -1010,15 +1007,15 @@ update_appointment_menu_items (gpointer user_data)
 		g_debug("Adding appointment: %p", item);
 	}
 	
-    if (gerror != NULL) g_error_free(gerror);
-	for (l = sorted_comp_instances; l; l = l->next) { 
-		const struct comp_instance *ci = l->data;
-		g_object_unref(ci->comp);
-	}
-	g_list_free(sorted_comp_instances);
+	g_clear_error (&gerror);
+
+	g_list_free_full (sorted_comp_instances, (GDestroyNotify)comp_instance_free);
+	sorted_comp_instances = NULL;
 	
 	GVariant * marks = g_variant_builder_end (&markeddays);
 	dbusmenu_menuitem_property_set_variant (calendar, CALENDAR_MENUITEM_PROP_MARKS, marks);
+
+	g_clear_object (&sources);
 	
 	updating_appointments = FALSE;
 	g_debug("End of objects");
@@ -1205,7 +1202,7 @@ system_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
 
 	if (error != NULL) {
 		g_warning("Could not grab DBus proxy for ConsoleKit: %s", error->message);
-		g_error_free(error);
+		g_clear_error (&error);
 		return;
 	}
 
@@ -1218,6 +1215,7 @@ geo_address_cb (GeoclueAddress * address, int timestamp, GHashTable * addy_data,
 {
 	if (error != NULL) {
 		g_warning("Unable to get Geoclue address: %s", error->message);
+		g_clear_error (&error);
 		return;
 	}
 
@@ -1279,6 +1277,7 @@ geo_create_address (GeoclueMasterClient * master, GeoclueAddress * address, GErr
 {
 	if (error != NULL) {
 		g_warning("Unable to create GeoClue address: %s", error->message);
+		g_clear_error (&error);
 		return;
 	}
 
@@ -1305,6 +1304,7 @@ geo_req_set (GeoclueMasterClient * master, GError * error, gpointer user_data)
 {
 	if (error != NULL) {
 		g_warning("Unable to set Geoclue requirements: %s", error->message);
+		g_clear_error (&error);
 	}
 	return;
 }
@@ -1367,6 +1367,7 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 
 	if (error != NULL) {
 		g_warning("Unable to get a GeoClue client!  '%s'  Geolocation based timezone support will not be available.", error->message);
+		g_clear_error (&error);
 		return;
 	}
 
