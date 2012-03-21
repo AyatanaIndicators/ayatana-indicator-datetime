@@ -1,4 +1,4 @@
-indicator-datetime (0.3.92-0ubuntu1~ppa1) precise; urgency=low
+indicator-datetime (0.3.92-0ubuntu1) precise; urgency=low
 
   * New upstream release.
     * Fix several memory leaks (LP: #772340, LP: #957320)
