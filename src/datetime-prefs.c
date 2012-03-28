@@ -70,6 +70,8 @@ struct _IndicatorDatetimePanelPrivate
   gboolean             changing_time;
   GtkWidget *          loc_dlg;
   CcTimezoneCompletion * completion;
+  GCancellable         * tz_query_cancel;
+  GCancellable         * ntp_query_cancel;
 };
 
 struct _IndicatorDatetimePanelClass
@@ -214,6 +216,8 @@ ntp_query_answered (GObject *object, GAsyncResult *res, IndicatorDatetimePanel *
   GError * error = NULL;
   GVariant * answers = g_dbus_proxy_call_finish (G_DBUS_PROXY (object), res, &error);
 
+  g_clear_object (&self->priv->ntp_query_cancel);
+
   if (error != NULL) {
     g_warning("Could not query DBus proxy for SettingsDaemon: %s", error->message);
     g_error_free(error);
@@ -265,6 +269,8 @@ tz_query_answered (GObject *object, GAsyncResult *res, IndicatorDatetimePanel * 
   GError * error = NULL;
   GVariant * answers = g_dbus_proxy_call_finish (G_DBUS_PROXY (object), res, &error);
 
+  g_clear_object (&self->priv->tz_query_cancel);
+
   if (error != NULL) {
     g_warning("Could not query DBus proxy for SettingsDaemon: %s", error->message);
     g_error_free(error);
@@ -286,6 +292,7 @@ static void
 proxy_ready (GObject *object, GAsyncResult *res, IndicatorDatetimePanel * self)
 {
   GError * error = NULL;
+  IndicatorDatetimePanelPrivate * priv = self->priv;
 
   self->priv->proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
 
@@ -296,10 +303,16 @@ proxy_ready (GObject *object, GAsyncResult *res, IndicatorDatetimePanel * self)
   }
 
   /* And now, do initial proxy configuration */
-  g_dbus_proxy_call (self->priv->proxy, "GetUsingNtp", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
-                     NULL, (GAsyncReadyCallback)ntp_query_answered, self);
-  g_dbus_proxy_call (self->priv->proxy, "GetTimezone", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
-                     NULL, (GAsyncReadyCallback)tz_query_answered, self);
+  if (priv->ntp_query_cancel == NULL) {
+    priv->ntp_query_cancel = g_cancellable_new();
+    g_dbus_proxy_call (priv->proxy, "GetUsingNtp", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
+                       priv->ntp_query_cancel, (GAsyncReadyCallback)ntp_query_answered, self);
+  }
+  if (priv->tz_query_cancel == NULL); {
+    priv->tz_query_cancel = g_cancellable_new();
+    g_dbus_proxy_call (priv->proxy, "GetTimezone", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
+                       priv->tz_query_cancel, (GAsyncReadyCallback)tz_query_answered, self);
+  }
 }
 
 static void
@@ -783,6 +796,16 @@ indicator_datetime_panel_dispose (GObject * object)
 
   g_clear_object (&priv->builder);
   g_clear_object (&priv->proxy);
+
+  if (priv->tz_query_cancel != NULL) {
+    g_cancellable_cancel (priv->tz_query_cancel);
+    g_clear_object (&priv->tz_query_cancel);
+  }
+
+  if (priv->ntp_query_cancel != NULL) {
+    g_cancellable_cancel (priv->ntp_query_cancel);
+    g_clear_object (&priv->ntp_query_cancel);
+  }
 
   if (priv->loc_dlg) {
     gtk_widget_destroy (priv->loc_dlg);
