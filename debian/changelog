@@ -1,10 +1,10 @@
-indicator-datetime (0.3.93-0ubuntu1~ppa1) UNRELEASED; urgency=low
+indicator-datetime (0.3.93-0ubuntu1~ppa1) precise; urgency=low
 
   * New upstream release.
     * Fix g-c-c crash caused by datetime's prefs panel (LP: #942450)
     * Fix several memory leaks in datetime's preferences page (LP: #965533)
 
- -- Charles Kerr <charles.kerr@canonical.com>  Wed, 28 Mar 2012 16:08:09 -0700
+ -- Charles Kerr <charles.kerr@canonical.com>  Wed, 28 Mar 2012 16:10:35 -0700
 
 indicator-datetime (0.3.92-0ubuntu1) precise; urgency=low
 
