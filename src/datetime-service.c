@@ -1479,6 +1479,8 @@ main (int argc, char ** argv)
 	g_object_unref(G_OBJECT(server));
 	g_object_unref(G_OBJECT(root));
 
+	icaltimezone_free_builtin_timezones();
+
 	geo_address_clean();
 	geo_client_clean();
 

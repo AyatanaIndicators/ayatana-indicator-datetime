@@ -164,9 +164,10 @@ handle_edit (GtkCellRendererText * renderer, gchar * path, gchar * new_text,
   // edit), so we set the error icon here if needed.  Common way to get to
   // this code path is to lose entry focus.
   if (gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL (store), &iter, path)) {
-    const gchar * name;
+    gchar * name;
     gtk_tree_model_get (GTK_TREE_MODEL (store), &iter, COL_NAME, &name, -1);
     gboolean correct = g_strcmp0 (name, new_text) == 0;
+    g_free (name);
 
     gtk_list_store_set (store, &iter,
                         COL_VISIBLE_NAME, new_text,
@@ -179,32 +180,36 @@ static gboolean
 timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
                    GtkTreeIter * iter, GtkWidget * dlg)
 {
-  const gchar * zone, * name;
+  gchar * zone = NULL;
+  gchar * name = NULL;
 
   gtk_tree_model_get (model, iter,
                       CC_TIMEZONE_COMPLETION_ZONE, &zone,
                       CC_TIMEZONE_COMPLETION_NAME, &name,
                       -1);
 
-  if (zone == NULL || zone[0] == 0) {
-    const gchar * strlon, * strlat;
-    gdouble lon = 0.0, lat = 0.0;
+  /* if no explicit timezone, try to determine one from latlon */
+  if (!zone || !*zone)
+  {
+    gchar * strlat = NULL;
+    gchar * strlon = NULL;
+    gdouble lat = 0;
+    gdouble lon = 0;
 
     gtk_tree_model_get (model, iter,
-                        CC_TIMEZONE_COMPLETION_LONGITUDE, &strlon,
                         CC_TIMEZONE_COMPLETION_LATITUDE, &strlat,
+                        CC_TIMEZONE_COMPLETION_LONGITUDE, &strlon,
                         -1);
 
-    if (strlon != NULL && strlon[0] != 0) {
-      lon = strtod(strlon, NULL);
-    }
-
-    if (strlat != NULL && strlat[0] != 0) {
-      lat = strtod(strlat, NULL);
-    }
+    if (strlat && *strlat) lat = atof(strlat);
+    if (strlon && *strlon) lon = atof(strlon);
 
     CcTimezoneMap * tzmap = CC_TIMEZONE_MAP (g_object_get_data (G_OBJECT (widget), "tzmap"));
-    zone = cc_timezone_map_get_timezone_at_coords (tzmap, lon, lat);
+    g_free (zone);
+    zone = g_strdup (cc_timezone_map_get_timezone_at_coords (tzmap, lon, lat));
+
+    g_free (strlat);
+    g_free (strlon);
   }
 
   GtkListStore * store = GTK_LIST_STORE (g_object_get_data (G_OBJECT (widget), "store"));
@@ -218,6 +223,10 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
   }
 
   update_times (dlg);
+
+  /* cleanup */
+  g_free (name);
+  g_free (zone);
 
   return FALSE; // Do normal action too
 }
@@ -280,11 +289,11 @@ update_times (GtkWidget * dlg)
   GtkTreeIter iter;
   if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter)) {
     do {
-      const gchar * strzone;
+      gchar * strzone;
 
       gtk_tree_model_get (GTK_TREE_MODEL (store), &iter, COL_ZONE, &strzone, -1);
 
-      if (strzone != NULL && strzone[0] != 0) {
+      if (strzone && *strzone) {
         GTimeZone * tz = g_time_zone_new (strzone);
         GDateTime * now_tz = g_date_time_to_timezone (now, tz);
         gchar * format = generate_format_string_at_time (now_tz);
@@ -297,6 +306,7 @@ update_times (GtkWidget * dlg)
         g_date_time_unref (now_tz);
         g_time_zone_unref (tz);
       }
+      g_free (strzone);
     } while (gtk_tree_model_iter_next (GTK_TREE_MODEL (store), &iter));
   }
 
@@ -343,21 +353,23 @@ save_to_settings (GObject * store, GSettings * conf)
 
   GtkTreeIter iter;
   if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter)) {
+    GString * gstr = g_string_new (NULL);
     do {
-      const gchar * strzone, * strname;
-
+      gchar * strname;
+      gchar * strzone;
       gtk_tree_model_get (GTK_TREE_MODEL (store), &iter,
                           COL_NAME, &strname,
                           COL_ZONE, &strzone,
                           -1);
-
-      if (strzone != NULL && strzone[0] != 0 && strname != NULL && strname[0] != 0) {
-        gchar * settings_string = g_strdup_printf("%s %s", strzone, strname);
-        g_variant_builder_add (&builder, "s", settings_string);
-        g_free (settings_string);
+      if (strzone && *strzone && strname && *strname) {
+        g_string_printf (gstr, "%s %s", strzone, strname);
+        g_variant_builder_add (&builder, "s", gstr->str);
         empty = FALSE;
       }
+      g_free (strname);
+      g_free (strzone);
     } while (gtk_tree_model_iter_next (GTK_TREE_MODEL (store), &iter));
+    g_string_free (gstr, TRUE);
   }
 
   if (empty) {
@@ -366,9 +378,7 @@ save_to_settings (GObject * store, GSettings * conf)
     g_settings_set_strv (conf, SETTINGS_LOCATIONS_S, NULL);
   }
   else {
-    GVariant * locations = g_variant_builder_end (&builder);
-    g_settings_set_strv (conf, SETTINGS_LOCATIONS_S, g_variant_get_strv (locations, NULL));
-    g_variant_unref (locations);
+    g_settings_set_value (conf, SETTINGS_LOCATIONS_S, g_variant_builder_end (&builder));
   }
 }
 
