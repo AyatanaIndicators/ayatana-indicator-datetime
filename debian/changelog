@@ -1,4 +1,4 @@
-indicator-datetime (0.3.93-0ubuntu1) precise-proposed; urgency=low
+indicator-datetime (0.3.93-0ubuntu1) precise; urgency=low
 
   * New upstream release.
     * Fix g-c-c crash caused by datetime's prefs panel (LP: #942450)
