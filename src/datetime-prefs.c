@@ -577,21 +577,14 @@ setup_time_spinners (IndicatorDatetimePanel * self, GtkWidget * time, GtkWidget 
 }
 
 static void
-hide_locations (IndicatorDatetimePanel * self)
-{
-  if (self->priv->loc_dlg != NULL)
-    gtk_widget_destroy (self->priv->loc_dlg);
-}
-
-static void
 show_locations (IndicatorDatetimePanel * self)
 {
   if (self->priv->loc_dlg == NULL) {
     self->priv->loc_dlg = datetime_setup_locations_dialog (self->priv->tzmap);
     GtkWidget * dlg = gtk_widget_get_toplevel (GTK_WIDGET (self));
+    gtk_window_set_type_hint (GTK_WINDOW(self->priv->loc_dlg), GDK_WINDOW_TYPE_HINT_DIALOG);
     gtk_window_set_transient_for (GTK_WINDOW (self->priv->loc_dlg), GTK_WINDOW (dlg));
     g_signal_connect (self->priv->loc_dlg, "destroy", G_CALLBACK (gtk_widget_destroyed), &self->priv->loc_dlg);
-    g_signal_connect_swapped (dlg, "focus-in-event", G_CALLBACK (hide_locations), self);
     gtk_widget_show_all (self->priv->loc_dlg);
   }
   else {
