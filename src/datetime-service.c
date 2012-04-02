@@ -108,7 +108,7 @@ struct comp_instance {
 };
 
 /**
- * A temp struct used by update_location_menu_items() for pruning duplicates.
+ * A temp struct used by update_location_menu_items() for pruning duplicates and sorting.
  */
 struct TimeLocation
 {
@@ -124,14 +124,16 @@ time_location_free (struct TimeLocation * loc)
 	g_free (loc);
 }
 static struct TimeLocation*
-time_location_new (const char * zone, const char * name)
+time_location_new (const char * zone, const char * name, time_t now)
 {
 	struct TimeLocation * loc = g_new (struct TimeLocation, 1);
 	GTimeZone * tz = g_time_zone_new (zone);
-	loc->offset = g_time_zone_get_offset (tz, 0);
+	gint interval = g_time_zone_find_interval (tz, G_TIME_TYPE_UNIVERSAL, now);
+	loc->offset = g_time_zone_get_offset (tz, interval);
 	loc->zone = g_strdup (zone);
 	loc->name = g_strdup (name);
 	g_time_zone_unref (tz);
+	g_debug ("%s zone '%s' name '%s' offset is %d", G_STRLOC, zone, name, (int)loc->offset);
 	return loc;
 }
 static int
@@ -146,9 +148,9 @@ time_location_compare (const struct TimeLocation * a, const struct TimeLocation 
 	return ret;
 }
 static GSList*
-locations_add (GSList * locations, const char * zone, const char * name)
+locations_add (GSList * locations, const char * zone, const char * name, time_t now)
 {
-	struct TimeLocation * loc = time_location_new (zone, name);
+	struct TimeLocation * loc = time_location_new (zone, name, now);
 
 	if (g_slist_find_custom (locations, loc, (GCompareFunc)time_location_compare) == NULL) {
 		g_debug ("%s Adding zone '%s', name '%s'", G_STRLOC, zone, name);
@@ -182,18 +184,19 @@ update_location_menu_items (void)
 	***/
 
 	GSList * locations = NULL;
+	const time_t now = time(NULL);
 
 	/* maybe add geo_timezone */
 	if (geo_timezone != NULL) {
 		gchar * name = get_current_zone_name (geo_timezone);
-		locations = locations_add (locations, geo_timezone, name);
+		locations = locations_add (locations, geo_timezone, name, now);
 		g_free (name);
 	}
 
 	/* maybe add current_timezone */
 	if (current_timezone != NULL) {
 		gchar * name = get_current_zone_name (current_timezone);
-		locations = locations_add (locations, current_timezone, name);
+		locations = locations_add (locations, current_timezone, name, now);
 		g_free (name);
 	}
 
@@ -207,7 +210,7 @@ update_location_menu_items (void)
 			gchar * zone;
 			gchar * name;
 			split_settings_location (user_locations[i], &zone, &name);
-			locations = locations_add (locations, zone, name);
+			locations = locations_add (locations, zone, name, now);
 			g_free (name);
 			g_free (zone);
 		}
