@@ -1,4 +1,4 @@
-indicator-datetime (0.3.94-0ubuntu1~ppa1) UNRELEASED; urgency=low
+indicator-datetime (0.3.94-0ubuntu1~ppa1) precise; urgency=low
 
   * New upstream release.
     * Fix location timezone sorting issue.
@@ -6,7 +6,7 @@ indicator-datetime (0.3.94-0ubuntu1~ppa1) UNRELEASED; urgency=low
       Locations dialog. (LP: #947315)
     * Add gcov targets to autotools build for code-coverage reporting.
 
- -- Charles Kerr <charles.kerr@canonical.com>  Wed, 04 Apr 2012 16:23:11 -0500
+ -- Charles Kerr <charles.kerr@canonical.com>  Wed, 04 Apr 2012 16:53:20 -0500
 
 indicator-datetime (0.3.93-0ubuntu1) precise; urgency=low
 
