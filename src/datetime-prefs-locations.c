@@ -201,8 +201,8 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
                         CC_TIMEZONE_COMPLETION_LONGITUDE, &strlon,
                         -1);
 
-    if (strlat && *strlat) lat = atof(strlat);
-    if (strlon && *strlon) lon = atof(strlon);
+    if (strlat && *strlat) lat = g_ascii_strtod(strlat, NULL);
+    if (strlon && *strlon) lon = g_ascii_strtod(strlon, NULL);
 
     CcTimezoneMap * tzmap = CC_TIMEZONE_MAP (g_object_get_data (G_OBJECT (widget), "tzmap"));
     g_free (zone);

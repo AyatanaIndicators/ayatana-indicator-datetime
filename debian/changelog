@@ -1,3 +1,13 @@
+indicator-datetime (0.3.94-0ubuntu2) precise; urgency=low
+
+  * src/datetime-prefs-locations.c, src/datetime-prefs.c
+    - Switch the parsing of the lat and long to be non-locale based as it's 
+      returned from the webservice in C, we want to parse it using the decimal 
+      instead of a comma.  This fixes incorrect timezone selection for users 
+      with a locale that uses a comma as a decimal separator  (LP: #773987)
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Wed, 18 Apr 2012 23:20:30 -0400
+
 indicator-datetime (0.3.94-0ubuntu1) precise; urgency=low
 
   * New upstream release.
