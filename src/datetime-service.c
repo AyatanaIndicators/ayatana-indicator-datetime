@@ -579,8 +579,10 @@ check_for_calendar (gpointer user_data)
 		g_signal_connect(calendar, "event::day-selected-double-click", G_CALLBACK(day_selected_double_click_cb), NULL);
 	} else {
 		g_debug("Unable to find calendar app.");
-		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-		dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		if (add_appointment != NULL)
+			dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		if (events_separator != NULL)
+			dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 	}
 	
 	if (g_settings_get_boolean(conf, SETTINGS_SHOW_CALENDAR_S)) {
