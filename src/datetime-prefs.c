@@ -829,6 +829,8 @@ indicator_datetime_panel_dispose (GObject * object)
     gtk_widget_destroy (priv->date_spin);
     priv->date_spin = NULL;
   }
+
+  G_OBJECT_CLASS (indicator_datetime_panel_parent_class)->dispose (object);
 }
 
 static void
