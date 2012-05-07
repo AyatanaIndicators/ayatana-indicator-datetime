@@ -71,22 +71,11 @@ GLIB_REQUIRED_VERSION=2.29.19
 GTK3_REQUIRED_VERSION=3.1.4
 GCONF_REQUIRED_VERSION=2.31
 
-AS_IF([test "x$with_gtk" = x3],
-    [PKG_CHECK_MODULES(INDICATOR, indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
-                                  glib-2.0 >= $GLIB_REQUIRED_VERSION
-                                  dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
-                                  dbusmenu-gtk3-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
-                                  libido3-0.1 >= $INDICATOR_DISPLAY_OBJECTS)
-        ],
-      [test "x$with_gtk" = x2],
-    [PKG_CHECK_MODULES(INDICATOR, indicator-0.4 >= $INDICATOR_REQUIRED_VERSION
-                                  glib-2.0 >= $GLIB_REQUIRED_VERSION
-                                  dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
-                                  dbusmenu-gtk-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
-                                  libido-0.1 >= $INDICATOR_DISPLAY_OBJECTS)
-        ],
-    [AC_MSG_FAILURE([Value for --with-gtk was neither 2 nor 3])]
-)
+PKG_CHECK_MODULES(INDICATOR, indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
+                             glib-2.0 >= $GLIB_REQUIRED_VERSION
+                             dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
+                             dbusmenu-gtk3-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
+                             libido3-0.1 >= $INDICATOR_DISPLAY_OBJECTS)
 
 PKG_CHECK_MODULES(SERVICE, indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
                            glib-2.0 >= $GLIB_REQUIRED_VERSION

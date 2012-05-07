@@ -952,17 +952,10 @@ update_appointment_menu_items (gpointer user_data)
         if (color_spec != NULL) {
         	g_debug("Creating a cairo surface: size, %d by %d", width, height);         
         	cairo_surface_t *surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, width, height ); 
-
 			cairo_t *cr = cairo_create(surface);
-#if GTK_CHECK_VERSION(3,0,0)
         	GdkRGBA rgba;
         	if (gdk_rgba_parse (&rgba, color_spec))
         		gdk_cairo_set_source_rgba (cr, &rgba);
-#else
-			GdkColor color;
-			if (gdk_color_parse (color_spec, &color))
-				gdk_cairo_set_source_color (cr, &color);
-#endif
 			cairo_paint(cr);
     		cairo_set_source_rgba(cr, 0,0,0,0.5);
     		cairo_set_line_width(cr, 1);
