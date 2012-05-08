@@ -43,16 +43,6 @@ AC_PATH_PROG([GLIB_GENMARSHAL], [glib-genmarshal])
 PKG_PROG_PKG_CONFIG
 
 ###########################
-# GTK+ version option
-###########################
-
-AC_ARG_WITH([gtk],
-  [AS_HELP_STRING([--with-gtk],
-    [Which version of gtk to use for the indicator @<:@default=3@:>@])],
-  [],
-  [with_gtk=3])
-
-###########################
 # Dependencies
 ###########################
 
@@ -112,7 +102,7 @@ if test x"$with_ccpanel" != x"no" ; then
    if test x${have_ccpanel} = xyes; then
       AC_DEFINE(HAVE_CCPANEL, 1, [Define to 1 to enable Control Center panel])
       PKG_CHECK_MODULES(LIBMAP, gio-2.0 >= $GIO_REQUIRED_VERSION
-                                      gtk+-3.0 >= $GTK3_REQUIRED_VERSION)
+                                gtk+-3.0 >= $GTK3_REQUIRED_VERSION)
    fi
    if test x${with_ccpanel} = xyes && test x${have_ccpanel} = xno; then
      AC_MSG_ERROR([Control Center panel configured but not found])
@@ -156,15 +146,10 @@ AS_IF([test "x$with_localinstall" = "xyes"],
 	INDICATORDIR="${libdir}/indicators/2/"
 	INDICATORICONSDIR="${datadir}/libindicate/icons/"
 	],
-	[AS_IF([test "x$with_gtk" = "x2"],
-		[
-		INDICATORDIR=`$PKG_CONFIG --variable=indicatordir indicator-0.4`
-		INDICATORICONSDIR=`$PKG_CONFIG --variable=iconsdir indicator-0.4`
-		],
-		[
-		INDICATORDIR=`$PKG_CONFIG --variable=indicatordir indicator3-0.4`
-		INDICATORICONSDIR=`$PKG_CONFIG --variable=iconsdir indicator3-0.4`
-		])])
+	[
+	INDICATORDIR=`$PKG_CONFIG --variable=indicatordir indicator3-0.4`
+	INDICATORICONSDIR=`$PKG_CONFIG --variable=iconsdir indicator3-0.4`
+	])
 
 AC_SUBST(INDICATORDIR)
 AC_SUBST(INDICATORICONSDIR)
