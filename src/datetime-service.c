@@ -156,7 +156,7 @@ locations_add (GSList * locations, const char * zone, const char * name, gboolea
 
 	if (g_slist_find_custom (locations, loc, (GCompareFunc)time_location_compare) == NULL) {
 		g_debug ("%s Adding zone '%s', name '%s'", G_STRLOC, zone, name);
-		locations = g_slist_prepend (locations, loc);
+		locations = g_slist_append (locations, loc);
 	} else {
 		g_debug("%s Skipping duplicate zone '%s' name '%s'", G_STRLOC, zone, name);
 		time_location_free (loc);
@@ -222,9 +222,6 @@ update_location_menu_items (void)
 		g_strfreev (user_locations);
 		user_locations = NULL;
 	}
-
-	/* sort the list by timezone offset */
-	locations = g_slist_sort (locations, (GCompareFunc)time_location_compare);
 
 	/* finally create menuitems for each location */
 	gint offset = dbusmenu_menuitem_get_position (locations_separator, root)+1;

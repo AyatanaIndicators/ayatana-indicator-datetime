@@ -28,6 +28,8 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="model">locationsStore</property>
+                <property name="headers_visible">False</property>
+                <property name="headers_clickable">False</property>
                 <property name="reorderable">True</property>
                 <property name="search_column">0</property>
               </object>
@@ -54,6 +56,7 @@
           <object class="GtkHBox" id="hbox10">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="spacing">4</property>
             <child>
               <object class="GtkButton" id="addButton">
                 <property name="visible">True</property>
@@ -104,10 +107,46 @@
                 <property name="position">1</property>
               </packing>
             </child>
+            <child>
+              <object class="GtkButton" id="sortByNameButton">
+                <property name="label" translatable="yes">Sort by _Name</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <property name="use_underline">True</property>
+                <accelerator key="n" signal="clicked" modifiers="GDK_MOD1_MASK"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="padding">6</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="sortByTimeButton">
+                <property name="label" translatable="yes">Sort by _Time</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <property name="use_underline">True</property>
+                <accelerator key="t" signal="clicked" modifiers="GDK_MOD1_MASK"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">3</property>
+              </packing>
+            </child>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
+            <property name="padding">4</property>
             <property name="position">2</property>
           </packing>
         </child>
