@@ -85,6 +85,13 @@
 			  Shows events from Evolution in indicator-datetime's menu.
 			</description>
 		</key>
+		<key name="show-auto-detected-location" type="b">
+			<default>false</default>
+			<summary>Show the auto-detected location in the indicator</summary>
+			<description>
+			  Shows your current location (determined from geoclue and /etc/timezone) in indicator-datetime's menu.
+			</description>
+		</key>
 		<key name="show-locations" type="b">
 			<default>false</default>
 			<summary>Show locations in the indicator</summary>
