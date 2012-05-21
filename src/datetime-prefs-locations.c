@@ -298,9 +298,13 @@ update_times (GtkWidget * dlg)
         GDateTime * now_tz = g_date_time_to_timezone (now, tz);
         gchar * format = generate_format_string_at_time (now_tz);
         gchar * time_str = g_date_time_format (now_tz, format);
+        gchar * old_time_str;
 
-        gtk_list_store_set (store, &iter, COL_TIME, time_str, -1);
+        gtk_tree_model_get (GTK_TREE_MODEL (store), &iter, COL_TIME, &old_time_str, -1);
+        if (g_strcmp0 (old_time_str, time_str))
+          gtk_list_store_set (store, &iter, COL_TIME, time_str, -1);
 
+        g_free (old_time_str);
         g_free (time_str);
         g_free (format);
         g_date_time_unref (now_tz);
