@@ -733,6 +733,8 @@ indicator_datetime_panel_init (IndicatorDatetimePanel * self)
                    "active", G_SETTINGS_BIND_DEFAULT);
   g_settings_bind (conf, SETTINGS_SHOW_EVENTS_S, WIG ("showEventsCheck"),
                    "active", G_SETTINGS_BIND_DEFAULT);
+  g_settings_bind (conf, SETTINGS_SHOW_DETECTED_S, WIG ("showDetectedCheck"),
+                   "active", G_SETTINGS_BIND_DEFAULT);
   g_settings_bind (conf, SETTINGS_SHOW_LOCATIONS_S, WIG ("showLocationsCheck"),
                    "active", G_SETTINGS_BIND_DEFAULT);
 

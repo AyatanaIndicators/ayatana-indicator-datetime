@@ -115,6 +115,7 @@ struct TimeLocation
 	gint32 offset;
 	gchar * zone;
 	gchar * name;
+	gboolean visible;
 };
 static void
 time_location_free (struct TimeLocation * loc)
@@ -124,7 +125,7 @@ time_location_free (struct TimeLocation * loc)
 	g_free (loc);
 }
 static struct TimeLocation*
-time_location_new (const char * zone, const char * name, time_t now)
+time_location_new (const char * zone, const char * name, gboolean visible, time_t now)
 {
 	struct TimeLocation * loc = g_new (struct TimeLocation, 1);
 	GTimeZone * tz = g_time_zone_new (zone);
@@ -132,6 +133,7 @@ time_location_new (const char * zone, const char * name, time_t now)
 	loc->offset = g_time_zone_get_offset (tz, interval);
 	loc->zone = g_strdup (zone);
 	loc->name = g_strdup (name);
+	loc->visible = visible;
 	g_time_zone_unref (tz);
 	g_debug ("%s zone '%s' name '%s' offset is %d", G_STRLOC, zone, name, (int)loc->offset);
 	return loc;
@@ -139,22 +141,22 @@ time_location_new (const char * zone, const char * name, time_t now)
 static int
 time_location_compare (const struct TimeLocation * a, const struct TimeLocation * b)
 {
-	int ret;
-	if (a->offset != b->offset) /* primary key s.t. we can sort by timezone order */
-		ret = a->offset - b->offset;
-	else
+	int ret = a->offset - b->offset; /* primary key */
+	if (!ret)
 		ret = g_strcmp0 (a->name, b->name); /* secondary key */
+	if (!ret)
+		ret = a->visible - b->visible; /* tertiary key */
 	g_debug ("%s comparing '%s' (%d) to '%s' (%d), returning %d", G_STRLOC, a->name, (int)a->offset, b->name, (int)b->offset, ret);
 	return ret;
 }
 static GSList*
-locations_add (GSList * locations, const char * zone, const char * name, time_t now)
+locations_add (GSList * locations, const char * zone, const char * name, gboolean visible, time_t now)
 {
-	struct TimeLocation * loc = time_location_new (zone, name, now);
+	struct TimeLocation * loc = time_location_new (zone, name, visible, now);
 
 	if (g_slist_find_custom (locations, loc, (GCompareFunc)time_location_compare) == NULL) {
 		g_debug ("%s Adding zone '%s', name '%s'", G_STRLOC, zone, name);
-		locations = g_slist_prepend (locations, loc);
+		locations = g_slist_append (locations, loc);
 	} else {
 		g_debug("%s Skipping duplicate zone '%s' name '%s'", G_STRLOC, zone, name);
 		time_location_free (loc);
@@ -188,15 +190,17 @@ update_location_menu_items (void)
 
 	/* maybe add geo_timezone */
 	if (geo_timezone != NULL) {
+		const gboolean visible = g_settings_get_boolean (conf, SETTINGS_SHOW_DETECTED_S);
 		gchar * name = get_current_zone_name (geo_timezone);
-		locations = locations_add (locations, geo_timezone, name, now);
+		locations = locations_add (locations, geo_timezone, name, visible, now);
 		g_free (name);
 	}
 
 	/* maybe add current_timezone */
 	if (current_timezone != NULL) {
+		const gboolean visible = g_settings_get_boolean (conf, SETTINGS_SHOW_DETECTED_S);
 		gchar * name = get_current_zone_name (current_timezone);
-		locations = locations_add (locations, current_timezone, name, now);
+		locations = locations_add (locations, current_timezone, name, visible, now);
 		g_free (name);
 	}
 
@@ -205,12 +209,13 @@ update_location_menu_items (void)
 	if (user_locations != NULL) { 
 		gint i;
 		const guint location_count = g_strv_length (user_locations);
+		const gboolean visible = g_settings_get_boolean (conf, SETTINGS_SHOW_LOCATIONS_S);
 		g_debug ("%s Found %u user-specified locations", G_STRLOC, location_count);
 		for (i=0; i<location_count; i++) {
 			gchar * zone;
 			gchar * name;
 			split_settings_location (user_locations[i], &zone, &name);
-			locations = locations_add (locations, zone, name, now);
+			locations = locations_add (locations, zone, name, visible, now);
 			g_free (name);
 			g_free (zone);
 		}
@@ -218,13 +223,10 @@ update_location_menu_items (void)
 		user_locations = NULL;
 	}
 
-	/* sort the list by timezone offset */
-	locations = g_slist_sort (locations, (GCompareFunc)time_location_compare);
-
 	/* finally create menuitems for each location */
 	gint offset = dbusmenu_menuitem_get_position (locations_separator, root)+1;
-	const gboolean show_locations = g_settings_get_boolean (conf, SETTINGS_SHOW_LOCATIONS_S);
 	GSList * l;
+	gboolean have_visible_location = FALSE;
 	for (l=locations; l!=NULL; l=l->next) {
 		struct TimeLocation * loc = l->data;
 		g_debug("%s Adding location: zone '%s', name '%s'", G_STRLOC, loc->zone, loc->name);
@@ -234,17 +236,19 @@ update_location_menu_items (void)
 		dbusmenu_menuitem_property_set      (item, TIMEZONE_MENUITEM_PROP_ZONE, loc->zone);
 		dbusmenu_menuitem_property_set_bool (item, TIMEZONE_MENUITEM_PROP_RADIO, FALSE);
 		dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
-		dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_VISIBLE, show_locations);
+		dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_VISIBLE, loc->visible);
 		dbusmenu_menuitem_child_add_position (root, item, offset++);
 		g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
 		location_menu_items = g_slist_append (location_menu_items, item);
+		if (loc->visible)
+			have_visible_location = TRUE;
 		time_location_free (loc);
 	}
 	g_slist_free (locations);
 	locations = NULL;
 
 	/* if there's at least one item being shown, show the separator too */
-	dbusmenu_menuitem_property_set_bool (locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, show_locations && (location_menu_items!=NULL));
+	dbusmenu_menuitem_property_set_bool (locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, have_visible_location);
 }
 
 /* Update the current timezone */
@@ -1090,6 +1094,7 @@ build_menus (DbusmenuMenuitem * root)
 		update_location_menu_items();
 	
 		g_signal_connect (conf, "changed::" SETTINGS_SHOW_LOCATIONS_S, G_CALLBACK (show_locations_changed), NULL);
+		g_signal_connect (conf, "changed::" SETTINGS_SHOW_DETECTED_S, G_CALLBACK (show_locations_changed), NULL);
 		g_signal_connect (conf, "changed::" SETTINGS_LOCATIONS_S, G_CALLBACK (show_locations_changed), NULL);
 		g_signal_connect (conf, "changed::" SETTINGS_SHOW_EVENTS_S, G_CALLBACK (show_events_changed), NULL);
 		g_signal_connect (conf, "changed::" SETTINGS_TIME_FORMAT_S, G_CALLBACK (time_format_changed), NULL);
