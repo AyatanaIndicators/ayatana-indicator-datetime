@@ -1,10 +1,13 @@
 indicator-datetime (12.10.0-0ubuntu1) UNRELEASED; urgency=low
 
-  * New upstream release.
+  * New upstream release:
+    - Support EDS 3.6's API
+    - Apply an 'en space' between the date and time strings. (LP #749847)
+    - Sort locations as spec'ed by https://wiki.ubuntu.com/TimeAndDate 
+    - Fix a bug that caused location settings to be re-saved each 2 seconds
   * debian/control, debian/indicator-datetime.install, debian/rules:
     - drop GTK2 build it's deprecated
-  * debian/patches/port-eds-3.5.patch:
-    - dropped, the patch is in the new version
+  * debian/patches/port-eds-3.5.patch: included in the new version
 
  -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 13 Jul 2012 17:09:26 +0200
 
