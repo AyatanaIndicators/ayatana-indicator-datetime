@@ -1,3 +1,10 @@
+indicator-datetime (0.3.94-0ubuntu4) quantal-proposed; urgency=low
+
+  * debian/patches/port-eds-3.5.patch: update to build with the new EDS
+    3.5 APIs.
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Thu, 05 Jul 2012 17:11:31 -0400
+
 indicator-datetime (0.3.94-0ubuntu3) quantal; urgency=low
 
   * Rebuild against evolution-data-server 3.4
