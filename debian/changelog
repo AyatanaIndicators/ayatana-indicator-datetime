@@ -1,4 +1,4 @@
-indicator-datetime (12.10.0-0ubuntu1) UNRELEASED; urgency=low
+indicator-datetime (12.10.0-0ubuntu1) quantal; urgency=low
 
   * New upstream release:
     - Support EDS 3.6's API
@@ -9,7 +9,7 @@ indicator-datetime (12.10.0-0ubuntu1) UNRELEASED; urgency=low
     - drop GTK2 build it's deprecated
   * debian/patches/port-eds-3.5.patch: included in the new version
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 13 Jul 2012 17:09:26 +0200
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 13 Jul 2012 17:56:46 +0200
 
 indicator-datetime (0.3.94-0ubuntu4) quantal-proposed; urgency=low
 
