@@ -1,3 +1,13 @@
+indicator-datetime (12.10.0-0ubuntu1) UNRELEASED; urgency=low
+
+  * New upstream release.
+  * debian/control, debian/indicator-datetime.install, debian/rules:
+    - drop GTK2 build it's deprecated
+  * debian/patches/port-eds-3.5.patch:
+    - dropped, the patch is in the new version
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 13 Jul 2012 17:09:26 +0200
+
 indicator-datetime (0.3.94-0ubuntu4) quantal-proposed; urgency=low
 
   * debian/patches/port-eds-3.5.patch: update to build with the new EDS

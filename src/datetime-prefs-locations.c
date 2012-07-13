@@ -44,6 +44,138 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 static gboolean update_times (GtkWidget * dlg);
 static void save_when_idle (GtkWidget * dlg);
 
+/***
+**** Sorting
+***/
+
+/**
+ * A temporary struct used for sorting
+ */
+struct TimeLocation
+{
+  gchar * collated_name;
+  gint pos;
+  gint32 offset;
+};
+
+static struct TimeLocation*
+time_location_new (const char * zone, const char * name, int pos, time_t now)
+{
+  struct TimeLocation * loc = g_new (struct TimeLocation, 1);
+  GTimeZone * tz = g_time_zone_new (zone);
+  const gint interval = g_time_zone_find_interval (tz, G_TIME_TYPE_UNIVERSAL, now);
+  loc->offset = g_time_zone_get_offset (tz, interval);
+  loc->collated_name = g_utf8_collate_key (name, -1);
+  loc->pos = pos;
+  g_time_zone_unref (tz);
+  return loc;
+}
+
+static void
+time_location_free (struct TimeLocation * loc)
+{
+  g_free (loc->collated_name);
+  g_free (loc);
+}
+
+static GSList*
+time_location_array_new_from_model (GtkTreeModel * model)
+{
+  int pos = 0;
+  GtkTreeIter iter;
+  GSList * list = NULL;
+  const time_t now = time (NULL);
+
+  if (gtk_tree_model_get_iter_first (model, &iter)) do
+    {
+      gchar * zone = NULL;
+      gchar * name = NULL;
+
+      gtk_tree_model_get (model, &iter,
+                          COL_ZONE, &zone,
+                          COL_VISIBLE_NAME, &name,
+                          -1);
+      list = g_slist_prepend (list, time_location_new (zone, name, pos++, now));
+
+      g_free (name);
+      g_free (zone);
+    }
+  while (gtk_tree_model_iter_next (model, &iter));
+
+  return g_slist_reverse (list);
+}
+
+static void
+handle_sort(GtkWidget * button, GtkTreeView * tree_view, GCompareFunc compare)
+{
+  GtkTreeModel * model = gtk_tree_view_get_model (tree_view);
+  GSList * l;
+  GSList * list = g_slist_sort (time_location_array_new_from_model(model), compare);
+
+  gint i;
+  gint * reorder = g_new (gint, g_slist_length(list));
+  for (i=0, l=list; l!=NULL; l=l->next, i++)
+      reorder[i] = ((struct TimeLocation*)l->data)->pos;
+  gtk_list_store_reorder (GTK_LIST_STORE(model), reorder);
+
+  g_free (reorder);
+  g_slist_free_full (list, (GDestroyNotify)time_location_free);
+}
+
+static gint
+time_location_compare_by_name (gconstpointer ga, gconstpointer gb)
+{
+  const struct TimeLocation * a = ga;
+  const struct TimeLocation * b = gb;
+  int ret = g_strcmp0 (a->collated_name, b->collated_name); /* primary key */
+  if (!ret)
+    ret = a->offset - b->offset; /* secondary key */
+  return ret;
+}
+static void
+handle_sort_by_name (GtkWidget * button, GtkTreeView * tree_view)
+{
+  handle_sort (button, tree_view, time_location_compare_by_name);
+}
+
+static gint
+time_location_compare_by_time (gconstpointer ga, gconstpointer gb)
+{
+  const struct TimeLocation * a = ga;
+  const struct TimeLocation * b = gb;
+  int ret = a->offset - b->offset; /* primary key */
+  if (!ret)
+    ret = g_strcmp0 (a->collated_name, b->collated_name); /* secondary key */
+  return ret;
+}
+static void
+handle_sort_by_time (GtkWidget * button, GtkTreeView * tree_view)
+{
+  handle_sort (button, tree_view, time_location_compare_by_time);
+}
+
+static gboolean
+time_location_list_test_sorted (GSList * list, GCompareFunc compare)
+{
+  GSList * l;
+  for (l=list; l!=NULL && l->next!=NULL; l=l->next)
+    if (compare(l->data, l->next->data) > 0)
+      return FALSE;
+  return TRUE;
+}
+static void
+location_model_test_sorted (GtkTreeModel * model, gboolean * is_sorted_by_name, gboolean * is_sorted_by_time)
+{
+  GSList * list = time_location_array_new_from_model(model);
+  *is_sorted_by_name = time_location_list_test_sorted (list, time_location_compare_by_name);
+  *is_sorted_by_time = time_location_list_test_sorted (list, time_location_compare_by_time);
+  g_slist_free_full (list, (GDestroyNotify)time_location_free);
+}
+
+/***
+****
+***/
+
 static void
 handle_add (GtkWidget * button, GtkTreeView * tree)
 {
@@ -298,9 +430,13 @@ update_times (GtkWidget * dlg)
         GDateTime * now_tz = g_date_time_to_timezone (now, tz);
         gchar * format = generate_format_string_at_time (now_tz);
         gchar * time_str = g_date_time_format (now_tz, format);
+        gchar * old_time_str;
 
-        gtk_list_store_set (store, &iter, COL_TIME, time_str, -1);
+        gtk_tree_model_get (GTK_TREE_MODEL (store), &iter, COL_TIME, &old_time_str, -1);
+        if (g_strcmp0 (old_time_str, time_str))
+          gtk_list_store_set (store, &iter, COL_TIME, time_str, -1);
 
+        g_free (old_time_str);
         g_free (time_str);
         g_free (format);
         g_date_time_unref (now_tz);
@@ -426,6 +562,26 @@ selection_changed (GtkTreeSelection * selection, GtkWidget * remove_button)
   gtk_widget_set_sensitive (remove_button, count > 0);
 }
 
+static void
+update_button_sensitivity (GtkWidget * dlg)
+{
+  GObject * odlg = G_OBJECT(dlg);
+  GObject * completion = g_object_get_data(odlg, "completion");
+  GtkTreeModel * model = GTK_TREE_MODEL (g_object_get_data (completion, "store")); 
+  gboolean is_sorted_by_name;
+  gboolean is_sorted_by_time;
+  location_model_test_sorted (model, &is_sorted_by_name, &is_sorted_by_time);
+  gtk_widget_set_sensitive (GTK_WIDGET(g_object_get_data(odlg, "sortByNameButton")), !is_sorted_by_name);
+  gtk_widget_set_sensitive (GTK_WIDGET(g_object_get_data(odlg, "sortByTimeButton")), !is_sorted_by_time);
+}
+
+static void
+model_changed (GtkWidget * dlg)
+{
+  update_button_sensitivity (dlg);
+  save_when_idle (dlg);
+}
+
 GtkWidget *
 datetime_setup_locations_dialog (CcTimezoneMap * map)
 {
@@ -473,6 +629,7 @@ datetime_setup_locations_dialog (CcTimezoneMap * map)
   g_signal_connect (tree, "query-tooltip", G_CALLBACK (query_tooltip), cell);
 
   cell = gtk_cell_renderer_text_new ();
+  gtk_cell_renderer_set_alignment (cell, 1.0f, 0.5f);
   gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (tree), -1,
                                                _("Time"), cell,
                                                "text", COL_TIME, NULL);
@@ -485,12 +642,19 @@ datetime_setup_locations_dialog (CcTimezoneMap * map)
   g_signal_connect (WIG ("addButton"), "clicked", G_CALLBACK (handle_add), tree);
   g_signal_connect (WIG ("removeButton"), "clicked", G_CALLBACK (handle_remove), tree);
 
-  fill_from_settings (store, conf);
-  g_signal_connect_swapped (store, "row-deleted", G_CALLBACK (save_when_idle), dlg);
-  g_signal_connect_swapped (store, "row-inserted", G_CALLBACK (save_when_idle), dlg);
-  g_signal_connect_swapped (store, "row-changed", G_CALLBACK (save_when_idle), dlg);
-  g_signal_connect_swapped (store, "rows-reordered", G_CALLBACK (save_when_idle), dlg);
+  GtkWidget * w = WIG ("sortByNameButton");
+  g_signal_connect (w, "clicked", G_CALLBACK (handle_sort_by_name), tree);
+  g_object_set_data (G_OBJECT(dlg), "sortByNameButton", w);
 
+  w = WIG ("sortByTimeButton");
+  g_signal_connect (w, "clicked", G_CALLBACK (handle_sort_by_time), tree);
+  g_object_set_data (G_OBJECT(dlg), "sortByTimeButton", w);
+
+  fill_from_settings (store, conf);
+  g_signal_connect_swapped (store, "row-deleted", G_CALLBACK (model_changed), dlg);
+  g_signal_connect_swapped (store, "row-inserted", G_CALLBACK (model_changed), dlg);
+  g_signal_connect_swapped (store, "row-changed", G_CALLBACK (model_changed), dlg);
+  g_signal_connect_swapped (store, "rows-reordered", G_CALLBACK (model_changed), dlg);
   g_object_set_data_full (G_OBJECT (dlg), "conf", g_object_ref (conf), g_object_unref);
   g_object_set_data_full (G_OBJECT (dlg), "completion", completion, g_object_unref);
   g_signal_connect (dlg, "destroy", G_CALLBACK (dialog_closed), store);
