@@ -40,11 +40,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <geoclue/geoclue-master-client.h>
 
 #include <time.h>
-#include <libecal/e-cal.h>
+#include <libecal/libecal.h>
 #include <libical/ical.h>
-#include <libecal/e-cal-time-util.h>
-#include <libedataserver/e-source.h>
-#include <libedataserverui/e-passwords.h>
+#include <libedataserver/libedataserver.h>
 // Other users of ecal seem to also include these, not sure why they should be included by the above
 #include <libical/icaltime.h>
 #include <cairo/cairo.h>
@@ -115,6 +113,7 @@ struct TimeLocation
 	gint32 offset;
 	gchar * zone;
 	gchar * name;
+	gboolean visible;
 };
 static void
 time_location_free (struct TimeLocation * loc)
@@ -124,7 +123,7 @@ time_location_free (struct TimeLocation * loc)
 	g_free (loc);
 }
 static struct TimeLocation*
-time_location_new (const char * zone, const char * name, time_t now)
+time_location_new (const char * zone, const char * name, gboolean visible, time_t now)
 {
 	struct TimeLocation * loc = g_new (struct TimeLocation, 1);
 	GTimeZone * tz = g_time_zone_new (zone);
@@ -132,6 +131,7 @@ time_location_new (const char * zone, const char * name, time_t now)
 	loc->offset = g_time_zone_get_offset (tz, interval);
 	loc->zone = g_strdup (zone);
 	loc->name = g_strdup (name);
+	loc->visible = visible;
 	g_time_zone_unref (tz);
 	g_debug ("%s zone '%s' name '%s' offset is %d", G_STRLOC, zone, name, (int)loc->offset);
 	return loc;
@@ -139,22 +139,22 @@ time_location_new (const char * zone, const char * name, time_t now)
 static int
 time_location_compare (const struct TimeLocation * a, const struct TimeLocation * b)
 {
-	int ret;
-	if (a->offset != b->offset) /* primary key s.t. we can sort by timezone order */
-		ret = a->offset - b->offset;
-	else
+	int ret = a->offset - b->offset; /* primary key */
+	if (!ret)
 		ret = g_strcmp0 (a->name, b->name); /* secondary key */
+	if (!ret)
+		ret = a->visible - b->visible; /* tertiary key */
 	g_debug ("%s comparing '%s' (%d) to '%s' (%d), returning %d", G_STRLOC, a->name, (int)a->offset, b->name, (int)b->offset, ret);
 	return ret;
 }
 static GSList*
-locations_add (GSList * locations, const char * zone, const char * name, time_t now)
+locations_add (GSList * locations, const char * zone, const char * name, gboolean visible, time_t now)
 {
-	struct TimeLocation * loc = time_location_new (zone, name, now);
+	struct TimeLocation * loc = time_location_new (zone, name, visible, now);
 
 	if (g_slist_find_custom (locations, loc, (GCompareFunc)time_location_compare) == NULL) {
 		g_debug ("%s Adding zone '%s', name '%s'", G_STRLOC, zone, name);
-		locations = g_slist_prepend (locations, loc);
+		locations = g_slist_append (locations, loc);
 	} else {
 		g_debug("%s Skipping duplicate zone '%s' name '%s'", G_STRLOC, zone, name);
 		time_location_free (loc);
@@ -188,15 +188,17 @@ update_location_menu_items (void)
 
 	/* maybe add geo_timezone */
 	if (geo_timezone != NULL) {
+		const gboolean visible = g_settings_get_boolean (conf, SETTINGS_SHOW_DETECTED_S);
 		gchar * name = get_current_zone_name (geo_timezone);
-		locations = locations_add (locations, geo_timezone, name, now);
+		locations = locations_add (locations, geo_timezone, name, visible, now);
 		g_free (name);
 	}
 
 	/* maybe add current_timezone */
 	if (current_timezone != NULL) {
+		const gboolean visible = g_settings_get_boolean (conf, SETTINGS_SHOW_DETECTED_S);
 		gchar * name = get_current_zone_name (current_timezone);
-		locations = locations_add (locations, current_timezone, name, now);
+		locations = locations_add (locations, current_timezone, name, visible, now);
 		g_free (name);
 	}
 
@@ -205,12 +207,13 @@ update_location_menu_items (void)
 	if (user_locations != NULL) { 
 		gint i;
 		const guint location_count = g_strv_length (user_locations);
+		const gboolean visible = g_settings_get_boolean (conf, SETTINGS_SHOW_LOCATIONS_S);
 		g_debug ("%s Found %u user-specified locations", G_STRLOC, location_count);
 		for (i=0; i<location_count; i++) {
 			gchar * zone;
 			gchar * name;
 			split_settings_location (user_locations[i], &zone, &name);
-			locations = locations_add (locations, zone, name, now);
+			locations = locations_add (locations, zone, name, visible, now);
 			g_free (name);
 			g_free (zone);
 		}
@@ -218,13 +221,10 @@ update_location_menu_items (void)
 		user_locations = NULL;
 	}
 
-	/* sort the list by timezone offset */
-	locations = g_slist_sort (locations, (GCompareFunc)time_location_compare);
-
 	/* finally create menuitems for each location */
 	gint offset = dbusmenu_menuitem_get_position (locations_separator, root)+1;
-	const gboolean show_locations = g_settings_get_boolean (conf, SETTINGS_SHOW_LOCATIONS_S);
 	GSList * l;
+	gboolean have_visible_location = FALSE;
 	for (l=locations; l!=NULL; l=l->next) {
 		struct TimeLocation * loc = l->data;
 		g_debug("%s Adding location: zone '%s', name '%s'", G_STRLOC, loc->zone, loc->name);
@@ -234,17 +234,19 @@ update_location_menu_items (void)
 		dbusmenu_menuitem_property_set      (item, TIMEZONE_MENUITEM_PROP_ZONE, loc->zone);
 		dbusmenu_menuitem_property_set_bool (item, TIMEZONE_MENUITEM_PROP_RADIO, FALSE);
 		dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
-		dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_VISIBLE, show_locations);
+		dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_VISIBLE, loc->visible);
 		dbusmenu_menuitem_child_add_position (root, item, offset++);
 		g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
 		location_menu_items = g_slist_append (location_menu_items, item);
+		if (loc->visible)
+			have_visible_location = TRUE;
 		time_location_free (loc);
 	}
 	g_slist_free (locations);
 	locations = NULL;
 
 	/* if there's at least one item being shown, show the separator too */
-	dbusmenu_menuitem_property_set_bool (locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, show_locations && (location_menu_items!=NULL));
+	dbusmenu_menuitem_property_set_bool (locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, have_visible_location);
 }
 
 /* Update the current timezone */
@@ -579,8 +581,10 @@ check_for_calendar (gpointer user_data)
 		g_signal_connect(calendar, "event::day-selected-double-click", G_CALLBACK(day_selected_double_click_cb), NULL);
 	} else {
 		g_debug("Unable to find calendar app.");
-		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-		dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		if (add_appointment != NULL)
+			dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		if (events_separator != NULL)
+			dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 	}
 	
 	if (g_settings_get_boolean(conf, SETTINGS_SHOW_CALENDAR_S)) {
@@ -592,27 +596,6 @@ check_for_calendar (gpointer user_data)
 	}
 
 	return FALSE;
-}
-
-// Authentication function
-static gchar *
-auth_func (ECal *ecal, 
-           const gchar *prompt, 
-           const gchar *key, 
-           gpointer user_data)
-{
-	ESource *source = e_cal_get_source (ecal);
-	gchar *auth_domain = e_source_get_duped_property (source, "auth-domain");
-
-	const gchar *component_name;
-	if (auth_domain) component_name = auth_domain;
-	else component_name = "Calendar";
-	
-	gchar *password = e_passwords_get_password (component_name, key);
-	
-	g_free (auth_domain);
-
-	return password;
 }
 
 static gint
@@ -649,23 +632,53 @@ comp_instance_free (struct comp_instance* ci)
 }
 
 static gboolean
-populate_appointment_instances (ECalComponent * comp,
+populate_appointment_instances (ECalClient * client,
                                 time_t          start,
                                 time_t          end,
                                 gpointer        data)
 {
-	g_debug("Appending item %p", comp);
-	
-	ECalComponentVType vtype = e_cal_component_get_vtype (comp);
-	if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) return FALSE;
-	
-	icalproperty_status status;
-	e_cal_component_get_status (comp, &status);
-	if (status == ICAL_STATUS_COMPLETED || status == ICAL_STATUS_CANCELLED) return FALSE;
+       GSList *ecalcomps, *comp_item;
 
-	struct comp_instance *ci = comp_instance_new (comp, start, end, E_SOURCE(data));
-	comp_instances = g_list_append (comp_instances, ci);
-	return TRUE;
+       if (e_cal_client_get_object_list_as_comps_sync (client,
+                                                       NULL,
+                                                       &ecalcomps,
+                                                       NULL, NULL)) {
+
+               for (comp_item = ecalcomps; comp_item; comp_item = g_slist_next(comp_item)) {
+                       ECalComponent *comp = comp_item->data;
+
+                       g_debug("Appending item %p", e_cal_component_get_as_string(comp));
+
+                       ECalComponentVType vtype = e_cal_component_get_vtype (comp);
+                       if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) return FALSE;
+
+                       icalproperty_status status;
+                       e_cal_component_get_status (comp, &status);
+                       if (status == ICAL_STATUS_COMPLETED || status == ICAL_STATUS_CANCELLED) return FALSE;
+
+                       g_object_ref(comp);
+
+                       ECalComponentDateTime datetime;
+                       icaltimezone *appointment_zone = NULL;
+                       icaltimezone *current_zone = NULL;
+
+                       if (vtype == E_CAL_COMPONENT_EVENT)
+                               e_cal_component_get_dtstart (comp, &datetime);
+                       else
+                               e_cal_component_get_due (comp, &datetime);
+
+                       appointment_zone = icaltimezone_get_builtin_timezone_from_tzid(datetime.tzid);
+                       current_zone = icaltimezone_get_builtin_timezone_from_tzid(current_timezone);
+                       if (!appointment_zone || datetime.value->is_date) { // If it's today put in the current timezone?
+                               appointment_zone = current_zone;
+                       }
+
+                       struct comp_instance *ci = comp_instance_new (comp, start, end, E_SOURCE(data));
+                       comp_instances = g_list_append (comp_instances, ci);
+               }
+               return TRUE;
+       }
+       return FALSE;
 }
 
 /* Populate the menu with todays, next 5 appointments. 
@@ -685,12 +698,12 @@ update_appointment_menu_items (gpointer user_data)
 	updating_appointments = TRUE;
 	
 	time_t curtime = 0, t1 = 0, t2 = 0;
-	GList *l;
-	GSList *g;
+	GList *l, *s;
 	GError *gerror = NULL;
 	gint i;
 	gint width = 0, height = 0;
-	ESourceList * sources = NULL;
+	ESourceRegistry * src_registry = NULL;
+	GList * sources = NULL;
 
 	// Get today & work out query times
 	time(&curtime);
@@ -730,67 +743,52 @@ update_appointment_menu_items (gpointer user_data)
 	highlightdays = highlightdays + 7; // Minimum of 7 days ahead 
 	t2 = t1 + (time_t) (highlightdays * 24 * 60 * 60);
 	
-	if (!e_cal_get_sources(&sources, E_CAL_SOURCE_TYPE_EVENT, &gerror)) {
-		g_debug("Failed to get ecal sources\n");
-		g_clear_error (&gerror);
-		return FALSE;
-	}
-	
 	// clear any previous comp_instances
 	g_list_free_full (comp_instances, (GDestroyNotify)comp_instance_free);
 	comp_instances = NULL;
 
-	GSList *cal_list = gconf_client_get_list(gconf, "/apps/evolution/calendar/display/selected_calendars", GCONF_VALUE_STRING, &gerror);
-	if (gerror) {
-	  g_debug("Failed to get evolution preference for enabled calendars");
-	  g_clear_error (&gerror);
-	  cal_list = NULL;
-	}
-	
+       src_registry = e_source_registry_new_sync (NULL, &gerror);
+       if (!src_registry) {
+               g_debug("Failed to get access to source registry: %s\n", gerror->message);
+               return FALSE;
+       }
+
+       sources = e_source_registry_list_sources(src_registry, E_SOURCE_EXTENSION_CALENDAR);
+
 	// Generate instances for all sources
-	for (g = e_source_list_peek_groups (sources); g; g = g->next) {
-		ESourceGroup *group = E_SOURCE_GROUP (g->data);
-		GSList *s;
-		
-		for (s = e_source_group_peek_sources (group); s; s = s->next) {
-			ESource *source = E_SOURCE (s->data);
-			g_signal_connect (G_OBJECT(source), "changed", G_CALLBACK (update_appointment_menu_items), NULL);
-			ECal *ecal = e_cal_new(source, E_CAL_SOURCE_TYPE_EVENT);
-			e_cal_set_auth_func (ecal, (ECalAuthFunc) auth_func, NULL);
-			
-			icaltimezone* current_zone = icaltimezone_get_builtin_timezone(current_timezone);
-			if (!current_zone) {
-				// current_timezone may be a TZID?
-				current_zone = icaltimezone_get_builtin_timezone_from_tzid(current_timezone);
-			}
-			if (current_zone && !e_cal_set_default_timezone(ecal, current_zone, &gerror)) {
-				g_debug("Failed to set ecal default timezone %s", gerror->message);
-				g_clear_error (&gerror);
-				g_object_unref(ecal);
-				continue;
-			}
-			
-			if (!e_cal_open(ecal, FALSE, &gerror)) {
-				g_debug("Failed to get ecal sources %s", gerror->message);
+       for (s = g_list_first (sources); s; s = g_list_next (s)) {
+
+               ESource *source = E_SOURCE (s->data);
+               g_signal_connect (G_OBJECT(source), "changed", G_CALLBACK (update_appointment_menu_items), NULL);
+               ECalClient *ecal = e_cal_client_new(source, E_CAL_CLIENT_SOURCE_TYPE_EVENTS, &gerror);
+
+               icaltimezone* current_zone = icaltimezone_get_builtin_timezone(current_timezone);
+               if (!current_zone) {
+                       // current_timezone may be a TZID?
+                       current_zone = icaltimezone_get_builtin_timezone_from_tzid(current_timezone);
+               }
+
+               e_cal_client_set_default_timezone (ecal, current_zone);
+
+               g_debug("Checking if source %s is enabled", e_source_get_uid(source));
+               if (e_source_get_enabled (source)) {
+                       g_debug("source is enabled, generating instances");
+
+                       if (!e_client_open_sync (E_CLIENT (ecal), TRUE, NULL, &gerror)) {
+                               g_debug("Failed to open source: %s", gerror->message);
 				g_clear_error (&gerror);
 				g_object_unref(ecal);
 				continue;
 			}
 
-			const gchar *ecal_uid = e_source_peek_uid(source);
-			g_debug("Checking ecal_uid is enabled: %s", ecal_uid);
-			const gboolean in_list = g_slist_find_custom (cal_list, ecal_uid, (GCompareFunc)g_strcmp0) != NULL;
-			if (!in_list) {
-				g_object_unref(ecal);
-				continue;
-			}
-
-			g_debug("ecal_uid is enabled, generating instances");
-			e_cal_generate_instances (ecal, t1, t2, (ECalRecurInstanceFn) populate_appointment_instances, source);
-			g_object_unref(ecal);
-		}
-	}
-	g_slist_free_full (cal_list, g_free);
+                       e_cal_client_generate_instances (ecal, t1, t2, NULL,
+                                                        (ECalRecurInstanceFn) populate_appointment_instances,
+                                                        (gpointer) source,
+                                                        NULL);
+               }
+               g_object_unref(ecal);
+       }
+       g_list_free_full (sources, g_object_unref);
 
 	g_debug("Number of ECalComponents returned: %d", g_list_length(comp_instances));
 	GList *sorted_comp_instances = g_list_sort(comp_instances, compare_comp_instances);
@@ -942,7 +940,7 @@ update_appointment_menu_items (gpointer user_data)
 		                       G_CALLBACK(activate_cb), cmd, (GClosureNotify)g_free, 0);
 		g_free (ad);
 
-        const gchar *color_spec = e_source_peek_color_spec(ci->source);
+	const gchar *color_spec = e_source_selectable_get_color (e_source_get_extension (ci->source, E_SOURCE_EXTENSION_CALENDAR));
         g_debug("Colour to use: %s", color_spec);
 			
 		// Draw the correct icon for the appointment type and then tint it using mask fill.
@@ -950,17 +948,10 @@ update_appointment_menu_items (gpointer user_data)
         if (color_spec != NULL) {
         	g_debug("Creating a cairo surface: size, %d by %d", width, height);         
         	cairo_surface_t *surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, width, height ); 
-
 			cairo_t *cr = cairo_create(surface);
-#if GTK_CHECK_VERSION(3,0,0)
         	GdkRGBA rgba;
         	if (gdk_rgba_parse (&rgba, color_spec))
         		gdk_cairo_set_source_rgba (cr, &rgba);
-#else
-			GdkColor color;
-			if (gdk_color_parse (color_spec, &color))
-				gdk_cairo_set_source_color (cr, &color);
-#endif
 			cairo_paint(cr);
     		cairo_set_source_rgba(cr, 0,0,0,0.5);
     		cairo_set_line_width(cr, 1);
@@ -1095,6 +1086,7 @@ build_menus (DbusmenuMenuitem * root)
 		update_location_menu_items();
 	
 		g_signal_connect (conf, "changed::" SETTINGS_SHOW_LOCATIONS_S, G_CALLBACK (show_locations_changed), NULL);
+		g_signal_connect (conf, "changed::" SETTINGS_SHOW_DETECTED_S, G_CALLBACK (show_locations_changed), NULL);
 		g_signal_connect (conf, "changed::" SETTINGS_LOCATIONS_S, G_CALLBACK (show_locations_changed), NULL);
 		g_signal_connect (conf, "changed::" SETTINGS_SHOW_EVENTS_S, G_CALLBACK (show_events_changed), NULL);
 		g_signal_connect (conf, "changed::" SETTINGS_TIME_FORMAT_S, G_CALLBACK (time_format_changed), NULL);

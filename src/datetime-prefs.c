@@ -613,11 +613,11 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
                         -1);
 
     if (strlon != NULL && strlon[0] != 0) {
-      lon = strtod(strlon, NULL);
+      lon = g_ascii_strtod(strlon, NULL);
     }
 
     if (strlat != NULL && strlat[0] != 0) {
-      lat = strtod(strlat, NULL);
+      lat = g_ascii_strtod(strlat, NULL);
     }
 
     zone = cc_timezone_map_get_timezone_at_coords (self->priv->tzmap, lon, lat);
@@ -733,6 +733,8 @@ indicator_datetime_panel_init (IndicatorDatetimePanel * self)
                    "active", G_SETTINGS_BIND_DEFAULT);
   g_settings_bind (conf, SETTINGS_SHOW_EVENTS_S, WIG ("showEventsCheck"),
                    "active", G_SETTINGS_BIND_DEFAULT);
+  g_settings_bind (conf, SETTINGS_SHOW_DETECTED_S, WIG ("showDetectedCheck"),
+                   "active", G_SETTINGS_BIND_DEFAULT);
   g_settings_bind (conf, SETTINGS_SHOW_LOCATIONS_S, WIG ("showLocationsCheck"),
                    "active", G_SETTINGS_BIND_DEFAULT);
 
@@ -829,6 +831,8 @@ indicator_datetime_panel_dispose (GObject * object)
     gtk_widget_destroy (priv->date_spin);
     priv->date_spin = NULL;
   }
+
+  G_OBJECT_CLASS (indicator_datetime_panel_parent_class)->dispose (object);
 }
 
 static void
