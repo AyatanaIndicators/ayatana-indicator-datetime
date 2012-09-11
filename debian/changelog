@@ -1,3 +1,11 @@
+indicator-datetime (12.10.0-0ubuntu2) quantal; urgency=low
+
+  * data/indicator-datetime-preferences.desktop.in
+    - Removed stray lines from the desktop file, it's causing duplicate 
+      X-Ubuntu-Gettext-Domain to get added. (LP: #1048834)
+
+ -- Ken VanDine <ken.vandine@canonical.com>  Tue, 11 Sep 2012 15:38:10 -0400
+
 indicator-datetime (12.10.0-0ubuntu1) quantal; urgency=low
 
   * New upstream release:
