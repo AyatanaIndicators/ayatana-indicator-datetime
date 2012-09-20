@@ -1181,16 +1181,22 @@ day_timer_reset (void)
 	return;
 }
 
-static guint second_timer = 0;
+enum {
+	/* how often to check for clock skew */
+	SKEW_CHECK_INTERVAL_SEC = 10,
+
+	SKEW_DIFF_THRESHOLD_SEC = SKEW_CHECK_INTERVAL_SEC + 5
+};
 
 static gboolean
-second_timer_func (gpointer unused G_GNUC_UNUSED)
+skew_check_timer_func (gpointer unused G_GNUC_UNUSED)
 {
-	static time_t prev_time =0;
+	static time_t prev_time = 0;
 	const time_t cur_time = time (NULL);
+	const double diff_sec = fabs (difftime (cur_time, prev_time));
 
-	if (prev_time && (fabs (difftime (cur_time, prev_time)) > 5)) {
-		g_debug (G_STRLOC" clock skew detected");
+	if (prev_time && (diff_sec > SKEW_DIFF_THRESHOLD_SEC)) {
+		g_debug (G_STRLOC" clock skew detected (%.0f seconds)", diff_sec);
 		on_clock_skew ();
 	}
 
@@ -1458,7 +1464,9 @@ main (int argc, char ** argv)
 	day_timer_reset();
 
 	/* Set up the second timer */
-	second_timer = g_timeout_add_seconds_full (G_PRIORITY_LOW, 1, second_timer_func, NULL, NULL);
+	g_timeout_add_seconds (SKEW_CHECK_INTERVAL_SEC,
+	                       skew_check_timer_func,
+	                       NULL);
 
 	/* And watch for system resumes */
 	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
