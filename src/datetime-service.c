@@ -53,7 +53,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "utils.h"
 
 /* how often to check for clock skew */
-#define SKEW_CHECK_INTERVAL_SEC 19
+#define SKEW_CHECK_INTERVAL_SEC 10
 
 #define SKEW_DIFF_THRESHOLD_SEC (SKEW_CHECK_INTERVAL_SEC + 5)
 
