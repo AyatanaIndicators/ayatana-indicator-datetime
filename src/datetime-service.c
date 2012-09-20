@@ -1106,14 +1106,26 @@ build_menus (DbusmenuMenuitem * root)
 	return;
 }
 
+static void
+on_clock_skew (void)
+{
+	/* tell the indicators to refresh */
+	if (IS_DATETIME_INTERFACE (dbus))
+		datetime_interface_update (DATETIME_INTERFACE(dbus));
+
+	/* update our day label */
+	update_datetime (NULL);
+	day_timer_reset();
+
+	return;
+}
+
 /* Run when the timezone file changes */
 static void
 timezone_changed (GFileMonitor * monitor, GFile * file, GFile * otherfile, GFileMonitorEvent event, gpointer user_data)
 {
 	update_current_timezone();
-	datetime_interface_update(DATETIME_INTERFACE(user_data));
-	update_datetime(NULL);
-	day_timer_reset();
+	on_clock_skew();
 	return;
 }
 
@@ -1169,6 +1181,23 @@ day_timer_reset (void)
 	return;
 }
 
+static guint second_timer = 0;
+
+static gboolean
+second_timer_func (gpointer unused G_GNUC_UNUSED)
+{
+	static time_t prev_time =0;
+	const time_t cur_time = time (NULL);
+
+	if (prev_time && (fabs (difftime (cur_time, prev_time)) > 5)) {
+		g_debug (G_STRLOC" clock skew detected");
+		on_clock_skew ();
+	}
+
+	prev_time = cur_time;
+	return G_SOURCE_CONTINUE;
+}
+
 static void
 session_active_change_cb (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name,
                           GVariant * parameters, gpointer user_data)
@@ -1178,9 +1207,7 @@ session_active_change_cb (GDBusProxy * proxy, gchar * sender_name, gchar * signa
 		gboolean idle = FALSE;
 		g_variant_get(parameters, "(b)", &idle);
 		if (!idle) {
-			datetime_interface_update(DATETIME_INTERFACE(user_data));
-			update_datetime(NULL);
-			day_timer_reset();
+			on_clock_skew ();
 		}
 	}
 	return;
@@ -1427,8 +1454,11 @@ main (int argc, char ** argv)
 	/* Setup timezone watch */
 	build_timezone(dbus);
 
-	/* Setup the timer */
+	/* Set up the day timer */
 	day_timer_reset();
+
+	/* Set up the second timer */
+	second_timer = g_timeout_add_seconds_full (G_PRIORITY_LOW, 1, second_timer_func, NULL, NULL);
 
 	/* And watch for system resumes */
 	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
