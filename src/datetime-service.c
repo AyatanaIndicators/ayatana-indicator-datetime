@@ -61,7 +61,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 static void geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data);
 static gboolean update_appointment_menu_items (gpointer user_data);
 static void update_location_menu_items (void);
-static void setup_timer (void);
+static void day_timer_reset (void);
 static void geo_client_invalid (GeoclueMasterClient * client, gpointer user_data);
 static gboolean get_greeter_mode (void);
 
@@ -355,7 +355,7 @@ update_datetime (gpointer user_data)
 	g_date_time_unref (datetime);
 	g_free(utf8);
 
-	return FALSE;
+	return G_SOURCE_REMOVE;
 }
 
 /* Run a particular program based on an activation */
@@ -1113,7 +1113,7 @@ timezone_changed (GFileMonitor * monitor, GFile * file, GFile * otherfile, GFile
 	update_current_timezone();
 	datetime_interface_update(DATETIME_INTERFACE(user_data));
 	update_datetime(NULL);
-	setup_timer();
+	day_timer_reset();
 	return;
 }
 
@@ -1133,38 +1133,38 @@ build_timezone (DatetimeInterface * dbus)
 }
 
 /* Source ID for the timer */
-static guint timer = 0;
+static guint day_timer = 0;
 
 /* Execute at a given time, update and setup a new
    timer to go again.  */
 static gboolean
-timer_func (gpointer user_data)
+day_timer_func (gpointer user_data)
 {
-	timer = 0;
+	day_timer = 0;
 	/* Reset up each time to reduce error */
-	setup_timer();
+	day_timer_reset();
 	update_datetime(NULL);
-	return FALSE;
+	return G_SOURCE_REMOVE;
 }
 
 /* Sets up the time to launch the timer to update the
    date in the datetime entry */
 static void
-setup_timer (void)
+day_timer_reset (void)
 {
-	if (timer != 0) {
-		g_source_remove(timer);
-		timer = 0;
+	if (day_timer != 0) {
+		g_source_remove(day_timer);
+		day_timer = 0;
 	}
 
 	time_t t;
 	t = time(NULL);
 	struct tm * ltime = localtime(&t);
 
-	timer = g_timeout_add_seconds(((23 - ltime->tm_hour) * 60 * 60) +
-	                              ((59 - ltime->tm_min) * 60) +
-	                              ((60 - ltime->tm_sec)) + 60 /* one minute past */,
-	                              timer_func, NULL);
+	day_timer = g_timeout_add_seconds(((23 - ltime->tm_hour) * 60 * 60) +
+	                                  ((59 - ltime->tm_min) * 60) +
+	                                  ((60 - ltime->tm_sec)) + 60 /* one minute past */,
+	                                  day_timer_func, NULL);
 
 	return;
 }
@@ -1180,7 +1180,7 @@ session_active_change_cb (GDBusProxy * proxy, gchar * sender_name, gchar * signa
 		if (!idle) {
 			datetime_interface_update(DATETIME_INTERFACE(user_data));
 			update_datetime(NULL);
-			setup_timer();
+			day_timer_reset();
 		}
 	}
 	return;
@@ -1428,7 +1428,7 @@ main (int argc, char ** argv)
 	build_timezone(dbus);
 
 	/* Setup the timer */
-	setup_timer();
+	day_timer_reset();
 
 	/* And watch for system resumes */
 	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
