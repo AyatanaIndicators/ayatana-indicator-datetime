@@ -5,7 +5,7 @@ indicator-datetime (12.10.1-0ubuntu1) UNRELEASED; urgency=low
     - Raise the version number of our EDS dependency (LP: #1024437)
     - Fix X-Ubuntu-Gettext-Domain entries in the .desktop file (LP: #1048834)
     - Remove unnecessary watching for geoclue address provider changes
-  * build-dep on newer libecal
+  * build-dep on newer e-d-s stack
 
  -- Didier Roche <didrocks@ubuntu.com>  Thu, 20 Sep 2012 18:35:07 +0200
 
