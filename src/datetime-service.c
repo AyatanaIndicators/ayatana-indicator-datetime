@@ -1461,7 +1461,7 @@ main (int argc, char ** argv)
 	/* Set up the day timer */
 	day_timer_reset();
 
-	/* Set up the second timer */
+	/* Set up the skew-check timer */
 	g_timeout_add_seconds (SKEW_CHECK_INTERVAL_SEC,
 	                       skew_check_timer_func,
 	                       NULL);
