@@ -52,12 +52,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "settings-shared.h"
 #include "utils.h"
 
-enum {
-	/* how often to check for clock skew */
-	SKEW_CHECK_INTERVAL_SEC = 10,
+/* how often to check for clock skew */
+#define SKEW_CHECK_INTERVAL_SEC 19
 
-	SKEW_DIFF_THRESHOLD_SEC = SKEW_CHECK_INTERVAL_SEC + 5
-};
+#define SKEW_DIFF_THRESHOLD_SEC (SKEW_CHECK_INTERVAL_SEC + 5)
 
 #ifdef HAVE_CCPANEL
  #define SETTINGS_APP_INVOCATION "gnome-control-center indicator-datetime"
