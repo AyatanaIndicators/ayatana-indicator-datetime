@@ -1,3 +1,10 @@
+indicator-datetime (12.10.1-0ubuntu1) UNRELEASED; urgency=low
+
+  * New upstream release.
+  * build-dep on newer libecal
+
+ -- Didier Roche <didrocks@ubuntu.com>  Thu, 20 Sep 2012 18:35:07 +0200
+
 indicator-datetime (12.10.0-0ubuntu2) quantal; urgency=low
 
   * data/indicator-datetime-preferences.desktop.in
