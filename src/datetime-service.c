@@ -52,6 +52,11 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "settings-shared.h"
 #include "utils.h"
 
+/* how often to check for clock skew */
+#define SKEW_CHECK_INTERVAL_SEC 10
+
+#define SKEW_DIFF_THRESHOLD_SEC (SKEW_CHECK_INTERVAL_SEC + 5)
+
 #ifdef HAVE_CCPANEL
  #define SETTINGS_APP_INVOCATION "gnome-control-center indicator-datetime"
 #else
@@ -61,9 +66,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 static void geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data);
 static gboolean update_appointment_menu_items (gpointer user_data);
 static void update_location_menu_items (void);
-static void setup_timer (void);
+static void day_timer_reset (void);
 static void geo_client_invalid (GeoclueMasterClient * client, gpointer user_data);
-static void geo_address_change (GeoclueMasterClient * client, gchar * a, gchar * b, gchar * c, gchar * d, gpointer user_data);
 static gboolean get_greeter_mode (void);
 
 static void quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, gpointer user_data);
@@ -356,7 +360,7 @@ update_datetime (gpointer user_data)
 	g_date_time_unref (datetime);
 	g_free(utf8);
 
-	return FALSE;
+	return G_SOURCE_REMOVE;
 }
 
 /* Run a particular program based on an activation */
@@ -1107,14 +1111,26 @@ build_menus (DbusmenuMenuitem * root)
 	return;
 }
 
+static void
+on_clock_skew (void)
+{
+	/* tell the indicators to refresh */
+	if (IS_DATETIME_INTERFACE (dbus))
+		datetime_interface_update (DATETIME_INTERFACE(dbus));
+
+	/* update our day label */
+	update_datetime (NULL);
+	day_timer_reset();
+
+	return;
+}
+
 /* Run when the timezone file changes */
 static void
 timezone_changed (GFileMonitor * monitor, GFile * file, GFile * otherfile, GFileMonitorEvent event, gpointer user_data)
 {
 	update_current_timezone();
-	datetime_interface_update(DATETIME_INTERFACE(user_data));
-	update_datetime(NULL);
-	setup_timer();
+	on_clock_skew();
 	return;
 }
 
@@ -1134,40 +1150,56 @@ build_timezone (DatetimeInterface * dbus)
 }
 
 /* Source ID for the timer */
-static guint timer = 0;
+static guint day_timer = 0;
 
 /* Execute at a given time, update and setup a new
    timer to go again.  */
 static gboolean
-timer_func (gpointer user_data)
+day_timer_func (gpointer user_data)
 {
-	timer = 0;
+	day_timer = 0;
 	/* Reset up each time to reduce error */
-	setup_timer();
+	day_timer_reset();
 	update_datetime(NULL);
-	return FALSE;
+	return G_SOURCE_REMOVE;
 }
 
 /* Sets up the time to launch the timer to update the
    date in the datetime entry */
 static void
-setup_timer (void)
+day_timer_reset (void)
 {
-	if (timer != 0) {
-		g_source_remove(timer);
-		timer = 0;
+	if (day_timer != 0) {
+		g_source_remove(day_timer);
+		day_timer = 0;
 	}
 
 	time_t t;
 	t = time(NULL);
 	struct tm * ltime = localtime(&t);
 
-	timer = g_timeout_add_seconds(((23 - ltime->tm_hour) * 60 * 60) +
-	                              ((59 - ltime->tm_min) * 60) +
-	                              ((60 - ltime->tm_sec)) + 60 /* one minute past */,
-	                              timer_func, NULL);
+	day_timer = g_timeout_add_seconds(((23 - ltime->tm_hour) * 60 * 60) +
+	                                  ((59 - ltime->tm_min) * 60) +
+	                                  ((60 - ltime->tm_sec)) + 60 /* one minute past */,
+	                                  day_timer_func, NULL);
 
 	return;
+}
+
+static gboolean
+skew_check_timer_func (gpointer unused G_GNUC_UNUSED)
+{
+	static time_t prev_time = 0;
+	const time_t cur_time = time (NULL);
+	const double diff_sec = fabs (difftime (cur_time, prev_time));
+
+	if (prev_time && (diff_sec > SKEW_DIFF_THRESHOLD_SEC)) {
+		g_debug (G_STRLOC" clock skew detected (%.0f seconds)", diff_sec);
+		on_clock_skew ();
+	}
+
+	prev_time = cur_time;
+	return G_SOURCE_CONTINUE;
 }
 
 static void
@@ -1179,9 +1211,7 @@ session_active_change_cb (GDBusProxy * proxy, gchar * sender_name, gchar * signa
 		gboolean idle = FALSE;
 		g_variant_get(parameters, "(b)", &idle);
 		if (!idle) {
-			datetime_interface_update(DATETIME_INTERFACE(user_data));
-			update_datetime(NULL);
-			setup_timer();
+			on_clock_skew ();
 		}
 	}
 	return;
@@ -1258,7 +1288,6 @@ geo_client_clean (void)
 	}
 
 	g_signal_handlers_disconnect_by_func(G_OBJECT(geo_master), geo_client_invalid, NULL);
-	g_signal_handlers_disconnect_by_func(G_OBJECT(geo_master), geo_address_change, NULL);
 	g_object_unref(G_OBJECT(geo_master));
 
 	geo_master = NULL;
@@ -1330,28 +1359,6 @@ geo_client_invalid (GeoclueMasterClient * client, gpointer user_data)
 	return;
 }
 
-/* Address provider changed, we need to get that one */
-static void
-geo_address_change (GeoclueMasterClient * client, gchar * a, gchar * b, gchar * c, gchar * d, gpointer user_data)
-{
-	g_warning("Address provider changed.  Let's change");
-
-	/* If the address is supposed to have changed we need to drop the old
-	   address before starting to get the new one. */
-	geo_address_clean();
-
-	geoclue_master_client_create_address_async(geo_master, geo_create_address, NULL);
-
-	if (geo_timezone != NULL) {
-		g_free(geo_timezone);
-		geo_timezone = NULL;
-	}
-
-	update_location_menu_items();
-
-	return;
-}
-
 /* Callback from creating the client */
 static void
 geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data)
@@ -1387,7 +1394,6 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 	geoclue_master_client_create_address_async(geo_master, geo_create_address, NULL);
 
 	g_signal_connect(G_OBJECT(client), "invalidated", G_CALLBACK(geo_client_invalid), NULL);
-	g_signal_connect(G_OBJECT(client), "address-provider-changed", G_CALLBACK(geo_address_change), NULL);
 
 	return;
 }
@@ -1452,8 +1458,13 @@ main (int argc, char ** argv)
 	/* Setup timezone watch */
 	build_timezone(dbus);
 
-	/* Setup the timer */
-	setup_timer();
+	/* Set up the day timer */
+	day_timer_reset();
+
+	/* Set up the skew-check timer */
+	g_timeout_add_seconds (SKEW_CHECK_INTERVAL_SEC,
+	                       skew_check_timer_func,
+	                       NULL);
 
 	/* And watch for system resumes */
 	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
