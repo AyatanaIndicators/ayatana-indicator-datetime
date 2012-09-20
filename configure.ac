@@ -1,5 +1,5 @@
 AC_INIT([indicator-datetime],
-        [12.10.0],
+        [12.10.1],
         [http://bugs.launchpad.net/indicator-datetime],
         [indicator-datetime],
         [http://launchpad.net/indicator-datetime])
