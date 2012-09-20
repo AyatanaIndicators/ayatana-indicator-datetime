@@ -154,6 +154,7 @@ GType indicator_datetime_get_type (void) G_GNUC_CONST;
 
 static void indicator_datetime_class_init (IndicatorDatetimeClass *klass);
 static void indicator_datetime_init       (IndicatorDatetime *self);
+static void timezone_update_all_labels    (IndicatorDatetime *self);
 static void set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec);
 static void get_property (GObject * object, guint prop_id, GValue * value, GParamSpec * pspec);
 static void indicator_datetime_dispose    (GObject *object);
@@ -279,6 +280,10 @@ menu_visible_notfy_cb(GtkWidget * menu, G_GNUC_UNUSED GParamSpec *pspec, gpointe
 
   	// Set the calendar to todays date
 	ido_calendar_menu_item_set_date (self->priv->ido_calendar, y, m-1, d);
+
+	/* Update in case date was changed outside of indicator-datetime */
+	update_label(self, NULL);
+	timezone_update_all_labels(self);
 
 	// Make sure the day-selected signal is sent so the menu updates - may duplicate
 	/*GVariant *variant = g_variant_new_uint32((guint)curtime);
