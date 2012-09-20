@@ -52,6 +52,13 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "settings-shared.h"
 #include "utils.h"
 
+enum {
+	/* how often to check for clock skew */
+	SKEW_CHECK_INTERVAL_SEC = 10,
+
+	SKEW_DIFF_THRESHOLD_SEC = SKEW_CHECK_INTERVAL_SEC + 5
+};
+
 #ifdef HAVE_CCPANEL
  #define SETTINGS_APP_INVOCATION "gnome-control-center indicator-datetime"
 #else
@@ -1180,13 +1187,6 @@ day_timer_reset (void)
 
 	return;
 }
-
-enum {
-	/* how often to check for clock skew */
-	SKEW_CHECK_INTERVAL_SEC = 10,
-
-	SKEW_DIFF_THRESHOLD_SEC = SKEW_CHECK_INTERVAL_SEC + 5
-};
 
 static gboolean
 skew_check_timer_func (gpointer unused G_GNUC_UNUSED)
