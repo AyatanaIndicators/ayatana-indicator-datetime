@@ -636,53 +636,29 @@ comp_instance_free (struct comp_instance* ci)
 }
 
 static gboolean
-populate_appointment_instances (ECalClient * client,
+populate_appointment_instances (ECalComponent * comp,
                                 time_t          start,
                                 time_t          end,
                                 gpointer        data)
 {
-       GSList *ecalcomps, *comp_item;
+	const ECalComponentVType vtype = e_cal_component_get_vtype (comp);
 
-       if (e_cal_client_get_object_list_as_comps_sync (client,
-                                                       NULL,
-                                                       &ecalcomps,
-                                                       NULL, NULL)) {
+	if ((vtype == E_CAL_COMPONENT_EVENT) || (vtype == E_CAL_COMPONENT_TODO))
+	{
+		icalproperty_status status;
+		e_cal_component_get_status (comp, &status);
 
-               for (comp_item = ecalcomps; comp_item; comp_item = g_slist_next(comp_item)) {
-                       ECalComponent *comp = comp_item->data;
+		if ((status != ICAL_STATUS_COMPLETED) && (status != ICAL_STATUS_CANCELLED))
+		{
+			gchar * str = e_cal_component_get_as_string (comp);
+			g_debug("Appending item %s", str);
+			struct comp_instance *ci = comp_instance_new (comp, start, end, E_SOURCE(data));
+			comp_instances = g_list_append (comp_instances, ci);
+			g_free (str);
+		}
+	}
 
-                       g_debug("Appending item %p", e_cal_component_get_as_string(comp));
-
-                       ECalComponentVType vtype = e_cal_component_get_vtype (comp);
-                       if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) return FALSE;
-
-                       icalproperty_status status;
-                       e_cal_component_get_status (comp, &status);
-                       if (status == ICAL_STATUS_COMPLETED || status == ICAL_STATUS_CANCELLED) return FALSE;
-
-                       g_object_ref(comp);
-
-                       ECalComponentDateTime datetime;
-                       icaltimezone *appointment_zone = NULL;
-                       icaltimezone *current_zone = NULL;
-
-                       if (vtype == E_CAL_COMPONENT_EVENT)
-                               e_cal_component_get_dtstart (comp, &datetime);
-                       else
-                               e_cal_component_get_due (comp, &datetime);
-
-                       appointment_zone = icaltimezone_get_builtin_timezone_from_tzid(datetime.tzid);
-                       current_zone = icaltimezone_get_builtin_timezone_from_tzid(current_timezone);
-                       if (!appointment_zone || datetime.value->is_date) { // If it's today put in the current timezone?
-                               appointment_zone = current_zone;
-                       }
-
-                       struct comp_instance *ci = comp_instance_new (comp, start, end, E_SOURCE(data));
-                       comp_instances = g_list_append (comp_instances, ci);
-               }
-               return TRUE;
-       }
-       return FALSE;
+	return TRUE; /* tell ecal to keep iterating */
 }
 
 /* Populate the menu with todays, next 5 appointments. 
@@ -691,7 +667,7 @@ populate_appointment_instances (ECalClient * client,
  * this is a problem mainly on the EDS side of things, not ours. 
  */
 static gboolean
-update_appointment_menu_items (gpointer user_data)
+update_appointment_menu_items (gpointer unused)
 {
 	// FFR: we should take into account short term timers, for instance
 	// tea timers, pomodoro timers etc... that people may add, this is hinted to in the spec.
