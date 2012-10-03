@@ -29,7 +29,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 #include <math.h>
-#include <gconf/gconf-client.h>
 
 #include <libdbusmenu-gtk/menuitem.h>
 #include <libdbusmenu-glib/server.h>
@@ -91,7 +90,6 @@ static GList            * comp_instances = NULL;
 static gboolean           updating_appointments = FALSE;
 static time_t             start_time_appointments = (time_t) 0;
 static GSettings        * conf = NULL;
-static GConfClient      * gconf = NULL;
 
 
 /* Geoclue trackers */
@@ -537,12 +535,20 @@ calendar_app_is_usable (void)
 	g_debug ("found calendar app: '%s'", evo);
 	g_free (evo);
 
-	/* confirm that it's got an account set up... */
-	GSList *accounts_list = gconf_client_get_list (gconf, "/apps/evolution/mail/accounts", GCONF_VALUE_STRING, NULL);
-	const guint n = g_slist_length (accounts_list);
-	g_debug ("found %u evolution accounts", n);
-	g_slist_free_full (accounts_list, g_free);
-	return n > 0;
+	/* see if there are any enabled calendars */
+	gboolean has_enabled_calendar_source = FALSE;
+	ESourceRegistry * registry = e_source_registry_new_sync (NULL, NULL);
+	if (registry != NULL) {
+		GList * l = NULL;
+		GList * sources = NULL;
+		sources = e_source_registry_list_sources (registry, E_SOURCE_EXTENSION_CALENDAR);
+		for (l=sources; !has_enabled_calendar_source && l!=NULL; l=l->next)
+			has_enabled_calendar_source = e_source_get_enabled (E_SOURCE(l->data));
+		g_list_free_full (sources, g_object_unref);
+		g_object_unref (registry);
+	}
+
+	return has_enabled_calendar_source;
 }
 
 /* Looks for the calendar application and enables the item if
@@ -1410,8 +1416,6 @@ main (int argc, char ** argv)
 
 	/* Set up GSettings */
 	conf = g_settings_new(SETTINGS_INTERFACE);
-	/* Set up gconf for getting evolution enabled calendars */
-	gconf = gconf_client_get_default();
 	// TODO Add a signal handler to catch gsettings changes and respond to them
 
 	/* Building the base menu */
