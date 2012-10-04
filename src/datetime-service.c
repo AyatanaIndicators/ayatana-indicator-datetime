@@ -824,9 +824,10 @@ update_appointment_menu_items (gpointer unused)
 			if (ci->end < start_time_appointments) continue;
 		}
 	
-		if (i >= MAX_APPOINTMENT_MENUITEMS) continue;
-		i++;
+		if (i >= MAX_APPOINTMENT_MENUITEMS)
+			continue;
 
+		i++;
 		item = appointments[i];
 
 		/* Remove the icon as we might not replace it on error */
@@ -1411,8 +1412,8 @@ main (int argc, char ** argv)
 	// TODO Add a signal handler to catch gsettings changes and respond to them
 
 	/* Build our list of appointment calendar sources.
-       When a source changes, update our menu items.
-       When sources are added or removed, update our list and menu items. */
+	   When a source changes, update our menu items.
+	   When sources are added or removed, update our list and menu items. */
 	source_registry = e_source_registry_new_sync (NULL, NULL);
 	g_object_connect (source_registry,
 	                  "signal::source-added", update_appointments,
@@ -1471,7 +1472,7 @@ main (int argc, char ** argv)
 	g_object_unref(G_OBJECT(service));
 	g_object_unref(G_OBJECT(server));
 	g_object_unref(G_OBJECT(root));
-    g_object_unref(G_OBJECT(source_registry));
+	g_object_unref(G_OBJECT(source_registry));
 
 	icaltimezone_free_builtin_timezones();
 
