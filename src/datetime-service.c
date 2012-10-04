@@ -90,6 +90,8 @@ static GList            * comp_instances = NULL;
 static gboolean           updating_appointments = FALSE;
 static time_t             start_time_appointments = (time_t) 0;
 static GSettings        * conf = NULL;
+static ESourceRegistry	* source_registry = NULL;
+static GList            * appointment_sources = NULL;
 
 
 /* Geoclue trackers */
@@ -535,20 +537,8 @@ calendar_app_is_usable (void)
 	g_debug ("found calendar app: '%s'", evo);
 	g_free (evo);
 
-	/* see if there are any enabled calendars */
-	gboolean has_enabled_calendar_source = FALSE;
-	ESourceRegistry * registry = e_source_registry_new_sync (NULL, NULL);
-	if (registry != NULL) {
-		GList * l = NULL;
-		GList * sources = NULL;
-		sources = e_source_registry_list_sources (registry, E_SOURCE_EXTENSION_CALENDAR);
-		for (l=sources; !has_enabled_calendar_source && l!=NULL; l=l->next)
-			has_enabled_calendar_source = e_source_get_enabled (E_SOURCE(l->data));
-		g_list_free_full (sources, g_object_unref);
-		g_object_unref (registry);
-	}
-
-	return has_enabled_calendar_source;
+	/* see if there are any calendar sources */
+	return appointment_sources > 0;
 }
 
 /* Looks for the calendar application and enables the item if
@@ -688,7 +678,6 @@ update_appointment_menu_items (gpointer unused)
 	GError *gerror = NULL;
 	gint i;
 	gint width = 0, height = 0;
-	ESourceRegistry * src_registry = NULL;
 	GList * sources = NULL;
 
 	// Get today & work out query times
@@ -733,19 +722,10 @@ update_appointment_menu_items (gpointer unused)
 	g_list_free_full (comp_instances, (GDestroyNotify)comp_instance_free);
 	comp_instances = NULL;
 
-       src_registry = e_source_registry_new_sync (NULL, &gerror);
-       if (!src_registry) {
-               g_debug("Failed to get access to source registry: %s\n", gerror->message);
-               return FALSE;
-       }
-
-       sources = e_source_registry_list_sources(src_registry, E_SOURCE_EXTENSION_CALENDAR);
-
 	// Generate instances for all sources
-       for (s = g_list_first (sources); s; s = g_list_next (s)) {
+	for (s=appointment_sources; s!=NULL; s=s->next) {
 
                ESource *source = E_SOURCE (s->data);
-               g_signal_connect (G_OBJECT(source), "changed", G_CALLBACK (update_appointment_menu_items), NULL);
                ECalClient *ecal = e_cal_client_new(source, E_CAL_CLIENT_SOURCE_TYPE_EVENTS, &gerror);
 
                icaltimezone* current_zone = icaltimezone_get_builtin_timezone(current_timezone);
@@ -767,14 +747,14 @@ update_appointment_menu_items (gpointer unused)
 				continue;
 			}
 
-                       e_cal_client_generate_instances (ecal, t1, t2, NULL,
-                                                        (ECalRecurInstanceFn) populate_appointment_instances,
-                                                        (gpointer) source,
-                                                        NULL);
+                       e_cal_client_generate_instances_sync (ecal,
+                                                             t1,
+                                                             t2,
+                                                             populate_appointment_instances,
+                                                             source);
                }
                g_object_unref(ecal);
        }
-       g_list_free_full (sources, g_object_unref);
 
 	g_debug("Number of ECalComponents returned: %d", g_list_length(comp_instances));
 	GList *sorted_comp_instances = g_list_sort(comp_instances, compare_comp_instances);
@@ -1398,6 +1378,34 @@ service_shutdown (IndicatorService * service, gpointer user_data)
 	return;
 }
 
+static void
+free_appointment_sources (void)
+{
+	g_list_free_full (appointment_sources, g_object_unref);
+	appointment_sources = NULL;
+}
+
+static void
+init_appointment_sources (void)
+{
+	GList * l;
+
+	appointment_sources = e_source_registry_list_sources (source_registry, E_SOURCE_EXTENSION_CALENDAR);
+
+	for (l=appointment_sources; l!=NULL; l=l->next)
+		g_signal_connect (G_OBJECT(l->data), "changed", G_CALLBACK (update_appointment_menu_items), NULL);
+}
+
+/* rebuilds both the appointment sources and menu */
+static void
+update_appointments (void)
+{
+	free_appointment_sources ();
+	init_appointment_sources ();
+
+	update_appointment_menu_items (NULL);
+}
+
 /* Function to build everything up.  Entry point from asm. */
 int
 main (int argc, char ** argv)
@@ -1417,6 +1425,19 @@ main (int argc, char ** argv)
 	/* Set up GSettings */
 	conf = g_settings_new(SETTINGS_INTERFACE);
 	// TODO Add a signal handler to catch gsettings changes and respond to them
+
+	/* Build our list of appointment calendar sources.
+       When a source changes, update our menu items.
+       When sources are added or removed, update our list and menu items. */
+	source_registry = e_source_registry_new_sync (NULL, NULL);
+	g_object_connect (source_registry,
+	                  "signal::source-added", update_appointments,
+	                  "signal::source-removed", update_appointments,
+	                  "signal::source-changed", update_appointment_menu_items,
+	                  "signal::source-disabled", update_appointment_menu_items,
+	                  "signal::source-enabled", update_appointment_menu_items,
+	                  NULL);
+	init_appointment_sources ();
 
 	/* Building the base menu */
 	server = dbusmenu_server_new(MENU_OBJ);
@@ -1458,12 +1479,15 @@ main (int argc, char ** argv)
 	mainloop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(mainloop);
 
+	free_appointment_sources();
+
 	g_object_unref(G_OBJECT(conf));
 	g_object_unref(G_OBJECT(master));
 	g_object_unref(G_OBJECT(dbus));
 	g_object_unref(G_OBJECT(service));
 	g_object_unref(G_OBJECT(server));
 	g_object_unref(G_OBJECT(root));
+    g_object_unref(G_OBJECT(source_registry));
 
 	icaltimezone_free_builtin_timezones();
 
