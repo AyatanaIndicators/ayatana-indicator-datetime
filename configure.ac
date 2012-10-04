@@ -59,7 +59,6 @@ CAIRO_REQUIRED_VERSION=1.10
 GDK_REQUIRED_VERSION=2.22
 GLIB_REQUIRED_VERSION=2.29.19
 GTK3_REQUIRED_VERSION=3.1.4
-GCONF_REQUIRED_VERSION=2.31
 
 PKG_CHECK_MODULES(INDICATOR, indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
                              glib-2.0 >= $GLIB_REQUIRED_VERSION
@@ -79,8 +78,7 @@ PKG_CHECK_MODULES(SERVICE, indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
                            libedataserver-1.2 >= EDS_REQUIRED_VERSION
                            libedataserverui-3.0 >= EDS_REQUIRED_VERSION
                            cairo >= CAIRO_REQUIRED_VERSION
-                           gdk-3.0 >= GDK_REQUIRED_VERSION
-                           gconf-2.0 >= GCONF_REQUIRED_VERSION)
+                           gdk-3.0 >= GDK_REQUIRED_VERSION)
 
 ###########################
 # Control Center panel

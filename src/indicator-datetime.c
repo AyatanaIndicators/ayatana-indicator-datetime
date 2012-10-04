@@ -268,18 +268,26 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 static void
 menu_visible_notfy_cb(GtkWidget * menu, G_GNUC_UNUSED GParamSpec *pspec, gpointer user_data)
 {
+	GtkWidget * w;
+	GtkCalendar * calendar;
 	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
 	GDateTime *datetime;
-	gint y, m, d;
+	gint cur_y, cur_m, cur_d;
+	guint cal_y, cal_m, cal_d;
 
 	g_debug("notify visible signal received");
 
+	/* set the calendar to today's date */
 	datetime = g_date_time_new_now_local ();
-	g_date_time_get_ymd (datetime, &y, &m, &d);
+	g_date_time_get_ymd (datetime, &cur_y, &cur_m, &cur_d);
 	g_date_time_unref (datetime);
-
-  	// Set the calendar to todays date
-	ido_calendar_menu_item_set_date (self->priv->ido_calendar, y, m-1, d);
+	w = ido_calendar_menu_item_get_calendar (self->priv->ido_calendar);
+	calendar = GTK_CALENDAR(w);
+	gtk_calendar_get_date (calendar, &cal_y, &cal_m, &cal_d);
+	if ((cur_y != cal_y) || (cur_m-1 != cal_m))
+		gtk_calendar_select_month (calendar, cur_m-1, cur_y); /* (cur_m is 1-based) */
+	if (cur_d != cal_d)
+		gtk_calendar_select_day (calendar, cur_d);
 
 	/* Update in case date was changed outside of indicator-datetime */
 	update_label(self, NULL);
