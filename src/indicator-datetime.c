@@ -284,9 +284,9 @@ menu_visible_notfy_cb(GtkWidget * menu, G_GNUC_UNUSED GParamSpec *pspec, gpointe
 	w = ido_calendar_menu_item_get_calendar (self->priv->ido_calendar);
 	calendar = GTK_CALENDAR(w);
 	gtk_calendar_get_date (calendar, &cal_y, &cal_m, &cal_d);
-	if ((cal_y != cur_y) || (cal_m-1 != cur_m))
+	if ((cur_y != cal_y) || (cur_m-1 != cal_m))
 		gtk_calendar_select_month (calendar, cur_m-1, cur_y); /* (cur_m is 1-based) */
-	if (cal_d != cur_d)
+	if (cur_d != cal_d)
 		gtk_calendar_select_day (calendar, cur_d);
 
 	/* Update in case date was changed outside of indicator-datetime */
