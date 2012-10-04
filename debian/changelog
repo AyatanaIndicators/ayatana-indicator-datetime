@@ -1,3 +1,10 @@
+indicator-datetime (12.10.2-0ubuntu1) UNRELEASED; urgency=low
+
+  * New upstream release:
+    - Fix 12.10.0 appointment calendar regression. (LP: #1060263)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Thu, 04 Oct 2012 17:50:53 +0200
+
 indicator-datetime (12.10.1-0ubuntu1) quantal; urgency=low
 
   * New upstream release.

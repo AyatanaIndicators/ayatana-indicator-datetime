@@ -29,7 +29,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 #include <math.h>
-#include <gconf/gconf-client.h>
 
 #include <libdbusmenu-gtk/menuitem.h>
 #include <libdbusmenu-glib/server.h>
@@ -54,6 +53,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /* how often to check for clock skew */
 #define SKEW_CHECK_INTERVAL_SEC 10
+
+#define MAX_APPOINTMENT_MENUITEMS 5
 
 #define SKEW_DIFF_THRESHOLD_SEC (SKEW_CHECK_INTERVAL_SEC + 5)
 
@@ -85,13 +86,14 @@ static DbusmenuMenuitem * settings = NULL;
 static DbusmenuMenuitem * events_separator = NULL;
 static DbusmenuMenuitem * locations_separator = NULL;
 static DbusmenuMenuitem * add_appointment = NULL;
-static GList            * appointments = NULL;
+static DbusmenuMenuitem * appointments[MAX_APPOINTMENT_MENUITEMS];
 static GSList           * location_menu_items = NULL;
 static GList            * comp_instances = NULL;
 static gboolean           updating_appointments = FALSE;
 static time_t             start_time_appointments = (time_t) 0;
 static GSettings        * conf = NULL;
-static GConfClient      * gconf = NULL;
+static ESourceRegistry  * source_registry = NULL;
+static GList            * appointment_sources = NULL;
 
 
 /* Geoclue trackers */
@@ -392,6 +394,15 @@ update_appointment_menu_items_idle (gpointer user_data)
 	return FALSE;
 }
 
+static void
+hide_all_appointments (void)
+{
+	int i;
+
+	for (i=0; i<MAX_APPOINTMENT_MENUITEMS; i++)
+		dbusmenu_menuitem_property_set_bool(appointments[i], DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+}
+
 static gboolean
 month_changed_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, guint timestamp)
 {
@@ -404,11 +415,7 @@ month_changed_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, g
 	   user. */
 	dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
 
-	GList * appointment;
-	for (appointment = appointments; appointment != NULL; appointment = g_list_next(appointment)) {
-		DbusmenuMenuitem * mi = DBUSMENU_MENUITEM(appointment->data);
-		dbusmenu_menuitem_property_set_bool(mi, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-	}
+	hide_all_appointments ();
 
 	g_idle_add(update_appointment_menu_items_idle, NULL);
 	return TRUE;
@@ -439,11 +446,7 @@ day_selected_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, gu
 		}
 	}
 
-	GList * appointment;
-	for (appointment = appointments; appointment != NULL; appointment = g_list_next(appointment)) {
-		DbusmenuMenuitem * mi = DBUSMENU_MENUITEM(appointment->data);
-		dbusmenu_menuitem_property_set_bool(mi, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-	}
+	hide_all_appointments ();
 
 	start_time_appointments = new_time;
 
@@ -512,17 +515,7 @@ show_events_changed (void)
 	} else {
 		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 		dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-		/* Remove all of the previous appointments */
-		if (appointments != NULL) {
-			g_debug("Hiding old appointments");
-			GList * appointment;
-			for (appointment = appointments; appointment != NULL; appointment = g_list_next(appointment)) {
-				DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(appointment->data);
-				g_debug("Hiding old appointment: %p", litem);
-				// Remove all the existing menu items which are in appointments.
-				dbusmenu_menuitem_property_set_bool(DBUSMENU_MENUITEM(litem), DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-			}
-		}
+		hide_all_appointments ();
 		stop_ecal_timer();
 	}
 }
@@ -537,12 +530,8 @@ calendar_app_is_usable (void)
 	g_debug ("found calendar app: '%s'", evo);
 	g_free (evo);
 
-	/* confirm that it's got an account set up... */
-	GSList *accounts_list = gconf_client_get_list (gconf, "/apps/evolution/mail/accounts", GCONF_VALUE_STRING, NULL);
-	const guint n = g_slist_length (accounts_list);
-	g_debug ("found %u evolution accounts", n);
-	g_slist_free_full (accounts_list, g_free);
-	return n > 0;
+	/* see if there are any calendar sources */
+	return appointment_sources > 0;
 }
 
 /* Looks for the calendar application and enables the item if
@@ -555,19 +544,32 @@ check_for_calendar (gpointer user_data)
 	dbusmenu_menuitem_property_set_bool(date, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 	
 	if (!get_greeter_mode () && calendar_app_is_usable()) {
+
+		int i;
+		int pos = 2;
 		
 		g_signal_connect (G_OBJECT(date), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
 		                  G_CALLBACK (activate_cb), "evolution -c calendar");
 		
 		events_separator = dbusmenu_menuitem_new();
 		dbusmenu_menuitem_property_set(events_separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
-		dbusmenu_menuitem_child_add_position(root, events_separator, 2);
+		dbusmenu_menuitem_child_add_position(root, events_separator, pos++);
+
+		for (i=0; i<MAX_APPOINTMENT_MENUITEMS; i++)
+		{
+			DbusmenuMenuitem * item = dbusmenu_menuitem_new();
+			dbusmenu_menuitem_property_set (item, DBUSMENU_MENUITEM_PROP_TYPE, APPOINTMENT_MENUITEM_TYPE);
+			dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+			dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+			appointments[i] = item;
+			dbusmenu_menuitem_child_add_position(root, item, pos++);
+		}
+
 		add_appointment = dbusmenu_menuitem_new();
 		dbusmenu_menuitem_property_set (add_appointment, DBUSMENU_MENUITEM_PROP_LABEL, _("Add Event…"));
 		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		g_signal_connect(G_OBJECT(add_appointment), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "evolution -c calendar");
-		dbusmenu_menuitem_child_add_position (root, add_appointment, 3);
-
+		dbusmenu_menuitem_child_add_position (root, add_appointment, pos++);
 
 		if (g_settings_get_boolean(conf, SETTINGS_SHOW_EVENTS_S)) {
 			dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
@@ -636,53 +638,29 @@ comp_instance_free (struct comp_instance* ci)
 }
 
 static gboolean
-populate_appointment_instances (ECalClient * client,
+populate_appointment_instances (ECalComponent * comp,
                                 time_t          start,
                                 time_t          end,
                                 gpointer        data)
 {
-       GSList *ecalcomps, *comp_item;
+	const ECalComponentVType vtype = e_cal_component_get_vtype (comp);
 
-       if (e_cal_client_get_object_list_as_comps_sync (client,
-                                                       NULL,
-                                                       &ecalcomps,
-                                                       NULL, NULL)) {
+	if ((vtype == E_CAL_COMPONENT_EVENT) || (vtype == E_CAL_COMPONENT_TODO))
+	{
+		icalproperty_status status;
+		e_cal_component_get_status (comp, &status);
 
-               for (comp_item = ecalcomps; comp_item; comp_item = g_slist_next(comp_item)) {
-                       ECalComponent *comp = comp_item->data;
+		if ((status != ICAL_STATUS_COMPLETED) && (status != ICAL_STATUS_CANCELLED))
+		{
+			gchar * str = e_cal_component_get_as_string (comp);
+			g_debug("Appending item %s", str);
+			struct comp_instance *ci = comp_instance_new (comp, start, end, E_SOURCE(data));
+			comp_instances = g_list_append (comp_instances, ci);
+			g_free (str);
+		}
+	}
 
-                       g_debug("Appending item %p", e_cal_component_get_as_string(comp));
-
-                       ECalComponentVType vtype = e_cal_component_get_vtype (comp);
-                       if (vtype != E_CAL_COMPONENT_EVENT && vtype != E_CAL_COMPONENT_TODO) return FALSE;
-
-                       icalproperty_status status;
-                       e_cal_component_get_status (comp, &status);
-                       if (status == ICAL_STATUS_COMPLETED || status == ICAL_STATUS_CANCELLED) return FALSE;
-
-                       g_object_ref(comp);
-
-                       ECalComponentDateTime datetime;
-                       icaltimezone *appointment_zone = NULL;
-                       icaltimezone *current_zone = NULL;
-
-                       if (vtype == E_CAL_COMPONENT_EVENT)
-                               e_cal_component_get_dtstart (comp, &datetime);
-                       else
-                               e_cal_component_get_due (comp, &datetime);
-
-                       appointment_zone = icaltimezone_get_builtin_timezone_from_tzid(datetime.tzid);
-                       current_zone = icaltimezone_get_builtin_timezone_from_tzid(current_timezone);
-                       if (!appointment_zone || datetime.value->is_date) { // If it's today put in the current timezone?
-                               appointment_zone = current_zone;
-                       }
-
-                       struct comp_instance *ci = comp_instance_new (comp, start, end, E_SOURCE(data));
-                       comp_instances = g_list_append (comp_instances, ci);
-               }
-               return TRUE;
-       }
-       return FALSE;
+	return TRUE; /* tell eds to keep iterating */
 }
 
 /* Populate the menu with todays, next 5 appointments. 
@@ -691,7 +669,7 @@ populate_appointment_instances (ECalClient * client,
  * this is a problem mainly on the EDS side of things, not ours. 
  */
 static gboolean
-update_appointment_menu_items (gpointer user_data)
+update_appointment_menu_items (gpointer unused)
 {
 	// FFR: we should take into account short term timers, for instance
 	// tea timers, pomodoro timers etc... that people may add, this is hinted to in the spec.
@@ -706,7 +684,6 @@ update_appointment_menu_items (gpointer user_data)
 	GError *gerror = NULL;
 	gint i;
 	gint width = 0, height = 0;
-	ESourceRegistry * src_registry = NULL;
 	GList * sources = NULL;
 
 	// Get today & work out query times
@@ -751,19 +728,10 @@ update_appointment_menu_items (gpointer user_data)
 	g_list_free_full (comp_instances, (GDestroyNotify)comp_instance_free);
 	comp_instances = NULL;
 
-       src_registry = e_source_registry_new_sync (NULL, &gerror);
-       if (!src_registry) {
-               g_debug("Failed to get access to source registry: %s\n", gerror->message);
-               return FALSE;
-       }
-
-       sources = e_source_registry_list_sources(src_registry, E_SOURCE_EXTENSION_CALENDAR);
-
 	// Generate instances for all sources
-       for (s = g_list_first (sources); s; s = g_list_next (s)) {
+	for (s=appointment_sources; s!=NULL; s=s->next) {
 
                ESource *source = E_SOURCE (s->data);
-               g_signal_connect (G_OBJECT(source), "changed", G_CALLBACK (update_appointment_menu_items), NULL);
                ECalClient *ecal = e_cal_client_new(source, E_CAL_CLIENT_SOURCE_TYPE_EVENTS, &gerror);
 
                icaltimezone* current_zone = icaltimezone_get_builtin_timezone(current_timezone);
@@ -785,31 +753,21 @@ update_appointment_menu_items (gpointer user_data)
 				continue;
 			}
 
-                       e_cal_client_generate_instances (ecal, t1, t2, NULL,
-                                                        (ECalRecurInstanceFn) populate_appointment_instances,
-                                                        (gpointer) source,
-                                                        NULL);
+                       e_cal_client_generate_instances_sync (ecal,
+                                                             t1,
+                                                             t2,
+                                                             populate_appointment_instances,
+                                                             source);
                }
                g_object_unref(ecal);
        }
-       g_list_free_full (sources, g_object_unref);
 
 	g_debug("Number of ECalComponents returned: %d", g_list_length(comp_instances));
 	GList *sorted_comp_instances = g_list_sort(comp_instances, compare_comp_instances);
 	comp_instances = NULL;
 	g_debug("Components sorted");
-	
-	/* Hiding all of the previous appointments */
-	if (appointments != NULL) {
-		g_debug("Hiding old appointments");
-		GList * appointment;
-		for (appointment = appointments; appointment != NULL; appointment = g_list_next(appointment)) {
-			DbusmenuMenuitem * litem =  DBUSMENU_MENUITEM(appointment->data);
-			g_debug("Hiding old appointment: %p", litem);
-			// Remove all the existing menu items which are in appointments.
-			dbusmenu_menuitem_property_set_bool(DBUSMENU_MENUITEM(litem), DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-		}
-	}
+
+	hide_all_appointments ();	
 
 	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, &height);
 	if (width <= 0) width = 12;
@@ -834,7 +792,6 @@ update_appointment_menu_items (gpointer user_data)
 	g_variant_builder_init (&markeddays, G_VARIANT_TYPE ("ai"));
 	
 	i = 0;
-	GList * cached_appointment = appointments;
 	for (l = sorted_comp_instances; l; l = l->next) {
 		struct comp_instance *ci = l->data;
 		ECalComponent *ecalcomp = ci->comp;
@@ -866,28 +823,18 @@ update_appointment_menu_items (gpointer user_data)
 		} else if (vtype == E_CAL_COMPONENT_TODO) {
 			if (ci->end < start_time_appointments) continue;
 		}
-		
-		if (i >= 5) continue;
+	
+		if (i >= MAX_APPOINTMENT_MENUITEMS)
+			continue;
+
 		i++;
+		item = appointments[i];
 
-		if (cached_appointment == NULL) {
-			g_debug("Create menu item");
-			
-			item = dbusmenu_menuitem_new();
-			dbusmenu_menuitem_property_set       (item, DBUSMENU_MENUITEM_PROP_TYPE, APPOINTMENT_MENUITEM_TYPE);
+		/* Remove the icon as we might not replace it on error */
+		dbusmenu_menuitem_property_remove(item, APPOINTMENT_MENUITEM_PROP_ICON);
 
-			dbusmenu_menuitem_child_add_position (root, item, 2+i);
-			appointments = g_list_append (appointments, item); // Keep track of the items here to make them easy to remove
-		} else {
-			item = DBUSMENU_MENUITEM(cached_appointment->data);
-			cached_appointment = g_list_next(cached_appointment);
-
-			/* Remove the icon as we might not replace it on error */
-			dbusmenu_menuitem_property_remove(item, APPOINTMENT_MENUITEM_PROP_ICON);
-
-			/* Remove the activate handler */
-			g_signal_handlers_disconnect_matched(G_OBJECT(item), G_SIGNAL_MATCH_FUNC, 0, 0, NULL, G_CALLBACK(activate_cb), NULL);
-		}
+		/* Remove the activate handler */
+		g_signal_handlers_disconnect_matched(G_OBJECT(item), G_SIGNAL_MATCH_FUNC, 0, 0, NULL, G_CALLBACK(activate_cb), NULL);
 
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 		dbusmenu_menuitem_property_set_bool  (item, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
@@ -1416,6 +1363,34 @@ service_shutdown (IndicatorService * service, gpointer user_data)
 	return;
 }
 
+static void
+free_appointment_sources (void)
+{
+	g_list_free_full (appointment_sources, g_object_unref);
+	appointment_sources = NULL;
+}
+
+static void
+init_appointment_sources (void)
+{
+	GList * l;
+
+	appointment_sources = e_source_registry_list_sources (source_registry, E_SOURCE_EXTENSION_CALENDAR);
+
+	for (l=appointment_sources; l!=NULL; l=l->next)
+		g_signal_connect (G_OBJECT(l->data), "changed", G_CALLBACK (update_appointment_menu_items), NULL);
+}
+
+/* rebuilds both the appointment sources and menu */
+static void
+update_appointments (void)
+{
+	free_appointment_sources ();
+	init_appointment_sources ();
+
+	update_appointment_menu_items (NULL);
+}
+
 /* Function to build everything up.  Entry point from asm. */
 int
 main (int argc, char ** argv)
@@ -1434,9 +1409,20 @@ main (int argc, char ** argv)
 
 	/* Set up GSettings */
 	conf = g_settings_new(SETTINGS_INTERFACE);
-	/* Set up gconf for getting evolution enabled calendars */
-	gconf = gconf_client_get_default();
 	// TODO Add a signal handler to catch gsettings changes and respond to them
+
+	/* Build our list of appointment calendar sources.
+	   When a source changes, update our menu items.
+	   When sources are added or removed, update our list and menu items. */
+	source_registry = e_source_registry_new_sync (NULL, NULL);
+	g_object_connect (source_registry,
+	                  "signal::source-added", update_appointments,
+	                  "signal::source-removed", update_appointments,
+	                  "signal::source-changed", update_appointment_menu_items,
+	                  "signal::source-disabled", update_appointment_menu_items,
+	                  "signal::source-enabled", update_appointment_menu_items,
+	                  NULL);
+	init_appointment_sources ();
 
 	/* Building the base menu */
 	server = dbusmenu_server_new(MENU_OBJ);
@@ -1478,12 +1464,15 @@ main (int argc, char ** argv)
 	mainloop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(mainloop);
 
+	free_appointment_sources();
+
 	g_object_unref(G_OBJECT(conf));
 	g_object_unref(G_OBJECT(master));
 	g_object_unref(G_OBJECT(dbus));
 	g_object_unref(G_OBJECT(service));
 	g_object_unref(G_OBJECT(server));
 	g_object_unref(G_OBJECT(root));
+	g_object_unref(G_OBJECT(source_registry));
 
 	icaltimezone_free_builtin_timezones();
 
