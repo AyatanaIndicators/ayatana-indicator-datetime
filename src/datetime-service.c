@@ -734,6 +734,12 @@ update_appointment_menu_items (gpointer unused)
                ESource *source = E_SOURCE (s->data);
                ECalClient *ecal = e_cal_client_new(source, E_CAL_CLIENT_SOURCE_TYPE_EVENTS, &gerror);
 
+	       if (!ecal) {
+			g_debug ("Cannot create ecal client: %s", gerror->message);
+			g_clear_error (&gerror);
+			continue;
+	       }
+
                icaltimezone* current_zone = icaltimezone_get_builtin_timezone(current_timezone);
                if (!current_zone) {
                        // current_timezone may be a TZID?
