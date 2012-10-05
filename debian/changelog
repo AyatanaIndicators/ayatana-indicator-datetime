@@ -1,3 +1,10 @@
+indicator-datetime (12.10.2-0ubuntu2) UNRELEASED; urgency=low
+
+  * Backport fix from Lars for a missing NULL check leading to segfault
+    (lp: #1061867)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 05 Oct 2012 17:23:38 +0200
+
 indicator-datetime (12.10.2-0ubuntu1) quantal; urgency=low
 
   * New upstream release:
