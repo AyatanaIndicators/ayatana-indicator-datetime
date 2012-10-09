@@ -833,8 +833,8 @@ update_appointment_menu_items (gpointer unused)
 		if (i >= MAX_APPOINTMENT_MENUITEMS)
 			continue;
 
-		i++;
 		item = appointments[i];
+		i++;
 
 		/* Remove the icon as we might not replace it on error */
 		dbusmenu_menuitem_property_remove(item, APPOINTMENT_MENUITEM_PROP_ICON);
