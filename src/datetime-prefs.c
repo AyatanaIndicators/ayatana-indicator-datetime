@@ -308,7 +308,7 @@ proxy_ready (GObject *object, GAsyncResult *res, IndicatorDatetimePanel * self)
     g_dbus_proxy_call (priv->proxy, "GetUsingNtp", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
                        priv->ntp_query_cancel, (GAsyncReadyCallback)ntp_query_answered, self);
   }
-  if (priv->tz_query_cancel == NULL); {
+  if (priv->tz_query_cancel == NULL) {
     priv->tz_query_cancel = g_cancellable_new();
     g_dbus_proxy_call (priv->proxy, "GetTimezone", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
                        priv->tz_query_cancel, (GAsyncReadyCallback)tz_query_answered, self);
