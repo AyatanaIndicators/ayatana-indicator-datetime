@@ -448,8 +448,6 @@ day_selected_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, gu
 		}
 	}
 
-	hide_all_appointments ();
-
 	start_time_appointments = new_time;
 
 	g_debug("Received day-selected with timestamp: %d -> %s",(int)start_time_appointments, ctime(&start_time_appointments));	
