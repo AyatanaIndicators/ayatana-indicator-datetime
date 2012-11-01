@@ -417,8 +417,6 @@ month_changed_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, g
 	   user. */
 	dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
 
-	hide_all_appointments ();
-
 	g_idle_add(update_appointment_menu_items_idle, NULL);
 	return TRUE;
 }
