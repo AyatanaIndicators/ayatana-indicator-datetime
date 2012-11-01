@@ -864,7 +864,7 @@ update_appointment_menu_items (gpointer unused)
 		// Due text
 		if (full_day) {
 			struct tm fulldaytime = {0};
-			gmtime_r(&ci->start, &fulldaytime);
+			localtime_r(&ci->start, &fulldaytime);
 
 			/* TRANSLATORS: This is a strftime string for the day for full day events
 			   in the menu.  It should most likely be either '%A' for a full text day
