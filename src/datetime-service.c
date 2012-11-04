@@ -1185,6 +1185,17 @@ system_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
 	g_signal_connect(proxy, "g-signal", G_CALLBACK(session_active_change_cb), user_data);
 }
 
+static void
+geo_set_timezone (const gchar * timezone)
+{
+	if (geo_timezone != timezone) {
+		g_clear_pointer (&geo_timezone, g_free);
+		geo_timezone = g_strdup (timezone);
+		g_debug("Geoclue timezone is: %s", timezone ? timezone : "(Null)");
+		update_location_menu_items();
+	}
+}
+
 /* Callback from getting the address */
 static void
 geo_address_cb (GeoclueAddress * address, int timestamp, GHashTable * addy_data, GeoclueAccuracy * accuracy, GError * error, gpointer user_data)
@@ -1195,21 +1206,7 @@ geo_address_cb (GeoclueAddress * address, int timestamp, GHashTable * addy_data,
 		return;
 	}
 
-	g_debug("Geoclue timezone is: %s", (gchar *)g_hash_table_lookup(addy_data, "timezone"));
-
-	if (geo_timezone != NULL) {
-		g_free(geo_timezone);
-		geo_timezone = NULL;
-	}
-
-	gpointer tz_hash = g_hash_table_lookup(addy_data, "timezone");
-	if (tz_hash != NULL) {
-		geo_timezone = g_strdup((gchar *)tz_hash);
-	}
-
-	update_location_menu_items();
-
-	return;
+	geo_set_timezone (g_hash_table_lookup (addy_data, "timezone"));
 }
 
 /* Clean up the reference we kept to the address and make sure to
@@ -1300,14 +1297,7 @@ geo_client_invalid (GeoclueMasterClient * client, gpointer user_data)
 	GeoclueMaster * master = geoclue_master_get_default();
 	geoclue_master_create_client_async(master, geo_create_client, NULL);
 
-	if (geo_timezone != NULL) {
-		g_free(geo_timezone);
-		geo_timezone = NULL;
-	}
-
-	update_location_menu_items();
-
-	return;
+	geo_set_timezone (NULL);
 }
 
 /* Callback from creating the client */
