@@ -1222,16 +1222,10 @@ geo_address_cb (GeoclueAddress * address, int timestamp, GHashTable * addy_data,
 static void
 geo_address_clean (void)
 {
-	if (geo_address == NULL) {
-		return;
+	if (geo_address != NULL) {
+		g_signal_handlers_disconnect_by_func(geo_address, geo_address_cb, NULL);
+		g_clear_object (&geo_address);
 	}
-
-	g_signal_handlers_disconnect_by_func(G_OBJECT(geo_address), geo_address_cb, NULL);
-	g_object_unref(G_OBJECT(geo_address));
-
-	geo_address = NULL;
-
-	return;
 }
 
 /* Clean up and remove all signal handlers from the client as we
@@ -1239,16 +1233,10 @@ geo_address_clean (void)
 static void
 geo_client_clean (void)
 {
-	if (geo_client == NULL) {
-		return;
+	if (geo_client != NULL) {
+		g_signal_handlers_disconnect_by_func(geo_client, geo_client_invalid, NULL);
+		g_clear_object (&geo_client);
 	}
-
-	g_signal_handlers_disconnect_by_func(G_OBJECT(geo_client), geo_client_invalid, NULL);
-	g_object_unref(G_OBJECT(geo_client));
-
-	geo_client = NULL;
-
-	return;
 }
 
 /* Callback from creating the address */
@@ -1268,8 +1256,7 @@ geo_create_address (GeoclueMasterClient * master, GeoclueAddress * address, GErr
 	geo_address_clean();
 
 	g_debug("Created Geoclue Address");
-	geo_address = address;
-	g_object_ref(G_OBJECT(geo_address));
+	geo_address = g_object_ref (address);
 
 	geoclue_address_get_address_async(geo_address, geo_address_cb, NULL);
 
@@ -1301,8 +1288,10 @@ geo_client_invalid (GeoclueMasterClient * client, gpointer user_data)
 static void
 geo_stop (void)
 {
-	geo_address_clean();
-	geo_client_clean();
+	geo_set_timezone (NULL);
+
+	geo_address_clean ();
+	geo_client_clean ();
 	g_clear_object (&geo_master);
 }
 
@@ -1330,12 +1319,12 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 		return;
 	}
 
-	if (geo_client == NULL) {
+	if (client == NULL) {
 		g_warning(_("Unable to get a GeoClue client!  Geolocation based timezone support will not be available."));
 		return;
 	}
 
-	g_object_ref(G_OBJECT(geo_client));
+	g_object_ref (geo_client);
 
 	/* New client, make sure we don't have an address hanging on */
 	geo_address_clean();
