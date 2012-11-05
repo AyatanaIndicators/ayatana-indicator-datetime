@@ -1208,13 +1208,12 @@ geo_set_timezone (const gchar * timezone)
 static void
 geo_address_cb (GeoclueAddress * address, int timestamp, GHashTable * addy_data, GeoclueAccuracy * accuracy, GError * error, gpointer user_data)
 {
-	if (error != NULL) {
+	if (error == NULL) {
+		geo_set_timezone (g_hash_table_lookup (addy_data, "timezone"));
+	} else {
 		g_warning("Unable to get Geoclue address: %s", error->message);
 		g_clear_error (&error);
-		return;
 	}
-
-	geo_set_timezone (g_hash_table_lookup (addy_data, "timezone"));
 }
 
 /* Clean up the reference we kept to the address and make sure to
@@ -1223,7 +1222,7 @@ static void
 geo_address_clean (void)
 {
 	if (geo_address != NULL) {
-		g_signal_handlers_disconnect_by_func(geo_address, geo_address_cb, NULL);
+		g_signal_handlers_disconnect_by_func (geo_address, geo_address_cb, NULL);
 		g_clear_object (&geo_address);
 	}
 }
@@ -1234,7 +1233,7 @@ static void
 geo_client_clean (void)
 {
 	if (geo_client != NULL) {
-		g_signal_handlers_disconnect_by_func(geo_client, geo_client_invalid, NULL);
+		g_signal_handlers_disconnect_by_func (geo_client, geo_client_invalid, NULL);
 		g_clear_object (&geo_client);
 	}
 }
@@ -1258,11 +1257,9 @@ geo_create_address (GeoclueMasterClient * master, GeoclueAddress * address, GErr
 	g_debug("Created Geoclue Address");
 	geo_address = g_object_ref (address);
 
-	geoclue_address_get_address_async(geo_address, geo_address_cb, NULL);
+	geoclue_address_get_address_async (geo_address, geo_address_cb, NULL);
 
-	g_signal_connect(G_OBJECT(address), "address-changed", G_CALLBACK(geo_address_cb), NULL);
-
-	return;
+	g_signal_connect (address, "address-changed", G_CALLBACK(geo_address_cb), NULL);
 }
 
 /* Callback from setting requirements */
@@ -1273,7 +1270,6 @@ geo_req_set (GeoclueMasterClient * master, GError * error, gpointer user_data)
 		g_warning("Unable to set Geoclue requirements: %s", error->message);
 		g_clear_error (&error);
 	}
-	return;
 }
 
 /* Client is killing itself rather oddly */
@@ -1339,9 +1335,7 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 
 	geoclue_master_client_create_address_async(geo_client, geo_create_address, NULL);
 
-	g_signal_connect(G_OBJECT(client), "invalidated", G_CALLBACK(geo_client_invalid), NULL);
-
-	return;
+	g_signal_connect(client, "invalidated", G_CALLBACK(geo_client_invalid), NULL);
 }
 
 static void
