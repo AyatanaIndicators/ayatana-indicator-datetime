@@ -1,3 +1,12 @@
+indicator-datetime (12.10.2-0ubuntu4) UNRELEASED; urgency=low
+
+  * Backported r192 and r193, fix:
+    - "shows all-day events one day too early" (lp: #1000182)
+    - "Bogus insensitive events after clicking on different date"
+       (lp: #1069177)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 05 Nov 2012 17:20:21 +0100
+
 indicator-datetime (12.10.2-0ubuntu3) quantal; urgency=low
 
   * Backport "fix off-by-one error" leading to have the settings item run

@@ -399,8 +399,10 @@ hide_all_appointments (void)
 {
 	int i;
 
-	for (i=0; i<MAX_APPOINTMENT_MENUITEMS; i++)
+	for (i=0; i<MAX_APPOINTMENT_MENUITEMS; i++) {
 		dbusmenu_menuitem_property_set_bool(appointments[i], DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+		dbusmenu_menuitem_property_set_bool(appointments[i], DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+	}
 }
 
 static gboolean
@@ -414,8 +416,6 @@ month_changed_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, g
 	   ones yet and we don't want to confuse the
 	   user. */
 	dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
-
-	hide_all_appointments ();
 
 	g_idle_add(update_appointment_menu_items_idle, NULL);
 	return TRUE;
@@ -445,8 +445,6 @@ day_selected_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, gu
 			dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
 		}
 	}
-
-	hide_all_appointments ();
 
 	start_time_appointments = new_time;
 
@@ -864,7 +862,7 @@ update_appointment_menu_items (gpointer unused)
 		// Due text
 		if (full_day) {
 			struct tm fulldaytime = {0};
-			gmtime_r(&ci->start, &fulldaytime);
+			localtime_r(&ci->start, &fulldaytime);
 
 			/* TRANSLATORS: This is a strftime string for the day for full day events
 			   in the menu.  It should most likely be either '%A' for a full text day
