@@ -64,11 +64,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
  #define SETTINGS_APP_INVOCATION "gnome-control-center datetime"
 #endif
 
-static void geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data);
 static gboolean update_appointment_menu_items (gpointer user_data);
 static void update_location_menu_items (void);
 static void day_timer_reset (void);
-static void geo_client_invalid (GeoclueMasterClient * client, gpointer user_data);
 static gboolean get_greeter_mode (void);
 
 static void quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, gpointer user_data);
@@ -95,10 +93,6 @@ static GSettings        * conf = NULL;
 static ESourceRegistry  * source_registry = NULL;
 static GList            * appointment_sources = NULL;
 
-
-/* Geoclue trackers */
-static GeoclueMasterClient * geo_master = NULL;
-static GeoclueAddress * geo_address = NULL;
 
 /* Our 2 important timezones */
 static gchar 			* current_timezone = NULL;
@@ -1185,6 +1179,17 @@ system_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
 	g_signal_connect(proxy, "g-signal", G_CALLBACK(session_active_change_cb), user_data);
 }
 
+
+/****
+*****  GEOCLUE
+****/
+
+static void geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data);
+static void geo_client_invalid (GeoclueMasterClient * client, gpointer user_data);
+
+static GeoclueMasterClient * geo_master = NULL;
+static GeoclueAddress * geo_address = NULL;
+
 static void
 geo_set_timezone (const gchar * timezone)
 {
@@ -1338,6 +1343,10 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 
 	return;
 }
+
+/****
+*****
+****/
 
 static gboolean
 get_greeter_mode (void)
