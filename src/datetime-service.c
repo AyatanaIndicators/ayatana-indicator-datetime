@@ -1187,7 +1187,8 @@ system_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
 static void geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data);
 static void geo_client_invalid (GeoclueMasterClient * client, gpointer user_data);
 
-static GeoclueMasterClient * geo_master = NULL;
+static GeoclueMaster * geo_master = NULL;
+static GeoclueMasterClient * geo_client = NULL;
 static GeoclueAddress * geo_address = NULL;
 
 static void
@@ -1236,14 +1237,14 @@ geo_address_clean (void)
 static void
 geo_client_clean (void)
 {
-	if (geo_master == NULL) {
+	if (geo_client == NULL) {
 		return;
 	}
 
-	g_signal_handlers_disconnect_by_func(G_OBJECT(geo_master), geo_client_invalid, NULL);
-	g_object_unref(G_OBJECT(geo_master));
+	g_signal_handlers_disconnect_by_func(G_OBJECT(geo_client), geo_client_invalid, NULL);
+	g_object_unref(G_OBJECT(geo_client));
 
-	geo_master = NULL;
+	geo_client = NULL;
 
 	return;
 }
@@ -1299,8 +1300,9 @@ geo_client_invalid (GeoclueMasterClient * client, gpointer user_data)
 	/* And our master client is invalid */
 	geo_client_clean();
 
-	GeoclueMaster * master = geoclue_master_get_default();
-	geoclue_master_create_client_async(master, geo_create_client, NULL);
+	g_clear_object (&geo_master);
+	geo_master = geoclue_master_get_default();
+	geoclue_master_create_client_async (geo_master, geo_create_client, NULL);
 
 	geo_set_timezone (NULL);
 }
@@ -1311,7 +1313,7 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 {
 	g_debug("Created Geoclue client at: %s", path);
 
-	geo_master = client;
+	geo_client = client;
 
 	if (error != NULL) {
 		g_warning("Unable to get a GeoClue client!  '%s'  Geolocation based timezone support will not be available.", error->message);
@@ -1319,17 +1321,17 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 		return;
 	}
 
-	if (geo_master == NULL) {
+	if (geo_client == NULL) {
 		g_warning(_("Unable to get a GeoClue client!  Geolocation based timezone support will not be available."));
 		return;
 	}
 
-	g_object_ref(G_OBJECT(geo_master));
+	g_object_ref(G_OBJECT(geo_client));
 
 	/* New client, make sure we don't have an address hanging on */
 	geo_address_clean();
 
-	geoclue_master_client_set_requirements_async(geo_master,
+	geoclue_master_client_set_requirements_async(geo_client,
 	                                             GEOCLUE_ACCURACY_LEVEL_REGION,
 	                                             0,
 	                                             FALSE,
@@ -1337,7 +1339,7 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 	                                             geo_req_set,
 	                                             NULL);
 
-	geoclue_master_client_create_address_async(geo_master, geo_create_address, NULL);
+	geoclue_master_client_create_address_async(geo_client, geo_create_address, NULL);
 
 	g_signal_connect(G_OBJECT(client), "invalidated", G_CALLBACK(geo_client_invalid), NULL);
 
@@ -1438,8 +1440,8 @@ main (int argc, char ** argv)
 	update_current_timezone();
 
 	/* Setup geoclue */
-	GeoclueMaster * master = geoclue_master_get_default();
-	geoclue_master_create_client_async(master, geo_create_client, NULL);
+	geo_master = geoclue_master_get_default();
+	geoclue_master_create_client_async (geo_master, geo_create_client, NULL);
 
 	/* Setup dbus interface */
 	dbus = g_object_new(DATETIME_INTERFACE_TYPE, NULL);
@@ -1470,7 +1472,6 @@ main (int argc, char ** argv)
 	free_appointment_sources();
 
 	g_object_unref(G_OBJECT(conf));
-	g_object_unref(G_OBJECT(master));
 	g_object_unref(G_OBJECT(dbus));
 	g_object_unref(G_OBJECT(service));
 	g_object_unref(G_OBJECT(server));
@@ -1481,6 +1482,7 @@ main (int argc, char ** argv)
 
 	geo_address_clean();
 	geo_client_clean();
+	g_clear_object (&geo_master);
 
 	return 0;
 }
