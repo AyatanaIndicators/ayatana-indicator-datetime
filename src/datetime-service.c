@@ -1184,6 +1184,8 @@ system_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
 *****  GEOCLUE
 ****/
 
+static void geo_start (void);
+static void geo_stop (void);
 static void geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data);
 static void geo_client_invalid (GeoclueMasterClient * client, gpointer user_data);
 
@@ -1292,19 +1294,26 @@ static void
 geo_client_invalid (GeoclueMasterClient * client, gpointer user_data)
 {
 	g_warning("Master client invalid, rebuilding.");
+	geo_stop ();
+	geo_start ();
+}
 
-	/* Client changes we can assume the address is now invalid so we
-	   need to unreference the one we had. */
+static void
+geo_stop (void)
+{
 	geo_address_clean();
-
-	/* And our master client is invalid */
 	geo_client_clean();
+	g_clear_object (&geo_master);
+}
+
+static void
+geo_start (void)
+{
+	g_warn_if_fail (geo_master == NULL);
 
 	g_clear_object (&geo_master);
 	geo_master = geoclue_master_get_default();
 	geoclue_master_create_client_async (geo_master, geo_create_client, NULL);
-
-	geo_set_timezone (NULL);
 }
 
 /* Callback from creating the client */
@@ -1440,8 +1449,7 @@ main (int argc, char ** argv)
 	update_current_timezone();
 
 	/* Setup geoclue */
-	geo_master = geoclue_master_get_default();
-	geoclue_master_create_client_async (geo_master, geo_create_client, NULL);
+	geo_start ();
 
 	/* Setup dbus interface */
 	dbus = g_object_new(DATETIME_INTERFACE_TYPE, NULL);
@@ -1480,9 +1488,7 @@ main (int argc, char ** argv)
 
 	icaltimezone_free_builtin_timezones();
 
-	geo_address_clean();
-	geo_client_clean();
-	g_clear_object (&geo_master);
+	geo_stop ();
 
 	return 0;
 }
