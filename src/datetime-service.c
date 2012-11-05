@@ -1344,6 +1344,15 @@ geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar *
 	return;
 }
 
+static void
+on_use_geoclue_changed_cb (GSettings * settings, gchar * key, gpointer unused G_GNUC_UNUSED)
+{
+	geo_stop ();
+
+	if (g_settings_get_boolean (conf, SETTINGS_SHOW_DETECTED_S))
+		geo_start ();
+}
+
 /****
 *****
 ****/
@@ -1412,7 +1421,9 @@ main (int argc, char ** argv)
 
 	/* Set up GSettings */
 	conf = g_settings_new(SETTINGS_INTERFACE);
-	// TODO Add a signal handler to catch gsettings changes and respond to them
+	g_signal_connect (conf, "changed::show-auto-detected-location",
+                          G_CALLBACK(on_use_geoclue_changed_cb), NULL);
+	// TODO Add a signal handler to catch other gsettings changes and respond to them
 
 	/* Build our list of appointment calendar sources.
 	   When a source changes, update our menu items.
@@ -1438,7 +1449,8 @@ main (int argc, char ** argv)
 	update_current_timezone();
 
 	/* Setup geoclue */
-	geo_start ();
+	if (g_settings_get_boolean (conf, SETTINGS_SHOW_DETECTED_S))
+		geo_start ();
 
 	/* Setup dbus interface */
 	dbus = g_object_new(DATETIME_INTERFACE_TYPE, NULL);
