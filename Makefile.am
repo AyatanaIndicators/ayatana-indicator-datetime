@@ -1,10 +1,12 @@
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
-SUBDIRS = \
-	src \
-	data \
-	tests \
-	po
+SUBDIRS = po data src
+
+if BUILD_TESTS
+SUBDIRS += tests
+# build src first
+tests: src
+endif
 
 DISTCHECK_CONFIGURE_FLAGS = --enable-localinstall
 

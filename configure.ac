@@ -20,6 +20,7 @@ AM_SILENT_RULES([yes])
 # Check for programs
 AC_PROG_CC
 AM_PROG_CC_C_O
+AC_PROG_CXX
 AC_HEADER_STDC
 
 # Initialize libtool
@@ -179,6 +180,26 @@ else
 fi
 AC_SUBST(DBUSSERVICEDIR)
 
+###########################
+# Google Test framework
+###########################
+
+AC_ARG_ENABLE([tests],
+    [AS_HELP_STRING([--disable-tests], [Disable test scripts and tools (default=auto)])],
+    [enable_tests=${enableval}],
+    [enable_tests=auto])
+if test "x$enable_tests" != "xno"; then
+    m4_include([m4/gtest.m4])
+    CHECK_GTEST
+    CHECK_XORG_GTEST
+    if test "x$enable_tests" = "xauto"; then
+        enable_tests=${have_gtest}
+    elif test "x$enable_tests" = "xyes" && test "x$have_gtest" != "xyes"; then
+        AC_MSG_ERROR([tests were requested but gtest is not installed.])
+    fi
+fi
+AM_CONDITIONAL([BUILD_TESTS],[test "x$enable_tests" = "xyes"])
+
 ##############################
 # Custom Junk
 ##############################
@@ -232,5 +253,6 @@ Date and Time Indicator Configuration:
 	Indicator Dir: $INDICATORDIR
 	CC Panel:      $have_ccpanel
 	CC Panel Dir:  $CCPANELDIR
+	Unit Tests:    $enable_tests
 	gcov:          $use_gcov
 ])
