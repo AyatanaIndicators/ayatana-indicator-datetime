@@ -7,6 +7,7 @@ indicator-datetime (12.10.3-0ubuntu1) UNRELEASED; urgency=low
     - Drop Build-Depends on cdbs, bump debhelper to (>= 9). 
     - Update Vcs-Bzr and Vcs-Browser, add a notice for uploaders.
     - Add gnome-common to Build-Depends.
+    - Add libxorg-gtest-dev, libgtest-dev to Build-Depends.
   * debian/compat: bump compat level to 9.
   * debian/rules:
     - Switch to using the dh sequencer instead of cdbs rules, adjust targets
