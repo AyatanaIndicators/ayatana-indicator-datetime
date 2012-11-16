@@ -5,6 +5,7 @@ indicator-datetime (12.10.3-0ubuntu1) UNRELEASED; urgency=low
       at the end of lists.
     - Reorganize Build-Depends for clarity.
     - Drop Build-Depends on cdbs, bump debhelper to (>= 9). 
+    - Update Vcs-Bzr and Vcs-Browser, add a notice for uploaders.
 
  -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Fri, 16 Nov 2012 15:17:20 -0500
 
