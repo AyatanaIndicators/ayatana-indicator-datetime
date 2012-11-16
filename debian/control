@@ -1,0 +1,40 @@
+Source: indicator-datetime
+Section: misc
+Priority: optional
+Maintainer: Ubuntu Desktop Team <ubuntu-desktop@lists.ubuntu.com>
+Build-Depends: cdbs, 
+               debhelper (>= 5), 
+               quilt,
+               intltool (>= 0.35.0), 
+               libindicator3-dev (>= 0.3.90),
+               libdbusmenu-glib-dev (>= 0.5.90),
+               libdbusmenu-gtk3-dev (>= 0.5.90),
+               libglib2.0-dev (>= 2.29.19),
+               libido3-0.1-dev (>= 0.2.90),
+               libgeoclue-dev (>= 0.12.0),
+               libecal1.2-dev (>= 3.5),
+               libical-dev (>= 0.48),
+               libgtk-3-dev (>= 3.1.4),
+               libcairo2-dev (>= 1.10),
+               libjson-glib-dev,
+               libpolkit-gobject-1-dev,
+               libedataserver1.2-dev (>= 3.5),
+               libedataserverui-3.0-dev,
+               libgconf2-dev (>= 2.31),
+               libgnome-control-center-dev,
+               dh-autoreconf,
+               libtimezonemap1-dev
+Standards-Version: 3.9.3
+Homepage: https://launchpad.net/indicator-datetime
+Vcs-Bzr: http://bazaar.launchpad.net/~ubuntu-desktop/indicator-datetime/ubuntu
+
+Package: indicator-datetime
+Architecture: any
+Depends: ${shlibs:Depends}, 
+         ${misc:Depends},
+         gnome-control-center,
+         geoclue-ubuntu-geoip | geoclue-provider
+Recommends: indicator-applet | indicator-renderer, evolution-data-server
+Description: Simple clock
+ A simple clock appearing in the indicator bar
+

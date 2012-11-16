@@ -1,0 +1,21 @@
+#!/usr/bin/make -f
+
+include /usr/share/cdbs/1/rules/patchsys-quilt.mk
+include /usr/share/cdbs/1/rules/autoreconf.mk
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/gnome.mk
+
+DEB_CONFIGURE_EXTRA_FLAGS = --disable-static
+
+LDFLAGS += -Wl,-z,defs -Wl,--as-needed
+
+common-install-arch::
+	find debian/indicator-datetime -name \*.la -delete
+	find debian/indicator-datetime -name \*.a -delete
+	cd po; intltool-update --pot --verbose
+	# Language packs
+	for d in $$(find debian/indicator-datetime -type f \( -name "*.desktop" -o -name "*.directory" \) ); do \
+		sed -ri '/^(Name|GenericName|Comment|X-GNOME-FullName)\[/d' $$d; \
+		echo "X-Ubuntu-Gettext-Domain=indicator-datetime" >> $$d; \
+       	done;
+
