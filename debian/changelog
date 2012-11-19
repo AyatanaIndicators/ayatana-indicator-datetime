@@ -1,5 +1,11 @@
 indicator-datetime (12.10.3-0ubuntu1) UNRELEASED; urgency=low
 
+  * Automatic snapshot from revision 197 (bootstrap):
+    - Add scaffolding for Google Tests. (LP: #985060)
+    - Add "check-news" to our AM_INIT_AUTOMAKE() call. (LP: #1075753)
+    - Don't use geoclue until the user clicks the "Show time in auto-detected
+      location" checkbox. (LP: #1074999)
+    - Remove stray semicolon found by Coverity. (LP: #1064546)
   * debian/control:
     - Update to follow style like other indicator packages: use trailing commas
       at the end of lists.
