@@ -1,5 +1,6 @@
 indicator-datetime (12.10.3-0ubuntu1) UNRELEASED; urgency=low
 
+  [ Mathieu Trudel-Lapierre ]
   * Automatic snapshot from revision 197 (bootstrap):
     - Add scaffolding for Google Tests. (LP: #985060)
     - Add "check-news" to our AM_INIT_AUTOMAKE() call. (LP: #1075753)
@@ -19,6 +20,10 @@ indicator-datetime (12.10.3-0ubuntu1) UNRELEASED; urgency=low
     - Switch to using the dh sequencer instead of cdbs rules, adjust targets
       accordingly.
     - Override dh_autoreconf to make it use autogen.sh from upstream.
+
+  [ Didier Roche ]
+  * debian/copyright:
+    - Update the copyright
 
  -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Fri, 16 Nov 2012 15:17:20 -0500
 
