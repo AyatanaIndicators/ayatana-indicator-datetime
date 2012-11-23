@@ -1,4 +1,4 @@
-indicator-datetime (12.10.3-0ubuntu1) UNRELEASED; urgency=low
+indicator-datetime (12.10.3daily12.11.23-0ubuntu1) raring; urgency=low
 
   [ Mathieu Trudel-Lapierre ]
   * Automatic snapshot from revision 197 (bootstrap):
@@ -25,7 +25,17 @@ indicator-datetime (12.10.3-0ubuntu1) UNRELEASED; urgency=low
   * debian/copyright:
     - Update the copyright
 
- -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Fri, 16 Nov 2012 15:17:20 -0500
+  [ Mathieu Trudel-Lapierre ]
+  * Don't use geoclue if "show-auto-detected-location" is set to false
+    (LP: #1074999)
+  * Add check-news to indicators' AM_INIT_AUTOMAKE rules (LP: #1075753)
+  * Add Google Test to projects lacking test suites (LP: #985060)
+  * Stray semicolon in datetime-prefs (LP: #1064546)
+
+  [ Automatic PS uploader ]
+  * Automatic snapshot from revision 199
+
+ -- Automatic PS uploader <ps-jenkins@lists.canonical.com>  Fri, 23 Nov 2012 07:39:58 +0000
 
 indicator-datetime (12.10.2-0ubuntu4) raring; urgency=low
 
