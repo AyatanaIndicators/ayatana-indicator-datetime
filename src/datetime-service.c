@@ -1401,8 +1401,6 @@ update_appointments (void)
 int
 main (int argc, char ** argv)
 {
-	g_type_init();
-
 	/* Acknowledging the service init and setting up the interface */
 	service = indicator_service_new_version(SERVICE_NAME, SERVICE_VERSION);
 	g_signal_connect(service, INDICATOR_SERVICE_SIGNAL_SHUTDOWN, G_CALLBACK(service_shutdown), NULL);
