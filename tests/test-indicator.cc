@@ -34,7 +34,6 @@ namespace
     if (G_UNLIKELY(!initialized))
     {
       initialized = true;
-      g_type_init();
       g_setenv ("GSETTINGS_SCHEMA_DIR", SCHEMA_DIR, TRUE);
     }
   }
