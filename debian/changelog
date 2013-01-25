@@ -1,3 +1,9 @@
+indicator-datetime (12.10.3daily13.01.25-0ubuntu1) raring; urgency=low
+
+  * Automatic snapshot from revision 201
+
+ -- Automatic PS uploader <ps-jenkins@lists.canonical.com>  Fri, 25 Jan 2013 02:01:10 +0000
+
 indicator-datetime (12.10.3daily12.11.23-0ubuntu1) raring; urgency=low
 
   [ Mathieu Trudel-Lapierre ]
