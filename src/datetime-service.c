@@ -661,7 +661,7 @@ populate_appointment_instances (ECalComponent * comp,
  * this is a problem mainly on the EDS side of things, not ours. 
  */
 static gboolean
-update_appointment_menu_items (gpointer unused)
+update_appointment_menu_items (gpointer user_data __attribute__ ((unused)))
 {
 	// FFR: we should take into account short term timers, for instance
 	// tea timers, pomodoro timers etc... that people may add, this is hinted to in the spec.
@@ -1377,24 +1377,41 @@ free_appointment_sources (void)
 }
 
 static void
-init_appointment_sources (void)
+source_changed_cb (ESource *source __attribute__ ((unused)),
+	           gpointer user_data)
+{
+	update_appointment_menu_items (user_data);
+}
+
+static void
+init_appointment_sources (ESourceRegistry *registry)
 {
 	GList * l;
 
-	appointment_sources = e_source_registry_list_sources (source_registry, E_SOURCE_EXTENSION_CALENDAR);
+	appointment_sources = e_source_registry_list_sources (registry, E_SOURCE_EXTENSION_CALENDAR);
 
 	for (l=appointment_sources; l!=NULL; l=l->next)
-		g_signal_connect (G_OBJECT(l->data), "changed", G_CALLBACK (update_appointment_menu_items), NULL);
+		g_signal_connect (G_OBJECT(l->data), "changed", G_CALLBACK (source_changed_cb), NULL);
 }
 
 /* rebuilds both the appointment sources and menu */
 static void
-update_appointments (void)
+update_appointments (ESourceRegistry *registry,
+	             ESource *source __attribute__ ((unused)),
+	             gpointer user_data __attribute__ ((unused)))
 {
 	free_appointment_sources ();
-	init_appointment_sources ();
+	init_appointment_sources (registry);
 
 	update_appointment_menu_items (NULL);
+}
+
+static void
+source_registry_changed_cb (ESourceRegistry *registry __attribute__ ((unused)),
+	                    ESource *source __attribute__ ((unused)),
+	                    gpointer user_data)
+{
+	update_appointment_menu_items (user_data);
 }
 
 /* Function to build everything up.  Entry point from asm. */
@@ -1422,13 +1439,13 @@ main (int argc, char ** argv)
 	   When sources are added or removed, update our list and menu items. */
 	source_registry = e_source_registry_new_sync (NULL, NULL);
 	g_object_connect (source_registry,
-	                  "signal::source-added", update_appointments,
-	                  "signal::source-removed", update_appointments,
-	                  "signal::source-changed", update_appointment_menu_items,
-	                  "signal::source-disabled", update_appointment_menu_items,
-	                  "signal::source-enabled", update_appointment_menu_items,
+	                  "signal::source-added", G_CALLBACK (update_appointments), NULL,
+	                  "signal::source-removed", G_CALLBACK (update_appointments), NULL,
+	                  "signal::source-changed", G_CALLBACK (source_registry_changed_cb), NULL,
+	                  "signal::source-disabled", G_CALLBACK (source_registry_changed_cb), NULL,
+	                  "signal::source-enabled", G_CALLBACK (source_registry_changed_cb), NULL,
 	                  NULL);
-	init_appointment_sources ();
+	init_appointment_sources (source_registry);
 
 	/* Building the base menu */
 	server = dbusmenu_server_new(MENU_OBJ);
