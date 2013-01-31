@@ -394,8 +394,10 @@ hide_all_appointments (void)
 	int i;
 
 	for (i=0; i<MAX_APPOINTMENT_MENUITEMS; i++) {
-		dbusmenu_menuitem_property_set_bool(appointments[i], DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-		dbusmenu_menuitem_property_set_bool(appointments[i], DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		if (appointments[i]) {
+			dbusmenu_menuitem_property_set_bool(appointments[i], DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+			dbusmenu_menuitem_property_set_bool(appointments[i], DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		}
 	}
 }
 
