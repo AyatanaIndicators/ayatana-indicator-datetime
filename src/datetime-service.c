@@ -1093,6 +1093,7 @@ build_timezone (DatetimeInterface * dbus)
 	} else {
 		g_warning("Unable to monitor timezone file: '" TIMEZONE_FILE "'");
 	}
+	g_object_unref(timezonefile);
 	return;
 }
 
