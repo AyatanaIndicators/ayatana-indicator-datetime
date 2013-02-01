@@ -1,3 +1,15 @@
+indicator-datetime (12.10.3daily13.02.01-0ubuntu1) raring; urgency=low
+
+  [ Colin Watson ]
+  * Misuses g_object_connect (LP: #1110362)
+  * Lots of criticals from dbusmenu_menuitem_property_set_variant (LP:
+    #1110398)
+
+  [ Automatic PS uploader ]
+  * Automatic snapshot from revision 204
+
+ -- Automatic PS uploader <ps-jenkins@lists.canonical.com>  Fri, 01 Feb 2013 02:01:14 +0000
+
 indicator-datetime (12.10.3daily13.01.25-0ubuntu1) raring; urgency=low
 
   * Automatic snapshot from revision 201
