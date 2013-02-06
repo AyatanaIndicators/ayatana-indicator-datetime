@@ -1,3 +1,13 @@
+indicator-datetime (12.10.3daily13.02.06-0ubuntu1) raring; urgency=low
+
+  [ Colin Watson ]
+  * build_timezone leaks timezonefile reference (LP: #1111628)
+
+  [ Automatic PS uploader ]
+  * Automatic snapshot from revision 206
+
+ -- Automatic PS uploader <ps-jenkins@lists.canonical.com>  Wed, 06 Feb 2013 02:01:12 +0000
+
 indicator-datetime (12.10.3daily13.02.01-0ubuntu1) raring; urgency=low
 
   [ Colin Watson ]
