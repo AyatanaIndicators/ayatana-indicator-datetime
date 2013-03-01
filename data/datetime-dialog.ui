@@ -294,7 +294,7 @@
                           <object class="GtkRadioButton" id="automaticTimeRadio">
                             <property name="label" translatable="yes">_Automatically from the Internet</property>
                             <property name="visible">True</property>
-                            <property name="sensitive">False</property>
+                            <property name="sensitive">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
                             <property name="use_action_appearance">False</property>

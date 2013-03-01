@@ -70,8 +70,6 @@ struct _IndicatorDatetimePanelPrivate
   gboolean             changing_time;
   GtkWidget *          loc_dlg;
   CcTimezoneCompletion * completion;
-  GCancellable         * tz_query_cancel;
-  GCancellable         * ntp_query_cancel;
 };
 
 struct _IndicatorDatetimePanelClass
@@ -193,7 +191,7 @@ dbus_set_answered (GObject *object, GAsyncResult *res, gpointer command)
   GVariant * answers = g_dbus_proxy_call_finish (G_DBUS_PROXY (object), res, &error);
 
   if (error != NULL) {
-    g_warning("Could not set '%s' for SettingsDaemon: %s", (gchar *)command, error->message);
+    g_warning("Could not set '%s' using timedated: %s", (gchar *)command, error->message);
     g_error_free(error);
     return;
   }
@@ -206,33 +204,8 @@ toggle_ntp (GtkWidget * radio, GParamSpec * pspec, IndicatorDatetimePanel * self
 {
   gboolean active = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (radio));
 
-  g_dbus_proxy_call (self->priv->proxy, "SetUsingNtp", g_variant_new ("(b)", active),
-                     G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "using_ntp");
-}
-
-static void
-ntp_query_answered (GObject *object, GAsyncResult *res, IndicatorDatetimePanel * self)
-{
-  GError * error = NULL;
-  GVariant * answers = g_dbus_proxy_call_finish (G_DBUS_PROXY (object), res, &error);
-
-  g_clear_object (&self->priv->ntp_query_cancel);
-
-  if (error != NULL) {
-    g_warning("Could not query DBus proxy for SettingsDaemon: %s", error->message);
-    g_error_free(error);
-    return;
-  }
-
-  gboolean can_use_ntp, is_using_ntp;
-  g_variant_get (answers, "(bb)", &can_use_ntp, &is_using_ntp);
-
-  gtk_widget_set_sensitive (GTK_WIDGET (self->priv->auto_radio), can_use_ntp);
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (self->priv->auto_radio), is_using_ntp);
-
-  g_signal_connect (self->priv->auto_radio, "notify::active", G_CALLBACK (toggle_ntp), self);
-
-  g_variant_unref (answers);
+  g_dbus_proxy_call (self->priv->proxy, "SetNTP", g_variant_new ("(bb)", active, TRUE),
+                     G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "NTP");
 }
 
 static void
@@ -255,7 +228,7 @@ tz_changed (CcTimezoneMap * map, CcTimezoneLocation * location, IndicatorDatetim
   gchar * zone;
   g_object_get (location, "zone", &zone, NULL);
 
-  g_dbus_proxy_call (self->priv->proxy, "SetTimezone", g_variant_new ("(s)", zone),
+  g_dbus_proxy_call (self->priv->proxy, "SetTimezone", g_variant_new ("(sb)", zone, TRUE),
                      G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "timezone");
 
   sync_entry (self, zone);
@@ -264,55 +237,45 @@ tz_changed (CcTimezoneMap * map, CcTimezoneLocation * location, IndicatorDatetim
 }
 
 static void
-tz_query_answered (GObject *object, GAsyncResult *res, IndicatorDatetimePanel * self)
-{
-  GError * error = NULL;
-  GVariant * answers = g_dbus_proxy_call_finish (G_DBUS_PROXY (object), res, &error);
-
-  g_clear_object (&self->priv->tz_query_cancel);
-
-  if (error != NULL) {
-    g_warning("Could not query DBus proxy for SettingsDaemon: %s", error->message);
-    g_error_free(error);
-    return;
-  }
-
-  const gchar * timezone;
-  g_variant_get (answers, "(&s)", &timezone);
-
-  cc_timezone_map_set_timezone (self->priv->tzmap, timezone);
-
-  sync_entry (self, timezone);
-  g_signal_connect (self->priv->tzmap, "location-changed", G_CALLBACK (tz_changed), self);
-
-  g_variant_unref (answers);
-}
-
-static void
 proxy_ready (GObject *object, GAsyncResult *res, IndicatorDatetimePanel * self)
 {
   GError * error = NULL;
   IndicatorDatetimePanelPrivate * priv = self->priv;
+  GVariant *value;
 
   self->priv->proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
 
   if (error != NULL) {
-    g_critical("Could not grab DBus proxy for SettingsDaemon: %s", error->message);
+    g_critical("Could not grab DBus proxy for timedated: %s", error->message);
     g_error_free(error);
     return;
   }
 
   /* And now, do initial proxy configuration */
-  if (priv->ntp_query_cancel == NULL) {
-    priv->ntp_query_cancel = g_cancellable_new();
-    g_dbus_proxy_call (priv->proxy, "GetUsingNtp", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
-                       priv->ntp_query_cancel, (GAsyncReadyCallback)ntp_query_answered, self);
-  }
-  if (priv->tz_query_cancel == NULL) {
-    priv->tz_query_cancel = g_cancellable_new();
-    g_dbus_proxy_call (priv->proxy, "GetTimezone", NULL, G_DBUS_CALL_FLAGS_NONE, -1,
-                       priv->tz_query_cancel, (GAsyncReadyCallback)tz_query_answered, self);
-  }
+  value = g_dbus_proxy_get_cached_property (priv->proxy, "NTP");
+  if (value != NULL)
+    {
+      if (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN))
+        {
+          gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (priv->auto_radio), g_variant_get_boolean (value));
+          g_signal_connect (priv->auto_radio, "notify::active", G_CALLBACK (toggle_ntp), self);
+        }
+      g_variant_unref (value);
+    }
+
+  value = g_dbus_proxy_get_cached_property (priv->proxy, "Timezone");
+  if (value != NULL)
+    {
+      if (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING))
+        {
+          const gchar *timezone = g_variant_get_string (value, NULL);
+
+          cc_timezone_map_set_timezone (priv->tzmap, timezone);
+          sync_entry (self, timezone);
+          g_signal_connect (priv->tzmap, "location-changed", G_CALLBACK (tz_changed), self);
+        }
+      g_variant_unref (value);
+    }
 }
 
 static void
@@ -693,7 +656,7 @@ indicator_datetime_panel_init (IndicatorDatetimePanel * self)
   gtk_container_add (GTK_CONTAINER (alignment), polkit_button);
   gtk_box_pack_start (GTK_BOX (WIG ("timeDateBox")), alignment, FALSE, TRUE, 0);
 
-  const gchar * polkit_name = "org.gnome.settingsdaemon.datetimemechanism.configure";
+  const gchar * polkit_name = "org.gnome.controlcenter.datetime.configure";
   polkit_permission_new (polkit_name, NULL, NULL, polkit_perm_ready, polkit_button);
 
   /* Add map */
@@ -760,9 +723,9 @@ indicator_datetime_panel_init (IndicatorDatetimePanel * self)
 
   /* Grab proxy for settings daemon */
   g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_NONE, NULL,
-                            "org.gnome.SettingsDaemon.DateTimeMechanism",
-                            "/",                            
-                            "org.gnome.SettingsDaemon.DateTimeMechanism",
+                            "org.freedesktop.timedate1",
+                            "/org/freedesktop/timedate1",
+                            "org.freedesktop.timedate1",
                             NULL, (GAsyncReadyCallback)proxy_ready, self);
 
   /* Grab proxy for datetime service, to see if it's running.  It would
@@ -791,16 +754,6 @@ indicator_datetime_panel_dispose (GObject * object)
 
   g_clear_object (&priv->builder);
   g_clear_object (&priv->proxy);
-
-  if (priv->tz_query_cancel != NULL) {
-    g_cancellable_cancel (priv->tz_query_cancel);
-    g_clear_object (&priv->tz_query_cancel);
-  }
-
-  if (priv->ntp_query_cancel != NULL) {
-    g_cancellable_cancel (priv->ntp_query_cancel);
-    g_clear_object (&priv->ntp_query_cancel);
-  }
 
   if (priv->loc_dlg) {
     gtk_widget_destroy (priv->loc_dlg);
