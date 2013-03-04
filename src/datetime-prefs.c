@@ -322,7 +322,8 @@ save_time (IndicatorDatetimePanel * self)
 {
   if (self->priv->user_edited_time) {
     gdouble current_value = gtk_spin_button_get_value (GTK_SPIN_BUTTON (self->priv->date_spin));
-    g_dbus_proxy_call (self->priv->proxy, "SetTime", g_variant_new ("(x)", (guint64)current_value),
+    g_dbus_proxy_call (self->priv->proxy, "SetTime",
+                       g_variant_new ("(xbb)", (gint64) (current_value * G_TIME_SPAN_SECOND), FALSE, TRUE),
                        G_DBUS_CALL_FLAGS_NONE, -1, NULL, dbus_set_answered, "time");
   }
   self->priv->user_edited_time = FALSE;
