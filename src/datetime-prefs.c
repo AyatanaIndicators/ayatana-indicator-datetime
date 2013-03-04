@@ -252,6 +252,17 @@ proxy_ready (GObject *object, GAsyncResult *res, IndicatorDatetimePanel * self)
   }
 
   /* And now, do initial proxy configuration */
+  value = g_dbus_proxy_get_cached_property (priv->proxy, "CanNTP");
+  if (value != NULL)
+    {
+      if (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN))
+        {
+          gtk_widget_set_sensitive (priv->auto_radio, g_variant_get_boolean (value));
+          g_signal_connect (priv->auto_radio, "notify::active", G_CALLBACK (toggle_ntp), self);
+        }
+      g_variant_unref (value);
+    }
+
   value = g_dbus_proxy_get_cached_property (priv->proxy, "NTP");
   if (value != NULL)
     {
