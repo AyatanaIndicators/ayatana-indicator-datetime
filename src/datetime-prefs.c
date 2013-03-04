@@ -256,10 +256,7 @@ proxy_ready (GObject *object, GAsyncResult *res, IndicatorDatetimePanel * self)
   if (value != NULL)
     {
       if (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN))
-        {
-          gtk_widget_set_sensitive (priv->auto_radio, g_variant_get_boolean (value));
-          g_signal_connect (priv->auto_radio, "notify::active", G_CALLBACK (toggle_ntp), self);
-        }
+        gtk_widget_set_sensitive (priv->auto_radio, g_variant_get_boolean (value));
       g_variant_unref (value);
     }
 
