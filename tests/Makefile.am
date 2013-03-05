@@ -26,6 +26,7 @@ TEST_LIBS = \
         $(top_builddir)/src/.libs/libdatetime.so \
         $(INDICATOR_LIBS) \
         $(COVERAGE_LDFLAGS) \
+	$(XORG_GTEST_LDFLAGS) \
         libgtest.a
 
 TEST_CPPFLAGS = \
