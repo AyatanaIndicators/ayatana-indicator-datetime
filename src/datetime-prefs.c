@@ -498,7 +498,10 @@ format_time_text (GtkWidget * spinner, gpointer user_data)
     }
   }
   else {
-    format = "%x";
+    // This is intentionally not "%x".  See https://launchpad.net/bugs/1149696
+    // If you are willing to do the hard work of writing a locale-sensitive
+    // date parser, there is an open bug: https://launchpad.net/bugs/729056
+    format = "%Y-%m-%d";
   }
 
   GDateTime * datetime = g_date_time_new_from_unix_local (gtk_spin_button_get_value (GTK_SPIN_BUTTON (spinner)));
