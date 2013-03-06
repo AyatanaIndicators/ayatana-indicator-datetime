@@ -1,3 +1,14 @@
+indicator-datetime (12.10.3daily13.03.06-0ubuntu1) raring; urgency=low
+
+  [ Mathieu Trudel-Lapierre ]
+  * Jenkins build failure on gtest "undefined reference to symbol
+    'pthread_key_delete@@GLIBC_2.2.5'" (LP: #1126362)
+
+  [ Automatic PS uploader ]
+  * Automatic snapshot from revision 208
+
+ -- Automatic PS uploader <ps-jenkins@lists.canonical.com>  Wed, 06 Mar 2013 02:01:48 +0000
+
 indicator-datetime (12.10.3daily13.02.06-0ubuntu1) raring; urgency=low
 
   [ Colin Watson ]
