@@ -1156,12 +1156,12 @@ session_active_change_cb (GDBusProxy * proxy, gchar * sender_name, gchar * signa
 {
 	// Suspending / returning from suspend (true / false)
 	if (g_strcmp0(signal_name, "PrepareForSleep") == 0) {
-        gboolean sleeping = FALSE;
-        g_variant_get (parameters, "(b)", &sleeping);
-        if (!sleeping) {
-            g_debug ("System has been resumed; adjusting clock");
-            on_clock_skew ();
-        }
+		gboolean sleeping = FALSE;
+		g_variant_get (parameters, "(b)", &sleeping);
+		if (!sleeping) {
+			g_debug ("System has been resumed; adjusting clock");
+			on_clock_skew ();
+		}
 	}
 	return;
 }
