@@ -277,7 +277,7 @@ quick_set_tz_cb (GObject *object, GAsyncResult *res, gpointer data)
   GVariant * answers = g_dbus_proxy_call_finish (G_DBUS_PROXY (object), res, &error);
 
   if (error != NULL) {
-    g_warning("Could not set timezone for SettingsDaemon: %s", error->message);
+    g_warning("Could not set timezone using timedated: %s", error->message);
     g_clear_error (&error);
     return;
   }
@@ -293,13 +293,13 @@ quick_set_tz_proxy_cb (GObject *object, GAsyncResult *res, gpointer zone)
 	GDBusProxy * proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
 
 	if (error != NULL) {
-		g_warning("Could not grab DBus proxy for SettingsDaemon: %s", error->message);
+		g_warning("Could not grab DBus proxy for timedated: %s", error->message);
 		g_clear_error (&error);
 		g_free (zone);
 		return;
 	}
 
-	g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(s)", zone),
+	g_dbus_proxy_call (proxy, "SetTimezone", g_variant_new ("(sb)", zone, TRUE),
 	                   G_DBUS_CALL_FLAGS_NONE, -1, NULL, quick_set_tz_cb, NULL);
 	g_free (zone);
 	g_object_unref (proxy);
@@ -323,9 +323,9 @@ quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, gpointer user_data)
 	g_object_unref (conf);
 
 	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_NONE, NULL,
-	                          "org.gnome.SettingsDaemon.DateTimeMechanism",
-	                          "/",                            
-	                          "org.gnome.SettingsDaemon.DateTimeMechanism",
+	                          "org.freedesktop.timedate1",
+	                          "/org/freedesktop/timedate1",
+	                          "org.freedesktop.timedate1",
 	                          NULL, quick_set_tz_proxy_cb, g_strdup (tz));
 
 	return;
