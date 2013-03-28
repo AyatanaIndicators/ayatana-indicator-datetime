@@ -1,4 +1,4 @@
-indicator-datetime (12.10.3daily13.03.07-0ubuntu2) UNRELEASED; urgency=low
+indicator-datetime (12.10.3daily13.03.26-0ubuntu1) raring; urgency=low
 
   * Use systemd's service backend, ffe lp: #1153567
   * debian/control: depends on systemd-services and systemd-shim
