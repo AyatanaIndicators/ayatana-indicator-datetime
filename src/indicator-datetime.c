@@ -266,7 +266,7 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 }
 
 static void
-menu_visible_notfy_cb(GtkWidget * menu, G_GNUC_UNUSED GParamSpec *pspec, gpointer user_data)
+menu_visible_notify_cb(GtkWidget * menu, G_GNUC_UNUSED GParamSpec *pspec, gpointer user_data)
 {
 	GtkWidget * w;
 	GtkCalendar * calendar;
@@ -380,7 +380,7 @@ indicator_datetime_init (IndicatorDatetime *self)
 
 	self->priv->menu = dbusmenu_gtkmenu_new(SERVICE_NAME, MENU_OBJ);
 
-	g_signal_connect(self->priv->menu, "notify::visible", G_CALLBACK(menu_visible_notfy_cb), self);
+	g_signal_connect(self->priv->menu, "notify::visible", G_CALLBACK(menu_visible_notify_cb), self);
 	
 	DbusmenuGtkClient *client = dbusmenu_gtkmenu_get_client(self->priv->menu);
 	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), DBUSMENU_CALENDAR_MENUITEM_TYPE, new_calendar_item, self, NULL);
