@@ -274,8 +274,8 @@ menu_visible_notify_cb(GtkWidget * menu, G_GNUC_UNUSED GParamSpec *pspec, gpoint
 	self = INDICATOR_DATETIME (user_data);
 	g_return_if_fail (self != NULL);
 
-	/* if the calendar widget's been created, set it to today's date */
-	if (IDO_IS_CALENDAR_MENU_ITEM(self->priv->ido_calendar)) {
+	/* if the calendar widget's been created, set it to today's datë */
+	if (self->priv->ido_calendar != NULL) {
 		GtkWidget * w;
 		GtkCalendar * calendar;
 		gint cur_y, cur_m, cur_d;
