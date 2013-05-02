@@ -266,28 +266,35 @@ indicator_datetime_class_init (IndicatorDatetimeClass *klass)
 }
 
 static void
-menu_visible_notfy_cb(GtkWidget * menu, G_GNUC_UNUSED GParamSpec *pspec, gpointer user_data)
+menu_visible_notify_cb(GtkWidget * menu, G_GNUC_UNUSED GParamSpec *pspec, gpointer user_data)
 {
-	GtkWidget * w;
-	GtkCalendar * calendar;
-	IndicatorDatetime * self = INDICATOR_DATETIME(user_data);
-	GDateTime *datetime;
-	gint cur_y, cur_m, cur_d;
-	guint cal_y, cal_m, cal_d;
+	IndicatorDatetime * self;
+	g_debug ("notify visible signal received");
 
-	g_debug("notify visible signal received");
+	self = INDICATOR_DATETIME (user_data);
+	g_assert (self != NULL);
 
-	/* set the calendar to today's date */
-	datetime = g_date_time_new_now_local ();
-	g_date_time_get_ymd (datetime, &cur_y, &cur_m, &cur_d);
-	g_date_time_unref (datetime);
-	w = ido_calendar_menu_item_get_calendar (self->priv->ido_calendar);
-	calendar = GTK_CALENDAR(w);
-	gtk_calendar_get_date (calendar, &cal_y, &cal_m, &cal_d);
-	if ((cur_y != cal_y) || (cur_m-1 != cal_m))
-		gtk_calendar_select_month (calendar, cur_m-1, cur_y); /* (cur_m is 1-based) */
-	if (cur_d != cal_d)
-		gtk_calendar_select_day (calendar, cur_d);
+	/* if the calendar widget's been created, set it to today's datë */
+	if (self->priv->ido_calendar != NULL) {
+		GtkWidget * w;
+		GtkCalendar * calendar;
+		gint cur_y, cur_m, cur_d;
+		guint cal_y, cal_m, cal_d;
+		GDateTime * datetime = g_date_time_new_now_local ();
+
+		g_date_time_get_ymd (datetime, &cur_y, &cur_m, &cur_d);
+		w = ido_calendar_menu_item_get_calendar (self->priv->ido_calendar);
+		calendar = GTK_CALENDAR(w);
+		g_return_if_fail (calendar != NULL);
+
+		gtk_calendar_get_date (calendar, &cal_y, &cal_m, &cal_d);
+		if ((cur_y != cal_y) || (cur_m-1 != cal_m))
+			gtk_calendar_select_month (calendar, cur_m-1, cur_y); /* (cur_m is 1-based) */
+		if (cur_d != cal_d)
+			gtk_calendar_select_day (calendar, cur_d);
+
+		g_date_time_unref (datetime);
+	}
 
 	/* Update in case date was changed outside of indicator-datetime */
 	update_label(self, NULL);
@@ -380,7 +387,7 @@ indicator_datetime_init (IndicatorDatetime *self)
 
 	self->priv->menu = dbusmenu_gtkmenu_new(SERVICE_NAME, MENU_OBJ);
 
-	g_signal_connect(self->priv->menu, "notify::visible", G_CALLBACK(menu_visible_notfy_cb), self);
+	g_signal_connect(self->priv->menu, "notify::visible", G_CALLBACK(menu_visible_notify_cb), self);
 	
 	DbusmenuGtkClient *client = dbusmenu_gtkmenu_get_client(self->priv->menu);
 	dbusmenu_client_add_type_handler_full(DBUSMENU_CLIENT(client), DBUSMENU_CALENDAR_MENUITEM_TYPE, new_calendar_item, self, NULL);
