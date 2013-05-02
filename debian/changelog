@@ -1,3 +1,13 @@
+indicator-datetime (12.10.3daily13.05.02-0ubuntu1) saucy; urgency=low
+
+  [ Charles Kerr ]
+  * g_critical hit when datetime indicator first shown (LP: #1175392)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 213
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 02 May 2013 22:59:08 +0000
+
 indicator-datetime (12.10.3daily13.03.26-0ubuntu1) raring; urgency=low
 
   * Use systemd's service backend, ffe lp: #1153567
