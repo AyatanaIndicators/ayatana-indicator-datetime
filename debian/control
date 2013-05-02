@@ -40,6 +40,8 @@ Depends: ${shlibs:Depends},
          ${misc:Depends},
          gnome-control-center,
          geoclue-ubuntu-geoip | geoclue-provider,
+         systemd-services,
+         systemd-shim,
 Recommends: indicator-applet | indicator-renderer,
             evolution-data-server,
 Description: Simple clock
