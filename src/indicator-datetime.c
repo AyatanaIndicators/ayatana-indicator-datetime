@@ -272,7 +272,7 @@ menu_visible_notify_cb(GtkWidget * menu, G_GNUC_UNUSED GParamSpec *pspec, gpoint
 	g_debug ("notify visible signal received");
 
 	self = INDICATOR_DATETIME (user_data);
-	g_return_if_fail (self != NULL);
+	g_assert (self != NULL);
 
 	/* if the calendar widget's been created, set it to today's datë */
 	if (self->priv->ido_calendar != NULL) {
