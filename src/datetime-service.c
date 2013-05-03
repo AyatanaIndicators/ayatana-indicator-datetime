@@ -35,9 +35,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libdbusmenu-glib/client.h>
 #include <libdbusmenu-glib/menuitem.h>
 
-#include <geoclue/geoclue-master.h>
-#include <geoclue/geoclue-master-client.h>
-
 #include <time.h>
 #include <libecal/libecal.h>
 #include <libical/ical.h>
@@ -48,6 +45,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "datetime-interface.h"
 #include "dbus-shared.h"
+#include "location-geoclue.h"
 #include "settings-shared.h"
 #include "utils.h"
 
@@ -92,11 +90,11 @@ static time_t             start_time_appointments = (time_t) 0;
 static GSettings        * conf = NULL;
 static ESourceRegistry  * source_registry = NULL;
 static GList            * appointment_sources = NULL;
+static IndicatorDatetimeLocation * geo_location = NULL;
 
 
 /* Our 2 important timezones */
 static gchar 			* current_timezone = NULL;
-static gchar 			* geo_timezone = NULL;
 
 struct comp_instance {
         ECalComponent *comp;
@@ -187,11 +185,14 @@ update_location_menu_items (void)
 	const time_t now = time(NULL);
 
 	/* maybe add geo_timezone */
-	if (geo_timezone != NULL) {
-		const gboolean visible = g_settings_get_boolean (conf, SETTINGS_SHOW_DETECTED_S);
-		gchar * name = get_current_zone_name (geo_timezone);
-		locations = locations_add (locations, geo_timezone, name, visible, now);
-		g_free (name);
+        if (geo_location != NULL) {
+		const char * geo_timezone = indicator_datetime_location_get_timezone (geo_location);
+		if (geo_timezone && *geo_timezone) {
+			const gboolean visible = g_settings_get_boolean (conf, SETTINGS_SHOW_DETECTED_S);
+			gchar * name = get_current_zone_name (geo_timezone);
+			locations = locations_add (locations, geo_timezone, name, visible, now);
+			g_free (name);
+		}
 	}
 
 	/* maybe add current_timezone */
@@ -1182,174 +1183,6 @@ system_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
 	g_signal_connect(proxy, "g-signal", G_CALLBACK(session_active_change_cb), user_data);
 }
 
-
-/****
-*****  GEOCLUE
-****/
-
-static void geo_start (void);
-static void geo_stop (void);
-static void geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data);
-static void geo_client_invalid (GeoclueMasterClient * client, gpointer user_data);
-
-static GeoclueMaster * geo_master = NULL;
-static GeoclueMasterClient * geo_client = NULL;
-static GeoclueAddress * geo_address = NULL;
-
-static void
-geo_set_timezone (const gchar * timezone)
-{
-	if (geo_timezone != timezone) {
-		g_clear_pointer (&geo_timezone, g_free);
-		geo_timezone = g_strdup (timezone);
-		g_debug("Geoclue timezone is: %s", timezone ? timezone : "(Null)");
-		update_location_menu_items();
-	}
-}
-
-/* Callback from getting the address */
-static void
-geo_address_cb (GeoclueAddress * address, int timestamp, GHashTable * addy_data, GeoclueAccuracy * accuracy, GError * error, gpointer user_data)
-{
-	if (error == NULL) {
-		geo_set_timezone (g_hash_table_lookup (addy_data, "timezone"));
-	} else {
-		g_warning("Unable to get Geoclue address: %s", error->message);
-		g_clear_error (&error);
-	}
-}
-
-/* Clean up the reference we kept to the address and make sure to
-   drop the signals incase someone else has one. */
-static void
-geo_address_clean (void)
-{
-	if (geo_address != NULL) {
-		g_signal_handlers_disconnect_by_func (geo_address, geo_address_cb, NULL);
-		g_clear_object (&geo_address);
-	}
-}
-
-/* Clean up and remove all signal handlers from the client as we
-   unreference it as well. */
-static void
-geo_client_clean (void)
-{
-	if (geo_client != NULL) {
-		g_signal_handlers_disconnect_by_func (geo_client, geo_client_invalid, NULL);
-		g_clear_object (&geo_client);
-	}
-}
-
-/* Callback from creating the address */
-static void
-geo_create_address (GeoclueMasterClient * master, GeoclueAddress * address, GError * error, gpointer user_data)
-{
-	if (error != NULL) {
-		g_warning("Unable to create GeoClue address: %s", error->message);
-		g_clear_error (&error);
-		return;
-	}
-
-	/* We shouldn't have created a new address if we already had one
-	   so this is a warning.  But, it really is only a mem-leak so we
-	   don't need to error out. */
-	g_warn_if_fail(geo_address == NULL);
-	geo_address_clean();
-
-	g_debug("Created Geoclue Address");
-	geo_address = g_object_ref (address);
-
-	geoclue_address_get_address_async (geo_address, geo_address_cb, NULL);
-
-	g_signal_connect (address, "address-changed", G_CALLBACK(geo_address_cb), NULL);
-}
-
-/* Callback from setting requirements */
-static void
-geo_req_set (GeoclueMasterClient * master, GError * error, gpointer user_data)
-{
-	if (error != NULL) {
-		g_warning("Unable to set Geoclue requirements: %s", error->message);
-		g_clear_error (&error);
-	}
-}
-
-/* Client is killing itself rather oddly */
-static void
-geo_client_invalid (GeoclueMasterClient * client, gpointer user_data)
-{
-	g_warning("Master client invalid, rebuilding.");
-	geo_stop ();
-	geo_start ();
-}
-
-static void
-geo_stop (void)
-{
-	geo_set_timezone (NULL);
-
-	geo_address_clean ();
-	geo_client_clean ();
-	g_clear_object (&geo_master);
-}
-
-static void
-geo_start (void)
-{
-	g_warn_if_fail (geo_master == NULL);
-
-	g_clear_object (&geo_master);
-	geo_master = geoclue_master_get_default();
-	geoclue_master_create_client_async (geo_master, geo_create_client, NULL);
-}
-
-/* Callback from creating the client */
-static void
-geo_create_client (GeoclueMaster * master, GeoclueMasterClient * client, gchar * path, GError * error, gpointer user_data)
-{
-	g_debug("Created Geoclue client at: %s", path);
-
-	geo_client = client;
-
-	if (error != NULL) {
-		g_warning("Unable to get a GeoClue client!  '%s'  Geolocation based timezone support will not be available.", error->message);
-		g_clear_error (&error);
-		return;
-	}
-
-	if (client == NULL) {
-		g_warning(_("Unable to get a GeoClue client!  Geolocation based timezone support will not be available."));
-		return;
-	}
-
-	g_object_ref (geo_client);
-
-	/* New client, make sure we don't have an address hanging on */
-	geo_address_clean();
-
-	geoclue_master_client_set_requirements_async(geo_client,
-	                                             GEOCLUE_ACCURACY_LEVEL_REGION,
-	                                             0,
-	                                             FALSE,
-	                                             GEOCLUE_RESOURCE_ALL,
-	                                             geo_req_set,
-	                                             NULL);
-
-	geoclue_master_client_create_address_async(geo_client, geo_create_address, NULL);
-
-	g_signal_connect(client, "invalidated", G_CALLBACK(geo_client_invalid), NULL);
-}
-
-static void
-on_use_geoclue_changed_cb (GSettings * settings, gchar * key, gpointer unused G_GNUC_UNUSED)
-{
-	geo_stop ();
-
-	if (g_settings_get_boolean (conf, SETTINGS_SHOW_DETECTED_S))
-		geo_start ();
-}
-
 /****
 *****
 ****/
@@ -1417,6 +1250,28 @@ source_registry_changed_cb (ESourceRegistry *registry __attribute__ ((unused)),
 	update_appointment_menu_items (user_data);
 }
 
+static void
+on_use_geoclue_changed_cb (GSettings *settings,
+                           gchar     *key       G_GNUC_UNUSED,
+                           gpointer   user_data G_GNUC_UNUSED)
+{
+  const gboolean using = geo_location != NULL;
+  const gboolean should_use = g_settings_get_boolean (conf, "show-auto-detected-location");
+
+  if (using && !should_use)
+    {
+      g_signal_handlers_disconnect_by_func (geo_location, update_location_menu_items, 0);
+      g_clear_object (&geo_location);
+      update_location_menu_items ();
+    }
+  else if (should_use && !using)
+    {
+      geo_location = indicator_datetime_location_geoclue_new ();
+      g_signal_connect (geo_location, "notify::timezone",
+                        G_CALLBACK(update_location_menu_items), NULL);
+    }
+}
+
 /* Function to build everything up.  Entry point from asm. */
 int
 main (int argc, char ** argv)
@@ -1461,8 +1316,7 @@ main (int argc, char ** argv)
 	update_current_timezone();
 
 	/* Setup geoclue */
-	if (g_settings_get_boolean (conf, SETTINGS_SHOW_DETECTED_S))
-		geo_start ();
+	on_use_geoclue_changed_cb (conf, NULL, NULL);
 
 	/* Setup dbus interface */
 	dbus = g_object_new(DATETIME_INTERFACE_TYPE, NULL);
@@ -1501,7 +1355,7 @@ main (int argc, char ** argv)
 
 	icaltimezone_free_builtin_timezones();
 
-	geo_stop ();
+	g_clear_object (&geo_location);
 
 	return 0;
 }

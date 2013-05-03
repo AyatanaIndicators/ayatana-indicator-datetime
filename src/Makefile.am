@@ -11,6 +11,10 @@ indicator_datetime_service_SOURCES = \
 	datetime-interface.h \
 	gen-datetime-service.xml.c \
 	datetime-service.c \
+	location.c \
+	location.h \
+	location-geoclue.c \
+	location-geoclue.h \
 	utils.c \
 	utils.h \
 	dbus-shared.h \
