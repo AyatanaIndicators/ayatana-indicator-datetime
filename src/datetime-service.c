@@ -1276,6 +1276,8 @@ on_use_geoclue_changed_cb (GSettings *settings,
 int
 main (int argc, char ** argv)
 {
+	gtk_init (&argc, &argv);
+
 	/* Acknowledging the service init and setting up the interface */
 	service = indicator_service_new_version(SERVICE_NAME, SERVICE_VERSION);
 	g_signal_connect(service, INDICATOR_SERVICE_SIGNAL_SHUTDOWN, G_CALLBACK(service_shutdown), NULL);
