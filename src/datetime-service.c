@@ -1154,11 +1154,12 @@ static void
 session_active_change_cb (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name,
                           GVariant * parameters, gpointer user_data)
 {
-	// Just returned from suspend
-	if (g_strcmp0(signal_name, "SystemIdleHintChanged") == 0) {
-		gboolean idle = FALSE;
-		g_variant_get(parameters, "(b)", &idle);
-		if (!idle) {
+	// Suspending / returning from suspend (true / false)
+	if (g_strcmp0(signal_name, "PrepareForSleep") == 0) {
+		gboolean sleeping = FALSE;
+		g_variant_get (parameters, "(b)", &sleeping);
+		if (!sleeping) {
+			g_debug ("System has been resumed; adjusting clock");
 			on_clock_skew ();
 		}
 	}
@@ -1174,7 +1175,7 @@ system_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
 	GDBusProxy * proxy = g_dbus_proxy_new_for_bus_finish(res, &error);
 
 	if (error != NULL) {
-		g_warning("Could not grab DBus proxy for ConsoleKit: %s", error->message);
+		g_warning("Could not grab DBus proxy for logind: %s", error->message);
 		g_clear_error (&error);
 		return;
 	}
@@ -1482,9 +1483,9 @@ main (int argc, char ** argv)
 	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
 		                  G_DBUS_PROXY_FLAGS_NONE,
 		                  NULL,
-		                  "org.freedesktop.ConsoleKit",
-		                  "/org/freedesktop/ConsoleKit/Manager",
-		                  "org.freedesktop.ConsoleKit.Manager",
+		                  "org.freedesktop.login1",
+		                  "/org/freedesktop/login1",
+		                  "org.freedesktop.login1.Manager",
 		                  NULL, system_proxy_cb, dbus);
 
 	mainloop = g_main_loop_new(NULL, FALSE);
