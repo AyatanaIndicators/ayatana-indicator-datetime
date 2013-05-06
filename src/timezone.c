@@ -17,10 +17,10 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "location.h"
+#include "timezone.h"
 
-G_DEFINE_TYPE (IndicatorDatetimeLocation,
-               indicator_datetime_location,
+G_DEFINE_TYPE (IndicatorDatetimeTimezone,
+               indicator_datetime_timezone,
                G_TYPE_OBJECT)
 
 enum
@@ -38,12 +38,12 @@ my_get_property (GObject     * o,
                  GValue      * value,
                  GParamSpec  * pspec)
 {
-  IndicatorDatetimeLocation * self = INDICATOR_DATETIME_LOCATION (o);
+  IndicatorDatetimeTimezone * self = INDICATOR_DATETIME_TIMEZONE (o);
 
   switch (property_id)
     {
       case PROP_TIMEZONE:
-        g_value_set_string (value, indicator_datetime_location_get_timezone (self));
+        g_value_set_string (value, indicator_datetime_timezone_get_timezone (self));
         break;
 
       default:
@@ -54,12 +54,12 @@ my_get_property (GObject     * o,
 static void
 my_dispose (GObject * object)
 {
-  G_OBJECT_CLASS (indicator_datetime_location_parent_class)->dispose (object);
+  G_OBJECT_CLASS (indicator_datetime_timezone_parent_class)->dispose (object);
 }
 
 static void
 /* cppcheck-suppress unusedFunction */
-indicator_datetime_location_class_init (IndicatorDatetimeLocationClass * klass)
+indicator_datetime_timezone_class_init (IndicatorDatetimeTimezoneClass * klass)
 {
   GObjectClass * object_class;
   const GParamFlags flags = G_PARAM_READABLE | G_PARAM_STATIC_STRINGS;
@@ -82,7 +82,7 @@ indicator_datetime_location_class_init (IndicatorDatetimeLocationClass * klass)
 }
 
 static void
-indicator_datetime_location_init (IndicatorDatetimeLocation * self G_GNUC_UNUSED)
+indicator_datetime_timezone_init (IndicatorDatetimeTimezone * self G_GNUC_UNUSED)
 {
 }
 
@@ -91,17 +91,17 @@ indicator_datetime_location_init (IndicatorDatetimeLocation * self G_GNUC_UNUSED
 ***/
 
 const char *
-indicator_datetime_location_get_timezone (IndicatorDatetimeLocation * self)
+indicator_datetime_timezone_get_timezone (IndicatorDatetimeTimezone * self)
 {
-  g_return_val_if_fail (INDICATOR_IS_DATETIME_LOCATION (self), NULL);
+  g_return_val_if_fail (INDICATOR_IS_DATETIME_TIMEZONE (self), NULL);
 
-  return INDICATOR_DATETIME_LOCATION_GET_CLASS (self)->get_timezone (self);
+  return INDICATOR_DATETIME_TIMEZONE_GET_CLASS (self)->get_timezone (self);
 }
 
 void
-indicator_datetime_location_notify_timezone (IndicatorDatetimeLocation * self)
+indicator_datetime_timezone_notify_timezone (IndicatorDatetimeTimezone * self)
 {
-  g_return_if_fail (INDICATOR_IS_DATETIME_LOCATION (self));
+  g_return_if_fail (INDICATOR_IS_DATETIME_TIMEZONE (self));
 
   g_object_notify_by_pspec (G_OBJECT(self), properties[PROP_TIMEZONE]);
 }

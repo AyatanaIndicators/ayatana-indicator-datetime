@@ -23,7 +23,7 @@
 #include <glib/gi18n-lib.h>
 #include <gio/gio.h>
 
-#include "location-file.h"
+#include "timezone-file.h"
 
 enum
 {
@@ -34,7 +34,7 @@ enum
 
 static GParamSpec * properties[PROP_LAST] = { 0 };
 
-struct _IndicatorDatetimeLocationFilePriv
+struct _IndicatorDatetimeTimezoneFilePriv
 {
   gchar * filename;
   GFile * file;
@@ -42,18 +42,18 @@ struct _IndicatorDatetimeLocationFilePriv
   gchar * timezone;
 };
 
-typedef IndicatorDatetimeLocationFilePriv priv_t;
+typedef IndicatorDatetimeTimezoneFilePriv priv_t;
 
-G_DEFINE_TYPE (IndicatorDatetimeLocationFile,
-               indicator_datetime_location_file,
-               INDICATOR_TYPE_DATETIME_LOCATION)
+G_DEFINE_TYPE (IndicatorDatetimeTimezoneFile,
+               indicator_datetime_timezone_file,
+               INDICATOR_TYPE_DATETIME_TIMEZONE)
 
 /***
 ****
 ***/
 
 static void
-reload (IndicatorDatetimeLocationFile * self)
+reload (IndicatorDatetimeTimezoneFile * self)
 {
   priv_t * p = self->priv;
 
@@ -70,12 +70,12 @@ reload (IndicatorDatetimeLocationFile * self)
       g_strstrip (new_timezone);
       g_free (p->timezone);
       p->timezone = new_timezone;
-      indicator_datetime_location_notify_timezone (INDICATOR_DATETIME_LOCATION(self));
+      indicator_datetime_timezone_notify_timezone (INDICATOR_DATETIME_TIMEZONE(self));
     }
 }
 
 static void
-set_filename (IndicatorDatetimeLocationFile * self, const char * filename)
+set_filename (IndicatorDatetimeTimezoneFile * self, const char * filename)
 {
   GError * err;
   priv_t * p = self->priv;
@@ -104,13 +104,13 @@ set_filename (IndicatorDatetimeLocationFile * self, const char * filename)
 }
 
 /***
-**** IndicatorDatetimeLocationClass funcs
+**** IndicatorDatetimeTimezoneClass funcs
 ***/
 
 static const char *
-my_get_timezone (IndicatorDatetimeLocation * self)
+my_get_timezone (IndicatorDatetimeTimezone * self)
 {
-  return INDICATOR_DATETIME_LOCATION_FILE(self)->priv->timezone;
+  return INDICATOR_DATETIME_TIMEZONE_FILE(self)->priv->timezone;
 }
 
 /***
@@ -123,7 +123,7 @@ my_get_property (GObject     * o,
                  GValue      * value,
                  GParamSpec  * pspec)
 {
-  IndicatorDatetimeLocationFile * self = INDICATOR_DATETIME_LOCATION_FILE (o);
+  IndicatorDatetimeTimezoneFile * self = INDICATOR_DATETIME_TIMEZONE_FILE (o);
 
   switch (property_id)
     {
@@ -142,7 +142,7 @@ my_set_property (GObject       * o,
                  const GValue  * value,
                  GParamSpec    * pspec)
 {
-  IndicatorDatetimeLocationFile * self = INDICATOR_DATETIME_LOCATION_FILE (o);
+  IndicatorDatetimeTimezoneFile * self = INDICATOR_DATETIME_TIMEZONE_FILE (o);
 
   switch (property_id)
     {
@@ -158,25 +158,25 @@ my_set_property (GObject       * o,
 static void
 my_dispose (GObject * o)
 {
-  IndicatorDatetimeLocationFile * self = INDICATOR_DATETIME_LOCATION_FILE (o);
+  IndicatorDatetimeTimezoneFile * self = INDICATOR_DATETIME_TIMEZONE_FILE (o);
   priv_t * p = self->priv;
 
   g_clear_object (&p->monitor);
   g_clear_object (&p->file);
 
-  G_OBJECT_CLASS (indicator_datetime_location_file_parent_class)->dispose (o);
+  G_OBJECT_CLASS (indicator_datetime_timezone_file_parent_class)->dispose (o);
 }
 
 static void
 my_finalize (GObject * o)
 {
-  IndicatorDatetimeLocationFile * self = INDICATOR_DATETIME_LOCATION_FILE (o);
+  IndicatorDatetimeTimezoneFile * self = INDICATOR_DATETIME_TIMEZONE_FILE (o);
   priv_t * p = self->priv;
 
   g_free (p->filename);
   g_free (p->timezone);
 
-  G_OBJECT_CLASS (indicator_datetime_location_file_parent_class)->finalize (o);
+  G_OBJECT_CLASS (indicator_datetime_timezone_file_parent_class)->finalize (o);
 }
 
 /***
@@ -184,10 +184,10 @@ my_finalize (GObject * o)
 ***/
 
 static void
-indicator_datetime_location_file_class_init (IndicatorDatetimeLocationFileClass * klass)
+indicator_datetime_timezone_file_class_init (IndicatorDatetimeTimezoneFileClass * klass)
 {
   GObjectClass * object_class;
-  IndicatorDatetimeLocationClass * location_class;
+  IndicatorDatetimeTimezoneClass * location_class;
   const GParamFlags flags = G_PARAM_CONSTRUCT | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS;
 
   object_class = G_OBJECT_CLASS (klass);
@@ -196,10 +196,10 @@ indicator_datetime_location_file_class_init (IndicatorDatetimeLocationFileClass 
   object_class->set_property = my_set_property;
   object_class->get_property = my_get_property;
 
-  location_class = INDICATOR_DATETIME_LOCATION_CLASS (klass);
+  location_class = INDICATOR_DATETIME_TIMEZONE_CLASS (klass);
   location_class->get_timezone = my_get_timezone;
 
-  g_type_class_add_private (klass, sizeof (IndicatorDatetimeLocationFilePriv));
+  g_type_class_add_private (klass, sizeof (IndicatorDatetimeTimezoneFilePriv));
 
   /* install properties */
 
@@ -215,21 +215,21 @@ indicator_datetime_location_file_class_init (IndicatorDatetimeLocationFileClass 
 }
 
 static void
-indicator_datetime_location_file_init (IndicatorDatetimeLocationFile * self)
+indicator_datetime_timezone_file_init (IndicatorDatetimeTimezoneFile * self)
 {
   self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self,
-                                            INDICATOR_TYPE_DATETIME_LOCATION_FILE,
-                                            IndicatorDatetimeLocationFilePriv);
+                                            INDICATOR_TYPE_DATETIME_TIMEZONE_FILE,
+                                            IndicatorDatetimeTimezoneFilePriv);
 }
 
 /***
 ****  Public
 ***/
 
-IndicatorDatetimeLocation *
-indicator_datetime_location_file_new (const char * filename)
+IndicatorDatetimeTimezone *
+indicator_datetime_timezone_file_new (const char * filename)
 {
-  gpointer o = g_object_new (INDICATOR_TYPE_DATETIME_LOCATION_FILE, "filename", filename, NULL);
+  gpointer o = g_object_new (INDICATOR_TYPE_DATETIME_TIMEZONE_FILE, "filename", filename, NULL);
 
-  return INDICATOR_DATETIME_LOCATION (o);
+  return INDICATOR_DATETIME_TIMEZONE (o);
 }

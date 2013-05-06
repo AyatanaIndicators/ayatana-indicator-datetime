@@ -25,9 +25,9 @@
 #include <geoclue/geoclue-master.h>
 #include <geoclue/geoclue-master-client.h>
 
-#include "location-geoclue.h"
+#include "timezone-geoclue.h"
 
-struct _IndicatorDatetimeLocationGeocluePriv
+struct _IndicatorDatetimeTimezoneGeocluePriv
 {
   GeoclueMaster * master;
   GeoclueMasterClient * client;
@@ -35,20 +35,20 @@ struct _IndicatorDatetimeLocationGeocluePriv
   gchar * timezone;
 };
 
-typedef IndicatorDatetimeLocationGeocluePriv priv_t;
+typedef IndicatorDatetimeTimezoneGeocluePriv priv_t;
 
-G_DEFINE_TYPE (IndicatorDatetimeLocationGeoclue,
-               indicator_datetime_location_geoclue,
-               INDICATOR_TYPE_DATETIME_LOCATION)
+G_DEFINE_TYPE (IndicatorDatetimeTimezoneGeoclue,
+               indicator_datetime_timezone_geoclue,
+               INDICATOR_TYPE_DATETIME_TIMEZONE)
 
-static void geo_restart (IndicatorDatetimeLocationGeoclue * self);
+static void geo_restart (IndicatorDatetimeTimezoneGeoclue * self);
 
 /***
 ****
 ***/
 
 static void
-set_timezone (IndicatorDatetimeLocationGeoclue * self, const gchar * timezone)
+set_timezone (IndicatorDatetimeTimezoneGeoclue * self, const gchar * timezone)
 {
   priv_t * p = self->priv;
 
@@ -56,7 +56,7 @@ set_timezone (IndicatorDatetimeLocationGeoclue * self, const gchar * timezone)
     {
       g_free (p->timezone);
       p->timezone = g_strdup (timezone);
-      indicator_datetime_location_notify_timezone (INDICATOR_DATETIME_LOCATION(self));
+      indicator_datetime_timezone_notify_timezone (INDICATOR_DATETIME_TIMEZONE(self));
     }
 }
 
@@ -75,7 +75,7 @@ on_address_changed (GeoclueAddress  * address,
     }
   else
     {
-      IndicatorDatetimeLocationGeoclue * self = INDICATOR_DATETIME_LOCATION_GEOCLUE (gself);
+      IndicatorDatetimeTimezoneGeoclue * self = INDICATOR_DATETIME_TIMEZONE_GEOCLUE (gself);
       const char * timezone = g_hash_table_lookup (addy_data, "timezone");
       set_timezone (self, timezone);
     }
@@ -94,7 +94,7 @@ on_address_created (GeoclueMasterClient * master,
     }
   else
     {
-      priv_t * p = INDICATOR_DATETIME_LOCATION_GEOCLUE(gself)->priv;
+      priv_t * p = INDICATOR_DATETIME_TIMEZONE_GEOCLUE(gself)->priv;
 
       g_assert (p->address == NULL);
       p->address = g_object_ref (address);
@@ -134,7 +134,7 @@ on_client_created (GeoclueMaster        * master,
     }
   else
     {
-      IndicatorDatetimeLocationGeoclue * self = INDICATOR_DATETIME_LOCATION_GEOCLUE (gself);
+      IndicatorDatetimeTimezoneGeoclue * self = INDICATOR_DATETIME_TIMEZONE_GEOCLUE (gself);
       priv_t * p = self->priv;
 
       g_clear_object (&p->client);
@@ -154,7 +154,7 @@ on_client_created (GeoclueMaster        * master,
 }
 
 static void
-geo_start (IndicatorDatetimeLocationGeoclue * self)
+geo_start (IndicatorDatetimeTimezoneGeoclue * self)
 {
   priv_t * p = self->priv;
 
@@ -164,7 +164,7 @@ geo_start (IndicatorDatetimeLocationGeoclue * self)
 }
 
 static void
-geo_stop (IndicatorDatetimeLocationGeoclue * self)
+geo_stop (IndicatorDatetimeTimezoneGeoclue * self)
 {
   priv_t * p = self->priv;
 
@@ -184,7 +184,7 @@ geo_stop (IndicatorDatetimeLocationGeoclue * self)
 }
 
 static void
-geo_restart (IndicatorDatetimeLocationGeoclue * self)
+geo_restart (IndicatorDatetimeTimezoneGeoclue * self)
 {
   geo_stop (self);
   geo_start (self);
@@ -195,54 +195,54 @@ geo_restart (IndicatorDatetimeLocationGeoclue * self)
 ***/
 
 static const char *
-my_get_timezone (IndicatorDatetimeLocation * self)
+my_get_timezone (IndicatorDatetimeTimezone * self)
 {
-  return INDICATOR_DATETIME_LOCATION_GEOCLUE(self)->priv->timezone;
+  return INDICATOR_DATETIME_TIMEZONE_GEOCLUE(self)->priv->timezone;
 }
 
 static void
 my_dispose (GObject * o)
 {
-  geo_stop (INDICATOR_DATETIME_LOCATION_GEOCLUE (o));
+  geo_stop (INDICATOR_DATETIME_TIMEZONE_GEOCLUE (o));
 
-  G_OBJECT_CLASS (indicator_datetime_location_geoclue_parent_class)->dispose (o);
+  G_OBJECT_CLASS (indicator_datetime_timezone_geoclue_parent_class)->dispose (o);
 }
 
 static void
 my_finalize (GObject * o)
 {
-  IndicatorDatetimeLocationGeoclue * self = INDICATOR_DATETIME_LOCATION_GEOCLUE (o);
+  IndicatorDatetimeTimezoneGeoclue * self = INDICATOR_DATETIME_TIMEZONE_GEOCLUE (o);
   priv_t * p = self->priv;
 
   g_free (p->timezone);
 
-  G_OBJECT_CLASS (indicator_datetime_location_geoclue_parent_class)->finalize (o);
+  G_OBJECT_CLASS (indicator_datetime_timezone_geoclue_parent_class)->finalize (o);
 }
 
 static void
-indicator_datetime_location_geoclue_class_init (IndicatorDatetimeLocationGeoclueClass * klass)
+indicator_datetime_timezone_geoclue_class_init (IndicatorDatetimeTimezoneGeoclueClass * klass)
 {
   GObjectClass * object_class;
-  IndicatorDatetimeLocationClass * location_class;
+  IndicatorDatetimeTimezoneClass * location_class;
 
   object_class = G_OBJECT_CLASS (klass);
   object_class->dispose = my_dispose;
   object_class->finalize = my_finalize;
 
-  location_class = INDICATOR_DATETIME_LOCATION_CLASS (klass);
+  location_class = INDICATOR_DATETIME_TIMEZONE_CLASS (klass);
   location_class->get_timezone = my_get_timezone;
 
-  g_type_class_add_private (klass, sizeof (IndicatorDatetimeLocationGeocluePriv));
+  g_type_class_add_private (klass, sizeof (IndicatorDatetimeTimezoneGeocluePriv));
 }
 
 static void
-indicator_datetime_location_geoclue_init (IndicatorDatetimeLocationGeoclue * self)
+indicator_datetime_timezone_geoclue_init (IndicatorDatetimeTimezoneGeoclue * self)
 {
   priv_t * p;
 
   p = G_TYPE_INSTANCE_GET_PRIVATE (self,
-                                   INDICATOR_TYPE_DATETIME_LOCATION_GEOCLUE,
-                                   IndicatorDatetimeLocationGeocluePriv);
+                                   INDICATOR_TYPE_DATETIME_TIMEZONE_GEOCLUE,
+                                   IndicatorDatetimeTimezoneGeocluePriv);
   self->priv = p;
 
   geo_start (self);
@@ -252,10 +252,10 @@ indicator_datetime_location_geoclue_init (IndicatorDatetimeLocationGeoclue * sel
 ****  Public
 ***/
 
-IndicatorDatetimeLocation *
-indicator_datetime_location_geoclue_new (void)
+IndicatorDatetimeTimezone *
+indicator_datetime_timezone_geoclue_new (void)
 {
-  gpointer o = g_object_new (INDICATOR_TYPE_DATETIME_LOCATION_GEOCLUE, NULL);
+  gpointer o = g_object_new (INDICATOR_TYPE_DATETIME_TIMEZONE_GEOCLUE, NULL);
 
-  return INDICATOR_DATETIME_LOCATION (o);
+  return INDICATOR_DATETIME_TIMEZONE (o);
 }

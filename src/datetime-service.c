@@ -45,9 +45,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "datetime-interface.h"
 #include "dbus-shared.h"
-#include "location-file.h"
-#include "location-geoclue.h"
 #include "settings-shared.h"
+#include "timezone-file.h"
+#include "timezone-geoclue.h"
 #include "utils.h"
 
 /* how often to check for clock skew */
@@ -91,8 +91,8 @@ static time_t             start_time_appointments = (time_t) 0;
 static GSettings        * conf = NULL;
 static ESourceRegistry  * source_registry = NULL;
 static GList            * appointment_sources = NULL;
-static IndicatorDatetimeLocation * geo_location = NULL;
-static IndicatorDatetimeLocation * tz_file = NULL;
+static IndicatorDatetimeTimezone * geo_location = NULL;
+static IndicatorDatetimeTimezone * tz_file = NULL;
 
 struct comp_instance {
         ECalComponent *comp;
@@ -184,7 +184,7 @@ update_location_menu_items (void)
 
 	/* maybe add geo_timezone */
         if (geo_location != NULL) {
-		const char * geo_timezone = indicator_datetime_location_get_timezone (geo_location);
+		const char * geo_timezone = indicator_datetime_timezone_get_timezone (geo_location);
 		if (geo_timezone && *geo_timezone) {
 			const gboolean visible = g_settings_get_boolean (conf, SETTINGS_SHOW_DETECTED_S);
 			gchar * name = get_current_zone_name (geo_timezone);
@@ -195,7 +195,7 @@ update_location_menu_items (void)
 
 	/* maybe add current_timezone */
 	if (tz_file != NULL) {
-		const char * tz = indicator_datetime_location_get_timezone (tz_file);
+		const char * tz = indicator_datetime_timezone_get_timezone (tz_file);
 		if (tz && *tz) {
 			const gboolean visible = g_settings_get_boolean (conf, SETTINGS_SHOW_DETECTED_S);
 			gchar * name = get_current_zone_name (tz);
@@ -704,7 +704,7 @@ update_appointment_menu_items (gpointer user_data __attribute__ ((unused)))
 	g_list_free_full (comp_instances, (GDestroyNotify)comp_instance_free);
 	comp_instances = NULL;
 
-	current_timezone = indicator_datetime_location_get_timezone (tz_file);
+	current_timezone = indicator_datetime_timezone_get_timezone (tz_file);
 
 	// Generate instances for all sources
 	for (s=appointment_sources; s!=NULL; s=s->next) {
@@ -1233,7 +1233,7 @@ on_use_geoclue_changed_cb (GSettings *settings,
     }
   else if (use_geoclue && !geo_location)
     {
-      geo_location = indicator_datetime_location_geoclue_new ();
+      geo_location = indicator_datetime_timezone_geoclue_new ();
       g_signal_connect (geo_location, "notify::timezone",
                         G_CALLBACK(update_location_menu_items), NULL);
     }
@@ -1291,7 +1291,7 @@ main (int argc, char ** argv)
 	dbus = g_object_new(DATETIME_INTERFACE_TYPE, NULL);
 
 	/* Setup timezone watch */
-	tz_file = indicator_datetime_location_file_new (TIMEZONE_FILE);
+	tz_file = indicator_datetime_timezone_file_new (TIMEZONE_FILE);
 	g_signal_connect (tz_file, "notify::timezone", G_CALLBACK(on_timezone_changed), NULL);
 
 	/* Set up the day timer */
