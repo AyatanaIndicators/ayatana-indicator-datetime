@@ -52,7 +52,7 @@ set_timezone (IndicatorDatetimeLocationGeoclue * self, const gchar * timezone)
 {
   priv_t * p = self->priv;
 
-  if (p->timezone != timezone)
+  if (g_strcmp0 (p->timezone, timezone))
     {
       g_free (p->timezone);
       p->timezone = g_strdup (timezone);

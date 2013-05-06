@@ -1256,16 +1256,15 @@ on_use_geoclue_changed_cb (GSettings *settings,
                            gchar     *key       G_GNUC_UNUSED,
                            gpointer   user_data G_GNUC_UNUSED)
 {
-  const gboolean using = geo_location != NULL;
-  const gboolean should_use = g_settings_get_boolean (conf, "show-auto-detected-location");
+  const gboolean use_geoclue = g_settings_get_boolean (conf, "show-auto-detected-location");
 
-  if (using && !should_use)
+  if (geo_location && !use_geoclue)
     {
       g_signal_handlers_disconnect_by_func (geo_location, update_location_menu_items, 0);
       g_clear_object (&geo_location);
       update_location_menu_items ();
     }
-  else if (should_use && !using)
+  else if (use_geoclue && !geo_location)
     {
       geo_location = indicator_datetime_location_geoclue_new ();
       g_signal_connect (geo_location, "notify::timezone",
