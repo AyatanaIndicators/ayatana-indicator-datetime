@@ -62,15 +62,22 @@ reload (IndicatorDatetimeTimezoneFile * self)
 
   if (!g_file_get_contents (p->filename, &new_timezone, NULL, &err))
     {
-      g_warning ("Unable to read timezone file '%s': %s", p->filename, err->message);
+      g_warning ("%s Unable to read timezone file '%s': %s", G_STRLOC, p->filename, err->message);
       g_error_free (err);
     }
   else
     {
       g_strstrip (new_timezone);
-      g_free (p->timezone);
-      p->timezone = new_timezone;
-      indicator_datetime_timezone_notify_timezone (INDICATOR_DATETIME_TIMEZONE(self));
+
+      if (g_strcmp0 (p->timezone, new_timezone))
+        {
+          g_free (p->timezone);
+          p->timezone = g_strdup (new_timezone);
+          g_debug ("%s new timezone set: '%s'", G_STRLOC, p->timezone);
+          indicator_datetime_timezone_notify_timezone (INDICATOR_DATETIME_TIMEZONE(self));
+        }
+
+      g_free (new_timezone);
     }
 }
 
@@ -91,13 +98,13 @@ set_filename (IndicatorDatetimeTimezoneFile * self, const char * filename)
   p->monitor = g_file_monitor_file (p->file, G_FILE_MONITOR_NONE, NULL, &err);
   if (err != NULL)
     {
-      g_warning ("Unable to monitor timezone file '%s': %s", TIMEZONE_FILE, err->message);
+      g_warning ("%s Unable to monitor timezone file '%s': %s", G_STRLOC, TIMEZONE_FILE, err->message);
       g_error_free (err);
     }
   else
     {
       g_signal_connect_swapped (p->monitor, "changed", G_CALLBACK(reload), self);
-      g_debug ("Monitoring timezone file '%s'", p->filename);
+      g_debug ("%s Monitoring timezone file '%s'", G_STRLOC, p->filename);
     }
 
   reload (self);
