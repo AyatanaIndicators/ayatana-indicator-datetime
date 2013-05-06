@@ -13,6 +13,8 @@ indicator_datetime_service_SOURCES = \
 	datetime-service.c \
 	location.c \
 	location.h \
+	location-file.c \
+	location-file.h \
 	location-geoclue.c \
 	location-geoclue.h \
 	utils.c \

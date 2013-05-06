@@ -39,8 +39,8 @@ typedef struct _IndicatorDatetimeLocationGeoclueClass   IndicatorDatetimeLocatio
 GType indicator_datetime_location_geoclue_get_type (void);
 
 /**
- * An implementation of IndicatorDatetimeLocation that gets its user information
- * from org.freedesktop.ConsoleKit and org.freedesktop.Accounts over DBus.
+ * An implementation of IndicatorDatetimeLocation which determines the timezone
+ * from calling a GeoClue service over DBus.
  */
 struct _IndicatorDatetimeLocationGeoclue
 {

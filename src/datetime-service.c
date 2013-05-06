@@ -45,6 +45,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "datetime-interface.h"
 #include "dbus-shared.h"
+#include "location-file.h"
 #include "location-geoclue.h"
 #include "settings-shared.h"
 #include "utils.h"
@@ -91,10 +92,7 @@ static GSettings        * conf = NULL;
 static ESourceRegistry  * source_registry = NULL;
 static GList            * appointment_sources = NULL;
 static IndicatorDatetimeLocation * geo_location = NULL;
-
-
-/* Our 2 important timezones */
-static gchar 			* current_timezone = NULL;
+static IndicatorDatetimeLocation * tz_file = NULL;
 
 struct comp_instance {
         ECalComponent *comp;
@@ -196,11 +194,14 @@ update_location_menu_items (void)
 	}
 
 	/* maybe add current_timezone */
-	if (current_timezone != NULL) {
-		const gboolean visible = g_settings_get_boolean (conf, SETTINGS_SHOW_DETECTED_S);
-		gchar * name = get_current_zone_name (current_timezone);
-		locations = locations_add (locations, current_timezone, name, visible, now);
-		g_free (name);
+	if (tz_file != NULL) {
+		const char * tz = indicator_datetime_location_get_timezone (tz_file);
+		if (tz && *tz) {
+			const gboolean visible = g_settings_get_boolean (conf, SETTINGS_SHOW_DETECTED_S);
+			gchar * name = get_current_zone_name (tz);
+			locations = locations_add (locations, tz, name, visible, now);
+			g_free (name);
+		}
 	}
 
 	/* maybe add the user-specified custom locations */
@@ -248,27 +249,6 @@ update_location_menu_items (void)
 
 	/* if there's at least one item being shown, show the separator too */
 	dbusmenu_menuitem_property_set_bool (locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, have_visible_location);
-}
-
-/* Update the current timezone */
-static void
-update_current_timezone (void) {
-	/* Clear old data */
-	if (current_timezone != NULL) {
-		g_free(current_timezone);
-		current_timezone = NULL;
-	}
-
-	current_timezone = read_timezone ();
-	if (current_timezone == NULL) {
-		return;
-	}
-
-	g_debug("System timezone is: %s", current_timezone);
-
-	update_location_menu_items();
-
-	return;
 }
 
 static void
@@ -687,6 +667,7 @@ update_appointment_menu_items (gpointer user_data __attribute__ ((unused)))
 	const int mday = today->tm_mday;
 	const int mon = today->tm_mon;
 	const int year = today->tm_year;
+	const char * current_timezone;
 
 	int start_month_saved = mon;
 
@@ -722,6 +703,8 @@ update_appointment_menu_items (gpointer user_data __attribute__ ((unused)))
 	// clear any previous comp_instances
 	g_list_free_full (comp_instances, (GDestroyNotify)comp_instance_free);
 	comp_instances = NULL;
+
+	current_timezone = indicator_datetime_location_get_timezone (tz_file);
 
 	// Generate instances for all sources
 	for (s=appointment_sources; s!=NULL; s=s->next) {
@@ -1073,30 +1056,14 @@ on_clock_skew (void)
 	return;
 }
 
-/* Run when the timezone file changes */
 static void
-timezone_changed (GFileMonitor * monitor, GFile * file, GFile * otherfile, GFileMonitorEvent event, gpointer user_data)
+on_timezone_changed (void)
 {
-	update_current_timezone();
-	on_clock_skew();
-	return;
+  update_location_menu_items ();
+
+  on_clock_skew ();
 }
 
-/* Set up monitoring the timezone file */
-static void
-build_timezone (DatetimeInterface * dbus)
-{
-	GFile * timezonefile = g_file_new_for_path(TIMEZONE_FILE);
-	GFileMonitor * monitor = g_file_monitor_file(timezonefile, G_FILE_MONITOR_NONE, NULL, NULL);
-	if (monitor != NULL) {
-		g_signal_connect(G_OBJECT(monitor), "changed", G_CALLBACK(timezone_changed), dbus);
-		g_debug("Monitoring timezone file: '" TIMEZONE_FILE "'");
-	} else {
-		g_warning("Unable to monitor timezone file: '" TIMEZONE_FILE "'");
-	}
-	g_object_unref(timezonefile);
-	return;
-}
 
 /* Source ID for the timer */
 static guint day_timer = 0;
@@ -1315,7 +1282,7 @@ main (int argc, char ** argv)
 	build_menus(root);
 	
 	/* Cache the timezone */
-	update_current_timezone();
+	update_location_menu_items ();
 
 	/* Setup geoclue */
 	on_use_geoclue_changed_cb (conf, NULL, NULL);
@@ -1324,7 +1291,8 @@ main (int argc, char ** argv)
 	dbus = g_object_new(DATETIME_INTERFACE_TYPE, NULL);
 
 	/* Setup timezone watch */
-	build_timezone(dbus);
+	tz_file = indicator_datetime_location_file_new (TIMEZONE_FILE);
+	g_signal_connect (tz_file, "notify::timezone", G_CALLBACK(on_timezone_changed), NULL);
 
 	/* Set up the day timer */
 	day_timer_reset();
@@ -1357,7 +1325,8 @@ main (int argc, char ** argv)
 
 	icaltimezone_free_builtin_timezones();
 
-	g_clear_object (&geo_location);
+	g_object_unref (geo_location);
+	g_object_unref (tz_file);
 
 	return 0;
 }
