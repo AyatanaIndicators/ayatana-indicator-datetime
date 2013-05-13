@@ -7,16 +7,16 @@ Copyright 2010 Canonical Ltd.
 Authors:
     Ted Gould <ted@canonical.com>
 
-This program is free software: you can redistribute it and/or modify it 
-under the terms of the GNU General Public License version 3, as published 
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 3, as published
 by the Free Software Foundation.
 
-This program is distributed in the hope that it will be useful, but 
-WITHOUT ANY WARRANTY; without even the implied warranties of 
-MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR 
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranties of
+MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
 PURPOSE.  See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along 
+You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -27,7 +27,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <glib/gi18n.h>
-#include <gio/gio.h>
 #include <math.h> /* fabs() */
 
 #include <libdbusmenu-gtk/menuitem.h>
@@ -58,34 +57,40 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
  #define SETTINGS_APP_INVOCATION "gnome-control-center datetime"
 #endif
 
-static void update_appointment_menu_items (void);
-static void update_location_menu_items (void);
-static void day_timer_reset (void);
 static gboolean get_greeter_mode (void);
 
 static void quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, gpointer user_data);
 
-static IndicatorService * service = NULL;
-static GMainLoop * mainloop = NULL;
-static DbusmenuServer * server = NULL;
 static DbusmenuMenuitem * root = NULL;
 static DatetimeInterface * dbus = NULL;
 
-/* Global Items */
-static DbusmenuMenuitem * date = NULL;
-static DbusmenuMenuitem * calendar = NULL;
-static DbusmenuMenuitem * settings = NULL;
-static DbusmenuMenuitem * events_separator = NULL;
-static DbusmenuMenuitem * locations_separator = NULL;
-static DbusmenuMenuitem * add_appointment = NULL;
-static DbusmenuMenuitem * appointment_menuitems[MAX_APPOINTMENT_MENUITEMS];
-static GSList           * location_menu_items = NULL;
-static gboolean           updating_appointments = FALSE;
-static time_t             start_time_appointments = (time_t) 0;
-static GSettings        * conf = NULL;
-static IndicatorDatetimeTimezone * geo_location = NULL;
-static IndicatorDatetimeTimezone * tz_file = NULL;
-static IndicatorDatetimePlanner  * planner = NULL;
+typedef struct IndicatorDatetimeService
+{
+  DbusmenuMenuitem * date;
+  DbusmenuMenuitem * calendar;
+  DbusmenuMenuitem * settings;
+  DbusmenuMenuitem * events_separator;
+  DbusmenuMenuitem * locations_separator;
+  DbusmenuMenuitem * add_appointment;
+  DbusmenuMenuitem * appointment_menuitems[MAX_APPOINTMENT_MENUITEMS];
+
+  GSList * location_menu_items;
+  gboolean updating_appointments;
+  time_t start_time_appointments;
+  GSettings * conf;
+
+  IndicatorDatetimeTimezone * geo_location;
+  IndicatorDatetimeTimezone * tz_file;
+  IndicatorDatetimePlanner  * planner;
+
+  guint ecaltimer;
+  guint day_timer;
+}
+IndicatorDatetimeService;
+
+static void update_location_menu_items    (IndicatorDatetimeService * self);
+static void update_appointment_menu_items (IndicatorDatetimeService * self);
+static void day_timer_reset               (IndicatorDatetimeService * self);
 
 /**
  * A temp struct used by update_location_menu_items() for pruning duplicates and sorting.
@@ -154,18 +159,18 @@ locations_add (GSList * locations, const char * zone, const char * name, gboolea
 
 /* Update the timezone entries */
 static void
-update_location_menu_items (void)
+update_location_menu_items (IndicatorDatetimeService * self)
 {
 	/* if we're in greeter mode, don't bother */
-	if (locations_separator == NULL)
+	if (self->locations_separator == NULL)
 		return;
 
 	/* remove the previous locations */
-	while (location_menu_items != NULL) {
-		DbusmenuMenuitem * item = DBUSMENU_MENUITEM(location_menu_items->data);
-		location_menu_items = g_slist_remove(location_menu_items, item);
-		dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(item));
-		g_object_unref(item);
+	while (self->location_menu_items != NULL) {
+		DbusmenuMenuitem * item = DBUSMENU_MENUITEM(self->location_menu_items->data);
+		self->location_menu_items = g_slist_remove (self->location_menu_items, item);
+		dbusmenu_menuitem_child_delete (root, DBUSMENU_MENUITEM(item));
+		g_object_unref (item);
 	}
 
 	/***
@@ -174,13 +179,13 @@ update_location_menu_items (void)
 	***/
 
 	GSList * locations = NULL;
-	const time_t now = time(NULL);
+	const time_t now = time(NULL); /* FIXME: unmockable */
 
 	/* maybe add geo_timezone */
-        if (geo_location != NULL) {
-		const char * geo_timezone = indicator_datetime_timezone_get_timezone (geo_location);
+        if (self->geo_location != NULL) {
+		const char * geo_timezone = indicator_datetime_timezone_get_timezone (self->geo_location);
 		if (geo_timezone && *geo_timezone) {
-			const gboolean visible = g_settings_get_boolean (conf, SETTINGS_SHOW_DETECTED_S);
+			const gboolean visible = g_settings_get_boolean (self->conf, SETTINGS_SHOW_DETECTED_S);
 			gchar * name = get_current_zone_name (geo_timezone);
 			locations = locations_add (locations, geo_timezone, name, visible, now);
 			g_free (name);
@@ -188,10 +193,10 @@ update_location_menu_items (void)
 	}
 
 	/* maybe add current_timezone */
-	if (tz_file != NULL) {
-		const char * tz = indicator_datetime_timezone_get_timezone (tz_file);
+	if (self->tz_file != NULL) {
+		const char * tz = indicator_datetime_timezone_get_timezone (self->tz_file);
 		if (tz && *tz) {
-			const gboolean visible = g_settings_get_boolean (conf, SETTINGS_SHOW_DETECTED_S);
+			const gboolean visible = g_settings_get_boolean (self->conf, SETTINGS_SHOW_DETECTED_S);
 			gchar * name = get_current_zone_name (tz);
 			locations = locations_add (locations, tz, name, visible, now);
 			g_free (name);
@@ -199,11 +204,11 @@ update_location_menu_items (void)
 	}
 
 	/* maybe add the user-specified custom locations */
-	gchar ** user_locations = g_settings_get_strv (conf, SETTINGS_LOCATIONS_S);
-	if (user_locations != NULL) { 
+	gchar ** user_locations = g_settings_get_strv (self->conf, SETTINGS_LOCATIONS_S);
+	if (user_locations != NULL) {
 		guint i;
 		const guint location_count = g_strv_length (user_locations);
-		const gboolean visible = g_settings_get_boolean (conf, SETTINGS_SHOW_LOCATIONS_S);
+		const gboolean visible = g_settings_get_boolean (self->conf, SETTINGS_SHOW_LOCATIONS_S);
 		g_debug ("%s Found %u user-specified locations", G_STRLOC, location_count);
 		for (i=0; i<location_count; i++) {
 			gchar * zone;
@@ -218,7 +223,7 @@ update_location_menu_items (void)
 	}
 
 	/* finally create menuitems for each location */
-	gint offset = dbusmenu_menuitem_get_position (locations_separator, root)+1;
+	gint offset = dbusmenu_menuitem_get_position (self->locations_separator, root)+1;
 	GSList * l;
 	gboolean have_visible_location = FALSE;
 	for (l=locations; l!=NULL; l=l->next) {
@@ -233,7 +238,7 @@ update_location_menu_items (void)
 		dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_VISIBLE, loc->visible);
 		dbusmenu_menuitem_child_add_position (root, item, offset++);
 		g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(quick_set_tz), NULL);
-		location_menu_items = g_slist_append (location_menu_items, item);
+		self->location_menu_items = g_slist_append (self->location_menu_items, item);
 		if (loc->visible)
 			have_visible_location = TRUE;
 		time_location_free (loc);
@@ -242,7 +247,7 @@ update_location_menu_items (void)
 	locations = NULL;
 
 	/* if there's at least one item being shown, show the separator too */
-	dbusmenu_menuitem_property_set_bool (locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, have_visible_location);
+	dbusmenu_menuitem_property_set_bool (self->locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, have_visible_location);
 }
 
 static void
@@ -308,29 +313,27 @@ quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp G_GNUC_UNUSED, gpoint
 
 /* Updates the label in the date menuitem */
 static gboolean
-update_datetime (gpointer uused G_GNUC_UNUSED)
+update_datetime (gpointer gself)
 {
 	GDateTime *datetime;
-	gchar *utf8;
+	gchar * utf8;
+	IndicatorDatetimeService * self = gself;
 
 	g_debug("Updating Date/Time");
 
-	datetime = g_date_time_new_now_local ();
+	datetime = g_date_time_new_now_local (); /* FIXME: unmockable */
 	if (datetime == NULL) {
 		g_warning("Error getting local time");
-		dbusmenu_menuitem_property_set(date, DBUSMENU_MENUITEM_PROP_LABEL, _("Error getting time"));
-		g_date_time_unref (datetime);
+		dbusmenu_menuitem_property_set(self->date, DBUSMENU_MENUITEM_PROP_LABEL, _("Error getting time"));
 		return FALSE;
 	}
 
 	/* eranslators: strftime(3) style date format on top of the menu when you click on the clock */
         utf8 = g_date_time_format (datetime, _("%A, %e %B %Y"));
-
-	dbusmenu_menuitem_property_set(date, DBUSMENU_MENUITEM_PROP_LABEL, utf8);
-
-	g_date_time_unref (datetime);
+	dbusmenu_menuitem_property_set (self->date, DBUSMENU_MENUITEM_PROP_LABEL, utf8);
 	g_free(utf8);
 
+	g_date_time_unref (datetime);
 	return G_SOURCE_REMOVE;
 }
 
@@ -357,147 +360,166 @@ activate_cb (DbusmenuMenuitem  * menuitem  G_GNUC_UNUSED,
 }
 
 static gboolean
-update_appointment_menu_items_idle (gpointer unused G_GNUC_UNUSED)
+update_appointment_menu_items_idle (gpointer gself)
 {
-  update_appointment_menu_items ();
+  update_appointment_menu_items (gself);
+
   return G_SOURCE_REMOVE;
 }
 
 static void
-update_appointment_menu_items_soon (void)
+update_appointment_menu_items_soon (IndicatorDatetimeService * self)
 {
-  g_idle_add (update_appointment_menu_items_idle, NULL);
+  g_idle_add (update_appointment_menu_items_idle, self);
 }
 
 static void
-hide_all_appointments (void)
+hide_all_appointments (IndicatorDatetimeService * self)
 {
-	int i;
+  int i;
 
-	for (i=0; i<MAX_APPOINTMENT_MENUITEMS; i++) {
-		if (appointment_menuitems[i]) {
-			dbusmenu_menuitem_property_set_bool(appointment_menuitems[i], DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-			dbusmenu_menuitem_property_set_bool(appointment_menuitems[i], DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-		}
-	}
+  for (i=0; i<MAX_APPOINTMENT_MENUITEMS; i++)
+    {
+      if (self->appointment_menuitems[i])
+        {
+          dbusmenu_menuitem_property_set_bool (self->appointment_menuitems[i], DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+          dbusmenu_menuitem_property_set_bool (self->appointment_menuitems[i], DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+        }
+    }
 }
 
 static gboolean
 month_changed_cb (DbusmenuMenuitem * menuitem,
                   gchar            * name G_GNUC_UNUSED,
                   GVariant         * variant,
-                  guint              timestamp G_GNUC_UNUSED)
+                  guint              timestamp G_GNUC_UNUSED,
+                  gpointer           gself)
 {
-	start_time_appointments = (time_t)g_variant_get_uint32(variant);
-	
-	g_debug("Received month changed with timestamp: %d -> %s",(int)start_time_appointments, ctime(&start_time_appointments));	
-	/* By default one of the first things we do is
-	   clear the marks as we don't know the correct
-	   ones yet and we don't want to confuse the
-	   user. */
-	dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
+  IndicatorDatetimeService * self = gself;
 
-	update_appointment_menu_items_soon ();
-	return TRUE;
+  self->start_time_appointments = (time_t)g_variant_get_uint32(variant);
+	
+  g_debug("Received month changed with timestamp: %d -> %s",(int)self->start_time_appointments, ctime(&self->start_time_appointments));
+
+  /* By default, one of the first things we do is
+     clear the marks as we don't know the correct
+     ones yet and we don't want to confuse the user. */
+
+  dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
+
+  update_appointment_menu_items_soon (self);
+  return TRUE;
 }
 
 static gboolean
 day_selected_cb (DbusmenuMenuitem * menuitem,
                  gchar            * name       G_GNUC_UNUSED,
                  GVariant         * variant,
-                 guint              timestamp  G_GNUC_UNUSED)
+                 guint              timestamp  G_GNUC_UNUSED,
+                 gpointer           gself)
 {
-	time_t new_time = (time_t)g_variant_get_uint32(variant);
-	g_warn_if_fail(new_time != 0);
+  time_t new_time;
+  IndicatorDatetimeService * self = gself;
 
-	if (start_time_appointments == 0 || new_time == 0) {
-		/* If we've got nothing, assume everyhting is going to
-		   get repopulated, let's start with a clean slate */
-		dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
-	} else {
-		/* No check to see if we changed months.  If we did we'll
-		   want to clear the marks.  Otherwise we're cool keeping
-		   them around. */
-		struct tm start_tm;
-		struct tm new_tm;
+  new_time = (time_t)g_variant_get_uint32(variant);
 
-		localtime_r(&start_time_appointments, &start_tm);
-		localtime_r(&new_time, &new_tm);
+  if (self->start_time_appointments == 0 || new_time == 0)
+    {
+      /* If we've got nothing, assume everyhting is going to
+         get repopulated, let's start with a clean slate */
+      dbusmenu_menuitem_property_remove (menuitem, CALENDAR_MENUITEM_PROP_MARKS);
+    }
+  else
+    {
+      /* No check to see if we changed months.  If we did we'll
+         want to clear the marks.  Otherwise we're cool keeping
+         them around. */
+      struct tm start_tm;
+      struct tm new_tm;
 
-		if (start_tm.tm_mon != new_tm.tm_mon) {
-			dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
-		}
-	}
+      localtime_r (&self->start_time_appointments, &start_tm);
+      localtime_r (&new_time, &new_tm);
 
-	start_time_appointments = new_time;
+      if (start_tm.tm_mon != new_tm.tm_mon)
+        dbusmenu_menuitem_property_remove(menuitem, CALENDAR_MENUITEM_PROP_MARKS);
+    }
 
-	g_debug("Received day-selected with timestamp: %d -> %s",(int)start_time_appointments, ctime(&start_time_appointments));	
-	update_appointment_menu_items_soon ();
+  self->start_time_appointments = new_time;
 
-	return TRUE;
+  g_debug ("Received day-selected with timestamp: %d -> %s",(int)self->start_time_appointments, ctime(&self->start_time_appointments));	
+  update_appointment_menu_items_soon (self);
+
+  return TRUE;
 }
 
 static gboolean
 day_selected_double_click_cb (DbusmenuMenuitem * menuitem  G_GNUC_UNUSED,
                               gchar            * name      G_GNUC_UNUSED,
                               GVariant         * variant,
-                              guint              timestamp G_GNUC_UNUSED)
+                              guint              timestamp G_GNUC_UNUSED,
+                              gpointer           gself)
 {
-  const time_t evotime = (time_t) g_variant_get_uint32 (variant);
-  GDateTime * dt = g_date_time_new_from_unix_utc (evotime);
-  indicator_datetime_planner_activate_time (planner, dt);
+  time_t evotime;
+  GDateTime * dt;
+  IndicatorDatetimeService * self = gself;
+
+  evotime = (time_t) g_variant_get_uint32 (variant);
+  dt = g_date_time_new_from_unix_utc (evotime);
+  indicator_datetime_planner_activate_time (self->planner, dt);
   g_date_time_unref (dt);
+
   return TRUE;
 }
 
-static guint ecaltimer = 0;
 
 static gboolean
-update_appointment_menu_items_timerfunc (gpointer user_data G_GNUC_UNUSED)
+update_appointment_menu_items_timerfunc (gpointer self)
 {
-  update_appointment_menu_items ();
+  update_appointment_menu_items (self);
   return G_SOURCE_CONTINUE;
 }
 
 static void
-start_ecal_timer(void)
+start_ecal_timer (IndicatorDatetimeService * self)
 {
-  if (ecaltimer != 0)
-    ecaltimer = g_timeout_add_seconds (60*5, update_appointment_menu_items_timerfunc, NULL);
+  if (self->ecaltimer != 0)
+    self->ecaltimer = g_timeout_add_seconds (60*5, update_appointment_menu_items_timerfunc, self);
 }
 
 static void
-stop_ecal_timer(void)
+stop_ecal_timer (IndicatorDatetimeService * self)
 {
-  if (ecaltimer != 0)
+  if (self->ecaltimer != 0)
     {
-      g_source_remove (ecaltimer);
-      ecaltimer = 0;
+      g_source_remove (self->ecaltimer);
+      self->ecaltimer = 0;
     }
 }
+
 static gboolean
-idle_start_ecal_timer (gpointer unused G_GNUC_UNUSED)
+idle_start_ecal_timer (gpointer gself)
 {
-  start_ecal_timer();
+  start_ecal_timer (gself);
+
   return G_SOURCE_REMOVE;
 }
 
 static void
-show_events_changed (void)
+show_events_changed (IndicatorDatetimeService * self)
 {
-  const gboolean b = g_settings_get_boolean(conf, SETTINGS_SHOW_EVENTS_S);
+  const gboolean b = g_settings_get_boolean (self->conf, SETTINGS_SHOW_EVENTS_S);
 
-  dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, b);
-  dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, b);
+  dbusmenu_menuitem_property_set_bool (self->add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, b);
+  dbusmenu_menuitem_property_set_bool (self->events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, b);
 
   if (b)
     {
-      start_ecal_timer();
+      start_ecal_timer (self);
     }
   else
     {
-      hide_all_appointments ();
-      stop_ecal_timer();
+      hide_all_appointments (self);
+      stop_ecal_timer (self);
     }
 }
 
@@ -505,23 +527,26 @@ show_events_changed (void)
 /* Looks for the calendar application and enables the item if
    we have one, starts ecal timer if events are turned on */
 static gboolean
-check_for_calendar (gpointer unused G_GNUC_UNUSED)
+check_for_calendar (gpointer gself)
 {
-	g_return_val_if_fail (calendar != NULL, FALSE);
+	gboolean b;
+	IndicatorDatetimeService * self = gself;
+
+	g_return_val_if_fail (self->calendar != NULL, FALSE);
 	
-	dbusmenu_menuitem_property_set_bool(date, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+	dbusmenu_menuitem_property_set_bool(self->date, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 	
-	if (!get_greeter_mode () && indicator_datetime_planner_is_configured(planner)) {
+	if (!get_greeter_mode () && indicator_datetime_planner_is_configured(self->planner)) {
 
 		int i;
 		int pos = 2;
 		
-		g_signal_connect (G_OBJECT(date), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
+		g_signal_connect (G_OBJECT(self->date), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
 		                  G_CALLBACK (activate_cb), "evolution -c calendar");
 		
-		events_separator = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set(events_separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
-		dbusmenu_menuitem_child_add_position(root, events_separator, pos++);
+		self->events_separator = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set(self->events_separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
+		dbusmenu_menuitem_child_add_position(root, self->events_separator, pos++);
 
 		for (i=0; i<MAX_APPOINTMENT_MENUITEMS; i++)
 		{
@@ -529,45 +554,41 @@ check_for_calendar (gpointer unused G_GNUC_UNUSED)
 			dbusmenu_menuitem_property_set (item, DBUSMENU_MENUITEM_PROP_TYPE, APPOINTMENT_MENUITEM_TYPE);
 			dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
 			dbusmenu_menuitem_property_set_bool (item, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-			appointment_menuitems[i] = item;
+			self->appointment_menuitems[i] = item;
 			dbusmenu_menuitem_child_add_position(root, item, pos++);
 		}
 
-		add_appointment = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set (add_appointment, DBUSMENU_MENUITEM_PROP_LABEL, _("Add Event…"));
-		dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
-		g_signal_connect(G_OBJECT(add_appointment), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "evolution -c calendar");
-		dbusmenu_menuitem_child_add_position (root, add_appointment, pos++);
+		self->add_appointment = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set (self->add_appointment, DBUSMENU_MENUITEM_PROP_LABEL, _("Add Event…"));
+		dbusmenu_menuitem_property_set_bool(self->add_appointment, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+		g_signal_connect(G_OBJECT(self->add_appointment), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), "evolution -c calendar");
+		dbusmenu_menuitem_child_add_position (root, self->add_appointment, pos++);
 
-		if (g_settings_get_boolean(conf, SETTINGS_SHOW_EVENTS_S)) {
-			dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
-			dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
-			g_idle_add((GSourceFunc)idle_start_ecal_timer, NULL);
+		if (g_settings_get_boolean(self->conf, SETTINGS_SHOW_EVENTS_S)) {
+			dbusmenu_menuitem_property_set_bool(self->add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+			dbusmenu_menuitem_property_set_bool(self->events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
+			g_idle_add((GSourceFunc)idle_start_ecal_timer, self);
 		} else {
-			dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-			dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-			stop_ecal_timer();
+			dbusmenu_menuitem_property_set_bool(self->add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+			dbusmenu_menuitem_property_set_bool(self->events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+			stop_ecal_timer (self);
 		}
 		
 		// Connect to calendar events
-		g_signal_connect(calendar, "event::month-changed", G_CALLBACK(month_changed_cb), NULL);
-		g_signal_connect(calendar, "event::day-selected", G_CALLBACK(day_selected_cb), NULL);
-		g_signal_connect(calendar, "event::day-selected-double-click", G_CALLBACK(day_selected_double_click_cb), NULL);
+		g_signal_connect(self->calendar, "event::month-changed", G_CALLBACK(month_changed_cb), self);
+		g_signal_connect(self->calendar, "event::day-selected", G_CALLBACK(day_selected_cb), self);
+		g_signal_connect(self->calendar, "event::day-selected-double-click", G_CALLBACK(day_selected_double_click_cb), self);
 	} else {
 		g_debug("Unable to find calendar app.");
-		if (add_appointment != NULL)
-			dbusmenu_menuitem_property_set_bool(add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-		if (events_separator != NULL)
-			dbusmenu_menuitem_property_set_bool(events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		if (self->add_appointment != NULL)
+			dbusmenu_menuitem_property_set_bool(self->add_appointment, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		if (self->events_separator != NULL)
+			dbusmenu_menuitem_property_set_bool(self->events_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
 	}
 	
-	if (g_settings_get_boolean(conf, SETTINGS_SHOW_CALENDAR_S)) {
-		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
-		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, TRUE);
-	} else {
-		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-	}
+	b = g_settings_get_boolean (self->conf, SETTINGS_SHOW_CALENDAR_S);
+	dbusmenu_menuitem_property_set_bool(self->calendar, DBUSMENU_MENUITEM_PROP_ENABLED, b);
+	dbusmenu_menuitem_property_set_bool(self->calendar, DBUSMENU_MENUITEM_PROP_VISIBLE, b);
 
 	return FALSE;
 }
@@ -592,7 +613,7 @@ create_color_icon_pixbuf (const char * color_spec)
       cairo_t * cr;
       GdkRGBA rgba;
 
-      surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height); 
+      surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
       cr = cairo_create (surface);
 
       if (gdk_rgba_parse (&rgba, color_spec))
@@ -615,16 +636,15 @@ create_color_icon_pixbuf (const char * color_spec)
 
 
 /**
- * Populate the menu with todays, next MAX_APPOINTMENT_MENUITEMS appointments. 
+ * Populate the menu with todays, next MAX_APPOINTMENT_MENUITEMS appointments.
  * we should hook into the ABOUT TO SHOW signal and use that to update the appointments.
  * Experience has shown that caldav's and webcals can be slow to load from eds
- * this is a problem mainly on the EDS side of things, not ours. 
+ * this is a problem mainly on the EDS side of things, not ours.
  */
 static void
-update_appointment_menu_items (void)
+update_appointment_menu_items (IndicatorDatetimeService * self)
 {
   char * str;
-  int64_t t;
   GSList * l;
   GSList * appointments;
   gint i;
@@ -640,29 +660,29 @@ update_appointment_menu_items (void)
 
   g_debug ("Update appointments called");
 
-  if (calendar == NULL)
+  if (self->calendar == NULL)
     return;
-  if (!g_settings_get_boolean(conf, SETTINGS_SHOW_EVENTS_S))
+  if (!g_settings_get_boolean (self->conf, SETTINGS_SHOW_EVENTS_S))
     return;
-  if (updating_appointments)
+  if (self->updating_appointments)
     return;
 
-  updating_appointments = TRUE;
+  self->updating_appointments = TRUE;
 	
   g_variant_builder_init (&markeddays, G_VARIANT_TYPE ("ai"));
 
-  t = start_time_appointments;
-  if (!t)
-    t = time (NULL); /* FIXME: not mockable */
-  begin = g_date_time_new_from_unix_local (t);
+  if (self->start_time_appointments != 0)
+    begin = g_date_time_new_from_unix_local (self->start_time_appointments);
+  else
+    begin = g_date_time_new_now_local (); /* FIXME: unmockable */
   end = g_date_time_add_months (begin, 1);
-  indicator_datetime_planner_set_timezone (planner, indicator_datetime_timezone_get_timezone (tz_file));
-  appointments = indicator_datetime_planner_get_appointments (planner, begin, end);
+  indicator_datetime_planner_set_timezone (self->planner, indicator_datetime_timezone_get_timezone (self->tz_file));
+  appointments = indicator_datetime_planner_get_appointments (self->planner, begin, end);
 
-  hide_all_appointments ();	
+  hide_all_appointments (self);
 
   /* decide whether to use 12hr or 24hr format */
-  str = g_settings_get_string (conf, SETTINGS_TIME_FORMAT_S);
+  str = g_settings_get_string (self->conf, SETTINGS_TIME_FORMAT_S);
   if (g_strcmp0 (str, "12-hour") == 0)
     apt_output = SETTINGS_TIME_12_HOUR;
   else if (g_strcmp0 (str, "24-hour") == 0)
@@ -690,7 +710,7 @@ update_appointment_menu_items (void)
       if (i >= MAX_APPOINTMENT_MENUITEMS)
         continue;
 
-      item = appointment_menuitems[i];
+      item = self->appointment_menuitems[i];
       i++;
 
       /* remove the icon as we might not replace it on error */
@@ -765,11 +785,11 @@ update_appointment_menu_items (void)
 
 	
   marks = g_variant_builder_end (&markeddays);
-  dbusmenu_menuitem_property_set_variant (calendar, CALENDAR_MENUITEM_PROP_MARKS, marks);
+  dbusmenu_menuitem_property_set_variant (self->calendar, CALENDAR_MENUITEM_PROP_MARKS, marks);
 
   g_slist_free_full (appointments, (GDestroyNotify)indicator_datetime_appt_free);
 	
-  updating_appointments = FALSE;
+  self->updating_appointments = FALSE;
   g_date_time_unref (end);
   g_date_time_unref (begin);
 }
@@ -777,156 +797,168 @@ update_appointment_menu_items (void)
 /* Looks for the time and date admin application and enables the
    item we have one */
 static gboolean
-check_for_timeadmin (gpointer unused G_GNUC_UNUSED)
+check_for_timeadmin (gpointer gself)
 {
-	g_return_val_if_fail (settings != NULL, FALSE);
+  gchar * timeadmin;
+  IndicatorDatetimeService * self = gself;
 
-	gchar * timeadmin = g_find_program_in_path("gnome-control-center");
-	if (timeadmin != NULL) {
-		g_debug("Found the gnome-control-center application: %s", timeadmin);
-		dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
-		g_free(timeadmin);
-	} else {
-		g_debug("Unable to find gnome-control-center app.");
-		dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-	}
+  g_return_val_if_fail (self->settings != NULL, FALSE);
 
-	return G_SOURCE_REMOVE;
+  timeadmin = g_find_program_in_path ("gnome-control-center");
+  if (timeadmin != NULL)
+    {
+      g_debug ("Found the gnome-control-center application: %s", timeadmin);
+      dbusmenu_menuitem_property_set_bool (self->settings, DBUSMENU_MENUITEM_PROP_ENABLED, TRUE);
+      g_free(timeadmin);
+    }
+  else
+    {
+      g_debug ("Unable to find gnome-control-center app.");
+      dbusmenu_menuitem_property_set_bool (self->settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+    }
+
+  return G_SOURCE_REMOVE;
 }
 
 /* Does the work to build the default menu, really calls out
    to other functions but this is the core to clean up the
    main function. */
 static void
-build_menus (DbusmenuMenuitem * root)
+build_menus (IndicatorDatetimeService * self, DbusmenuMenuitem * root)
 {
 	g_debug("Building Menus.");
-	if (date == NULL) {
-		date = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set     (date, DBUSMENU_MENUITEM_PROP_LABEL, _("No date yet…"));
-		dbusmenu_menuitem_property_set_bool(date, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-		dbusmenu_menuitem_child_append(root, date);
+	if (self->date == NULL) {
+		self->date = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set     (self->date, DBUSMENU_MENUITEM_PROP_LABEL, _("No date yet…"));
+		dbusmenu_menuitem_property_set_bool(self->date, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+		dbusmenu_menuitem_child_append(root, self->date);
 
-		g_idle_add(update_datetime, NULL);
+		g_idle_add(update_datetime, self);
 	}
 
-	if (calendar == NULL) {
-		calendar = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set (calendar, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CALENDAR_MENUITEM_TYPE);
+	if (self->calendar == NULL) {
+		self->calendar = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set (self->calendar, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CALENDAR_MENUITEM_TYPE);
 		/* insensitive until we check for available apps */
-		dbusmenu_menuitem_property_set_bool(calendar, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-		g_signal_connect (G_OBJECT(calendar), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
+		dbusmenu_menuitem_property_set_bool(self->calendar, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+		g_signal_connect (G_OBJECT(self->calendar), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
 						  G_CALLBACK (activate_cb), "evolution -c calendar");
-		dbusmenu_menuitem_child_append(root, calendar);
+		dbusmenu_menuitem_child_append(root, self->calendar);
 
-		g_idle_add(check_for_calendar, NULL);
+		g_idle_add(check_for_calendar, self);
 	}
 
 	if (!get_greeter_mode ()) {
-		locations_separator = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set(locations_separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
-		dbusmenu_menuitem_property_set_bool (locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
-		dbusmenu_menuitem_child_append(root, locations_separator);
+		self->locations_separator = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set(self->locations_separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
+		dbusmenu_menuitem_property_set_bool (self->locations_separator, DBUSMENU_MENUITEM_PROP_VISIBLE, FALSE);
+		dbusmenu_menuitem_child_append(root, self->locations_separator);
 
-		update_location_menu_items();
+		update_location_menu_items (self);
 	
-		g_signal_connect (conf, "changed::" SETTINGS_SHOW_EVENTS_S, G_CALLBACK (show_events_changed), NULL);
-		g_signal_connect_swapped (conf, "changed::" SETTINGS_SHOW_LOCATIONS_S, G_CALLBACK (update_location_menu_items), NULL);
-		g_signal_connect_swapped (conf, "changed::" SETTINGS_SHOW_DETECTED_S, G_CALLBACK (update_location_menu_items), NULL);
-		g_signal_connect_swapped (conf, "changed::" SETTINGS_LOCATIONS_S, G_CALLBACK (update_location_menu_items), NULL);
-		g_signal_connect_swapped (conf, "changed::" SETTINGS_TIME_FORMAT_S, G_CALLBACK (update_appointment_menu_items), NULL);
+		g_signal_connect (self->conf, "changed::" SETTINGS_SHOW_EVENTS_S, G_CALLBACK (show_events_changed), self);
+		g_signal_connect_swapped (self->conf, "changed::" SETTINGS_SHOW_LOCATIONS_S, G_CALLBACK (update_location_menu_items), self);
+		g_signal_connect_swapped (self->conf, "changed::" SETTINGS_SHOW_DETECTED_S,  G_CALLBACK (update_location_menu_items), self);
+		g_signal_connect_swapped (self->conf, "changed::" SETTINGS_LOCATIONS_S,      G_CALLBACK (update_location_menu_items), self);
+		g_signal_connect_swapped (self->conf, "changed::" SETTINGS_TIME_FORMAT_S,    G_CALLBACK (update_appointment_menu_items), self);
 
 		DbusmenuMenuitem * separator = dbusmenu_menuitem_new();
 		dbusmenu_menuitem_property_set(separator, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
 		dbusmenu_menuitem_child_append(root, separator);
 
-		settings = dbusmenu_menuitem_new();
-		dbusmenu_menuitem_property_set     (settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Time & Date Settings…"));
+		self->settings = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set     (self->settings, DBUSMENU_MENUITEM_PROP_LABEL, _("Time & Date Settings…"));
 		/* insensitive until we check for available apps */
-		dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
-		g_signal_connect(G_OBJECT(settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), SETTINGS_APP_INVOCATION);
-		dbusmenu_menuitem_child_append(root, settings);
-		g_idle_add(check_for_timeadmin, NULL);
-		update_appointment_menu_items_soon ();
+		dbusmenu_menuitem_property_set_bool(self->settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
+		g_signal_connect(G_OBJECT(self->settings), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED, G_CALLBACK(activate_cb), SETTINGS_APP_INVOCATION);
+		dbusmenu_menuitem_child_append(root, self->settings);
+		g_idle_add(check_for_timeadmin, self);
+		update_appointment_menu_items_soon (self);
 	}
 
 	return;
 }
 
 static void
-on_clock_skew (void)
+on_clock_skew (gpointer self)
 {
-	/* tell the indicators to refresh */
-	if (IS_DATETIME_INTERFACE (dbus))
-		datetime_interface_update (DATETIME_INTERFACE(dbus));
+  /* tell the indicators to refresh */
+  if (IS_DATETIME_INTERFACE (dbus))
+    datetime_interface_update (DATETIME_INTERFACE(dbus));
 
-	/* update our day label */
-	update_datetime (NULL);
-	day_timer_reset();
-
-	return;
+  /* update our day label */
+  update_datetime (self);
+  day_timer_reset (self);
 }
 
 static void
-on_timezone_changed (void)
+on_timezone_changed (gpointer self)
 {
-  update_location_menu_items ();
+  update_location_menu_items (self);
 
-  on_clock_skew ();
+  on_clock_skew (self);
 }
-
-
-/* Source ID for the timer */
-static guint day_timer = 0;
 
 /* Execute at a given time, update and setup a new
    timer to go again.  */
 static gboolean
-day_timer_func (gpointer unused G_GNUC_UNUSED)
+day_timer_func (gpointer self)
 {
-	day_timer = 0;
-	/* Reset up each time to reduce error */
-	day_timer_reset();
-	update_datetime(NULL);
-	return G_SOURCE_REMOVE;
+  day_timer_reset (self);
+  update_datetime (self);
+
+  return G_SOURCE_REMOVE;
 }
 
 /* Sets up the time to launch the timer to update the
    date in the datetime entry */
 static void
-day_timer_reset (void)
+day_timer_reset (IndicatorDatetimeService * self)
 {
-	if (day_timer != 0) {
-		g_source_remove(day_timer);
-		day_timer = 0;
-	}
+  GDateTime * now;
+  GDateTime * tomorrow;
+  GDateTime * new_day;
+  guint seconds_until_tomorrow;
 
-	time_t t;
-	t = time(NULL);
-	struct tm * ltime = localtime(&t);
+  if (self->day_timer != 0)
+    {
+      g_source_remove (self->day_timer);
+      self->day_timer = 0;
+    }
 
-	day_timer = g_timeout_add_seconds(((23 - ltime->tm_hour) * 60 * 60) +
-	                                  ((59 - ltime->tm_min) * 60) +
-	                                  ((60 - ltime->tm_sec)) + 60 /* one minute past */,
-	                                  day_timer_func, NULL);
+  now = g_date_time_new_now_local ();
+  tomorrow = g_date_time_add_days (now, 1);
+  new_day = g_date_time_new_local (g_date_time_get_year (tomorrow),
+                                   g_date_time_get_month (tomorrow),
+                                   g_date_time_get_day_of_month (tomorrow),
+                                   0, 0, 0);
+  seconds_until_tomorrow = (guint)(g_date_time_difference (new_day, now) / G_TIME_SPAN_SECOND);
+g_message ("seconds until tomorrow is %u", seconds_until_tomorrow);
 
-	return;
+  self->day_timer = g_timeout_add_seconds (seconds_until_tomorrow + 15,
+                                           day_timer_func,
+                                           self);
+
+  g_date_time_unref (new_day);
+  g_date_time_unref (tomorrow);
+  g_date_time_unref (now);
 }
 
 static gboolean
-skew_check_timer_func (gpointer unused G_GNUC_UNUSED)
+skew_check_timer_func (gpointer self)
 {
-	static time_t prev_time = 0;
-	const time_t cur_time = time (NULL); /* FIXME: not mockable */
-	const double diff_sec = fabs (difftime (cur_time, prev_time));
+  static time_t prev_time = 0;
+  const time_t cur_time = time (NULL); /* FIXME: unmockable */
+  const double diff_sec = fabs (difftime (cur_time, prev_time));
 
-	if (prev_time && (diff_sec > SKEW_DIFF_THRESHOLD_SEC)) {
-		g_debug (G_STRLOC" clock skew detected (%.0f seconds)", diff_sec);
-		on_clock_skew ();
-	}
+  if (prev_time && (diff_sec > SKEW_DIFF_THRESHOLD_SEC))
+    {
+      g_debug (G_STRLOC" clock skew detected (%.0f seconds)", diff_sec);
+      on_clock_skew (self);
+    }
 
-	prev_time = cur_time;
-	return G_SOURCE_CONTINUE;
+  prev_time = cur_time;
+  return G_SOURCE_CONTINUE;
 }
 
 static void
@@ -934,24 +966,28 @@ session_active_change_cb (GDBusProxy * proxy        G_GNUC_UNUSED,
                           gchar      * sender_name  G_GNUC_UNUSED,
                           gchar      * signal_name,
                           GVariant   * parameters,
-                          gpointer     user_data    G_GNUC_UNUSED)
+                          gpointer     gself)
 {
-	// Suspending / returning from suspend (true / false)
-	if (g_strcmp0(signal_name, "PrepareForSleep") == 0) {
-		gboolean sleeping = FALSE;
-		g_variant_get (parameters, "(b)", &sleeping);
-		if (!sleeping) {
-			g_debug ("System has been resumed; adjusting clock");
-			on_clock_skew ();
-		}
-	}
+  IndicatorDatetimeService * self = gself;
+
+  /* suspending / returning from suspend (true / false) */
+  if (g_strcmp0(signal_name, "PrepareForSleep") == 0)
+    {
+      gboolean sleeping = FALSE;
+      g_variant_get (parameters, "(b)", &sleeping);
+      if (!sleeping)
+        {
+          g_debug ("System has been resumed; adjusting clock");
+          on_clock_skew (self);
+        }
+    }
 }
 
 /* for hooking into console kit signal on wake from suspend */
 static void
 system_proxy_cb (GObject       * object G_GNUC_UNUSED,
                  GAsyncResult  * res,
-                 gpointer        user_data)
+                 gpointer        gself)
 {
 	GError * error = NULL;
 	
@@ -963,7 +999,7 @@ system_proxy_cb (GObject       * object G_GNUC_UNUSED,
 		return;
 	}
 
-	g_signal_connect(proxy, "g-signal", G_CALLBACK(session_active_change_cb), user_data);
+	g_signal_connect(proxy, "g-signal", G_CALLBACK(session_active_change_cb), gself);
 }
 
 /****
@@ -980,33 +1016,33 @@ get_greeter_mode (void)
 
 /* Repsonds to the service object saying it's time to shutdown.
    It stops the mainloop. */
-static void 
+static void
 service_shutdown (IndicatorService * service    G_GNUC_UNUSED,
-                  gpointer           user_data  G_GNUC_UNUSED)
+                  gpointer           gmainloop)
 {
-	g_warning("Shutting down service!");
-	g_main_loop_quit(mainloop);
-	return;
+  g_warning ("Shutting down service!");
+  g_main_loop_quit (gmainloop);
 }
 
 static void
-on_use_geoclue_changed_cb (GSettings *settings,
-                           gchar     *key       G_GNUC_UNUSED,
-                           gpointer   user_data G_GNUC_UNUSED)
+on_use_geoclue_changed_cb (GSettings * settings,
+                           gchar     * key       G_GNUC_UNUSED,
+                           gpointer    gself)
 {
+  IndicatorDatetimeService * self = gself;
   const gboolean use_geoclue = g_settings_get_boolean (settings, "show-auto-detected-location");
 
-  if (geo_location && !use_geoclue)
+  if (self->geo_location && !use_geoclue)
     {
-      g_signal_handlers_disconnect_by_func (geo_location, update_location_menu_items, 0);
-      g_clear_object (&geo_location);
-      update_location_menu_items ();
+      g_signal_handlers_disconnect_by_func (self->geo_location, update_location_menu_items, self);
+      g_clear_object (&self->geo_location);
+      update_location_menu_items (self);
     }
-  else if (use_geoclue && !geo_location)
+  else if (use_geoclue && !self->geo_location)
     {
-      geo_location = indicator_datetime_timezone_geoclue_new ();
-      g_signal_connect (geo_location, "notify::timezone",
-                        G_CALLBACK(update_location_menu_items), NULL);
+      self->geo_location = indicator_datetime_timezone_geoclue_new ();
+      g_signal_connect_swapped (self->geo_location, "notify::timezone",
+                                G_CALLBACK(update_location_menu_items), self);
     }
 }
 
@@ -1014,79 +1050,89 @@ on_use_geoclue_changed_cb (GSettings *settings,
 int
 main (int argc, char ** argv)
 {
-	gtk_init (&argc, &argv);
+  GMainLoop * mainloop;
+  IndicatorService * service;
+  DbusmenuServer * server;
+  struct IndicatorDatetimeService self;
 
-	/* Acknowledging the service init and setting up the interface */
-	service = indicator_service_new_version(SERVICE_NAME, SERVICE_VERSION);
-	g_signal_connect(service, INDICATOR_SERVICE_SIGNAL_SHUTDOWN, G_CALLBACK(service_shutdown), NULL);
+  memset (&self, 0, sizeof(struct IndicatorDatetimeService));
 
-	/* Setting up i18n and gettext.  Apparently, we need
-	   all of these. */
-	setlocale (LC_ALL, "");
-	bindtextdomain (GETTEXT_PACKAGE, GNOMELOCALEDIR);
-	textdomain (GETTEXT_PACKAGE);
+  gtk_init (&argc, &argv);
+  mainloop = g_main_loop_new (NULL, FALSE);
 
-	/* Set up GSettings */
-	conf = g_settings_new(SETTINGS_INTERFACE);
-	g_signal_connect (conf, "changed::show-auto-detected-location",
-                          G_CALLBACK(on_use_geoclue_changed_cb), NULL);
-	// TODO Add a signal handler to catch other gsettings changes and respond to them
+  /* acknowledging the service init and setting up the interface */
+  service = indicator_service_new_version(SERVICE_NAME, SERVICE_VERSION);
+  g_signal_connect (service, INDICATOR_SERVICE_SIGNAL_SHUTDOWN,
+                    G_CALLBACK(service_shutdown), mainloop);
 
-	/* Build our list of appointment calendar sources.
-	   When a source changes, update our menu items.
-	   When sources are added or removed, update our list and menu items. */
-	planner = indicator_datetime_planner_eds_new ();
-	g_signal_connect (planner, "appointments-changed",
-                          G_CALLBACK(update_appointment_menu_items_soon), NULL);
+  /* setting up i18n and gettext. apparently we need all of these. */
+  setlocale (LC_ALL, "");
+  bindtextdomain (GETTEXT_PACKAGE, GNOMELOCALEDIR);
+  textdomain (GETTEXT_PACKAGE);
 
-	/* Building the base menu */
-	server = dbusmenu_server_new(MENU_OBJ);
-	root = dbusmenu_menuitem_new();
-	dbusmenu_server_set_root(server, root);
+  /* set up GSettings */
+  self.conf = g_settings_new (SETTINGS_INTERFACE);
+  g_signal_connect (self.conf, "changed::show-auto-detected-location",
+                    G_CALLBACK(on_use_geoclue_changed_cb), &self);
+
+  /* setup geoclue */
+  on_use_geoclue_changed_cb (self.conf, NULL, &self);
+
+  /* setup timezone watch */
+  self.tz_file = indicator_datetime_timezone_file_new (TIMEZONE_FILE);
+  g_signal_connect_swapped (self.tz_file, "notify::timezone",
+                            G_CALLBACK(on_timezone_changed), &self);
+
+  /* build our list of appointment calendar sources.
+     When a source changes, update our menu items.
+     When sources are added or removed, update our list and menu items. */
+  self.planner = indicator_datetime_planner_eds_new ();
+  g_signal_connect_swapped (self.planner, "appointments-changed",
+                            G_CALLBACK(update_appointment_menu_items_soon), &self);
+
+  /* building the base menu */
+  server = dbusmenu_server_new (MENU_OBJ);
+  root = dbusmenu_menuitem_new ();
+  dbusmenu_server_set_root (server, root);
 	
-	build_menus(root);
+  build_menus (&self, root);
 	
-	/* Cache the timezone */
-	update_location_menu_items ();
+  /* cache the timezone */
+  update_location_menu_items (&self);
 
-	/* Setup geoclue */
-	on_use_geoclue_changed_cb (conf, NULL, NULL);
+  /* setup dbus interface */
+  dbus = g_object_new (DATETIME_INTERFACE_TYPE, NULL);
 
-	/* Setup dbus interface */
-	dbus = g_object_new(DATETIME_INTERFACE_TYPE, NULL);
+  /* set up the day timer */
+  day_timer_reset (&self);
 
-	/* Setup timezone watch */
-	tz_file = indicator_datetime_timezone_file_new (TIMEZONE_FILE);
-	g_signal_connect (tz_file, "notify::timezone", G_CALLBACK(on_timezone_changed), NULL);
+  /* set up the skew-check timer */
+  g_timeout_add_seconds (SKEW_CHECK_INTERVAL_SEC,
+                         skew_check_timer_func,
+                         &self);
 
-	/* Set up the day timer */
-	day_timer_reset();
+  /* and watch for system resumes */
+  g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
+                            G_DBUS_PROXY_FLAGS_NONE,
+                            NULL,
+                            "org.freedesktop.login1",
+                            "/org/freedesktop/login1",
+                            "org.freedesktop.login1.Manager",
+                            NULL, /* FIXME: cancellable */
+                            system_proxy_cb,
+                            &self);
 
-	/* Set up the skew-check timer */
-	g_timeout_add_seconds (SKEW_CHECK_INTERVAL_SEC,
-	                       skew_check_timer_func,
-	                       NULL);
+  g_main_loop_run (mainloop);
+  g_main_loop_unref (mainloop);
 
-	/* And watch for system resumes */
-	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
-		                  G_DBUS_PROXY_FLAGS_NONE,
-		                  NULL,
-		                  "org.freedesktop.login1",
-		                  "/org/freedesktop/login1",
-		                  "org.freedesktop.login1.Manager",
-		                  NULL, system_proxy_cb, dbus);
+  g_object_unref (self.conf);
+  g_object_unref (dbus);
+  g_object_unref (service);
+  g_object_unref (server);
+  g_object_unref (root);
+  g_object_unref (self.planner);
+  g_object_unref (self.geo_location);
+  g_object_unref (self.tz_file);
 
-	mainloop = g_main_loop_new(NULL, FALSE);
-	g_main_loop_run(mainloop);
-
-	g_object_unref (conf);
-	g_object_unref (dbus);
-	g_object_unref (service);
-	g_object_unref (server);
-	g_object_unref (root);
-	g_object_unref (planner);
-	g_object_unref (geo_location);
-	g_object_unref (tz_file);
-
-	return 0;
+  return 0;
 }
