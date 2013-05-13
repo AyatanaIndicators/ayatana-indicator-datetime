@@ -26,7 +26,7 @@ indicator_datetime_service_SOURCES = \
 	dbus-shared.h \
 	settings-shared.h
 indicator_datetime_service_CFLAGS = \
-	-Wall \
+	-Wall -Wextra \
 	-Werror \
 	$(SERVICE_CFLAGS) \
 	$(COVERAGE_CFLAGS) \

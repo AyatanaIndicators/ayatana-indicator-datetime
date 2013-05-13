@@ -58,10 +58,10 @@ set_timezone (IndicatorDatetimeTimezoneGeoclue * self, const gchar * timezone)
 }
 
 static void
-on_address_changed (GeoclueAddress  * address,
-                    int               timestamp,
+on_address_changed (GeoclueAddress  * address     G_GNUC_UNUSED,
+                    int               timestamp   G_GNUC_UNUSED,
                     GHashTable      * addy_data,
-                    GeoclueAccuracy * accuracy,
+                    GeoclueAccuracy * accuracy    G_GNUC_UNUSED,
                     GError          * error,
                     gpointer          gself)
 {
@@ -79,7 +79,7 @@ on_address_changed (GeoclueAddress  * address,
 }
 
 static void
-on_address_created (GeoclueMasterClient * master,
+on_address_created (GeoclueMasterClient * master   G_GNUC_UNUSED,
                     GeoclueAddress      * address,
                     GError              * error,
                     gpointer              gself)
@@ -102,7 +102,9 @@ on_address_created (GeoclueMasterClient * master,
 }
 
 static void
-on_requirements_set (GeoclueMasterClient * master, GError * error, gpointer user_data)
+on_requirements_set (GeoclueMasterClient * master     G_GNUC_UNUSED,
+                     GError              * error,
+                     gpointer              user_data  G_GNUC_UNUSED)
 {
   if (error != NULL)
     {
@@ -112,7 +114,7 @@ on_requirements_set (GeoclueMasterClient * master, GError * error, gpointer user
 }
 
 static void
-on_client_created (GeoclueMaster        * master,
+on_client_created (GeoclueMaster        * master   G_GNUC_UNUSED,
                    GeoclueMasterClient  * client,
                    gchar                * path,
                    GError               * error,

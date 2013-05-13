@@ -108,7 +108,7 @@ datetime_interface_init (DatetimeInterface *self)
 }
 
 static void
-bus_get_cb (GObject * object, GAsyncResult * res, gpointer user_data)
+bus_get_cb (GObject * object G_GNUC_UNUSED, GAsyncResult * res, gpointer user_data)
 {
 	GError * error = NULL;
 	GDBusConnection * connection = g_bus_get_finish(res, &error);

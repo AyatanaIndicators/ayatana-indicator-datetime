@@ -201,7 +201,7 @@ update_location_menu_items (void)
 	/* maybe add the user-specified custom locations */
 	gchar ** user_locations = g_settings_get_strv (conf, SETTINGS_LOCATIONS_S);
 	if (user_locations != NULL) { 
-		gint i;
+		guint i;
 		const guint location_count = g_strv_length (user_locations);
 		const gboolean visible = g_settings_get_boolean (conf, SETTINGS_SHOW_LOCATIONS_S);
 		g_debug ("%s Found %u user-specified locations", G_STRLOC, location_count);
@@ -246,7 +246,7 @@ update_location_menu_items (void)
 }
 
 static void
-quick_set_tz_cb (GObject *object, GAsyncResult *res, gpointer data)
+quick_set_tz_cb (GObject *object, GAsyncResult *res, gpointer data G_GNUC_UNUSED)
 {
   GError * error = NULL;
   GVariant * answers = g_dbus_proxy_call_finish (G_DBUS_PROXY (object), res, &error);
@@ -261,7 +261,7 @@ quick_set_tz_cb (GObject *object, GAsyncResult *res, gpointer data)
 }
 
 static void
-quick_set_tz_proxy_cb (GObject *object, GAsyncResult *res, gpointer zone)
+quick_set_tz_proxy_cb (GObject *object G_GNUC_UNUSED, GAsyncResult *res, gpointer zone)
 {
 	GError * error = NULL;
 
@@ -281,7 +281,7 @@ quick_set_tz_proxy_cb (GObject *object, GAsyncResult *res, gpointer zone)
 }
 
 static void
-quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, gpointer user_data)
+quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp G_GNUC_UNUSED, gpointer user_data G_GNUC_UNUSED)
 {
 	const gchar * tz = dbusmenu_menuitem_property_get(menuitem, TIMEZONE_MENUITEM_PROP_ZONE);
 	g_debug("Quick setting timezone to: %s", tz);
@@ -308,7 +308,7 @@ quick_set_tz (DbusmenuMenuitem * menuitem, guint timestamp, gpointer user_data)
 
 /* Updates the label in the date menuitem */
 static gboolean
-update_datetime (gpointer user_data)
+update_datetime (gpointer uused G_GNUC_UNUSED)
 {
 	GDateTime *datetime;
 	gchar *utf8;
@@ -357,9 +357,9 @@ activate_cb (DbusmenuMenuitem  * menuitem  G_GNUC_UNUSED,
 }
 
 static gboolean
-update_appointment_menu_items_idle (gpointer user_data)
+update_appointment_menu_items_idle (gpointer unused G_GNUC_UNUSED)
 {
-  update_appointment_menu_items();
+  update_appointment_menu_items ();
   return G_SOURCE_REMOVE;
 }
 
@@ -383,7 +383,10 @@ hide_all_appointments (void)
 }
 
 static gboolean
-month_changed_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, guint timestamp)
+month_changed_cb (DbusmenuMenuitem * menuitem,
+                  gchar            * name G_GNUC_UNUSED,
+                  GVariant         * variant,
+                  guint              timestamp G_GNUC_UNUSED)
 {
 	start_time_appointments = (time_t)g_variant_get_uint32(variant);
 	
@@ -399,7 +402,10 @@ month_changed_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, g
 }
 
 static gboolean
-day_selected_cb (DbusmenuMenuitem * menuitem, gchar *name, GVariant *variant, guint timestamp)
+day_selected_cb (DbusmenuMenuitem * menuitem,
+                 gchar            * name       G_GNUC_UNUSED,
+                 GVariant         * variant,
+                 guint              timestamp  G_GNUC_UNUSED)
 {
 	time_t new_time = (time_t)g_variant_get_uint32(variant);
 	g_warn_if_fail(new_time != 0);
@@ -470,10 +476,10 @@ stop_ecal_timer(void)
     }
 }
 static gboolean
-idle_start_ecal_timer (gpointer data)
+idle_start_ecal_timer (gpointer unused G_GNUC_UNUSED)
 {
   start_ecal_timer();
-  return FALSE;
+  return G_SOURCE_REMOVE;
 }
 
 static void
@@ -499,7 +505,7 @@ show_events_changed (void)
 /* Looks for the calendar application and enables the item if
    we have one, starts ecal timer if events are turned on */
 static gboolean
-check_for_calendar (gpointer user_data)
+check_for_calendar (gpointer unused G_GNUC_UNUSED)
 {
 	g_return_val_if_fail (calendar != NULL, FALSE);
 	
@@ -771,7 +777,7 @@ update_appointment_menu_items (void)
 /* Looks for the time and date admin application and enables the
    item we have one */
 static gboolean
-check_for_timeadmin (gpointer user_data)
+check_for_timeadmin (gpointer unused G_GNUC_UNUSED)
 {
 	g_return_val_if_fail (settings != NULL, FALSE);
 
@@ -785,7 +791,7 @@ check_for_timeadmin (gpointer user_data)
 		dbusmenu_menuitem_property_set_bool(settings, DBUSMENU_MENUITEM_PROP_ENABLED, FALSE);
 	}
 
-	return FALSE;
+	return G_SOURCE_REMOVE;
 }
 
 /* Does the work to build the default menu, really calls out
@@ -876,7 +882,7 @@ static guint day_timer = 0;
 /* Execute at a given time, update and setup a new
    timer to go again.  */
 static gboolean
-day_timer_func (gpointer user_data)
+day_timer_func (gpointer unused G_GNUC_UNUSED)
 {
 	day_timer = 0;
 	/* Reset up each time to reduce error */
@@ -924,8 +930,11 @@ skew_check_timer_func (gpointer unused G_GNUC_UNUSED)
 }
 
 static void
-session_active_change_cb (GDBusProxy * proxy, gchar * sender_name, gchar * signal_name,
-                          GVariant * parameters, gpointer user_data)
+session_active_change_cb (GDBusProxy * proxy        G_GNUC_UNUSED,
+                          gchar      * sender_name  G_GNUC_UNUSED,
+                          gchar      * signal_name,
+                          GVariant   * parameters,
+                          gpointer     user_data    G_GNUC_UNUSED)
 {
 	// Suspending / returning from suspend (true / false)
 	if (g_strcmp0(signal_name, "PrepareForSleep") == 0) {
@@ -936,12 +945,13 @@ session_active_change_cb (GDBusProxy * proxy, gchar * sender_name, gchar * signa
 			on_clock_skew ();
 		}
 	}
-	return;
 }
 
 /* for hooking into console kit signal on wake from suspend */
 static void
-system_proxy_cb (GObject * object, GAsyncResult * res, gpointer user_data)
+system_proxy_cb (GObject       * object G_GNUC_UNUSED,
+                 GAsyncResult  * res,
+                 gpointer        user_data)
 {
 	GError * error = NULL;
 	
@@ -971,7 +981,8 @@ get_greeter_mode (void)
 /* Repsonds to the service object saying it's time to shutdown.
    It stops the mainloop. */
 static void 
-service_shutdown (IndicatorService * service, gpointer user_data)
+service_shutdown (IndicatorService * service    G_GNUC_UNUSED,
+                  gpointer           user_data  G_GNUC_UNUSED)
 {
 	g_warning("Shutting down service!");
 	g_main_loop_quit(mainloop);
@@ -983,7 +994,7 @@ on_use_geoclue_changed_cb (GSettings *settings,
                            gchar     *key       G_GNUC_UNUSED,
                            gpointer   user_data G_GNUC_UNUSED)
 {
-  const gboolean use_geoclue = g_settings_get_boolean (conf, "show-auto-detected-location");
+  const gboolean use_geoclue = g_settings_get_boolean (settings, "show-auto-detected-location");
 
   if (geo_location && !use_geoclue)
     {
