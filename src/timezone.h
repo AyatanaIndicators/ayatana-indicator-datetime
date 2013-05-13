@@ -21,7 +21,7 @@
 #define __INDICATOR_DATETIME_TIMEZONE__H__
 
 #include <glib.h>
-#include <glib-object.h>
+#include <glib-object.h> /* parent class */
 
 G_BEGIN_DECLS
 
@@ -36,8 +36,17 @@ typedef struct _IndicatorDatetimeTimezoneClass   IndicatorDatetimeTimezoneClass;
 
 GType indicator_datetime_timezone_get_type (void);
 
+#define INDICATOR_DATETIME_TIMEZONE_PROPERTY_TIMEZONE "timezone"
+
 /**
- * Abstract Base Class for the mechanisms that determine timezone by location
+ * Abstract Base Class for objects that provide a timezone.
+ *
+ * This is used in datetime to determine the user's current timezone
+ * so that it can be displayed more prominently in the locations
+ * section of the indicator's menu.
+ *
+ * This class has a 'timezone' property that clients can watch
+ * for change notifications.
  */
 struct _IndicatorDatetimeTimezone
 {
@@ -56,8 +65,6 @@ struct _IndicatorDatetimeTimezoneClass
 /***
 ****
 ***/
-
-#define INDICATOR_DATETIME_TIMEZONE_PROPERTY_TIMEZONE "timezone"
 
 const char * indicator_datetime_timezone_get_timezone    (IndicatorDatetimeTimezone *);
 

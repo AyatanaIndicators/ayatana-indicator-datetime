@@ -20,9 +20,6 @@
 #ifndef __INDICATOR_DATETIME_TIMEZONE_GEOCLUE__H__
 #define __INDICATOR_DATETIME_TIMEZONE_GEOCLUE__H__
 
-#include <glib.h>
-#include <glib-object.h>
-
 #include "timezone.h" /* parent class */
 
 G_BEGIN_DECLS
@@ -39,8 +36,7 @@ typedef struct _IndicatorDatetimeTimezoneGeoclueClass   IndicatorDatetimeTimezon
 GType indicator_datetime_timezone_geoclue_get_type (void);
 
 /**
- * An implementation of IndicatorDatetimeTimezone which determines the timezone
- * from calling a GeoClue service over DBus.
+ * An IndicatorDatetimeTimezone which uses GeoClue to determine the timezone.
  */
 struct _IndicatorDatetimeTimezoneGeoclue
 {

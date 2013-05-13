@@ -20,9 +20,6 @@
 #ifndef __INDICATOR_DATETIME_TIMEZONE_FILE__H__
 #define __INDICATOR_DATETIME_TIMEZONE_FILE__H__
 
-#include <glib.h>
-#include <glib-object.h>
-
 #include "timezone.h" /* parent class */
 
 G_BEGIN_DECLS
@@ -39,8 +36,8 @@ typedef struct _IndicatorDatetimeTimezoneFileClass   IndicatorDatetimeTimezoneFi
 GType indicator_datetime_timezone_file_get_type (void);
 
 /**
- * An implementation of IndicatorDatetimeTimezone which determines the timezone
- * from monitoring a local file, such as /etc/timezone
+ * An IndicatorDatetimeTimezone which uses a local file,
+ * such as /etc/timezone, to determine the timezone.
  */
 struct _IndicatorDatetimeTimezoneFile
 {

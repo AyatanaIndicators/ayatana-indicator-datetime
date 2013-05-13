@@ -19,9 +19,6 @@
 
 #include "config.h"
 
-#include <glib.h>
-#include <glib/gi18n-lib.h>
-
 #include <geoclue/geoclue-master.h>
 #include <geoclue/geoclue-master-client.h>
 
@@ -127,10 +124,6 @@ on_client_created (GeoclueMaster        * master,
     {
       g_warning ("%s Unable to get timezone from GeoClue: %s", G_STRFUNC, error->message);
       g_error_free (error);
-    }
-  else if (client == NULL)
-    {
-      g_warning ("%s Unable to get timezone from GeoClue: %s", G_STRFUNC, error->message);
     }
   else
     {

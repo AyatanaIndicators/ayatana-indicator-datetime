@@ -19,9 +19,7 @@
 
 #include "config.h"
 
-#include <glib.h>
-#include <glib/gi18n-lib.h>
-#include <gio/gio.h>
+#include <gio/gio.h> /* GFile, GFileMonitor */
 
 #include "timezone-file.h"
 
