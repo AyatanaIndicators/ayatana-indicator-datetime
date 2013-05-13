@@ -10,6 +10,10 @@ indicator_datetime_service_SOURCES = \
 	datetime-interface.c \
 	datetime-interface.h \
 	gen-datetime-service.xml.c \
+	planner.c \
+	planner.h \
+	planner-eds.c \
+	planner-eds.h \
 	datetime-service.c \
 	timezone.c \
 	timezone.h \
