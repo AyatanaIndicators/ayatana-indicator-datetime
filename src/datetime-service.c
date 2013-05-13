@@ -165,7 +165,7 @@ update_location_menu_items (void)
 		DbusmenuMenuitem * item = DBUSMENU_MENUITEM(location_menu_items->data);
 		location_menu_items = g_slist_remove(location_menu_items, item);
 		dbusmenu_menuitem_child_delete(root, DBUSMENU_MENUITEM(item));
-		g_object_unref(G_OBJECT(item));
+		g_object_unref(item);
 	}
 
 	/***
@@ -1079,13 +1079,12 @@ main (int argc, char ** argv)
 	mainloop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(mainloop);
 
-	g_object_unref(G_OBJECT(conf));
-	g_object_unref(G_OBJECT(dbus));
-	g_object_unref(G_OBJECT(service));
-	g_object_unref(G_OBJECT(server));
-	g_object_unref(G_OBJECT(root));
-	g_object_unref(G_OBJECT(planner));
-
+	g_object_unref (conf);
+	g_object_unref (dbus);
+	g_object_unref (service);
+	g_object_unref (server);
+	g_object_unref (root);
+	g_object_unref (planner);
 	g_object_unref (geo_location);
 	g_object_unref (tz_file);
 
