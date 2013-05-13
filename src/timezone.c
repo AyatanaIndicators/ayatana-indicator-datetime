@@ -30,7 +30,7 @@ enum
   PROP_LAST
 };
 
-static GParamSpec * properties[PROP_LAST] = { 0 };
+static GParamSpec * properties[PROP_LAST] = { 0, };
 
 static void
 my_get_property (GObject     * o,
@@ -69,8 +69,6 @@ indicator_datetime_timezone_class_init (IndicatorDatetimeTimezoneClass * klass)
   object_class->dispose = my_dispose;
 
   klass->get_timezone = NULL;
-
-  properties[PROP_0] = NULL;
 
   properties[PROP_TIMEZONE] = g_param_spec_string ("timezone",
                                                    "Timezone",
