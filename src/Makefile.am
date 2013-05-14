@@ -14,7 +14,9 @@ indicator_datetime_service_SOURCES = \
 	planner.h \
 	planner-eds.c \
 	planner-eds.h \
-	datetime-service.c \
+	service.c \
+	service.h \
+	main.c \
 	timezone.c \
 	timezone.h \
 	timezone-file.c \
@@ -26,7 +28,8 @@ indicator_datetime_service_SOURCES = \
 	dbus-shared.h \
 	settings-shared.h
 indicator_datetime_service_CFLAGS = \
-	-Wall -Wextra \
+	-Wall \
+        -Wextra -Wno-missing-field-initializers \
 	-Werror \
 	$(SERVICE_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
