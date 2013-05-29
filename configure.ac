@@ -77,7 +77,6 @@ PKG_CHECK_MODULES(SERVICE, indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
                            libecal-1.2 >= $ECAL_REQUIRED_VERSION
                            libical >= $ICAL_REQUIRED_VERSION
                            libedataserver-1.2 >= EDS_REQUIRED_VERSION
-                           libedataserverui-3.0 >= EDS_REQUIRED_VERSION
                            cairo >= CAIRO_REQUIRED_VERSION
                            gdk-3.0 >= GDK_REQUIRED_VERSION)
 
