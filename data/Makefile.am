@@ -21,14 +21,14 @@ pkgdata_DATA = datetime-dialog.ui
 
 @INTLTOOL_DESKTOP_RULE@
 desktopdir = $(datadir)/applications
-desktop_DATA = indicator-datetime-preferences.desktop
+desktop_DATA = gnome-indicator-datetime-panel.desktop
 
 EXTRA_DIST += \
-	indicator-datetime-preferences.desktop
+	gnome-indicator-datetime-panel.desktop
 
-CLEANFILES += indicator-datetime-preferences.desktop
+CLEANFILES += gnome-indicator-datetime-panel.desktop
 endif
 
 EXTRA_DIST += \
 	datetime-dialog.ui \
-	indicator-datetime-preferences.desktop.in
+	gnome-indicator-datetime-panel.desktop.in
