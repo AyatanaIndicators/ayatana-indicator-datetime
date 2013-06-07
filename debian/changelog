@@ -1,8 +1,12 @@
-indicator-datetime (12.10.3daily13.06.05-0ubuntu1) UNRELEASED; urgency=low
+indicator-datetime (12.10.3daily13.06.07-0ubuntu1) saucy; urgency=low
 
+  [ Jeremy Bicha ]
   * Rename .desktop file for compatibility with gnome-control-center 3.8 
 
- -- Jeremy Bicha <jbicha@ubuntu.com>  Wed, 05 Jun 2013 14:30:22 -0400
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 220
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 07 Jun 2013 02:02:41 +0000
 
 indicator-datetime (12.10.3daily13.05.06.1-0ubuntu2) saucy; urgency=low
 
