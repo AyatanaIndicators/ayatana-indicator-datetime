@@ -1,3 +1,10 @@
+indicator-datetime (12.10.3daily13.06.07-0ubuntu2) UNRELEASED; urgency=low
+
+  * Link test program in the right order. Importantly, make sure
+    XORG_GTEST_LIBS comes after it as it uses pthread.
+
+ -- Iain Lane <iain@orangesquash.org.uk>  Thu, 13 Jun 2013 11:44:12 +0100
+
 indicator-datetime (12.10.3daily13.06.07-0ubuntu1) saucy; urgency=low
 
   [ Jeremy Bicha ]
