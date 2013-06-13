@@ -24,10 +24,10 @@ AM_CXXFLAGS = $(GTEST_CXXFLAGS)
 
 TEST_LIBS = \
         $(top_builddir)/src/.libs/libdatetime.so \
+        libgtest.a \
         $(INDICATOR_LIBS) \
         $(COVERAGE_LDFLAGS) \
-        $(XORG_GTEST_LDFLAGS) \
-        libgtest.a
+        $(XORG_GTEST_LDFLAGS)
 
 TEST_CPPFLAGS = \
         $(AM_CPPFLAGS) \
