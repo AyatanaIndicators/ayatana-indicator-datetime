@@ -26,10 +26,8 @@
 G_BEGIN_DECLS
 
 /* standard GObject macros */
-#define INDICATOR_TYPE_DATETIME_SERVICE          (indicator_datetime_service_get_type())
 #define INDICATOR_DATETIME_SERVICE(o)            (G_TYPE_CHECK_INSTANCE_CAST ((o), INDICATOR_TYPE_DATETIME_SERVICE, IndicatorDatetimeService))
-#define INDICATOR_DATETIME_SERVICE_GET_CLASS(o)  (G_TYPE_INSTANCE_GET_CLASS ((o), INDICATOR_TYPE_DATETIME_SERVICE, IndicatorDatetimeServiceClass))
-#define INDICATOR_DATETIME_SERVICE_CLASS(k)      (G_TYPE_CHECK_CLASS_CAST ((k), INDICATOR_TYPE_DATETIME_SERVICE, IndicatorDatetimeServiceClass))
+#define INDICATOR_TYPE_DATETIME_SERVICE          (indicator_datetime_service_get_type())
 #define INDICATOR_IS_DATETIME_SERVICE(o)         (G_TYPE_CHECK_INSTANCE_TYPE ((o), INDICATOR_TYPE_DATETIME_SERVICE))
 
 typedef struct _IndicatorDatetimeService         IndicatorDatetimeService;
