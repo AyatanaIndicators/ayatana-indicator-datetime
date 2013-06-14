@@ -65,7 +65,7 @@ parse_command_line (int * argc, char *** argv)
 static void
 on_name_lost (gpointer instance G_GNUC_UNUSED, gpointer loop)
 {
-  g_debug ("exiting: service couldn't acquire or lost ownership of busname");
+  g_message ("exiting: service couldn't acquire or lost ownership of busname");
   g_main_loop_quit ((GMainLoop*)loop);
 }
 
