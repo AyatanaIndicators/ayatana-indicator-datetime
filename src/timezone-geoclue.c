@@ -68,7 +68,6 @@ on_address_changed (GeoclueAddress  * address     G_GNUC_UNUSED,
   if (error != NULL)
     {
       g_warning ("%s Unable to get timezone from GeoClue: %s", G_STRFUNC, error->message);
-      g_error_free (error);
     }
   else
     {
@@ -87,7 +86,6 @@ on_address_created (GeoclueMasterClient * master   G_GNUC_UNUSED,
   if (error != NULL)
     {
       g_warning ("%s Unable to get timezone from GeoClue: %s", G_STRFUNC, error->message);
-      g_error_free (error);
     }
   else
     {
@@ -109,7 +107,6 @@ on_requirements_set (GeoclueMasterClient * master     G_GNUC_UNUSED,
   if (error != NULL)
     {
       g_warning ("%s Unable to get timezone from GeoClue: %s", G_STRFUNC, error->message);
-      g_error_free (error);
     }
 }
 
@@ -125,7 +122,6 @@ on_client_created (GeoclueMaster        * master   G_GNUC_UNUSED,
   if (error != NULL)
     {
       g_warning ("%s Unable to get timezone from GeoClue: %s", G_STRFUNC, error->message);
-      g_error_free (error);
     }
   else
     {
