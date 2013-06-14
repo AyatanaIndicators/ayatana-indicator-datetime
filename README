@@ -1,43 +1,39 @@
 ACTIONS
 =======
 
- * "aboutToShow"
-   Description: notifies the indicator that its menu is about to be shown.
-   Workitems that are expensive on startup (such as loading EDS to query
-   it for appointments, or loading GeoClue to guess our current location)
-   may be deferred until this is called.
-   So, calendarDay's state may not be fully populated until this is called.
-   FIXME: aboutToShow should be spec'ed once for all indicators, not ad-hoc
-
- * "activateSettings"
+ * "activate-settings"
    Description: opens a page for changing indicator-datetime's settings
-   State: NULL
-   Parameter: NULL
+   State: None
+   Parameter: None
 
- * "activatePlanner"
-   Description: opens up the appointment editor.
-   State: NULL
-   Parameter: uint64 (a time_t hinting which day/time to show in the planner,
-              or 0 for the current day)
+ * "activate-planner"
+   Description: opens up a calendar appointment editor.
+   State: None
+   Parameter: int64, a time_t hinting which day/time to show in the planner,
+                     or 0 for the current day
 
- * "calendarDay"
-   Description: set which month/day should be given focus in the indicator's
-                calendar and to use as a starting point when listing upcoming
-                appointments in the indicator.
-                Client code implementing the calendar widget should call this
-                when the user clicks to a different day, month, or year.
-   State: a dictionary containing these key value pairs:
-          "calendarDay": string ("YYYY-MM-DD"). Used by the calendar menuitem
-                         to know which year/month should be visible and which
-                         day should have the cursor.
-          "daysWithAppointments": an array of day-of-month ints. Used by the
-                                  calendar menuitem to mark appointment days.
-   Parameter: uint64 (a time_t specifying which day to give focus to)
+ * "set-location"
+   Description: Set the current location. This will try to set the current
+   timezone to the new location's timezone.
+   State: None
+   Parameter: a timezone id string followed by a space and location name.
+              Example: "America/Chicago Oklahoma City"
 
- * "location"
-   Description: Sets the user's current location. Called by location menuitems.
-   State: string containing a location and a timezone
-   Parameter: string containing a location and a timezone
+ * "calendar"
+    Description: set which month/day should be given focus in the indicator's
+                 calendar. The planner will look for appointments from this
+                 day to the end of the same month.
+                 Client code implementing the calendar view should call this
+                 when the user clicks on a new day, month, or year.
+    State: a dictionary containing these key value/pairs:
+          "appointment-days": an array of day-of-month ints. Used by the
+                              calendar menuitem to mark appointment days.
+          "calendar-day": int64, a time_t. Used by the calendar menuitem
+                          to know which year/month should be visible
+                          and which day should have the cursor.
+          "show-week-numbers": if true, show week numbers in the calendar.
+    Parameter: int64, a time_t specifying which year/month should be visible
+                      and which day should have the cursor.
 
 
 CUSTOM MENUITEMS
@@ -47,14 +43,15 @@ CUSTOM MENUITEMS
    - x-canonical-type         s "com.canonical.indicator.calendar"
 
  * Appointment
+   - label                    s short summary of the appointment
    - x-canonical-type         s "com.canonical.indicator.appointment"
    - x-canonical-color        s color of the appt's type, to give a visual cue
-   - label                    s short summary of the appointment
-   - x-canonical-right-label  s the date of the appointment
+   - x-canonical-time         x the date of the appointment
+   - x-canonical-time-format  s strftime format string
 
  * Location
-   - x-canonical-type         s "com.canonical.indicator.location"
    - label                    s the location's name, eg "Oklahoma City"
+   - x-canonical-type         s "com.canonical.indicator.location"
    - x-canonical-timezone     s timezone that the location is in
    - x-canonical-time-format  s strftime format string
 
