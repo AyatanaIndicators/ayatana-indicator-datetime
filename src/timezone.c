@@ -103,4 +103,3 @@ indicator_datetime_timezone_notify_timezone (IndicatorDatetimeTimezone * self)
 
   g_object_notify_by_pspec (G_OBJECT(self), properties[PROP_TIMEZONE]);
 }
-

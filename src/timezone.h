@@ -41,9 +41,8 @@ GType indicator_datetime_timezone_get_type (void);
 /**
  * Abstract Base Class for objects that provide a timezone.
  *
- * This is used in datetime to determine the user's current timezone
- * so that it can be displayed more prominently in the locations
- * section of the indicator's menu.
+ * We use this in datetime to determine the user's current timezone
+ * for display in the 'locations' section of the datetime indicator.
  *
  * This class has a 'timezone' property that clients can watch
  * for change notifications.
