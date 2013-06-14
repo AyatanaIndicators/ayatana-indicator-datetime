@@ -1,0 +1,9 @@
+[Indicator Service]
+Name=indicator-datetime
+ObjectPath=/com/canonical/indicator/datetime
+
+[desktop]
+ObjectPath=/com/canonical/indicator/datetime/desktop
+
+[greeter]
+ObjectPath=/com/canonical/indicator/datetime/greeter
