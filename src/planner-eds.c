@@ -228,15 +228,15 @@ my_activate_time (IndicatorDatetimePlanner * self G_GNUC_UNUSED,
 {
   gchar * isodate;
   gchar * command;
-  GError * error;
+  GError * err;
 
-  isodate = g_date_time_format (activate_time, "%F");
-  command = g_strconcat ("evolution calendar:///?startdate=", isodate, NULL);
-  error = 0;
-  if (!g_spawn_command_line_async (command, &error))
+  isodate = g_date_time_format (activate_time, "%Y%m%d");
+  command = g_strdup_printf ("evolution \"calendar:///?startdate=%s\"", isodate);
+  err = 0;
+  if (!g_spawn_command_line_async (command, &err))
     {
-      g_warning ("Unable to start %s: %s", command, error->message);
-      g_error_free (error);
+      g_warning ("Unable to start %s: %s", command, err->message);
+      g_error_free (err);
     }
 
   g_free (command);
