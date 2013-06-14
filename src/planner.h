@@ -22,7 +22,6 @@
 
 #include <glib.h>
 #include <glib-object.h> /* parent class */
-#include <gdk/gdk.h> /* GdkRGBA */
 
 G_BEGIN_DECLS
 
