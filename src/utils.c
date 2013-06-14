@@ -117,30 +117,6 @@ get_current_zone_name (const gchar * location)
   return rv;
 }
 
-gchar *
-read_timezone ()
-{
-	GError * error = NULL;
-	gchar * tempzone = NULL;
-	if (!g_file_get_contents(TIMEZONE_FILE, &tempzone, NULL, &error)) {
-		g_warning("Unable to read timezone file '" TIMEZONE_FILE "': %s", error->message);
-		g_error_free(error);
-		return NULL;
-	}
-
-	/* This shouldn't happen, so let's make it a big boom! */
-	g_return_val_if_fail(tempzone != NULL, NULL);
-
-	/* Note: this really makes sense as strstrip works in place
-	   so we end up with something a little odd without the dup
-	   so we have the dup to make sure everything is as expected
-	   for everyone else. */
-	gchar * rv = g_strdup(g_strstrip(tempzone));
-	g_free(tempzone);
-
-  return rv;
-}
-
 /* Translate msg according to the locale specified by LC_TIME */
 static char *
 T_(const char *msg)
