@@ -1678,7 +1678,7 @@ my_finalize (GObject * o)
 
   g_clear_pointer (&p->skew_time, g_date_time_unref);
 
-  G_OBJECT_CLASS (indicator_datetime_service_parent_class)->dispose (o);
+  G_OBJECT_CLASS (indicator_datetime_service_parent_class)->finalize (o);
 }
 
 /***
