@@ -211,17 +211,14 @@ rebuild_settings_section_soon (IndicatorDatetimeService * self)
  */
 
 static guint
-calculate_seconds_until_next_fifteen_minutes (void)
+calculate_seconds_until_next_fifteen_minutes (GDateTime * now)
 {
   char * str;
   gint minute;
   guint seconds;
   GTimeSpan diff;
-  GDateTime * now;
   GDateTime * next;
   GDateTime * start_of_next;
-
-  now = g_date_time_new_now_local ();
 
   minute = g_date_time_get_minute (now);
   minute = 15 - (minute % 15);
@@ -242,7 +239,6 @@ calculate_seconds_until_next_fifteen_minutes (void)
 
   g_date_time_unref (start_of_next);
   g_date_time_unref (next);
-  g_date_time_unref (now);
 
   return seconds;
 }
@@ -267,13 +263,16 @@ on_timezone_timer (gpointer gself)
 static void
 start_timezone_timer (IndicatorDatetimeService * self)
 {
+  GDateTime * now;
+  guint seconds;
   priv_t * p = self->priv;
 
   indicator_clear_timer (&p->timezone_timer);
 
-  p->timezone_timer = g_timeout_add_seconds (calculate_seconds_until_next_fifteen_minutes(),
-                                             on_timezone_timer,
-                                             self);
+  now = indicator_datetime_service_get_localtime (self);
+  seconds = calculate_seconds_until_next_fifteen_minutes (now);
+  p->timezone_timer = g_timeout_add_seconds (seconds, on_timezone_timer, self);
+  g_date_time_unref (now);
 }
 
 /***
@@ -288,15 +287,13 @@ start_timezone_timer (IndicatorDatetimeService * self)
  */
 
 static guint
-calculate_milliseconds_until_next_minute (void)
+calculate_milliseconds_until_next_minute (GDateTime * now)
 {
-  GDateTime * now;
   GDateTime * next;
   GDateTime * start_of_next;
   GTimeSpan interval_usec;
   guint interval_msec;
 
-  now = g_date_time_new_now_local ();
   next = g_date_time_add_minutes (now, 1);
   start_of_next = g_date_time_new_local (g_date_time_get_year (next),
                                          g_date_time_get_month (next),
@@ -310,24 +307,18 @@ calculate_milliseconds_until_next_minute (void)
 
   g_date_time_unref (start_of_next);
   g_date_time_unref (next);
-  g_date_time_unref (now);
 
   return interval_msec;
 }
 
 static gint
-calculate_milliseconds_until_next_second (void)
+calculate_milliseconds_until_next_second (GDateTime * now)
 {
-  GDateTime * now;
   gint interval_usec;
   guint interval_msec;
 
-  now = g_date_time_new_now_local (); 
-
   interval_usec = G_USEC_PER_SEC - g_date_time_get_microsecond (now);
   interval_msec = (interval_usec + 999) / 1000;
-
-  g_date_time_unref (now);
 
   return interval_msec;
 }
@@ -355,6 +346,7 @@ start_header_timer (IndicatorDatetimeService * self)
   guint interval_msec;
   gboolean header_shows_seconds = FALSE;
   priv_t * p = self->priv;
+  GDateTime * now = indicator_datetime_service_get_localtime (self);
  
   indicator_clear_timer (&p->header_timer);
 
@@ -368,9 +360,9 @@ start_header_timer (IndicatorDatetimeService * self)
     }
 
   if (header_shows_seconds)
-    interval_msec = calculate_milliseconds_until_next_second ();
+    interval_msec = calculate_milliseconds_until_next_second (now);
   else
-    interval_msec = calculate_milliseconds_until_next_minute ();
+    interval_msec = calculate_milliseconds_until_next_minute (now);
 
   interval_msec += 50; /* add a small margin to ensure the callback
                           fires /after/ next is reached */
@@ -380,6 +372,8 @@ start_header_timer (IndicatorDatetimeService * self)
                                         on_header_timer,
                                         self,
                                         NULL);
+
+  g_date_time_unref (now);
 }
 
 /**
@@ -407,8 +401,8 @@ on_local_time_jumped (IndicatorDatetimeService * self)
 static gboolean
 skew_timer_func (gpointer gself)
 {
-  GDateTime * now = g_date_time_new_now_local ();
   IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (gself);
+  GDateTime * now = indicator_datetime_service_get_localtime (self);
   priv_t * p = self->priv;
 
   /* check for clock skew: has too much time passed since the last check? */
@@ -490,15 +484,15 @@ create_header_state (IndicatorDatetimeService * self)
   gchar * fmt;
   gchar * str;
   gboolean visible;
-  GDateTime * now_local;
+  GDateTime * now;
   priv_t * p = self->priv;
 
   visible = g_settings_get_boolean (p->settings, SETTINGS_SHOW_CLOCK_S);
 
   /* build the time string for the label & a11y */
   fmt = get_header_label_format_string (self);
-  now_local = g_date_time_new_now_local ();
-  str = g_date_time_format (now_local, fmt);
+  now = indicator_datetime_service_get_localtime (self);
+  str = g_date_time_format (now, fmt);
   if (str == NULL)
     {
       str = g_strdup (_("Unsupported date format"));
@@ -511,7 +505,7 @@ create_header_state (IndicatorDatetimeService * self)
   g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (visible));
 
   /* cleanup */
-  g_date_time_unref (now_local);
+  g_date_time_unref (now);
   g_free (str);
   g_free (fmt);
   return g_variant_builder_end (&b);
@@ -530,10 +524,10 @@ get_calendar_date (IndicatorDatetimeService * self)
   GDateTime * date;
   priv_t * p = self->priv;
 
-  if (p->calendar_date == 0)
-    date = g_date_time_new_now_local ();
-  else
+  if (p->calendar_date)
     date = g_date_time_new_from_unix_local ((gint64)p->calendar_date);
+  else
+    date = indicator_datetime_service_get_localtime (self);
 
   return date;
 }
@@ -626,26 +620,19 @@ create_calendar_section (IndicatorDatetimeService * self)
 {
   char * label;
   GMenuItem * menu_item;
-  GDateTime * date_time;
+  GDateTime * now;
   GMenu * menu = g_menu_new ();
 
   /* create the local date menuitem */
-  date_time = g_date_time_new_now_local ();
-  if (date_time == NULL)
-    {
-      label = g_strdup (_("Error getting time"));
-    }
-  else
-    {
-      label = g_date_time_format (date_time, _("%A, %e %B %Y"));
-      g_date_time_unref (date_time);
-    }
+  now = indicator_datetime_service_get_localtime (self);
+  label = g_date_time_format (now, _("%A, %e %B %Y"));
   menu_item = g_menu_item_new (label, NULL);
   g_menu_item_set_action_and_target_value (menu_item, "indicator.activate-planner",
                                            g_variant_new_int64(0));
   g_menu_append_item (menu, menu_item);
   g_object_unref (menu_item);
   g_free (label);
+  g_date_time_unref (now);
 
   /* create the calendar menuitem */
   if (g_settings_get_boolean (self->priv->settings, SETTINGS_SHOW_CALENDAR_S))
@@ -706,7 +693,7 @@ get_upcoming_appointments (IndicatorDatetimeService * self)
 }
 
 static char *
-get_appointment_time_format (struct IndicatorDatetimeAppt  * appt)
+get_appointment_time_format (struct IndicatorDatetimeAppt  * appt, GDateTime * now)
 {
   char * fmt;
   gboolean full_day = g_date_time_difference (appt->end, appt->begin) == G_TIME_SPAN_DAY;
@@ -721,7 +708,7 @@ get_appointment_time_format (struct IndicatorDatetimeAppt  * appt)
     }
   else
     {
-      fmt = generate_format_string_at_time (appt->begin);
+      fmt = generate_format_string_at_time (now, appt->begin);
     }
 
   return fmt;
@@ -738,13 +725,14 @@ create_appointments_section (IndicatorDatetimeService * self)
       GSList * l;
       GSList * appts;
       GMenuItem * menu_item;
+      GDateTime * now = indicator_datetime_service_get_localtime (self);
 
       /* build appointment menuitems */
       appts = get_upcoming_appointments (self);
       for (l=appts; l!=NULL; l=l->next)
         {
           struct IndicatorDatetimeAppt * appt = l->data;
-          char * fmt = get_appointment_time_format (appt);
+          char * fmt = get_appointment_time_format (appt, now);
           const gint64 unix_time = g_date_time_to_unix (appt->begin);
 
           menu_item = g_menu_item_new (appt->summary, NULL);
@@ -773,6 +761,7 @@ create_appointments_section (IndicatorDatetimeService * self)
       g_object_unref (menu_item);
 
       /* cleanup */
+      g_date_time_unref (now);
       g_slist_free_full (appts, (GDestroyNotify)indicator_datetime_appt_free);
     }
 
@@ -846,7 +835,7 @@ set_detect_location_enabled (IndicatorDatetimeService * self, gboolean enabled)
    for pruning duplicates and sorting. */
 struct TimeLocation
 {
-  gint32 offset;
+  GTimeSpan offset;
   gchar * zone;
   gchar * name;
   gboolean visible;
@@ -865,17 +854,15 @@ time_location_free (struct TimeLocation * loc)
 static struct TimeLocation*
 time_location_new (const char * zone,
                    const char * name,
-                   gboolean     visible,
-                   time_t       now)
+                   gboolean     visible)
 {
   struct TimeLocation * loc = g_new (struct TimeLocation, 1);
   GTimeZone * tz = g_time_zone_new (zone);
-  gint interval = g_time_zone_find_interval (tz, G_TIME_TYPE_UNIVERSAL, now);
-  loc->offset = g_time_zone_get_offset (tz, interval);
   loc->zone = g_strdup (zone);
   loc->name = g_strdup (name);
   loc->visible = visible;
   loc->local_time = g_date_time_new_now (tz);
+  loc->offset = g_date_time_get_utc_offset (loc->local_time);
   g_time_zone_unref (tz);
   return loc;
 }
@@ -884,7 +871,10 @@ static int
 time_location_compare (const struct TimeLocation * a,
                        const struct TimeLocation * b)
 {
-  int ret = a->offset - b->offset; /* primary key */
+  int ret = 0;
+
+  if (!ret && (a->offset != b->offset)) /* primary key */
+    ret = (a->offset < b->offset) ? -1 : 1;
 
   if (!ret)
     ret = g_strcmp0 (a->name, b->name); /* secondary key */
@@ -899,10 +889,9 @@ static GSList*
 locations_add (GSList     * locations,
                const char * zone,
                const char * name,
-               gboolean     visible,
-               time_t       now)
+               gboolean     visible)
 {
-  struct TimeLocation * loc = time_location_new (zone, name, visible, now);
+  struct TimeLocation * loc = time_location_new (zone, name, visible);
 
   if (g_slist_find_custom (locations, loc, (GCompareFunc)time_location_compare))
     {
@@ -927,9 +916,9 @@ create_locations_section (IndicatorDatetimeService * self)
   GSList * locations = NULL;
   gchar ** user_locations;
   gboolean visible;
-  const time_t now = time (NULL);
-  priv_t * p = self->priv;
   IndicatorDatetimeTimezone * detected_timezones[2];
+  priv_t * p = self->priv;
+  GDateTime * now = indicator_datetime_service_get_localtime (self);
 
   set_detect_location_enabled (self,
                                g_settings_get_boolean (p->settings, SETTINGS_SHOW_DETECTED_S));
@@ -953,7 +942,7 @@ create_locations_section (IndicatorDatetimeService * self)
           if (tz && *tz)
             {
               gchar * name = get_current_zone_name (tz);
-              locations = locations_add (locations, tz, name, visible, now);
+              locations = locations_add (locations, tz, name, visible);
               g_free (name);
             }
         }
@@ -970,7 +959,7 @@ create_locations_section (IndicatorDatetimeService * self)
           gchar * zone;
           gchar * name;
           split_settings_location (user_locations[i], &zone, &name);
-          locations = locations_add (locations, zone, name, visible, now);
+          locations = locations_add (locations, zone, name, visible);
           g_free (name);
           g_free (zone);
         }
@@ -994,7 +983,7 @@ create_locations_section (IndicatorDatetimeService * self)
           detailed_action = g_strdup_printf ("indicator.set-location::%s %s",
                                              loc->zone,
                                              loc->name);
-          fmt = generate_format_string_at_time (loc->local_time);
+          fmt = generate_format_string_at_time (now, loc->local_time);
 
           menu_item = g_menu_item_new (label, detailed_action);
           g_menu_item_set_attribute (menu_item, "x-canonical-type",
@@ -1012,6 +1001,7 @@ create_locations_section (IndicatorDatetimeService * self)
         }
     }
 
+  g_date_time_unref (now);
   g_slist_free_full (locations, (GDestroyNotify)time_location_free);
   return G_MENU_MODEL (menu);
 }
@@ -1857,3 +1847,12 @@ indicator_datetime_service_new (gboolean replace)
 
   return INDICATOR_DATETIME_SERVICE (o);
 }
+
+/* This currently just returns the system time,
+   As we add test coverage, we'll need this to bypass the system time. */
+GDateTime *
+indicator_datetime_service_get_localtime (IndicatorDatetimeService * self G_GNUC_UNUSED)
+{
+  return g_date_time_new_now_local ();
+}
+

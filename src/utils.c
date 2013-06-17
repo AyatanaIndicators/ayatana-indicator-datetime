@@ -226,7 +226,7 @@ generate_format_string_full (gboolean show_day, gboolean show_date)
 }
 
 gchar *
-generate_format_string_at_time (GDateTime * time)
+generate_format_string_at_time (GDateTime * now, GDateTime * time)
 {
 	/* This is a bit less free-form than for the main "now" time label. */
 	/* If it is today, just the time should be shown (e.g. “3:55 PM”)
@@ -235,8 +235,6 @@ generate_format_string_at_time (GDateTime * time)
            In addition, when presenting the times of upcoming events, the time should be followed by the timezone if it is different from the one the computer is currently set to. For example, “Wed 3:55 PM UTC−5”. */
 	gboolean show_day = FALSE;
 	gboolean show_date = FALSE;
-
-	GDateTime * now = g_date_time_new_now_local();
 
 	/* First, are we same day? */
 	gint time_year, time_month, time_day;
@@ -271,8 +269,6 @@ generate_format_string_at_time (GDateTime * time)
 		g_date_time_unref(past_bound);
 		g_date_time_unref(future_bound);
 	}
-
-	g_date_time_unref (now);
 
 	return generate_format_string_full(show_day, show_date);
 }

@@ -64,6 +64,8 @@ GType indicator_datetime_service_get_type (void);
 
 IndicatorDatetimeService * indicator_datetime_service_new (gboolean replace);
 
+GDateTime * indicator_datetime_service_get_localtime (IndicatorDatetimeService * service);
+
 G_END_DECLS
 
 #endif /* __INDICATOR_DATETIME_SERVICE_H__ */
