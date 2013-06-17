@@ -106,7 +106,7 @@ my_finalize (GObject * o)
 
   g_free (self->priv->timezone);
 
-  G_OBJECT_CLASS (indicator_datetime_planner_parent_class)->dispose (o);
+  G_OBJECT_CLASS (indicator_datetime_planner_parent_class)->finalize (o);
 }
 
 /***
