@@ -54,10 +54,10 @@ enum
 {
   PROP_0,
   PROP_REPLACE,
-  PROP_LAST
+  LAST_PROP
 };
 
-static GParamSpec * properties[PROP_LAST];
+static GParamSpec * properties[LAST_PROP];
 
 enum
 {
@@ -203,7 +203,7 @@ rebuild_settings_section_soon (IndicatorDatetimeService * self)
  *    obviously, dependent on the local time.
  *
  * In short, we want to update whenever the number of days between two zone
- * might have changed. We do that by updating when the day changes in either zone.
+ * might have changed. We do that by updating when either zone's day changes.
  *
  * Since not all UTC offsets are evenly divisible by hours
  * (examples: Newfoundland UTC-03:30, Nepal UTC+05:45), refreshing on the hour
@@ -1007,10 +1007,10 @@ create_locations_section (IndicatorDatetimeService * self)
 }
 
 /***
-****
+****  SET LOCATION
 ***/
 
-struct settimezone_data
+struct setlocation_data
 {
   IndicatorDatetimeService * service;
   char * timezone_id;
@@ -1018,7 +1018,7 @@ struct settimezone_data
 };
 
 static void
-settimezone_data_free (struct settimezone_data * data)
+setlocation_data_free (struct setlocation_data * data)
 {
   g_free (data->timezone_id);
   g_free (data->name);
@@ -1032,7 +1032,7 @@ on_datetime1_set_timezone_response (GObject       * object,
 {
   GError * err;
   GVariant * answers;
-  struct settimezone_data * data = gdata;
+  struct setlocation_data * data = gdata;
 
   err = NULL;
   answers = g_dbus_proxy_call_finish (G_DBUS_PROXY(object), res, &err);
@@ -1055,7 +1055,7 @@ on_datetime1_set_timezone_response (GObject       * object,
       g_variant_unref (answers);
     }
 
-  settimezone_data_free (data);
+  setlocation_data_free (data);
 }
 
 static void
@@ -1065,7 +1065,7 @@ on_datetime1_proxy_ready (GObject      * object G_GNUC_UNUSED,
 {
   GError * err;
   GDBusProxy * proxy;
-  struct settimezone_data * data = gdata;
+  struct setlocation_data * data = gdata;
 
   err = NULL;
   proxy = g_dbus_proxy_new_for_bus_finish (res, &err);
@@ -1073,7 +1073,7 @@ on_datetime1_proxy_ready (GObject      * object G_GNUC_UNUSED,
     {
       g_warning ("Could not grab DBus proxy for timedated: %s", err->message);
       g_error_free (err);
-      settimezone_data_free (data);
+      setlocation_data_free (data);
     }
   else
     {
@@ -1091,18 +1091,18 @@ on_datetime1_proxy_ready (GObject      * object G_GNUC_UNUSED,
 }
 
 static void
-indicator_datetime_service_set_location (IndicatorDatetimeService  * self,
-                                         const char                * timezone_id,
-                                         const char                * name)
+indicator_datetime_service_set_location (IndicatorDatetimeService * self,
+                                         const char               * timezone_id,
+                                         const char               * name)
 {
   priv_t * p = self->priv;
-  struct settimezone_data * data;
+  struct setlocation_data * data;
 
   g_return_if_fail (INDICATOR_IS_DATETIME_SERVICE (self));
   g_return_if_fail (name && *name);
   g_return_if_fail (timezone_id && *timezone_id);
 
-  data = g_new0 (struct settimezone_data, 1);
+  data = g_new0 (struct setlocation_data, 1);
   data->timezone_id = g_strdup (timezone_id);
   data->name = g_strdup (name);
   data->service = self;
@@ -1217,18 +1217,16 @@ execute_command (const gchar * cmd)
     }
 }
 
-#ifdef HAVE_CCPANEL
- #define SETTINGS_APP_INVOCATION "gnome-control-center indicator-datetime"
-#else
- #define SETTINGS_APP_INVOCATION "gnome-control-center datetime"
-#endif
-
 static void
 on_settings_activated (GSimpleAction * a      G_GNUC_UNUSED,
                        GVariant      * param  G_GNUC_UNUSED,
                        gpointer        gself  G_GNUC_UNUSED)
 {
-  execute_command (SETTINGS_APP_INVOCATION);
+#ifdef HAVE_CCPANEL
+  execute_command ("gnome-control-center indicator-datetime");
+#else
+  execute_command ("gnome-control-center datetime");
+#endif
 }
 
 static void
@@ -1833,7 +1831,7 @@ indicator_datetime_service_class_init (IndicatorDatetimeServiceClass * klass)
                                                    G_PARAM_CONSTRUCT_ONLY |
                                                    G_PARAM_STATIC_STRINGS);
 
-  g_object_class_install_properties (object_class, PROP_LAST, properties);
+  g_object_class_install_properties (object_class, LAST_PROP, properties);
 }
 
 /***
