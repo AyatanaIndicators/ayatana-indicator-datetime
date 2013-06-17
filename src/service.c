@@ -119,7 +119,7 @@ struct _IndicatorDatetimeServicePrivate
   /* Which year/month to show in the calendar,
      and which day should get the cursor.
      This value is reflected in the calendar action's state */
-  time_t calendar_date;
+  GDateTime * calendar_date;
 
   GSimpleActionGroup * actions;
   GSimpleAction * header_action;
@@ -525,7 +525,7 @@ get_calendar_date (IndicatorDatetimeService * self)
   priv_t * p = self->priv;
 
   if (p->calendar_date)
-    date = g_date_time_new_from_unix_local ((gint64)p->calendar_date);
+    date = g_date_time_ref (p->calendar_date);
   else
     date = indicator_datetime_service_get_localtime (self);
 
@@ -1240,8 +1240,7 @@ on_activate_planner (GSimpleAction * a         G_GNUC_UNUSED,
 
   if (p->planner != NULL)
     {
-      const time_t t = g_variant_get_int64 (param);
- 
+      const gint64 t = g_variant_get_int64 (param);
       if (t)
         {
           GDateTime * date_time = g_date_time_new_from_unix_local (t);
@@ -1262,14 +1261,16 @@ on_calendar_action_activated (GSimpleAction * action G_GNUC_UNUSED,
 {
   IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (gself);
   priv_t * p = self->priv;
-  const time_t calendar_date = (time_t) g_variant_get_int64 (state);
+  gint64 t = g_variant_get_int64 (state);
 
-  if (p->calendar_date != calendar_date)
-    {
-      p->calendar_date = (time_t) g_variant_get_int64 (state);
-      update_calendar_action_state (self);
-      rebuild_appointments_section_soon (self);
-    }
+  /* update calendar_date */
+  g_clear_pointer (&p->calendar_date, g_date_time_unref);
+  if (t)
+    p->calendar_date = g_date_time_new_from_unix_local (t);
+
+  /* sync the menuitems and action states */
+  update_calendar_action_state (self);
+  rebuild_appointments_section_soon (self);
 }
 
 
@@ -1667,6 +1668,7 @@ my_finalize (GObject * o)
   priv_t * p = self->priv;
 
   g_clear_pointer (&p->skew_time, g_date_time_unref);
+  g_clear_pointer (&p->calendar_date, g_date_time_unref);
 
   G_OBJECT_CLASS (indicator_datetime_service_parent_class)->finalize (o);
 }
