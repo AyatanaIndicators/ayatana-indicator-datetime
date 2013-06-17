@@ -66,6 +66,10 @@ IndicatorDatetimeService * indicator_datetime_service_new (gboolean replace);
 
 GDateTime * indicator_datetime_service_get_localtime (IndicatorDatetimeService * service);
 
+void indicator_datetime_service_set_calendar_date (IndicatorDatetimeService * self,
+                                                   GDateTime                * date);
+
+
 G_END_DECLS
 
 #endif /* __INDICATOR_DATETIME_SERVICE_H__ */

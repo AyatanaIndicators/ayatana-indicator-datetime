@@ -1257,18 +1257,19 @@ on_calendar_action_activated (GSimpleAction * action G_GNUC_UNUSED,
                               GVariant      * state,
                               gpointer        gself)
 {
+  gint64 unix_time;
   IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (gself);
-  priv_t * p = self->priv;
-  gint64 t = g_variant_get_int64 (state);
 
-  /* update calendar_date */
-  g_clear_pointer (&p->calendar_date, g_date_time_unref);
-  if (t)
-    p->calendar_date = g_date_time_new_from_unix_local (t);
-
-  /* sync the menuitems and action states */
-  update_calendar_action_state (self);
-  rebuild_appointments_section_soon (self);
+  if ((unix_time = g_variant_get_int64 (state)))
+    {
+      GDateTime * date = g_date_time_new_from_unix_local (unix_time);
+      indicator_datetime_service_set_calendar_date (self, date);
+      g_date_time_unref (date);
+    }
+  else /* unset */
+    {
+      indicator_datetime_service_set_calendar_date (self, NULL);
+    }
 }
 
 
@@ -1856,3 +1857,24 @@ indicator_datetime_service_get_localtime (IndicatorDatetimeService * self G_GNUC
   return g_date_time_new_now_local ();
 }
 
+void
+indicator_datetime_service_set_calendar_date (IndicatorDatetimeService * self,
+                                              GDateTime                * date)
+{
+  gboolean dirty;
+  priv_t * p = self->priv;
+
+  dirty = !date || !p->calendar_date || g_date_time_compare (date, p->calendar_date);
+
+  /* update calendar_date */
+  g_clear_pointer (&p->calendar_date, g_date_time_unref);
+  if (date != NULL)
+    p->calendar_date = g_date_time_ref (date);
+
+  /* sync the menuitems and action states */
+  if (dirty)
+    {
+      update_calendar_action_state (self);
+      rebuild_appointments_section_soon (self);
+    }
+}
