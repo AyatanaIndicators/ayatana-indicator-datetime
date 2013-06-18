@@ -116,23 +116,6 @@ with_localinstall="no"
 AC_ARG_ENABLE(localinstall, AS_HELP_STRING([--enable-localinstall], [install all of the files localy instead of system directories (for distcheck)]), with_localinstall=$enableval, with_localinstall=no)
 
 ###########################
-# Indicator Info
-###########################
-
-AS_IF([test "x$with_localinstall" = "xyes"],
-	[
-	INDICATORDIR="${libdir}/indicators/2/"
-	INDICATORICONSDIR="${datadir}/libindicate/icons/"
-	],
-	[
-	INDICATORDIR=`$PKG_CONFIG --variable=indicatordir indicator3-0.4`
-	INDICATORICONSDIR=`$PKG_CONFIG --variable=iconsdir indicator3-0.4`
-	])
-
-AC_SUBST(INDICATORDIR)
-AC_SUBST(INDICATORICONSDIR)
-
-###########################
 # Control Center Info
 ###########################
 
@@ -229,7 +212,6 @@ AC_MSG_NOTICE([
 Date and Time Indicator Configuration:
 
 	Prefix:        $prefix
-	Indicator Dir: $INDICATORDIR
 	CC Panel:      $have_ccpanel
 	CC Panel Dir:  $CCPANELDIR
 	Unit Tests:    $enable_tests
