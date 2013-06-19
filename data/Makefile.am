@@ -7,7 +7,7 @@ EXTRA_DIST=
 #
 
 indicatorsdir = $(prefix)/share/unity/indicators
-indicators_DATA = com.canonical.indicator.datetime
+dist_indicators_DATA = com.canonical.indicator.datetime
 
 #
 # the gsettings
@@ -42,4 +42,4 @@ if BUILD_CCPANEL
  EXTRA_DIST += $(desktop_DATA)
  CLEANFILES += $(desktop_DATA)
 endif
-EXTRA_DIST += $(desktop_DATA:.desktop=.desktop.in)
+EXTRA_DIST += datetime-dialog.ui $(desktop_DATA:.desktop=.desktop.in)
