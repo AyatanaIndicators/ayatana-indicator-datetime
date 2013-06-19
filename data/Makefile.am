@@ -34,12 +34,12 @@ EXTRA_DIST += $(dbus_services_in)
 # the gnome-control-center panel
 #
 
-EXTRA_DIST += datetime-dialog.ui
 if BUILD_CCPANEL
  pkgdata_DATA = datetime-dialog.ui
  @INTLTOOL_DESKTOP_RULE@
  desktopdir = $(datadir)/applications
- desktop_DATA = indicator-datetime-preferences.desktop
- EXTRA_DIST += $(desktop_DATA) $(desktop_DATA:.desktop=.desktop.in)
+ desktop_DATA = gnome-indicator-datetime-panel.desktop
+ EXTRA_DIST += $(desktop_DATA)
  CLEANFILES += $(desktop_DATA)
 endif
+EXTRA_DIST += $(desktop_DATA:.desktop=.desktop.in)
