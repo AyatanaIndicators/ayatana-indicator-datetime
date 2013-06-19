@@ -1,9 +1,0 @@
-SHORT TERM TODO:
- - due dilligence in a profiler
- - need to install the .indicator file during "make install"
- - remove shared-dbus: prefs panel needs to look for running indicator in a new way
- - fix broken indicator test
-
-LONG TERM TODO:
- - test coverage
- - lots of the service is unmockable b/c of calls to time(NULL), g_date_time_new_local(), etc
