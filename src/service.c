@@ -32,7 +32,7 @@
 #include "settings-shared.h"
 #include "utils.h"
 
-#define BUS_NAME "datetime.indicator"
+#define BUS_NAME "com.canonical.indicator.datetime"
 #define BUS_PATH "/com/canonical/indicator/datetime"
 
 #define SKEW_CHECK_INTERVAL_SEC 10
