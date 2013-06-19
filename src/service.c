@@ -25,15 +25,13 @@
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 
+#include "dbus-shared.h"
 #include "planner-eds.h"
 #include "timezone-file.h"
 #include "timezone-geoclue.h"
 #include "service.h"
 #include "settings-shared.h"
 #include "utils.h"
-
-#define BUS_NAME "com.canonical.indicator.datetime"
-#define BUS_PATH "/com/canonical/indicator/datetime"
 
 #define SKEW_CHECK_INTERVAL_SEC 10
 #define SKEW_DIFF_THRESHOLD_USEC ((SKEW_CHECK_INTERVAL_SEC+5) * G_USEC_PER_SEC)
