@@ -22,6 +22,7 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CXX
 AC_HEADER_STDC
+AM_PROG_AR
 
 # Initialize libtool
 LT_PREREQ([2.2])
