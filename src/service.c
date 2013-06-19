@@ -1036,7 +1036,9 @@ on_datetime1_set_timezone_response (GObject       * object,
   answers = g_dbus_proxy_call_finish (G_DBUS_PROXY(object), res, &err);
   if (err != NULL)
     {
-      g_warning ("Could not set new timezone: %s", err->message);
+      if (!g_error_matches (err, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("Could not set new timezone: %s", err->message);
+
       g_error_free (err);
     }
   else
@@ -1069,7 +1071,9 @@ on_datetime1_proxy_ready (GObject      * object G_GNUC_UNUSED,
   proxy = g_dbus_proxy_new_for_bus_finish (res, &err);
   if (err != NULL)
     {
-      g_warning ("Could not grab DBus proxy for timedated: %s", err->message);
+      if (!g_error_matches (err, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("Could not grab DBus proxy for timedated: %s", err->message);
+
       g_error_free (err);
       setlocation_data_free (data);
     }
@@ -1422,7 +1426,9 @@ on_login1_manager_proxy_ready (GObject       * object  G_GNUC_UNUSED,
 
   if (err != NULL)
     {
-      g_warning ("Could not grab DBus proxy for logind: %s", err->message);
+      if (!g_error_matches (err, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("Could not grab DBus proxy for logind: %s", err->message);
+
       g_error_free (err);
     }
   else

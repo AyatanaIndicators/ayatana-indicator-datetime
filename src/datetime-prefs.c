@@ -176,7 +176,8 @@ polkit_perm_ready (GObject *source_object, GAsyncResult *res, gpointer user_data
   GPermission * permission = polkit_permission_new_finish (res, &error);
 
   if (error != NULL) {
-    g_warning ("Could not get permission object: %s", error->message);
+    if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+      g_warning ("Could not get permission object: %s", error->message);
     g_error_free (error);
     return;
   }
@@ -192,7 +193,8 @@ dbus_set_answered (GObject *object, GAsyncResult *res, gpointer command)
   GVariant * answers = g_dbus_proxy_call_finish (G_DBUS_PROXY (object), res, &error);
 
   if (error != NULL) {
-    g_warning("Could not set '%s' using timedated: %s", (gchar *)command, error->message);
+    if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+      g_warning("Could not set '%s' using timedated: %s", (gchar *)command, error->message);
     g_error_free(error);
     return;
   }
@@ -247,7 +249,8 @@ proxy_ready (GObject *object, GAsyncResult *res, IndicatorDatetimePanel * self)
   self->priv->proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
 
   if (error != NULL) {
-    g_critical("Could not grab DBus proxy for timedated: %s", error->message);
+    if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+      g_critical("Could not grab DBus proxy for timedated: %s", error->message);
     g_error_free(error);
     return;
   }
