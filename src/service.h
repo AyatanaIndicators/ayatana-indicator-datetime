@@ -62,7 +62,7 @@ struct _IndicatorDatetimeServiceClass
 
 GType indicator_datetime_service_get_type (void);
 
-IndicatorDatetimeService * indicator_datetime_service_new (gboolean replace);
+IndicatorDatetimeService * indicator_datetime_service_new (void);
 
 GDateTime * indicator_datetime_service_get_localtime (IndicatorDatetimeService * service);
 

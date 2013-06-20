@@ -50,15 +50,6 @@ static guint signals[LAST_SIGNAL] = { 0 };
 
 enum
 {
-  PROP_0,
-  PROP_REPLACE,
-  LAST_PROP
-};
-
-static GParamSpec * properties[LAST_PROP];
-
-enum
-{
   SECTION_HEADER        = (1<<0),
   SECTION_CALENDAR      = (1<<1),
   SECTION_APPOINTMENTS  = (1<<2),
@@ -124,8 +115,6 @@ struct _IndicatorDatetimeServicePrivate
   GSimpleAction * calendar_action;
 
   GDBusProxy * login1_manager;
-
-  gboolean replace;
 };
 
 typedef IndicatorDatetimeServicePrivate priv_t;
@@ -1545,67 +1534,6 @@ on_name_lost (GDBusConnection * connection G_GNUC_UNUSED,
 ***/
 
 static void
-my_constructed (GObject * o)
-{
-  GBusNameOwnerFlags owner_flags;
-  IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE(o);
-  priv_t * p = self->priv;
-
-  /* own the name in constructed() instead of init() so that
-     we'll know the value of the 'replace' property */
-  owner_flags = G_BUS_NAME_OWNER_FLAGS_ALLOW_REPLACEMENT;
-  if (p->replace)
-    owner_flags |= G_BUS_NAME_OWNER_FLAGS_REPLACE;
-
-  p->own_id = g_bus_own_name (G_BUS_TYPE_SESSION,
-                              BUS_NAME,
-                              owner_flags,
-                              on_bus_acquired,
-                              NULL,
-                              on_name_lost,
-                              self,
-                              NULL);
-}
-
-static void
-my_get_property (GObject     * o,
-                  guint         property_id,
-                  GValue      * value,
-                  GParamSpec  * pspec)
-{
-  IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (o);
- 
-  switch (property_id)
-    {
-      case PROP_REPLACE:
-        g_value_set_boolean (value, self->priv->replace);
-        break;
-
-      default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID (o, property_id, pspec);
-    }
-}
-
-static void
-my_set_property (GObject       * o,
-                 guint           property_id,
-                 const GValue  * value,
-                 GParamSpec    * pspec)
-{
-  IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (o);
-
-  switch (property_id)
-    {
-      case PROP_REPLACE:
-        self->priv->replace = g_value_get_boolean (value);
-        break;
-
-      default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID (o, property_id, pspec);
-    }
-}
-
-static void
 my_dispose (GObject * o)
 {
   int i;
@@ -1799,6 +1727,15 @@ indicator_datetime_service_init (IndicatorDatetimeService * self)
                                          skew_timer_func,
                                          self);
 
+  p->own_id = g_bus_own_name (G_BUS_TYPE_SESSION,
+                              BUS_NAME,
+                              G_BUS_NAME_OWNER_FLAGS_ALLOW_REPLACEMENT,
+                              on_bus_acquired,
+                              NULL,
+                              on_name_lost,
+                              self,
+                              NULL);
+
   on_local_time_jumped (self);
 
   g_string_free (gstr, TRUE);
@@ -1811,9 +1748,6 @@ indicator_datetime_service_class_init (IndicatorDatetimeServiceClass * klass)
 
   object_class->dispose = my_dispose;
   object_class->finalize = my_finalize;
-  object_class->constructed = my_constructed;
-  object_class->get_property = my_get_property;
-  object_class->set_property = my_set_property;
 
   g_type_class_add_private (klass, sizeof (IndicatorDatetimeServicePrivate));
 
@@ -1825,18 +1759,6 @@ indicator_datetime_service_class_init (IndicatorDatetimeServiceClass * klass)
     NULL, NULL,
     g_cclosure_marshal_VOID__VOID,
     G_TYPE_NONE, 0);
-
-  properties[PROP_0] = NULL;
-
-  properties[PROP_REPLACE] = g_param_spec_boolean ("replace",
-                                                   "Replace Service",
-                                                   "Replace existing service",
-                                                   FALSE,
-                                                   G_PARAM_READWRITE |
-                                                   G_PARAM_CONSTRUCT_ONLY |
-                                                   G_PARAM_STATIC_STRINGS);
-
-  g_object_class_install_properties (object_class, LAST_PROP, properties);
 }
 
 /***
@@ -1844,11 +1766,9 @@ indicator_datetime_service_class_init (IndicatorDatetimeServiceClass * klass)
 ***/
 
 IndicatorDatetimeService *
-indicator_datetime_service_new (gboolean replace)
+indicator_datetime_service_new (void)
 {
-  GObject * o = g_object_new (INDICATOR_TYPE_DATETIME_SERVICE,
-                              "replace", replace,
-                              NULL);
+  GObject * o = g_object_new (INDICATOR_TYPE_DATETIME_SERVICE, NULL);
 
   return INDICATOR_DATETIME_SERVICE (o);
 }
