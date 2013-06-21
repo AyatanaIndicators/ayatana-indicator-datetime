@@ -23,15 +23,14 @@ AM_CXXFLAGS = $(GTEST_CXXFLAGS)
 ###
 
 TEST_LIBS = \
-        $(top_builddir)/src/.libs/libdatetime.so \
         libgtest.a \
-        $(INDICATOR_LIBS) \
+        $(SERVICE_LIBS) \
         $(COVERAGE_LDFLAGS) \
         $(XORG_GTEST_LDFLAGS)
 
 TEST_CPPFLAGS = \
         $(AM_CPPFLAGS) \
-        $(INDICATOR_CFLAGS)
+        $(SERVICE_CFLAGS)
 
 BUILT_SOURCES += gschemas.compiled
 CLEANFILES += gschemas.compiled

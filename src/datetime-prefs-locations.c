@@ -25,6 +25,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #include <stdlib.h>
+#include <time.h> /* time_t */
 #include <glib/gi18n-lib.h>
 #include <gtk/gtk.h>
 #include <timezonemap/timezone-completion.h>
@@ -416,10 +417,9 @@ update_times (GtkWidget * dlg)
 
   g_signal_handlers_block_by_func (store, save_when_idle, dlg);
 
-  GDateTime * now = g_date_time_new_now_local ();
-
   GtkTreeIter iter;
   if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter)) {
+    GDateTime * now = g_date_time_new_now_local ();
     do {
       gchar * strzone;
 
@@ -428,7 +428,7 @@ update_times (GtkWidget * dlg)
       if (strzone && *strzone) {
         GTimeZone * tz = g_time_zone_new (strzone);
         GDateTime * now_tz = g_date_time_to_timezone (now, tz);
-        gchar * format = generate_format_string_at_time (now_tz);
+        gchar * format = generate_format_string_at_time (now, now_tz);
         gchar * time_str = g_date_time_format (now_tz, format);
         gchar * old_time_str;
 
@@ -444,9 +444,8 @@ update_times (GtkWidget * dlg)
       }
       g_free (strzone);
     } while (gtk_tree_model_iter_next (GTK_TREE_MODEL (store), &iter));
+    g_date_time_unref (now);
   }
-
-  g_date_time_unref (now);
 
   g_signal_handlers_unblock_by_func (store, save_when_idle, dlg);
 

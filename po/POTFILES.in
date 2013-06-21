@@ -1,8 +1,7 @@
-src/indicator-datetime.c
-src/datetime-service.c
 src/datetime-prefs.c
 src/datetime-prefs-locations.c
-src/utils.c
+src/service.c
 src/settings-shared.h
+src/utils.c
 [type: gettext/glade]data/datetime-dialog.ui
 data/gnome-indicator-datetime-panel.desktop.in

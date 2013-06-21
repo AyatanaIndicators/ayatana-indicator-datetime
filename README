@@ -1,0 +1,58 @@
+ACTIONS
+=======
+
+ * "activate-settings"
+   Description: opens a page for changing indicator-datetime's settings
+   State: None
+   Parameter: None
+
+ * "activate-planner"
+   Description: opens up a calendar appointment editor.
+   State: None
+   Parameter: int64, a time_t hinting which day/time to show in the planner,
+                     or 0 for the current day
+
+ * "set-location"
+   Description: Set the current location. This will try to set the current
+   timezone to the new location's timezone.
+   State: None
+   Parameter: a timezone id string followed by a space and location name.
+              Example: "America/Chicago Oklahoma City"
+
+ * "calendar"
+    Description: set which month/day should be given focus in the indicator's
+                 calendar. The planner will look for appointments from this
+                 day to the end of the same month.
+                 Client code implementing the calendar view should call this
+                 when the user clicks on a new day, month, or year.
+    State: a dictionary containing these key value/pairs:
+          "appointment-days": an array of day-of-month ints. Used by the
+                              calendar menuitem to mark appointment days.
+          "calendar-day": int64, a time_t. Used by the calendar menuitem
+                          to know which year/month should be visible
+                          and which day should have the cursor.
+          "show-week-numbers": if true, show week numbers in the calendar.
+    Parameter: int64, a time_t specifying which year/month should be visible
+                      and which day should have the cursor.
+
+
+CUSTOM MENUITEMS
+================
+
+ * Calendar
+   - x-canonical-type         s "com.canonical.indicator.calendar"
+
+ * Appointment
+   - label                    s short summary of the appointment
+   - x-canonical-type         s "com.canonical.indicator.appointment"
+   - x-canonical-color        s color of the appt's type, to give a visual cue
+   - x-canonical-time         x the date of the appointment
+   - x-canonical-time-format  s strftime format string
+
+ * Location
+   - label                    s the location's name, eg "Oklahoma City"
+   - x-canonical-type         s "com.canonical.indicator.location"
+   - x-canonical-timezone     s timezone that the location is in
+   - x-canonical-time-format  s strftime format string
+
+

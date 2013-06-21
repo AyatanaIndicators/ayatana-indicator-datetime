@@ -22,6 +22,7 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CXX
 AC_HEADER_STDC
+AM_PROG_AR
 
 # Initialize libtool
 LT_PREREQ([2.2])
@@ -38,47 +39,27 @@ AS_IF([test "x$enable_deprecations" = xno],
   [CFLAGS="$CFLAGS -DG_DISABLE_DEPRECATED -DGDK_DISABLE_DEPRECATED -DGDK_PIXBUF_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED -DGSEAL_ENABLE -DGTK_DISABLE_SINGLE_INCLUDES"]
 )
 
-AC_PATH_PROG([GLIB_MKENUMS], [glib-mkenums])
-AC_PATH_PROG([GLIB_GENMARSHAL], [glib-genmarshal])
-
 PKG_PROG_PKG_CONFIG
 
 ###########################
 # Dependencies
 ###########################
 
-INDICATOR_REQUIRED_VERSION=0.3.19
-DBUSMENUGLIB_REQUIRED_VERSION=0.1.1
-DBUSMENUGTK_REQUIRED_VERSION=0.5.90
+GLIB_REQUIRED_VERSION=2.35.4
 GIO_REQUIRED_VERSION=2.25.11
-INDICATOR_DISPLAY_OBJECTS=0.2.2
 GEOCLUE_REQUIRED_VERSION=0.12.0
+ICAL_REQUIRED_VERSION=0.48
 ECAL_REQUIRED_VERSION=3.5
 EDS_REQUIRED_VERSION=3.5
-ICAL_REQUIRED_VERSION=0.48
-CAIRO_REQUIRED_VERSION=1.10
-GDK_REQUIRED_VERSION=2.22
-GLIB_REQUIRED_VERSION=2.35.4
+
 GTK3_REQUIRED_VERSION=3.1.4
 
-PKG_CHECK_MODULES(INDICATOR, indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
-                             glib-2.0 >= $GLIB_REQUIRED_VERSION
-                             dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
-                             dbusmenu-gtk3-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
-                             libido3-0.1 >= $INDICATOR_DISPLAY_OBJECTS)
-
-PKG_CHECK_MODULES(SERVICE, indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
-                           glib-2.0 >= $GLIB_REQUIRED_VERSION
-                           dbusmenu-glib-0.4 >= $DBUSMENUGLIB_REQUIRED_VERSION
-                           dbusmenu-gtk3-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
-                           libido3-0.1 >= $INDICATOR_DISPLAY_OBJECTS
+PKG_CHECK_MODULES(SERVICE, glib-2.0 >= $GLIB_REQUIRED_VERSION
                            gio-2.0 >= $GIO_REQUIRED_VERSION
                            geoclue >= $GEOCLUE_REQUIRED_VERSION
-                           libecal-1.2 >= $ECAL_REQUIRED_VERSION
                            libical >= $ICAL_REQUIRED_VERSION
-                           libedataserver-1.2 >= EDS_REQUIRED_VERSION
-                           cairo >= CAIRO_REQUIRED_VERSION
-                           gdk-3.0 >= GDK_REQUIRED_VERSION)
+                           libecal-1.2 >= $ECAL_REQUIRED_VERSION
+                           libedataserver-1.2 >= EDS_REQUIRED_VERSION)
 
 ###########################
 # Control Center panel
@@ -134,23 +115,6 @@ AC_SUBST(COVERAGE_LDFLAGS)
 
 with_localinstall="no"
 AC_ARG_ENABLE(localinstall, AS_HELP_STRING([--enable-localinstall], [install all of the files localy instead of system directories (for distcheck)]), with_localinstall=$enableval, with_localinstall=no)
-
-###########################
-# Indicator Info
-###########################
-
-AS_IF([test "x$with_localinstall" = "xyes"],
-	[
-	INDICATORDIR="${libdir}/indicators/2/"
-	INDICATORICONSDIR="${datadir}/libindicate/icons/"
-	],
-	[
-	INDICATORDIR=`$PKG_CONFIG --variable=indicatordir indicator3-0.4`
-	INDICATORICONSDIR=`$PKG_CONFIG --variable=iconsdir indicator3-0.4`
-	])
-
-AC_SUBST(INDICATORDIR)
-AC_SUBST(INDICATORICONSDIR)
 
 ###########################
 # Control Center Info
@@ -249,7 +213,6 @@ AC_MSG_NOTICE([
 Date and Time Indicator Configuration:
 
 	Prefix:        $prefix
-	Indicator Dir: $INDICATORDIR
 	CC Panel:      $have_ccpanel
 	CC Panel Dir:  $CCPANELDIR
 	Unit Tests:    $enable_tests

@@ -58,6 +58,7 @@ struct _IndicatorDatetimePanel
 
 struct _IndicatorDatetimePanelPrivate
 {
+  guint                name_watch_id;
   GtkBuilder *         builder;
   GDBusProxy *         proxy;
   GtkWidget *          auto_radio;
@@ -175,7 +176,8 @@ polkit_perm_ready (GObject *source_object, GAsyncResult *res, gpointer user_data
   GPermission * permission = polkit_permission_new_finish (res, &error);
 
   if (error != NULL) {
-    g_warning ("Could not get permission object: %s", error->message);
+    if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+      g_warning ("Could not get permission object: %s", error->message);
     g_error_free (error);
     return;
   }
@@ -191,7 +193,8 @@ dbus_set_answered (GObject *object, GAsyncResult *res, gpointer command)
   GVariant * answers = g_dbus_proxy_call_finish (G_DBUS_PROXY (object), res, &error);
 
   if (error != NULL) {
-    g_warning("Could not set '%s' using timedated: %s", (gchar *)command, error->message);
+    if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+      g_warning("Could not set '%s' using timedated: %s", (gchar *)command, error->message);
     g_error_free(error);
     return;
   }
@@ -246,7 +249,8 @@ proxy_ready (GObject *object, GAsyncResult *res, IndicatorDatetimePanel * self)
   self->priv->proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
 
   if (error != NULL) {
-    g_critical("Could not grab DBus proxy for timedated: %s", error->message);
+    if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+      g_critical("Could not grab DBus proxy for timedated: %s", error->message);
     g_error_free(error);
     return;
   }
@@ -286,33 +290,30 @@ proxy_ready (GObject *object, GAsyncResult *res, IndicatorDatetimePanel * self)
     }
 }
 
+#define WIG(name) GTK_WIDGET (gtk_builder_get_object(self->priv->builder, name))
+
 static void
-service_name_owner_changed (GDBusProxy * proxy, GParamSpec *pspec, gpointer user_data)
+set_show_clock_check_sensitive (IndicatorDatetimePanel  * self,
+                                gboolean                  sensitive)
 {
-  GtkWidget * widget = GTK_WIDGET (user_data);
-  gchar * owner = g_dbus_proxy_get_name_owner (proxy);
-
-  gtk_widget_set_sensitive (widget, (owner != NULL));
-
-  g_free (owner);
+  gtk_widget_set_sensitive (WIG("showClockCheck"), sensitive);
 }
 
 static void
-service_proxy_ready (GObject *object, GAsyncResult *res, gpointer user_data)
+on_bus_name_appeared (GDBusConnection * connection   G_GNUC_UNUSED,
+                      const char      * name         G_GNUC_UNUSED,
+                      const char      * name_owner,
+                      gpointer          self)
 {
-  GError * error = NULL;
+  set_show_clock_check_sensitive (self, name_owner && *name_owner);
+}
 
-  GDBusProxy * proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
-
-  if (error != NULL) {
-    g_critical("Could not grab DBus proxy for indicator-datetime-service: %s", error->message);
-    g_error_free(error);
-    return;
-  }
-
-  /* And now, do initial proxy configuration */
-  g_signal_connect (proxy, "notify::g-name-owner", G_CALLBACK (service_name_owner_changed), user_data);
-  service_name_owner_changed (proxy, NULL, user_data);
+static void
+on_bus_name_vanished (GDBusConnection * connection   G_GNUC_UNUSED,
+                      const char      * name         G_GNUC_UNUSED,
+                      gpointer          self)
+{
+  set_show_clock_check_sensitive (self, FALSE);
 }
 
 static gboolean
@@ -656,7 +657,6 @@ indicator_datetime_panel_init (IndicatorDatetimePanel * self)
 
   GSettings * conf = g_settings_new (SETTINGS_INTERFACE);
 
-#define WIG(name) GTK_WIDGET (gtk_builder_get_object (self->priv->builder, name))
 
   /* Add policykit button */
   GtkWidget * polkit_button = gtk_lock_button_new (NULL);
@@ -745,10 +745,13 @@ indicator_datetime_panel_init (IndicatorDatetimePanel * self)
      but that doesn't yet claim a name on the bus.  Presumably the service
      would have been started by any such indicator, so this will at least tell
      us if there *was* a datetime module run this session. */
-  g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION, G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START, NULL,
-                            SERVICE_NAME, SERVICE_OBJ, SERVICE_IFACE,
-                            NULL, (GAsyncReadyCallback)service_proxy_ready,
-                            WIG ("showClockCheck"));
+  self->priv->name_watch_id = g_bus_watch_name (G_BUS_TYPE_SESSION,
+                                                BUS_NAME,
+                                                G_BUS_NAME_WATCHER_FLAGS_NONE,
+                                                on_bus_name_appeared,
+                                                on_bus_name_vanished,
+                                                self,
+                                                NULL);
 
 #undef WIG
 
@@ -770,6 +773,11 @@ indicator_datetime_panel_dispose (GObject * object)
   if (priv->loc_dlg) {
     gtk_widget_destroy (priv->loc_dlg);
     priv->loc_dlg = NULL;
+  }
+
+  if (priv->name_watch_id != 0) {
+    g_bus_unwatch_name (priv->name_watch_id);
+    priv->name_watch_id = 0;
   }
 
   if (priv->save_time_id) {
