@@ -1,3 +1,15 @@
+indicator-datetime (12.10.3+13.10.20130628-0ubuntu1) saucy; urgency=low
+
+  [ Charles Kerr ]
+  * This push extracts geoclue to its own self-contained module, fixes
+    an errant g_critical, and merges ryan's timedate1 changes from the
+    13.04 branch.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 226
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 28 Jun 2013 02:03:02 +0000
+
 indicator-datetime (12.10.3daily13.06.19-0ubuntu1) saucy; urgency=low
 
   [ Iain Lane ]
