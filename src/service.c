@@ -1134,7 +1134,7 @@ static GMenuModel *
 create_settings_section (IndicatorDatetimeService * self G_GNUC_UNUSED)
 {
   GMenu * menu = g_menu_new ();
-  g_menu_append (menu, _("Date and Time Settings\342\200\246"), "indicator.activate-settings");
+  g_menu_append (menu, _("Date & Time Settings…"), "indicator.activate-settings");
   return G_MENU_MODEL (menu);
 }
 
