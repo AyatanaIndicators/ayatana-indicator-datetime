@@ -1,6 +1,6 @@
 
 if BUILD_CCPANEL
-ccpaneldir = $(CCPANELDIR)
+ccpaneldir = $(libdir)/control-center-1/panels/
 ccpanel_LTLIBRARIES = libindicator-datetime.la
 endif
 
