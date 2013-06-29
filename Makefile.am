@@ -8,8 +8,6 @@ SUBDIRS += tests
 tests: src
 endif
 
-DISTCHECK_CONFIGURE_FLAGS = --enable-localinstall
-
 EXTRA_DIST = autogen.sh
 
 dist-hook:

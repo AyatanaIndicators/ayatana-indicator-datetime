@@ -110,40 +110,6 @@ AC_SUBST(COVERAGE_CFLAGS)
 AC_SUBST(COVERAGE_LDFLAGS)
 
 ###########################
-# Check to see if we're local
-###########################
-
-with_localinstall="no"
-AC_ARG_ENABLE(localinstall, AS_HELP_STRING([--enable-localinstall], [install all of the files localy instead of system directories (for distcheck)]), with_localinstall=$enableval, with_localinstall=no)
-
-###########################
-# Control Center Info
-###########################
-
-AS_IF([test "x$have_ccpanel" = "xyes"],
-	[
-	AS_IF([test "x$with_localinstall" = "xyes"],
-		[
-		CCPANELDIR="${libdir}/control-center-1/panels/"
-		],
-		[
-		CCPANELDIR=`$PKG_CONFIG --variable=extensiondir libgnome-control-center`
-		])
-
-	AC_SUBST(CCPANELDIR)
-	])
-###########################
-# DBus Service Info
-###########################
-
-if test "x$with_localinstall" = "xyes"; then
-	DBUSSERVICEDIR="${datadir}/dbus-1/services/"
-else
-	DBUSSERVICEDIR=`$PKG_CONFIG --variable=session_bus_services_dir dbus-1`
-fi
-AC_SUBST(DBUSSERVICEDIR)
-
-###########################
 # Google Test framework
 ###########################
 
