@@ -1,6 +1,7 @@
 [Indicator Service]
 Name=indicator-datetime
 ObjectPath=/com/canonical/indicator/datetime
+Position=20
 
 [desktop]
 ObjectPath=/com/canonical/indicator/datetime/desktop
