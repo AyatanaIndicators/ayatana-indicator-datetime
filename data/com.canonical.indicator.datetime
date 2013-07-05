@@ -6,5 +6,5 @@ Position=20
 [desktop]
 ObjectPath=/com/canonical/indicator/datetime/desktop
 
-[greeter]
-ObjectPath=/com/canonical/indicator/datetime/greeter
+[desktop_greeter]
+ObjectPath=/com/canonical/indicator/datetime/desktop_greeter
