@@ -813,12 +813,21 @@ indicator_datetime_panel_class_finalize (IndicatorDatetimePanelClass *klass)
 {
 }
 
+static const char *
+indicator_datetime_panel_get_help_uri (CcPanel *panel)
+{
+  return "help:ubuntu-help/clock";
+}
+
 static void
 indicator_datetime_panel_class_init (IndicatorDatetimePanelClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+  CcPanelClass *panel_class = CC_PANEL_CLASS (klass);
 
   g_type_class_add_private (klass, sizeof (IndicatorDatetimePanelPrivate));
+
+  panel_class->get_help_uri = indicator_datetime_panel_get_help_uri;
 
   gobject_class->dispose = indicator_datetime_panel_dispose;
 }
