@@ -8,3 +8,7 @@ ObjectPath=/com/canonical/indicator/datetime/desktop
 
 [desktop_greeter]
 ObjectPath=/com/canonical/indicator/datetime/desktop_greeter
+
+[phone]
+ObjectPath=/com/canonical/indicator/datetime/desktop
+
