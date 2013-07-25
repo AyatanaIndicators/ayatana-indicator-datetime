@@ -59,6 +59,7 @@ enum
 
 enum
 {
+  PROFILE_PHONE,
   PROFILE_DESKTOP,
   PROFILE_GREETER,
   N_PROFILES
@@ -66,6 +67,7 @@ enum
 
 static const char * const menu_names[N_PROFILES] =
 {
+  "phone",
   "desktop",
   "desktop_greeter"
 };
@@ -1151,16 +1153,21 @@ create_menu (IndicatorDatetimeService * self, int profile)
   g_assert (0<=profile && profile<N_PROFILES);
   g_assert (self->priv->menus[profile].menu == NULL);
 
-  if (profile == PROFILE_DESKTOP)
+  switch (profile)
     {
-      sections[n++] = create_calendar_section (self);
-      sections[n++] = create_appointments_section (self);
-      sections[n++] = create_locations_section (self);
-      sections[n++] = create_settings_section (self);
-    }
-  else if (profile == PROFILE_GREETER)
-    {
-      sections[n++] = create_calendar_section (self);
+      case PROFILE_PHONE:
+        break;
+
+      case PROFILE_DESKTOP:
+        sections[n++] = create_calendar_section (self);
+        sections[n++] = create_appointments_section (self);
+        sections[n++] = create_locations_section (self);
+        sections[n++] = create_settings_section (self);
+        break;
+
+      case PROFILE_GREETER:
+        sections[n++] = create_calendar_section (self);
+        break;
     }
 
   /* add sections to the submenu */
