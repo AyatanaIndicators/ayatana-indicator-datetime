@@ -1133,10 +1133,18 @@ on_set_location (GSimpleAction * a G_GNUC_UNUSED,
 ***/
 
 static GMenuModel *
-create_settings_section (IndicatorDatetimeService * self G_GNUC_UNUSED)
+create_desktop_settings_section (IndicatorDatetimeService * self G_GNUC_UNUSED)
 {
   GMenu * menu = g_menu_new ();
-  g_menu_append (menu, _("Date & Time Settings…"), "indicator.activate-settings");
+  g_menu_append (menu, _("Date & Time Settings…"), "indicator.activate-desktop-settings");
+  return G_MENU_MODEL (menu);
+}
+
+static GMenuModel *
+create_phone_settings_section (IndicatorDatetimeService * self G_GNUC_UNUSED)
+{
+  GMenu * menu = g_menu_new ();
+  g_menu_append (menu, _("Time & Date settings…"), "indicator.activate-phone-settings");
   return G_MENU_MODEL (menu);
 }
 
@@ -1156,13 +1164,14 @@ create_menu (IndicatorDatetimeService * self, int profile)
   switch (profile)
     {
       case PROFILE_PHONE:
+        sections[n++] = create_phone_settings_section (self);
         break;
 
       case PROFILE_DESKTOP:
         sections[n++] = create_calendar_section (self);
         sections[n++] = create_appointments_section (self);
         sections[n++] = create_locations_section (self);
-        sections[n++] = create_settings_section (self);
+        sections[n++] = create_desktop_settings_section (self);
         break;
 
       case PROFILE_GREETER:
@@ -1210,21 +1219,29 @@ execute_command (const gchar * cmd)
 
   if (!g_spawn_command_line_async (cmd, &err))
     {
-      g_warning ("Unable to start %s: %s", cmd, err->message);
+      g_warning ("Unable to start \"%s\": %s", cmd, err->message);
       g_error_free (err);
     }
 }
 
 static void
-on_settings_activated (GSimpleAction * a      G_GNUC_UNUSED,
-                       GVariant      * param  G_GNUC_UNUSED,
-                       gpointer        gself  G_GNUC_UNUSED)
+on_desktop_settings_activated (GSimpleAction * a      G_GNUC_UNUSED,
+                               GVariant      * param  G_GNUC_UNUSED,
+                               gpointer        gself  G_GNUC_UNUSED)
 {
 #ifdef HAVE_CCPANEL
   execute_command ("gnome-control-center indicator-datetime");
 #else
   execute_command ("gnome-control-center datetime");
 #endif
+}
+
+static void
+on_phone_settings_activated (GSimpleAction * a      G_GNUC_UNUSED,
+                             GVariant      * param  G_GNUC_UNUSED,
+                             gpointer        gself  G_GNUC_UNUSED)
+{
+  execute_command ("system-settings time-date");
 }
 
 static void
@@ -1278,7 +1295,8 @@ init_gactions (IndicatorDatetimeService * self)
   priv_t * p = self->priv;
 
   GActionEntry entries[] = {
-    { "activate-settings", on_settings_activated },
+    { "activate-desktop-settings", on_desktop_settings_activated },
+    { "activate-phone-settings", on_phone_settings_activated },
     { "activate-planner", on_activate_planner, "x", NULL },
     { "set-location", on_set_location, "s" }
   };
@@ -1328,6 +1346,7 @@ static void
 rebuild_now (IndicatorDatetimeService * self, int sections)
 {
   priv_t * p = self->priv;
+  struct ProfileMenuInfo * phone   = &p->menus[PROFILE_PHONE];
   struct ProfileMenuInfo * desktop = &p->menus[PROFILE_DESKTOP];
   struct ProfileMenuInfo * greeter = &p->menus[PROFILE_GREETER];
 
@@ -1354,7 +1373,8 @@ rebuild_now (IndicatorDatetimeService * self, int sections)
 
   if (sections & SECTION_SETTINGS)
     {
-      rebuild_section (desktop->submenu, 3, create_settings_section (self));
+      rebuild_section (phone->submenu, 0, create_phone_settings_section (self));
+      rebuild_section (desktop->submenu, 3, create_desktop_settings_section (self));
     }
 }
 
