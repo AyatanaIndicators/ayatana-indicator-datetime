@@ -113,7 +113,8 @@ struct _IndicatorDatetimeServicePrivate
   GDateTime * calendar_date;
 
   GSimpleActionGroup * actions;
-  GSimpleAction * header_action;
+  GSimpleAction * phone_header_action;
+  GSimpleAction * desktop_header_action;
   GSimpleAction * calendar_action;
 
   GDBusProxy * login1_manager;
@@ -467,16 +468,15 @@ get_header_label_format_string (IndicatorDatetimeService * self)
 }
 
 static GVariant *
-create_header_state (IndicatorDatetimeService * self)
+create_desktop_header_state (IndicatorDatetimeService * self)
 {
   GVariantBuilder b;
   gchar * fmt;
   gchar * str;
   gboolean visible;
   GDateTime * now;
-  priv_t * p = self->priv;
 
-  visible = g_settings_get_boolean (p->settings, SETTINGS_SHOW_CLOCK_S);
+  visible = g_settings_get_boolean (self->priv->settings, SETTINGS_SHOW_CLOCK_S);
 
   /* build the time string for the label & a11y */
   fmt = get_header_label_format_string (self);
@@ -497,6 +497,54 @@ create_header_state (IndicatorDatetimeService * self)
   g_date_time_unref (now);
   g_free (str);
   g_free (fmt);
+  return g_variant_builder_end (&b);
+}
+
+static gboolean
+service_has_alarms (IndicatorDatetimeService * self);
+
+static GVariant *
+create_phone_header_state (IndicatorDatetimeService * self)
+{
+  GVariantBuilder b;
+  GDateTime * now;
+  const gchar * fmt;
+  gchar * label;
+  gboolean has_alarms;
+  gchar * a11y;
+
+  g_variant_builder_init (&b, G_VARIANT_TYPE("a{sv}"));
+
+  /* label */
+  now = indicator_datetime_service_get_localtime (self);
+  fmt = _("%I:%M %p");
+  label = g_date_time_format (now, fmt);
+  g_variant_builder_add (&b, "{sv}", "label", g_variant_new_string (label));
+
+  /* icon */
+  if ((has_alarms = service_has_alarms (self)))
+    {
+      GIcon * icon;
+      icon = g_themed_icon_new_with_default_fallbacks ("alarm-symbolic");
+      g_variant_builder_add (&b, "{sv}", "icon", g_icon_serialize (icon));
+      g_object_unref (icon);
+    }
+
+  /* a11y */
+  if (has_alarms)
+    a11y = g_strdup_printf (_("%s (has alarms)"), label);
+  else
+    a11y = g_strdup (label);
+  g_variant_builder_add (&b, "{sv}", "accessible-desc",
+                         g_variant_new_string (a11y));
+
+  /* visible */
+  g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (TRUE));
+
+  /* cleanup */
+  g_free (a11y);
+  g_free (label);
+  g_date_time_unref (now);
   return g_variant_builder_end (&b);
 }
 
@@ -708,6 +756,25 @@ get_upcoming_appointments (IndicatorDatetimeService * self)
     }
 
   return appts;
+}
+
+static gboolean
+service_has_alarms (IndicatorDatetimeService * self)
+{
+  gboolean has_alarms = FALSE;
+  GSList * appts;
+  GSList * l;
+
+  appts = get_upcoming_appointments (self);
+  for (l=appts; l!=NULL; l=l->next)
+    {
+      struct IndicatorDatetimeAppt * appt = l->data;
+      if ((has_alarms = appt->has_alarms))
+        break;
+    }
+
+  g_slist_free_full (appts, (GDestroyNotify)indicator_datetime_appt_free);
+  return has_alarms;
 }
 
 static char *
@@ -1216,6 +1283,7 @@ create_menu (IndicatorDatetimeService * self, int profile)
   GMenu * submenu;
   GMenuItem * header;
   GMenuModel * sections[16];
+  const gchar * header_action;
   int i;
   int n = 0;
 
@@ -1228,6 +1296,7 @@ create_menu (IndicatorDatetimeService * self, int profile)
         sections[n++] = create_phone_calendar_section (self);
         sections[n++] = create_phone_appointments_section (self);
         sections[n++] = create_phone_settings_section (self);
+        header_action = "indicator.phone-header";
         break;
 
       case PROFILE_DESKTOP:
@@ -1235,10 +1304,12 @@ create_menu (IndicatorDatetimeService * self, int profile)
         sections[n++] = create_desktop_appointments_section (self);
         sections[n++] = create_locations_section (self);
         sections[n++] = create_desktop_settings_section (self);
+        header_action = "indicator.desktop-header";
         break;
 
       case PROFILE_GREETER:
         sections[n++] = create_desktop_calendar_section (self);
+        header_action = "indicator.desktop-header";
         break;
     }
 
@@ -1253,7 +1324,7 @@ create_menu (IndicatorDatetimeService * self, int profile)
     }
 
   /* add submenu to the header */
-  header = g_menu_item_new (NULL, "indicator._header");
+  header = g_menu_item_new (NULL, header_action);
   g_menu_item_set_attribute (header, "x-canonical-type",
                              "s", "com.canonical.indicator.root");
   g_menu_item_set_submenu (header, G_MENU_MODEL (submenu));
@@ -1371,10 +1442,17 @@ init_gactions (IndicatorDatetimeService * self)
                                    G_N_ELEMENTS(entries),
                                    self);
 
-  /* add the header action */
-  a = g_simple_action_new_stateful ("_header", NULL, create_header_state (self));
+  /* add the header actions */
+
+  a = g_simple_action_new_stateful ("desktop-header", NULL,
+                                    create_desktop_header_state (self));
   g_simple_action_group_insert (p->actions, G_ACTION(a));
-  p->header_action = a;
+  p->desktop_header_action = a;
+
+  a = g_simple_action_new_stateful ("phone-header", NULL,
+                                    create_phone_header_state (self));
+  g_simple_action_group_insert (p->actions, G_ACTION(a));
+  p->phone_header_action = a;
 
   /* add the calendar action */
   a = g_simple_action_new_stateful ("calendar",
@@ -1415,7 +1493,10 @@ rebuild_now (IndicatorDatetimeService * self, int sections)
 
   if (sections & SECTION_HEADER)
     {
-      g_simple_action_set_state (p->header_action, create_header_state (self));
+      g_simple_action_set_state (p->desktop_header_action,
+                                 create_desktop_header_state (self));
+      g_simple_action_set_state (p->phone_header_action,
+                                 create_phone_header_state (self));
     }
 
   if (sections & SECTION_CALENDAR)
@@ -1678,7 +1759,8 @@ my_dispose (GObject * o)
 
   g_clear_object (&p->planner);
   g_clear_object (&p->calendar_action);
-  g_clear_object (&p->header_action);
+  g_clear_object (&p->desktop_header_action);
+  g_clear_object (&p->phone_header_action);
   g_clear_object (&p->conn);
 
   G_OBJECT_CLASS (indicator_datetime_service_parent_class)->dispose (o);
