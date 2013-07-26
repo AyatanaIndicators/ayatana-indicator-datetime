@@ -709,64 +709,80 @@ get_appointment_time_format (struct IndicatorDatetimeAppt  * appt, GDateTime * n
   return fmt;
 }
 
-static GMenuModel *
-create_appointments_section (IndicatorDatetimeService * self)
+static void
+add_appointments (IndicatorDatetimeService * self, GMenu * menu)
 {
-  priv_t * p = self->priv;
-  GMenu * menu = g_menu_new ();
+  GDateTime * now = indicator_datetime_service_get_localtime (self);
+  GSList * appts;
+  GSList * l;
 
-  if (g_settings_get_boolean (p->settings, SETTINGS_SHOW_EVENTS_S))
+  /* build appointment menuitems */
+  appts = get_upcoming_appointments (self);
+  for (l=appts; l!=NULL; l=l->next)
     {
-      GSList * l;
-      GSList * appts;
+      struct IndicatorDatetimeAppt * appt = l->data;
+      char * fmt = get_appointment_time_format (appt, now);
+      const gint64 unix_time = g_date_time_to_unix (appt->begin);
       GMenuItem * menu_item;
-      GDateTime * now = indicator_datetime_service_get_localtime (self);
 
-      /* build appointment menuitems */
-      appts = get_upcoming_appointments (self);
-      for (l=appts; l!=NULL; l=l->next)
-        {
-          struct IndicatorDatetimeAppt * appt = l->data;
-          char * fmt = get_appointment_time_format (appt, now);
-          const gint64 unix_time = g_date_time_to_unix (appt->begin);
+      menu_item = g_menu_item_new (appt->summary, NULL);
 
-          menu_item = g_menu_item_new (appt->summary, NULL);
+      if (!appt->has_alarms)
+        g_menu_item_set_attribute (menu_item, "x-canonical-color",
+                                   "s", appt->color);
 
-          if (!appt->has_alarms)
-            g_menu_item_set_attribute (menu_item, "x-canonical-color",
-                                       "s", appt->color);
-
-          g_menu_item_set_attribute (menu_item, "x-canonical-time",
+      g_menu_item_set_attribute (menu_item, "x-canonical-time",
                                      "x", unix_time);
-          g_menu_item_set_attribute (menu_item, "x-canonical-time-format",
+      g_menu_item_set_attribute (menu_item, "x-canonical-time-format",
                                      "s", fmt);
-          g_menu_item_set_attribute (menu_item, "x-canonical-type",
+      g_menu_item_set_attribute (menu_item, "x-canonical-type",
                                      "s", appt->has_alarms ? "com.canonical.indicator.alarm"
                                                            : "com.canonical.indicator.appointment");
-          g_menu_item_set_action_and_target_value (menu_item,
+      g_menu_item_set_action_and_target_value (menu_item,
                                                    "indicator.activate-planner",
                                                    g_variant_new_int64 (unix_time));
-          g_menu_append_item (menu, menu_item);
-          g_object_unref (menu_item);
-          g_free (fmt);
-        }
+      g_menu_append_item (menu, menu_item);
+      g_object_unref (menu_item);
+      g_free (fmt);
+    }
 
-      /* build 'add event' menuitem */
+  /* cleanup */
+  g_date_time_unref (now);
+  g_slist_free_full (appts, (GDestroyNotify)indicator_datetime_appt_free);
+}
+
+static GMenuModel *
+create_phone_appointments_section (IndicatorDatetimeService * self)
+{
+  GMenu * menu = g_menu_new ();
+
+  add_appointments (self, menu);
+
+  return G_MENU_MODEL (menu);
+}
+
+static GMenuModel *
+create_desktop_appointments_section (IndicatorDatetimeService * self)
+{
+  GMenu * menu = g_menu_new ();
+
+  if (g_settings_get_boolean (self->priv->settings, SETTINGS_SHOW_EVENTS_S))
+    {
+      GMenuItem * menu_item;
+
+      add_appointments (self, menu);
+
+      /* add the 'Add Event…' menuitem */
       menu_item = g_menu_item_new (_("Add Event…"), NULL);
       g_menu_item_set_action_and_target_value (menu_item,
                                                "indicator.activate-planner",
                                                g_variant_new_int64 (0));
       g_menu_append_item (menu, menu_item);
       g_object_unref (menu_item);
-
-      /* cleanup */
-      g_date_time_unref (now);
-      g_slist_free_full (appts, (GDestroyNotify)indicator_datetime_appt_free);
     }
 
   return G_MENU_MODEL (menu);
 }
-
 
 /***
 ****
@@ -1174,13 +1190,13 @@ create_menu (IndicatorDatetimeService * self, int profile)
   switch (profile)
     {
       case PROFILE_PHONE:
-        sections[n++] = create_appointments_section (self);
+        sections[n++] = create_phone_appointments_section (self);
         sections[n++] = create_phone_settings_section (self);
         break;
 
       case PROFILE_DESKTOP:
         sections[n++] = create_calendar_section (self);
-        sections[n++] = create_appointments_section (self);
+        sections[n++] = create_desktop_appointments_section (self);
         sections[n++] = create_locations_section (self);
         sections[n++] = create_desktop_settings_section (self);
         break;
@@ -1374,8 +1390,8 @@ rebuild_now (IndicatorDatetimeService * self, int sections)
 
   if (sections & SECTION_APPOINTMENTS)
     {
-      rebuild_section (phone->submenu,   0, create_appointments_section (self));
-      rebuild_section (desktop->submenu, 1, create_appointments_section (self));
+      rebuild_section (phone->submenu,   0, create_phone_appointments_section (self));
+      rebuild_section (desktop->submenu, 1, create_desktop_appointments_section (self));
     }
 
   if (sections & SECTION_LOCATIONS)
