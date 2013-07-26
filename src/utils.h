@@ -32,6 +32,7 @@ void split_settings_location (const gchar * location, gchar ** zone, gchar ** na
 gchar * get_current_zone_name (const gchar * location);
 gchar * generate_format_string_full (gboolean show_day, gboolean show_date);
 gchar * generate_format_string_at_time (GDateTime * now, GDateTime * time);
+gchar * join_date_and_time_format_strings (const char * date, const char * time);
 
 G_END_DECLS
 

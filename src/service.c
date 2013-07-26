@@ -687,7 +687,13 @@ get_appointment_time_format (struct IndicatorDatetimeAppt  * appt, GDateTime * n
   char * fmt;
   gboolean full_day = g_date_time_difference (appt->end, appt->begin) == G_TIME_SPAN_DAY;
 
-  if (full_day)
+  if (appt->is_daily)
+    {
+      char * time_string = generate_format_string_full (FALSE, FALSE);
+      fmt = join_date_and_time_format_strings (_("Daily"), time_string);
+      g_free (time_string);
+    }
+  else if (full_day)
     {
       /* TRANSLATORS: This is a strftime string for the day for full day events
          in the menu.  It should most likely be either '%A' for a full text day
