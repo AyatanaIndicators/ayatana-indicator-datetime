@@ -607,7 +607,8 @@ update_calendar_action_state (IndicatorDatetimeService * self)
 static void
 add_localtime_menuitem (GMenu                    * menu,
                         IndicatorDatetimeService * self,
-                        const char               * time_format)
+                        const char               * time_format,
+                        const char               * icon_name)
 {
   GDateTime * now;
   char * label;
@@ -616,6 +617,8 @@ add_localtime_menuitem (GMenu                    * menu,
   now = indicator_datetime_service_get_localtime (self);
   label = g_date_time_format (now, time_format);
   menu_item = g_menu_item_new (label, NULL);
+  if (icon_name && *icon_name)
+    g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON, "s", icon_name);
   g_menu_item_set_action_and_target_value (menu_item, "indicator.activate-planner", g_variant_new_int64(0));
   g_menu_append_item (menu, menu_item);
 
@@ -647,7 +650,7 @@ create_desktop_calendar_section (IndicatorDatetimeService * self)
   GMenu * menu = g_menu_new ();
 
   /* strftime(3) format string to show the day of the week and the date */
-  add_localtime_menuitem (menu, self, _("%A, %e %B %Y"));
+  add_localtime_menuitem (menu, self, _("%A, %e %B %Y"), "calendar");
 
   if (g_settings_get_boolean (self->priv->settings, SETTINGS_SHOW_CALENDAR_S))
     add_calendar_menuitem (menu);
@@ -661,10 +664,10 @@ create_phone_calendar_section (IndicatorDatetimeService * self)
   GMenu * menu = g_menu_new ();
 
   /* strftime(3) format string to show day of week */
-  add_localtime_menuitem (menu, self, _("%A"));
+  add_localtime_menuitem (menu, self, _("%A"), NULL);
 
   /* strftime(3) format string to show date */
-  add_localtime_menuitem (menu, self, _("%e %B %Y"));
+  add_localtime_menuitem (menu, self, _("%e %B %Y"), "calendar");
 
   return G_MENU_MODEL (menu);
 }
