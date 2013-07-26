@@ -461,7 +461,7 @@ get_header_label_format_string (IndicatorDatetimeService * self)
     {
       gboolean show_day = g_settings_get_boolean (s, SETTINGS_SHOW_DAY_S);
       gboolean show_date = g_settings_get_boolean (s, SETTINGS_SHOW_DATE_S);
-      fmt = generate_format_string_full (show_day, show_date);
+      fmt = generate_full_format_string (show_day, show_date);
     }
 
   return fmt;
@@ -517,7 +517,7 @@ create_phone_header_state (IndicatorDatetimeService * self)
 
   /* label */
   now = indicator_datetime_service_get_localtime (self);
-  fmt = _("%I:%M %p");
+  fmt = get_terse_time_format_string (now);
   label = g_date_time_format (now, fmt);
   g_variant_builder_add (&b, "{sv}", "label", g_variant_new_string (label));
 
@@ -778,35 +778,36 @@ service_has_alarms (IndicatorDatetimeService * self)
 }
 
 static char *
-get_appointment_time_format (struct IndicatorDatetimeAppt  * appt, GDateTime * now)
+get_appointment_time_format (struct IndicatorDatetimeAppt * appt,
+                             GDateTime                    * now,
+                             gboolean                       terse)
 {
   char * fmt;
   gboolean full_day = g_date_time_difference (appt->end, appt->begin) == G_TIME_SPAN_DAY;
 
   if (appt->is_daily)
     {
-      char * time_string = generate_format_string_full (FALSE, FALSE);
-      fmt = join_date_and_time_format_strings (_("Daily"), time_string);
-      g_free (time_string);
+      const char * time_fmt = terse ? get_terse_time_format_string (appt->begin)
+                                    : get_full_time_format_string ();
+      fmt = join_date_and_time_format_strings (_("Daily"), time_fmt);
     }
   else if (full_day)
     {
-      /* TRANSLATORS: This is a strftime string for the day for full day events
-         in the menu.  It should most likely be either '%A' for a full text day
-         (Wednesday) or '%a' for a shortened one (Wed).  You should only need to
-         change for '%a' in the case of langauges with very long day names. */
+      /* TRANSLATORS: a strftime(3) format showing full day events.
+       * "%A" means a full text day (Wednesday), "%a" means abbreviated (Wed). */
       fmt = g_strdup (_("%A"));
     }
   else
     {
-      fmt = generate_format_string_at_time (now, appt->begin);
+      fmt = terse ? generate_terse_format_string_at_time (now, appt->begin)
+                  : generate_full_format_string_at_time (now, appt->begin);
     }
 
   return fmt;
 }
 
 static void
-add_appointments (IndicatorDatetimeService * self, GMenu * menu)
+add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean terse)
 {
   GDateTime * now = indicator_datetime_service_get_localtime (self);
   GSList * appts;
@@ -817,7 +818,7 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu)
   for (l=appts; l!=NULL; l=l->next)
     {
       struct IndicatorDatetimeAppt * appt = l->data;
-      char * fmt = get_appointment_time_format (appt, now);
+      char * fmt = get_appointment_time_format (appt, now, terse);
       const gint64 unix_time = g_date_time_to_unix (appt->begin);
       GMenuItem * menu_item;
 
@@ -858,7 +859,7 @@ create_phone_appointments_section (IndicatorDatetimeService * self)
   g_menu_append_item (menu, menu_item);
   g_object_unref (menu_item);
 
-  add_appointments (self, menu);
+  add_appointments (self, menu, TRUE);
 
   return G_MENU_MODEL (menu);
 }
@@ -872,7 +873,7 @@ create_desktop_appointments_section (IndicatorDatetimeService * self)
     {
       GMenuItem * menu_item;
 
-      add_appointments (self, menu);
+      add_appointments (self, menu, FALSE);
 
       /* add the 'Add Event…' menuitem */
       menu_item = g_menu_item_new (_("Add Event…"), NULL);
@@ -1100,7 +1101,7 @@ create_locations_section (IndicatorDatetimeService * self)
           detailed_action = g_strdup_printf ("indicator.set-location::%s %s",
                                              loc->zone,
                                              loc->name);
-          fmt = generate_format_string_at_time (now, loc->local_time);
+          fmt = generate_full_format_string_at_time (now, loc->local_time);
 
           menu_item = g_menu_item_new (label, detailed_action);
           g_menu_item_set_attribute (menu_item, "x-canonical-type",
