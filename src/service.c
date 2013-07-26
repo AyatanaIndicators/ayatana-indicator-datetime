@@ -784,6 +784,12 @@ static GMenuModel *
 create_phone_appointments_section (IndicatorDatetimeService * self)
 {
   GMenu * menu = g_menu_new ();
+  GMenuItem * menu_item;
+
+  menu_item = g_menu_item_new (_("Clock"), NULL);
+  g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON, "s", "clock");
+  g_menu_append_item (menu, menu_item);
+  g_object_unref (menu_item);
 
   add_appointments (self, menu);
 
