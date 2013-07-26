@@ -81,6 +81,7 @@ my_get_appointments_foreach (ECalComponent * component,
       e_cal_component_get_status (component, &status);
       if ((status != ICAL_STATUS_COMPLETED) && (status != ICAL_STATUS_CANCELLED))
         {
+          GList * alarm_uids;
           ECalComponentText text;
           struct IndicatorDatetimeAppt * appt = g_new0 (struct IndicatorDatetimeAppt, 1);
 
@@ -92,6 +93,10 @@ my_get_appointments_foreach (ECalComponent * component,
           appt->color = e_source_selectable_dup_color (e_source_get_extension (data->source, E_SOURCE_EXTENSION_CALENDAR));
           appt->is_event = vtype == E_CAL_COMPONENT_EVENT;
           appt->summary = g_strdup (text.value);
+
+          alarm_uids = e_cal_component_get_alarm_uids (component);
+          appt->has_alarms = alarm_uids != NULL;
+          cal_obj_uid_list_free (alarm_uids);
 
           data->appointments = g_slist_prepend (data->appointments, appt);
         }

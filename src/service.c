@@ -725,14 +725,18 @@ create_appointments_section (IndicatorDatetimeService * self)
           const gint64 unix_time = g_date_time_to_unix (appt->begin);
 
           menu_item = g_menu_item_new (appt->summary, NULL);
-          g_menu_item_set_attribute (menu_item, "x-canonical-color",
-                                     "s", appt->color);
+
+          if (!appt->has_alarms)
+            g_menu_item_set_attribute (menu_item, "x-canonical-color",
+                                       "s", appt->color);
+
           g_menu_item_set_attribute (menu_item, "x-canonical-time",
                                      "x", unix_time);
           g_menu_item_set_attribute (menu_item, "x-canonical-time-format",
                                      "s", fmt);
           g_menu_item_set_attribute (menu_item, "x-canonical-type",
-                                     "s", "com.canonical.indicator.appointment");
+                                     "s", appt->has_alarms ? "com.canonical.indicator.alarm"
+                                                           : "com.canonical.indicator.appointment");
           g_menu_item_set_action_and_target_value (menu_item,
                                                    "indicator.activate-planner",
                                                    g_variant_new_int64 (unix_time));
@@ -1164,6 +1168,7 @@ create_menu (IndicatorDatetimeService * self, int profile)
   switch (profile)
     {
       case PROFILE_PHONE:
+        sections[n++] = create_appointments_section (self);
         sections[n++] = create_phone_settings_section (self);
         break;
 
@@ -1363,6 +1368,7 @@ rebuild_now (IndicatorDatetimeService * self, int sections)
 
   if (sections & SECTION_APPOINTMENTS)
     {
+      rebuild_section (phone->submenu,   0, create_appointments_section (self));
       rebuild_section (desktop->submenu, 1, create_appointments_section (self));
     }
 
@@ -1373,7 +1379,7 @@ rebuild_now (IndicatorDatetimeService * self, int sections)
 
   if (sections & SECTION_SETTINGS)
     {
-      rebuild_section (phone->submenu, 0, create_phone_settings_section (self));
+      rebuild_section (phone->submenu,   1, create_phone_settings_section (self));
       rebuild_section (desktop->submenu, 3, create_desktop_settings_section (self));
     }
 }
