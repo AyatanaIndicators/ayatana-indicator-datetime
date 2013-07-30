@@ -264,10 +264,24 @@ get_terse_date_format_string (date_proximity_t proximity)
 
   switch (proximity)
     {
-      case DATE_PROXIMITY_TODAY:     fmt = NULL;           break;
-      case DATE_PROXIMITY_TOMORROW:  fmt = T_("Tomorrow"); break;
-      case DATE_PROXIMITY_WEEK:      fmt = T_("%a");       break;
-      default:                       fmt = T_("%d %b");    break;
+      case DATE_PROXIMITY_TODAY:
+        /* 'Today' is implicit in the terse case, so no string needed */
+        fmt = NULL;
+        break;
+
+      case DATE_PROXIMITY_TOMORROW:
+        fmt = T_("Tomorrow");
+        break;
+
+      case DATE_PROXIMITY_WEEK:
+        /* a strftime(3) fmt string for abbreviated day of week */
+        fmt = T_("%a");
+        break;
+
+      default:
+        /* a strftime(3) fmt string for day-of-month and abbreviated month */
+        fmt = T_("%d %b");
+        break;
     }
 
   return fmt;
@@ -279,9 +293,15 @@ get_terse_time_format_string (GDateTime * time)
   const gchar * fmt;
 
   if (g_date_time_get_minute (time) != 0)
-    fmt = T_("%I:%M %p");
+    {
+      /* a strftime(3) fmt string for a HH:MM 12 hour time */
+      fmt = T_("%I:%M %p");
+    }
   else
-    fmt = T_("%I %p");
+    {
+      /* a strftime(3) fmt string for a HH 12 hour time */
+      fmt = T_("%I %p");
+    }
 
   return fmt;
 }
