@@ -294,13 +294,13 @@ get_terse_time_format_string (GDateTime * time)
 
   if (g_date_time_get_minute (time) != 0)
     {
-      /* a strftime(3) fmt string for a HH:MM 12 hour time */
+      /* a strftime(3) fmt string for a HH:MM 12 hour time, eg "06:59 PM" */
       fmt = T_("%I:%M %p");
     }
   else
     {
-      /* a strftime(3) fmt string for a HH 12 hour time */
-      fmt = T_("%I %p");
+      /* a strftime(3) fmt string for a 12 hour on-the-hour time, eg "7 PM" */
+      fmt = T_("%l %p");
     }
 
   return fmt;
