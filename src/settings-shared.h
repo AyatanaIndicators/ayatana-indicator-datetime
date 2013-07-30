@@ -37,33 +37,4 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SETTINGS_LOCATIONS_S            "locations"
 #define SETTINGS_TIMEZONE_NAME_S        "timezone-name"
 
-enum {
-	SETTINGS_TIME_LOCALE = 0,
-	SETTINGS_TIME_12_HOUR = 1,
-	SETTINGS_TIME_24_HOUR = 2,
-	SETTINGS_TIME_CUSTOM = 3
-};
-
-/* TRANSLATORS: A format string for the strftime function for
-   a clock showing 12-hour time without seconds. */
-#define DEFAULT_TIME_12_FORMAT   N_("%l:%M %p")
-
-/* TRANSLATORS: A format string for the strftime function for
-   a clock showing 24-hour time without seconds. */
-#define DEFAULT_TIME_24_FORMAT   N_("%H:%M")
-
-#define DEFAULT_TIME_FORMAT          DEFAULT_TIME_12_FORMAT
-#define DEFAULT_TIME_FORMAT_WITH_DAY DEFAULT_TIME_12_FORMAT_WITH_DAY
-
-/* TRANSLATORS: A format string for the strftime function for
-   a clock showing the day of the week and the time in 12-hour format without
-   seconds. */
-#define DEFAULT_TIME_12_FORMAT_WITH_DAY N_("%a %l:%M %p")
-
-/* TRANSLATORS: A format string for the strftime function for
-   a clock showing the day of the week and the time in 24-hour format without
-   seconds.  Information is available in this Launchpad answer:
-   https://answers.launchpad.net/ubuntu/+source/indicator-datetime/+question/149752 */
-#define DEFAULT_TIME_24_FORMAT_WITH_DAY N_("%a %H:%M")
-
 #endif

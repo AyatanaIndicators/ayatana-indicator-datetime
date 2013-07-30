@@ -34,12 +34,12 @@ Package: indicator-datetime
 Architecture: any
 Depends: ${shlibs:Depends}, 
          ${misc:Depends},
-         gnome-control-center,
          geoclue-ubuntu-geoip | geoclue-provider,
          systemd-services,
          systemd-shim,
 Recommends: indicator-applet | indicator-renderer,
             evolution-data-server,
+            ubuntu-system-settings | gnome-control-center,
 Description: Simple clock
  A simple clock appearing in the indicator bar
 

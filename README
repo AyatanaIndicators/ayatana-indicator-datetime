@@ -42,6 +42,12 @@ CUSTOM MENUITEMS
  * Calendar
    - x-canonical-type         s "com.canonical.indicator.calendar"
 
+ * Alarm
+   - label                    s short summary of the appointment
+   - x-canonical-type         s "com.canonical.indicator.alarm"
+   - x-canonical-time         x the date of the appointment
+   - x-canonical-time-format  s strftime format string
+
  * Appointment
    - label                    s short summary of the appointment
    - x-canonical-type         s "com.canonical.indicator.appointment"

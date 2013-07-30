@@ -44,6 +44,8 @@ struct IndicatorDatetimeAppt
   GDateTime * begin;
   GDateTime * end;
   gboolean is_event;
+  gboolean is_daily;
+  gboolean has_alarms;
 };
 
 /**

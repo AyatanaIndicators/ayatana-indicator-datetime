@@ -64,6 +64,9 @@ struct my_get_appointments_data
 {
   ESource * source;
   GSList * appointments;
+
+  /* ensure that recurring events don't get multiple IndicatorDatetimeAppts */
+  GHashTable * added;
 };
 
 static gboolean
@@ -77,12 +80,37 @@ my_get_appointments_foreach (ECalComponent * component,
 
   if ((vtype == E_CAL_COMPONENT_EVENT) || (vtype == E_CAL_COMPONENT_TODO))
     {
-      icalproperty_status status;
+      const gchar * uid = NULL;
+      icalproperty_status status = 0;
+
+      e_cal_component_get_uid (component, &uid);
       e_cal_component_get_status (component, &status);
-      if ((status != ICAL_STATUS_COMPLETED) && (status != ICAL_STATUS_CANCELLED))
+
+      if ((uid != NULL) &&
+          (!g_hash_table_contains (data->added, uid)) &&
+          (status != ICAL_STATUS_COMPLETED) &&
+          (status != ICAL_STATUS_CANCELLED))
         {
+          GList * alarm_uids;
+          GSList * l;
+          GSList * recur_list;
           ECalComponentText text;
-          struct IndicatorDatetimeAppt * appt = g_new0 (struct IndicatorDatetimeAppt, 1);
+          struct IndicatorDatetimeAppt * appt;
+
+          appt = g_new0 (struct IndicatorDatetimeAppt, 1);
+
+          /* Determine whether this is a recurring event.
+             NB: icalrecurrencetype supports complex recurrence patterns;
+             however, since design only allows daily recurrence,
+             that's all we support here. */
+          e_cal_component_get_rrule_list (component, &recur_list);
+          for (l=recur_list; l!=NULL; l=l->next)
+            {
+              const struct icalrecurrencetype * recur = l->data;
+              appt->is_daily |= ((recur->freq == ICAL_DAILY_RECURRENCE)
+                                  && (recur->interval == 1));
+            }
+          e_cal_component_free_recur_list (recur_list);
 
           text.value = "";
           e_cal_component_get_summary (component, &text);
@@ -93,7 +121,12 @@ my_get_appointments_foreach (ECalComponent * component,
           appt->is_event = vtype == E_CAL_COMPONENT_EVENT;
           appt->summary = g_strdup (text.value);
 
+          alarm_uids = e_cal_component_get_alarm_uids (component);
+          appt->has_alarms = alarm_uids != NULL;
+          cal_obj_uid_list_free (alarm_uids);
+
           data->appointments = g_slist_prepend (data->appointments, appt);
+          g_hash_table_add (data->added, g_strdup(uid));
         }
     }
 
@@ -141,6 +174,7 @@ my_get_appointments (IndicatorDatetimePlanner  * planner,
 
   data.source = NULL;
   data.appointments = NULL;
+  data.added = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
 
   sources = e_source_registry_list_sources (p->source_registry, E_SOURCE_EXTENSION_CALENDAR);
   for (l=sources; l!=NULL; l=l->next)
@@ -183,6 +217,7 @@ my_get_appointments (IndicatorDatetimePlanner  * planner,
   g_list_free_full (sources, g_object_unref);
 
   g_debug ("%s EDS get_appointments returning %d appointments", G_STRLOC, g_slist_length (data.appointments));
+  g_hash_table_destroy (data.added);
   return data.appointments;
 }
 

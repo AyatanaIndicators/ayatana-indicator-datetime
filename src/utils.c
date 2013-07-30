@@ -118,7 +118,7 @@ get_current_zone_name (const gchar * location)
 }
 
 /* Translate msg according to the locale specified by LC_TIME */
-static char *
+static const char *
 T_(const char *msg)
 {
 	/* General strategy here is to make sure LANGUAGE is empty (since that
@@ -154,122 +154,286 @@ T_(const char *msg)
 	return rv;
 }
 
-/* Tries to figure out what our format string should be.  Lots
-   of translator comments in here. */
 gchar *
-generate_format_string_full (gboolean show_day, gboolean show_date)
+join_date_and_time_format_strings (const char * date_string,
+                                   const char * time_string)
 {
-	gboolean twelvehour = TRUE;
+  gchar * str;
 
-	GSettings * settings = g_settings_new (SETTINGS_INTERFACE);
-	gint time_mode = g_settings_get_enum (settings, SETTINGS_TIME_FORMAT_S);
-	gboolean show_seconds = g_settings_get_boolean (settings, SETTINGS_SHOW_SECONDS_S);
-	g_object_unref (settings);
+  if (date_string && time_string)
+    {
+      /* TRANSLATORS: This is a format string passed to strftime to combine the
+       * date and the time.  The value of "%s\xE2\x80\x82%s" will result in a
+       * string like this in US English 12-hour time: 'Fri Jul 16 11:50 AM'.
+       * The space in between date and time is a Unicode en space
+       * (E28082 in UTF-8 hex). */
+      str =  g_strdup_printf (T_("%s\xE2\x80\x82%s"), date_string, time_string);
+    }
+  else if (date_string)
+    {
+      str = g_strdup_printf (T_("%s"), date_string);
+    }
+  else /* time_string */
+    {
+      str = g_strdup_printf (T_("%s"), time_string);
+    }
 
-	if (time_mode == SETTINGS_TIME_LOCALE) {
-		twelvehour = is_locale_12h();
-	} else if (time_mode == SETTINGS_TIME_24_HOUR) {
-		twelvehour = FALSE;
-	}
+  return str;
+}
 
-	const gchar * time_string = NULL;
-	if (twelvehour) {
-		if (show_seconds) {
-			/* TRANSLATORS: A format string for the strftime function for
-			   a clock showing 12-hour time with seconds. */
-			time_string = T_("%l:%M:%S %p");
-		} else {
-			time_string = T_(DEFAULT_TIME_12_FORMAT);
-		}
-	} else {
-		if (show_seconds) {
-			/* TRANSLATORS: A format string for the strftime function for
-			   a clock showing 24-hour time with seconds. */
-			time_string = T_("%H:%M:%S");
-		} else {
-			time_string = T_(DEFAULT_TIME_24_FORMAT);
-		}
-	}
-	
-	/* Checkpoint, let's not fail */
-	g_return_val_if_fail(time_string != NULL, g_strdup(DEFAULT_TIME_FORMAT));
+/***
+****
+***/
 
-	/* If there's no date or day let's just leave now and
-	   not worry about the rest of this code */
-	if (!show_date && !show_day) {
-		return g_strdup(time_string);
-	}
+typedef enum
+{
+  DATE_PROXIMITY_TODAY,
+  DATE_PROXIMITY_TOMORROW,
+  DATE_PROXIMITY_WEEK,
+  DATE_PROXIMITY_FAR
+}
+date_proximity_t;
 
-	const gchar * date_string = NULL;
-	if (show_date && show_day) {
-		/* TRANSLATORS:  This is a format string passed to strftime to represent
-		   the day of the week, the month and the day of the month. */
-		date_string = T_("%a %b %e");
-	} else if (show_date) {
-		/* TRANSLATORS:  This is a format string passed to strftime to represent
-		   the month and the day of the month. */
-		date_string = T_("%b %e");
-	} else if (show_day) {
-		/* TRANSLATORS:  This is a format string passed to strftime to represent
-		   the day of the week. */
-		date_string = T_("%a");
-	}
+static date_proximity_t
+get_date_proximity (GDateTime * now, GDateTime * time)
+{
+  date_proximity_t prox = DATE_PROXIMITY_FAR;
+  gint now_year, now_month, now_day;
+  gint time_year, time_month, time_day;
 
-	/* Check point, we should have a date string */
-	g_return_val_if_fail(date_string != NULL, g_strdup(time_string));
+  /* does it happen today? */
+  g_date_time_get_ymd (now, &now_year, &now_month, &now_day);
+  g_date_time_get_ymd (time, &time_year, &time_month, &time_day);
+  if ((now_year == time_year) && (now_month == time_month) && (now_day == time_day))
+    prox = DATE_PROXIMITY_TODAY;
 
-	/* TRANSLATORS: This is a format string passed to strftime to combine the
-	   date and the time.  The value of "%s\xE2\x80\x82%s" would result in a string like
-	   this in US English 12-hour time: 'Fri Jul 16 11:50 AM'.
-	   The space in between date and time is a Unicode en space (E28082 in UTF-8 hex). */
-	return g_strdup_printf(T_("%s\xE2\x80\x82%s"), date_string, time_string);
+  /* does it happen tomorrow? */
+  if (prox == DATE_PROXIMITY_FAR)
+    {
+      GDateTime * tomorrow;
+      gint tom_year, tom_month, tom_day;
+
+      tomorrow = g_date_time_add_days (now, 1);
+      g_date_time_get_ymd (tomorrow, &tom_year, &tom_month, &tom_day);
+      if ((tom_year == time_year) && (tom_month == time_month) && (tom_day == time_day))
+        prox = DATE_PROXIMITY_TOMORROW;
+
+      g_date_time_unref (tomorrow);
+    }
+
+  /* does it happen this week? */
+  if (prox == DATE_PROXIMITY_FAR)
+    {
+      GDateTime * week;
+      GDateTime * week_bound;
+
+      week = g_date_time_add_days (now, 6);
+      week_bound = g_date_time_new_local (g_date_time_get_year(week),
+                                          g_date_time_get_month (week),
+                                          g_date_time_get_day_of_month(week),
+                                          23, 59, 59.9);
+
+      if (g_date_time_compare (time, week_bound) <= 0)
+        prox = DATE_PROXIMITY_WEEK;
+
+      g_date_time_unref (week_bound);
+      g_date_time_unref (week);
+    }
+
+  return prox;
+}
+
+
+/*
+ * "Terse" time & date format strings
+ * 
+ * Used on the phone menu where space is at a premium, these strings
+ * express the time and date in as brief a form as possible.
+ *
+ * Examples from spec:
+ *  1. "Daily 6:30 AM"
+ *  2. "5:07 PM" (note date is omitted; today's date is implicit)
+ *  3. "Daily 12 PM" (note minutes are omitted for on-the-hour times)
+ *  4. "Tomorrow 7 AM" (note "Tomorrow" is used instead of a day of week)
+ */
+
+static const gchar *
+get_terse_date_format_string (date_proximity_t proximity)
+{
+  const gchar * fmt;
+
+  switch (proximity)
+    {
+      case DATE_PROXIMITY_TODAY:
+        /* 'Today' is implicit in the terse case, so no string needed */
+        fmt = NULL;
+        break;
+
+      case DATE_PROXIMITY_TOMORROW:
+        fmt = T_("Tomorrow");
+        break;
+
+      case DATE_PROXIMITY_WEEK:
+        /* a strftime(3) fmt string for abbreviated day of week */
+        fmt = T_("%a");
+        break;
+
+      default:
+        /* a strftime(3) fmt string for day-of-month and abbreviated month */
+        fmt = T_("%d %b");
+        break;
+    }
+
+  return fmt;
+}
+
+const gchar *
+get_terse_time_format_string (GDateTime * time)
+{
+  const gchar * fmt;
+
+  if (g_date_time_get_minute (time) != 0)
+    {
+      /* a strftime(3) fmt string for a HH:MM 12 hour time, eg "06:59 PM" */
+      fmt = T_("%I:%M %p");
+    }
+  else
+    {
+      /* a strftime(3) fmt string for a 12 hour on-the-hour time, eg "7 PM" */
+      fmt = T_("%l %p");
+    }
+
+  return fmt;
 }
 
 gchar *
-generate_format_string_at_time (GDateTime * now, GDateTime * time)
+generate_terse_format_string_at_time (GDateTime * now, GDateTime * time)
 {
-	/* This is a bit less free-form than for the main "now" time label. */
-	/* If it is today, just the time should be shown (e.g. “3:55 PM”)
-           If it is a different day this week, the day and time should be shown (e.g. “Wed 3:55 PM”)
-           If it is after this week, the day, date, and time should be shown (e.g. “Wed 21 Apr 3:55 PM”). 
-           In addition, when presenting the times of upcoming events, the time should be followed by the timezone if it is different from the one the computer is currently set to. For example, “Wed 3:55 PM UTC−5”. */
-	gboolean show_day = FALSE;
-	gboolean show_date = FALSE;
+  const date_proximity_t prox = get_date_proximity (now, time);
+  const gchar * date_fmt = get_terse_date_format_string (prox);
+  const gchar * time_fmt = get_terse_time_format_string (time);
+  return join_date_and_time_format_strings (date_fmt, time_fmt);
+}
 
-	/* First, are we same day? */
-	gint time_year, time_month, time_day;
-	gint now_year, now_month, now_day;
-	g_date_time_get_ymd(time, &time_year, &time_month, &time_day);
-	g_date_time_get_ymd(now, &now_year, &now_month, &now_day);
+/***
+****  FULL
+***/
 
-	if (time_year != now_year ||
-	    time_month != now_month ||
-	    time_day != now_day) {
-		/* OK, different days so we must at least show the day. */
-		show_day = TRUE;
+static const gchar *
+get_full_date_format_string (gboolean show_day, gboolean show_date)
+{
+  const gchar * fmt;
 
-		/* Is it this week? */
-		/* Here, we define "is this week" as yesterday, today, or the next five days */
-		GDateTime * past = g_date_time_add_days(now, -1);
-		GDateTime * future = g_date_time_add_days(now, 5);
-		GDateTime * past_bound = g_date_time_new_local(g_date_time_get_year(past),
-		                                               g_date_time_get_month(past),
-		                                               g_date_time_get_day_of_month(past),
-		                                               0, 0, 0.0);
-		GDateTime * future_bound = g_date_time_new_local(g_date_time_get_year(future),
-		                                                 g_date_time_get_month(future),
-		                                                 g_date_time_get_day_of_month(future),
-		                                                 23, 59, 59.9);
-		if (g_date_time_compare(time, past_bound) < 0 ||
-		    g_date_time_compare(time, future_bound) > 0) {
-			show_date = TRUE;
-		}
-		g_date_time_unref(past);
-		g_date_time_unref(future);
-		g_date_time_unref(past_bound);
-		g_date_time_unref(future_bound);
-	}
+  if (show_date && show_day)
+    /* TRANSLATORS: a strftime(3) format showing the date and weekday */
+    fmt = T_("%a %b %e");
+  else if (show_date)
+    /* TRANSLATORS: a strftime(3) format showing the date */
+    fmt = T_("%b %e");
+  else if (show_day)
+    /* TRANSLATORS: a strftime(3) format showing the weekday */
+    fmt = T_("%a");
+  else
+    fmt = NULL;
 
-	return generate_format_string_full(show_day, show_date);
+  return fmt;
+}
+
+
+/*
+ * "Full" time & date format strings
+ * 
+ * These are used on the desktop menu & header and honors the
+ * GSettings entries for 12/24hr mode and whether or not to show seconds.
+ *
+ */
+
+enum
+{
+  SETTINGS_TIME_LOCALE = 0,
+  SETTINGS_TIME_12_HOUR = 1,
+  SETTINGS_TIME_24_HOUR = 2,
+  SETTINGS_TIME_CUSTOM = 3
+};
+
+const gchar *
+get_full_time_format_string (void)
+{
+  GSettings * settings;
+  gboolean twelvehour;
+  gboolean show_seconds;
+  const gchar * fmt;
+
+  settings = g_settings_new (SETTINGS_INTERFACE);
+
+  show_seconds = g_settings_get_boolean (settings, SETTINGS_SHOW_SECONDS_S);
+
+  switch (g_settings_get_enum (settings, SETTINGS_TIME_FORMAT_S))
+    {
+      case SETTINGS_TIME_LOCALE:
+        twelvehour = is_locale_12h();
+        break;
+
+      case SETTINGS_TIME_24_HOUR:
+        twelvehour = FALSE;
+        break;
+
+      default:
+        twelvehour = TRUE;
+        break;
+    }
+
+  g_object_unref (settings);
+
+  if (twelvehour && show_seconds)
+    /* TRANSLATORS: a strftime(3) format for 12hr time w/seconds */
+    fmt = T_("%l:%M:%S %p");
+  else if (twelvehour)
+    /* TRANSLATORS: a strftime(3) format for 12hr time */
+    fmt = T_("%l:%M %p");
+  else if (show_seconds)
+    /* TRANSLATORS: a strftime(3) format for 24hr time w/seconds */
+    fmt = T_("%H:%M:%S");
+  else
+    /* TRANSLATORS: a strftime(3) format for 24hr time */
+    fmt = T_("%H:%M");
+
+  return fmt;
+}
+
+gchar *
+generate_full_format_string (gboolean show_day, gboolean show_date)
+{
+  const gchar * date_fmt = get_full_date_format_string (show_day, show_date);
+  const gchar * time_fmt = get_full_time_format_string ();
+  return join_date_and_time_format_strings (date_fmt, time_fmt);
+}
+  
+gchar *
+generate_full_format_string_at_time (GDateTime * now, GDateTime * time)
+{
+  gboolean show_day;
+  gboolean show_date;
+
+  switch (get_date_proximity (now, time))
+    {
+      case DATE_PROXIMITY_TODAY:
+        show_day = FALSE;
+        show_date = FALSE;
+        break;
+
+      case DATE_PROXIMITY_TOMORROW:  
+      case DATE_PROXIMITY_WEEK:
+        show_day = FALSE;
+        show_date = TRUE;
+        break;
+
+      default:
+        show_day = TRUE;
+        show_date = TRUE;
+        break;
+    }
+
+  return generate_full_format_string (show_day, show_date);
 }
 
