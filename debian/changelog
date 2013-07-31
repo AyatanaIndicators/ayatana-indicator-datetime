@@ -1,3 +1,14 @@
+indicator-datetime (12.10.3+13.10.20130731-0ubuntu1) saucy; urgency=low
+
+  [ Charles Kerr ]
+  * add a phone menu as described at
+    https://wiki.ubuntu.com/TimeAndDate#Indicator.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 240
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 31 Jul 2013 02:02:57 +0000
+
 indicator-datetime (12.10.3+13.10.20130725-0ubuntu1) saucy; urgency=low
 
   [ Charles Kerr ]
