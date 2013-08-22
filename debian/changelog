@@ -1,3 +1,21 @@
+indicator-datetime (12.10.3+13.10.20130822.1-0ubuntu1) saucy; urgency=low
+
+  [ Ubuntu daily release ]
+  * New rebuild forced
+
+  [ Iain Lane ]
+  * Use month '1' when constructing the 'begin' range to decide which
+    appointments to display. glib started validating the arguments to
+    g_date_time_new and it turns out that '0' isn't a valid day of the
+    month.
+  * Don't use deprecated g_simple_action_group_insert; use
+    g_action_map_add_action instead.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 243
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 22 Aug 2013 21:46:45 +0000
+
 indicator-datetime (12.10.3+13.10.20130731-0ubuntu1) saucy; urgency=low
 
   [ Charles Kerr ]
