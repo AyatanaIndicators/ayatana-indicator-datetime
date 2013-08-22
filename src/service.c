@@ -1447,19 +1447,19 @@ init_gactions (IndicatorDatetimeService * self)
 
   a = g_simple_action_new_stateful ("desktop-header", NULL,
                                     create_desktop_header_state (self));
-  g_simple_action_group_insert (p->actions, G_ACTION(a));
+  g_action_map_add_action (G_ACTION_MAP(p->actions), G_ACTION(a));
   p->desktop_header_action = a;
 
   a = g_simple_action_new_stateful ("phone-header", NULL,
                                     create_phone_header_state (self));
-  g_simple_action_group_insert (p->actions, G_ACTION(a));
+  g_action_map_add_action (G_ACTION_MAP(p->actions), G_ACTION(a));
   p->phone_header_action = a;
 
   /* add the calendar action */
   a = g_simple_action_new_stateful ("calendar",
                                     G_VARIANT_TYPE_INT64,
                                     create_calendar_state (self));
-  g_simple_action_group_insert (p->actions, G_ACTION(a));
+  g_action_map_add_action (G_ACTION_MAP(p->actions), G_ACTION(a));
   g_signal_connect (a, "activate",
                     G_CALLBACK(on_calendar_action_activated), self);
   p->calendar_action = a;
