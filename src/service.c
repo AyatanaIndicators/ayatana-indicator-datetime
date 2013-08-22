@@ -584,7 +584,7 @@ get_all_appointments_this_month (IndicatorDatetimeService * self)
 
       calendar_date = get_calendar_date (self);
       g_date_time_get_ymd (calendar_date, &y, &m, &d);
-      begin = g_date_time_new_local (y, m, 0,
+      begin = g_date_time_new_local (y, m, 1,
                                      0, 0, 0);
       end = g_date_time_new_local (y, m, g_date_get_days_in_month(m,y),
                                    23, 59, 0);
