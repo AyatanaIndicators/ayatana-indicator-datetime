@@ -39,11 +39,11 @@ Depends: ${shlibs:Depends},
          systemd-shim,
 Recommends: indicator-applet | indicator-renderer,
             evolution-data-server,
-            ubuntu-system-settings | indicator-datetime-control-center,
+            gnome-control-center-datetime | ubuntu-system-settings,
 Description: Simple clock
  A simple clock appearing in the indicator bar
 
-Package: indicator-datetime-control-center
+Package: gnome-control-center-datetime
 Architecture: any
 Depends: ${shlibs:Depends}, 
          ${misc:Depends},
