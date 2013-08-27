@@ -18,17 +18,17 @@ gsettings_SCHEMAS = com.canonical.indicator.datetime.gschema.xml
 EXTRA_DIST += $(gsettings_SCHEMAS)
 
 #
-# the dbus service file
+# the upstart job file
 #
 
-dbus_servicesdir = $(datadir)/dbus-1/services
-dbus_services_DATA = indicator-datetime.service
-dbus_services_in = $(dbus_services_DATA:.service=.service.in)
-$(dbus_services_DATA): $(dbus_services_in)
+upstart_jobsdir = $(datadir)/upstart/sessions
+upstart_jobs_DATA = indicator-datetime.conf
+upstart_jobs_in = $(upstart_jobs_DATA:.conf=.conf.in)
+$(upstart_jobs_DATA): $(upstart_jobs_in)
 	$(AM_V_GEN) $(SED) -e "s|\@libexecdir\@|$(libexecdir)|" $< > $@
-BUILT_SOURCES += $(dbus_services_DATA)
-CLEANFILES += $(dbus_services_DATA)
-EXTRA_DIST += $(dbus_services_in)
+BUILT_SOURCES += $(upstart_jobs_DATA)
+CLEANFILES += $(upstart_jobs_DATA)
+EXTRA_DIST += $(upstart_jobs_in)
 
 #
 # the gnome-control-center panel
