@@ -40,6 +40,8 @@ Depends: ${shlibs:Depends},
 Recommends: indicator-applet | indicator-renderer,
             evolution-data-server,
             gnome-control-center-datetime | ubuntu-system-settings,
+Conflicts: indicator-datetime (<< 12.10.3)
+Replaces: indicator-datetime (<< 12.10.3)
 Description: Simple clock
  A simple clock appearing in the indicator bar
 
@@ -49,6 +51,8 @@ Depends: ${shlibs:Depends},
          ${misc:Depends},
          indicator-datetime (=${binary:Version}),
          gnome-control-center,
+Conflicts: indicator-datetime (<< 12.10.3)
+Replaces: indicator-datetime (<< 12.10.3)
 Description: Clock settings in the GNOME Control Center
  A module to get date time and clock settings in the GNOME control
  center.
