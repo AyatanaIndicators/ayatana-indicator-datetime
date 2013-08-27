@@ -39,7 +39,21 @@ Depends: ${shlibs:Depends},
          systemd-shim,
 Recommends: indicator-applet | indicator-renderer,
             evolution-data-server,
-            ubuntu-system-settings | gnome-control-center,
+            gnome-control-center-datetime | ubuntu-system-settings,
+Conflicts: indicator-datetime (<< 13.10.0)
+Replaces: indicator-datetime (<< 13.10.0)
 Description: Simple clock
  A simple clock appearing in the indicator bar
+
+Package: gnome-control-center-datetime
+Architecture: any
+Depends: ${shlibs:Depends}, 
+         ${misc:Depends},
+         indicator-datetime (=${binary:Version}),
+         gnome-control-center,
+Conflicts: indicator-datetime (<< 13.10.0)
+Replaces: indicator-datetime (<< 13.10.0)
+Description: Clock settings in the GNOME Control Center
+ A module to get date time and clock settings in the GNOME control
+ center.
 
