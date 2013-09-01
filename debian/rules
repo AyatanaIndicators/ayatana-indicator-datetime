@@ -12,8 +12,7 @@ override_dh_auto_configure:
 	dh_auto_configure -- --disable-static --disable-silent-rules
 
 override_dh_install:
-	find debian/indicator-datetime -name \*.la -delete
-	find debian/indicator-datetime -name \*.a -delete
+	find $(CURDIR) -name \*.la -delete
 	cd po; intltool-update --pot --verbose
 	dh_install --fail-missing
 	# Language packs
