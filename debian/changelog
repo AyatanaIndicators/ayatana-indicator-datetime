@@ -1,3 +1,13 @@
+indicator-datetime (13.10.0+13.10.20130903-0ubuntu1) saucy; urgency=low
+
+  [ Jeremy Bicha ]
+  * Really don't install *.la file.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 247
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 03 Sep 2013 02:08:17 +0000
+
 indicator-datetime (13.10.0+13.10.20130828.2-0ubuntu1) saucy; urgency=low
 
   [ Ted Gould ]
