@@ -577,9 +577,9 @@ get_all_appointments_this_month (IndicatorDatetimeService * self)
 
   if (p->planner != NULL)
     {
-      GDateTime * calendar_date;
-      GDateTime * begin;
-      GDateTime * end;
+      GDateTime * calendar_date = NULL;
+      GDateTime * begin = NULL;
+      GDateTime * end = NULL;
       int y, m, d;
 
       calendar_date = get_calendar_date (self);
@@ -593,9 +593,12 @@ get_all_appointments_this_month (IndicatorDatetimeService * self)
                                                                   begin,
                                                                   end);
 
-      g_date_time_unref (end);
-      g_date_time_unref (begin);
-      g_date_time_unref (calendar_date);
+      if (end != NULL)
+        g_date_time_unref (end);
+      if (begin != NULL)
+        g_date_time_unref (begin);
+      if (calendar_date != NULL)
+        g_date_time_unref (calendar_date);
     }
 
   return appointments;
