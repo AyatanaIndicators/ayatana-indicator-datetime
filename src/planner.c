@@ -184,6 +184,8 @@ indicator_datetime_planner_get_appointments (IndicatorDatetimePlanner * self, GD
   GSList * appointments;
 
   g_return_val_if_fail (INDICATOR_IS_DATETIME_PLANNER (self), NULL);
+  g_return_val_if_fail (begin != NULL, NULL);
+  g_return_val_if_fail (end != NULL, NULL);
 
   appointments = INDICATOR_DATETIME_PLANNER_GET_CLASS (self)->get_appointments (self, begin, end);
   return g_slist_sort (appointments, compare_appointments_by_start_time);
