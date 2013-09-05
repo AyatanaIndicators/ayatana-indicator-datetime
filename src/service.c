@@ -499,12 +499,11 @@ create_desktop_header_state (IndicatorDatetimeService * self)
 
   g_variant_builder_init (&b, G_VARIANT_TYPE("a{sv}"));
   g_variant_builder_add (&b, "{sv}", "accessible-desc", g_variant_new_string (str));
-  g_variant_builder_add (&b, "{sv}", "label", g_variant_new_string (str));
+  g_variant_builder_add (&b, "{sv}", "label", g_variant_new_take_string (str));
   g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (visible));
 
   /* cleanup */
   g_date_time_unref (now);
-  g_free (str);
   g_free (fmt);
   return g_variant_builder_end (&b);
 }
@@ -528,7 +527,6 @@ create_phone_header_state (IndicatorDatetimeService * self)
   now = indicator_datetime_service_get_localtime (self);
   fmt = get_terse_time_format_string (now);
   label = g_date_time_format (now, fmt);
-  g_variant_builder_add (&b, "{sv}", "label", g_variant_new_string (label));
 
   /* icon */
   if ((has_alarms = service_has_alarms (self)))
@@ -545,14 +543,12 @@ create_phone_header_state (IndicatorDatetimeService * self)
   else
     a11y = g_strdup (label);
   g_variant_builder_add (&b, "{sv}", "accessible-desc",
-                         g_variant_new_string (a11y));
+                         g_variant_new_take_string (a11y));
 
-  /* visible */
   g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (TRUE));
+  g_variant_builder_add (&b, "{sv}", "label", g_variant_new_take_string (label));
 
   /* cleanup */
-  g_free (a11y);
-  g_free (label);
   g_date_time_unref (now);
   return g_variant_builder_end (&b);
 }
