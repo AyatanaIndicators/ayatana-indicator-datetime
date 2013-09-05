@@ -1652,22 +1652,23 @@ update_appointment_lists (IndicatorDatetimeService * self)
   g_date_time_get_ymd (calendar_date, &y, &m, &d);
   begin = g_date_time_new_local (y, m, 1, 0, 0, 0);
   end = g_date_time_new_local (y, m, g_date_get_days_in_month(m,y), 23, 59, 0);
-  indicator_datetime_planner_get_appointments (planner, begin, end,
-                                               on_calendar_appointments_ready,
-                                               self);
-  g_date_time_unref (begin);
-  g_date_time_unref (end);
+  if (begin && end)
+    indicator_datetime_planner_get_appointments (planner, begin, end,
+                                                 on_calendar_appointments_ready,
+                                                 self);
+  g_clear_pointer (&begin, g_date_time_unref);
+  g_clear_pointer (&end, g_date_time_unref);
 
   /* get the upcoming appointments */
   begin = g_date_time_ref (calendar_date);
   end = g_date_time_add_months (begin, 1);
-  indicator_datetime_planner_get_appointments (planner, begin, end,
-                                               on_upcoming_appointments_ready,
-                                               self);
-  g_date_time_unref (begin);
-  g_date_time_unref (end);
-
-  g_date_time_unref (calendar_date);
+  if (begin && end)
+    indicator_datetime_planner_get_appointments (planner, begin, end,
+                                                 on_upcoming_appointments_ready,
+                                                 self);
+  g_clear_pointer (&begin, g_date_time_unref);
+  g_clear_pointer (&end, g_date_time_unref);
+  g_clear_pointer (&calendar_date, g_date_time_unref);
 }
 
 
