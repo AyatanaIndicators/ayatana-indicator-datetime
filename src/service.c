@@ -1082,7 +1082,7 @@ setlocation_data_free (struct setlocation_data * data)
 {
   g_free (data->timezone_id);
   g_free (data->name);
-  g_free (data);
+  g_slice_free (struct setlocation_data, data);
 }
 
 static void
@@ -1166,7 +1166,7 @@ indicator_datetime_service_set_location (IndicatorDatetimeService * self,
   g_return_if_fail (name && *name);
   g_return_if_fail (timezone_id && *timezone_id);
 
-  data = g_new0 (struct setlocation_data, 1);
+  data = g_slice_new0 (struct setlocation_data);
   data->timezone_id = g_strdup (timezone_id);
   data->name = g_strdup (name);
   data->service = self;
