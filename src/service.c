@@ -1637,7 +1637,7 @@ on_upcoming_appointments_ready (GObject      * source,
 }
 
 static void
-on_appointments_changed (IndicatorDatetimeService * self)
+update_appointment_lists (IndicatorDatetimeService * self)
 {
   IndicatorDatetimePlanner * planner;
   GDateTime * calendar_date;
@@ -1907,7 +1907,7 @@ indicator_datetime_service_init (IndicatorDatetimeService * self)
   p->planner = indicator_datetime_planner_eds_new ();
 
   g_signal_connect_swapped (p->planner, "appointments-changed",
-                            G_CALLBACK(on_appointments_changed), self);
+                            G_CALLBACK(update_appointment_lists), self);
 
 
   /***
@@ -2041,8 +2041,5 @@ indicator_datetime_service_set_calendar_date (IndicatorDatetimeService * self,
 
   /* sync the menuitems and action states */
   if (dirty)
-    {
-      update_calendar_action_state (self);
-      rebuild_appointments_section_soon (self);
-    }
+    update_appointment_lists (self);
 }
