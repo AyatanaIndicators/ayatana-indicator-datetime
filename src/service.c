@@ -908,7 +908,7 @@ time_location_free (struct TimeLocation * loc)
   g_date_time_unref (loc->local_time);
   g_free (loc->name);
   g_free (loc->zone);
-  g_free (loc);
+  g_slice_free (struct TimeLocation, loc);
 }
 
 static struct TimeLocation*
@@ -916,7 +916,7 @@ time_location_new (const char * zone,
                    const char * name,
                    gboolean     visible)
 {
-  struct TimeLocation * loc = g_new (struct TimeLocation, 1);
+  struct TimeLocation * loc = g_slice_new (struct TimeLocation);
   GTimeZone * tz = g_time_zone_new (zone);
   loc->zone = g_strdup (zone);
   loc->name = g_strdup (name);
