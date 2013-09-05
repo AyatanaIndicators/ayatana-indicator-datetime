@@ -19,8 +19,6 @@
 
 #include "config.h"
 
-#include <gio/gio.h> /* GFile, GFileMonitor */
-
 #include <libical/ical.h>
 #include <libical/icaltime.h>
 #include <libecal/libecal.h>
@@ -30,6 +28,8 @@
 
 struct _IndicatorDatetimePlannerEdsPriv
 {
+  GSList * sources;
+  GCancellable * cancellable;
   ESourceRegistry * source_registry;
 };
 
@@ -38,6 +38,8 @@ typedef IndicatorDatetimePlannerEdsPriv priv_t;
 G_DEFINE_TYPE (IndicatorDatetimePlannerEds,
                indicator_datetime_planner_eds,
                INDICATOR_TYPE_DATETIME_PLANNER)
+
+G_DEFINE_QUARK ("source-client", source_client)
 
 /***
 ****
@@ -60,23 +62,70 @@ indicator_datetime_appt_free (struct IndicatorDatetimeAppt * appt)
 **** my_get_appointments() helpers
 ***/
 
-struct my_get_appointments_data
+struct get_appointments_task_data
 {
-  ESource * source;
+  /* how many subtasks are still running on */
+  int subtask_count;
+
+  /* the list of appointments to be returned */
   GSList * appointments;
 
   /* ensure that recurring events don't get multiple IndicatorDatetimeAppts */
   GHashTable * added;
 };
 
+static void
+get_appointments_task_data_free (gpointer gdata)
+{
+  struct get_appointments_task_data * data = gdata;
+  g_hash_table_unref (data->added);
+  g_slice_free (struct get_appointments_task_data, data);
+}
+
+static void
+on_all_subtasks_done (GTask * task)
+{
+  struct get_appointments_task_data * data = g_task_get_task_data (task);
+  g_task_return_pointer (task, data->appointments, NULL);
+  g_object_unref (task);
+}
+
+struct get_appointments_subtask_data
+{
+  GTask * task;
+
+  gchar * color;
+};
+
+static void
+on_subtask_done (gpointer gsubdata)
+{
+  struct get_appointments_subtask_data * subdata;
+  GTask * task;
+  struct get_appointments_task_data * data;
+
+  subdata = gsubdata;
+  task = subdata->task;
+
+  /* free the subtask data */
+  g_free (subdata->color);
+  g_slice_free (struct get_appointments_subtask_data, subdata);
+
+  /* poke the task */
+  data = g_task_get_task_data (task);
+  if (--data->subtask_count <= 0)
+    on_all_subtasks_done (task);
+}
+
 static gboolean
 my_get_appointments_foreach (ECalComponent * component,
                              time_t          begin,
                              time_t          end,
-                             gpointer        gdata)
+                             gpointer        gsubdata)
 {
   const ECalComponentVType vtype = e_cal_component_get_vtype (component);
-  struct my_get_appointments_data * data = gdata;
+  struct get_appointments_subtask_data * subdata = gsubdata;
+  struct get_appointments_task_data * data = g_task_get_task_data (subdata->task);
 
   if ((vtype == E_CAL_COMPONENT_EVENT) || (vtype == E_CAL_COMPONENT_TODO))
     {
@@ -117,7 +166,7 @@ my_get_appointments_foreach (ECalComponent * component,
  
           appt->begin = g_date_time_new_from_unix_local (begin);
           appt->end = g_date_time_new_from_unix_local (end);
-          appt->color = e_source_selectable_dup_color (e_source_get_extension (data->source, E_SOURCE_EXTENSION_CALENDAR));
+          appt->color = g_strdup (subdata->color);
           appt->is_event = vtype == E_CAL_COMPONENT_EVENT;
           appt->summary = g_strdup (text.value);
 
@@ -133,24 +182,26 @@ my_get_appointments_foreach (ECalComponent * component,
   return G_SOURCE_CONTINUE;
 }
 
-
 /***
 ****  IndicatorDatetimePlanner virtual funcs
 ***/
 
-static GSList *
+static void
 my_get_appointments (IndicatorDatetimePlanner  * planner,
                      GDateTime                 * begin_datetime,
-                     GDateTime                 * end_datetime)
+                     GDateTime                 * end_datetime,
+                     GAsyncReadyCallback         callback,
+                     gpointer                    user_data)
 {
-  GList * l;
-  GList * sources;
+  GSList * l;
   priv_t * p;
   const char * str;
   icaltimezone * default_timezone;
-  struct my_get_appointments_data data;
+  struct get_appointments_task_data * data;
   const int64_t begin = g_date_time_to_unix (begin_datetime);
   const int64_t end = g_date_time_to_unix (end_datetime);
+  GTask * task;
+  gboolean subtasks_added;
 
   p = INDICATOR_DATETIME_PLANNER_EDS (planner)->priv;
 
@@ -172,60 +223,56 @@ my_get_appointments (IndicatorDatetimePlanner  * planner,
   ***  walk through the sources to build the appointment list
   **/
 
-  data.source = NULL;
-  data.appointments = NULL;
-  data.added = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+  data = g_slice_new0 (struct get_appointments_task_data);
+  data->added = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+  task = g_task_new (planner, p->cancellable, callback, user_data);
+  g_task_set_task_data (task, data, get_appointments_task_data_free);
 
-  sources = e_source_registry_list_sources (p->source_registry, E_SOURCE_EXTENSION_CALENDAR);
-  for (l=sources; l!=NULL; l=l->next)
+  subtasks_added = FALSE;
+  for (l=p->sources; l!=NULL; l=l->next)
     {
-      GError * err;
       ESource * source;
-      ECalClient * ecc;
+      ECalClient * client;
+      struct get_appointments_subtask_data * subdata;
 
-      source = E_SOURCE (l->data);
-      if (e_source_get_enabled (source))
-        {
-          err = NULL;
-          ecc = e_cal_client_new (source, E_CAL_CLIENT_SOURCE_TYPE_EVENTS, &err);
-          if (err != NULL)
-            {
-              g_warning ("Can't create ecal client: %s", err->message);
-              g_error_free (err);
-            }
-          else
-            {
-              if (!e_client_open_sync (E_CLIENT (ecc), TRUE, NULL, &err))
-                {
-                  g_debug ("Failed to open ecal client: %s", err->message);
-                  g_error_free (err);
-                }
-              else
-                {
-                  if (default_timezone != NULL)
-                    e_cal_client_set_default_timezone (ecc, default_timezone);
+      source = l->data;
+      client = g_object_get_qdata (l->data, source_client_quark());
+      if (client == NULL)
+        continue;
 
-                  data.source = source;
-                  e_cal_client_generate_instances_sync (ecc, begin, end, my_get_appointments_foreach, &data);
-                }
+      if (default_timezone != NULL)
+        e_cal_client_set_default_timezone (client, default_timezone);
 
-              g_object_unref (ecc);
-            }
-        }
+      subdata = g_slice_new (struct get_appointments_subtask_data);
+      subdata->task = task;
+      subdata->color = e_source_selectable_dup_color (e_source_get_extension (source, E_SOURCE_EXTENSION_CALENDAR));
+
+      data->subtask_count++;
+      subtasks_added = TRUE;
+      e_cal_client_generate_instances (client,
+                                       begin,
+                                       end,
+                                       p->cancellable,
+                                       my_get_appointments_foreach,
+                                       subdata,
+                                       on_subtask_done);
     }
 
-  g_list_free_full (sources, g_object_unref);
+  if (!subtasks_added)
+    on_all_subtasks_done (task);
+}
 
-  g_debug ("%s EDS get_appointments returning %d appointments", G_STRLOC, g_slist_length (data.appointments));
-  g_hash_table_destroy (data.added);
-  return data.appointments;
+static GSList *
+my_get_appointments_finish (IndicatorDatetimePlanner  * self  G_GNUC_UNUSED,
+                            GAsyncResult              * res,
+                            GError                   ** error)
+{
+  return g_task_propagate_pointer (G_TASK(res), error);
 }
 
 gboolean
 my_is_configured (IndicatorDatetimePlanner * planner)
 {
-  GList * sources;
-  gboolean have_sources;
   IndicatorDatetimePlannerEds * self;
 
   /* confirm that it's installed... */
@@ -238,10 +285,7 @@ my_is_configured (IndicatorDatetimePlanner * planner)
 
   /* see if there are any calendar sources */
   self = INDICATOR_DATETIME_PLANNER_EDS (planner);
-  sources = e_source_registry_list_sources (self->priv->source_registry, E_SOURCE_EXTENSION_CALENDAR);
-  have_sources = sources != NULL;
-  g_list_free_full (sources, g_object_unref);
-  return have_sources;
+  return self->priv->sources != NULL;
 }
 
 static void
@@ -279,6 +323,148 @@ my_activate_time (IndicatorDatetimePlanner * self G_GNUC_UNUSED,
 }
 
 /***
+****  Source / Client Wrangling
+***/
+
+static void
+on_client_connected (GObject      * unused G_GNUC_UNUSED,
+                     GAsyncResult * res,
+                     gpointer       gself)
+{
+  GError * error;
+  EClient * client;
+
+  error = NULL;
+  client = e_cal_client_connect_finish (res, &error);
+  if (error != NULL)
+    {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("indicator-datetime cannot connect to EDS source: %s", error->message);
+
+      g_error_free (error);
+    }
+  else
+    {
+      /* we've got a new connected ECalClient, so store it & notify clients */
+
+      g_object_set_qdata_full (G_OBJECT(e_client_get_source(client)),
+                               source_client_quark(),
+                               client,
+                               g_object_unref);
+
+      indicator_datetime_planner_emit_appointments_changed (gself);
+    }
+}
+
+static void
+on_source_enabled (ESourceRegistry * registry  G_GNUC_UNUSED,
+                   ESource         * source,
+                   gpointer          gself)
+{
+  IndicatorDatetimePlannerEds * self = INDICATOR_DATETIME_PLANNER_EDS (gself);
+  priv_t * p = self->priv;
+
+  e_cal_client_connect (source,
+                        E_CAL_CLIENT_SOURCE_TYPE_EVENTS,
+                        p->cancellable,
+                        on_client_connected,
+                        self);
+}
+
+static void
+on_source_added (ESourceRegistry * registry,
+                 ESource         * source,
+                 gpointer          gself)
+{
+  IndicatorDatetimePlannerEds * self = INDICATOR_DATETIME_PLANNER_EDS (gself);
+  priv_t * p = self->priv;
+
+  p->sources = g_slist_prepend (p->sources, g_object_ref(source));
+
+  if (e_source_get_enabled (source))
+    on_source_enabled (registry, source, gself);
+}
+
+static void
+on_source_disabled (ESourceRegistry * registry  G_GNUC_UNUSED,
+                    ESource         * source,
+                    gpointer          gself)
+{
+  ECalClient * client;
+
+  /* If this source has a connected ECalClient, remove it & notify clients */
+  if ((client = g_object_steal_qdata (G_OBJECT(source), source_client_quark())))
+    {
+      g_object_unref (client);
+      indicator_datetime_planner_emit_appointments_changed (gself);
+    }
+}
+
+static void
+on_source_removed (ESourceRegistry * registry,
+                   ESource         * source,
+                   gpointer          gself)
+{
+  IndicatorDatetimePlannerEds * self = INDICATOR_DATETIME_PLANNER_EDS (gself);
+  priv_t * p = self->priv;
+
+  on_source_disabled (registry, source, gself);
+
+  p->sources = g_slist_remove (p->sources, source);
+  g_object_unref (source);
+}
+
+static void
+on_source_changed (ESourceRegistry * registry  G_GNUC_UNUSED,
+                   ESource         * source    G_GNUC_UNUSED,
+                   gpointer          gself)
+{
+  indicator_datetime_planner_emit_appointments_changed (gself);
+}
+
+static void
+on_source_registry_ready (GObject      * source_object  G_GNUC_UNUSED,
+                          GAsyncResult * res,
+                          gpointer       gself)
+{
+  GError * error;
+  ESourceRegistry * r;
+
+  error = NULL;
+  r = e_source_registry_new_finish (res, &error);
+  if (error != NULL)
+    {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("indicator-datetime cannot show EDS appointments: %s", error->message);
+
+      g_error_free (error);
+    }
+  else
+    {
+      IndicatorDatetimePlannerEds * self;
+      priv_t * p;
+      GList * l;
+      GList * sources;
+
+      self = INDICATOR_DATETIME_PLANNER_EDS (gself);
+      p = self->priv;
+
+      g_signal_connect (r, "source-added",    G_CALLBACK(on_source_added), self);
+      g_signal_connect (r, "source-removed",  G_CALLBACK(on_source_removed), self);
+      g_signal_connect (r, "source-changed",  G_CALLBACK(on_source_changed), self);
+      g_signal_connect (r, "source-disabled", G_CALLBACK(on_source_disabled), self);
+      g_signal_connect (r, "source-enabled",  G_CALLBACK(on_source_enabled), self);
+
+      p->source_registry = r;
+
+      sources = e_source_registry_list_sources (r, E_SOURCE_EXTENSION_CALENDAR);
+      for (l=sources; l!=NULL; l=l->next)
+        on_source_added (r, l->data, self);
+      g_list_free_full (sources, g_object_unref);
+    }
+}
+
+/***
 ****  GObject virtual funcs
 ***/
 
@@ -287,6 +473,12 @@ my_dispose (GObject * o)
 {
   IndicatorDatetimePlannerEds * self = INDICATOR_DATETIME_PLANNER_EDS (o);
   priv_t * p = self->priv;
+
+  if (p->cancellable != NULL)
+    {
+      g_cancellable_cancel (p->cancellable);
+      g_clear_object (&p->cancellable);
+    }
 
   if (p->source_registry != NULL)
     {
@@ -301,7 +493,7 @@ my_dispose (GObject * o)
 }
 
 /***
-****  Insantiation
+****  Instantiation
 ***/
 
 static void
@@ -318,6 +510,7 @@ indicator_datetime_planner_eds_class_init (IndicatorDatetimePlannerEdsClass * kl
   planner_class->activate = my_activate;
   planner_class->activate_time = my_activate_time;
   planner_class->get_appointments = my_get_appointments;
+  planner_class->get_appointments_finish = my_get_appointments_finish;
 
   g_type_class_add_private (klass, sizeof (IndicatorDatetimePlannerEdsPriv));
 }
@@ -326,7 +519,6 @@ static void
 indicator_datetime_planner_eds_init (IndicatorDatetimePlannerEds * self)
 {
   priv_t * p;
-  GError * err;
 
   p = G_TYPE_INSTANCE_GET_PRIVATE (self,
                                    INDICATOR_TYPE_DATETIME_PLANNER_EDS,
@@ -334,22 +526,11 @@ indicator_datetime_planner_eds_init (IndicatorDatetimePlannerEds * self)
 
   self->priv = p;
 
-  err = 0;
-  p->source_registry = e_source_registry_new_sync (NULL, &err);
-  if (err != NULL)
-    {
-      g_warning ("indicator-datetime cannot show EDS appointments: %s", err->message);
-      g_error_free (err);
-    }
-  else
-    {
-      gpointer o = p->source_registry;
-      g_signal_connect_swapped (o, "source-added",    G_CALLBACK(indicator_datetime_planner_emit_appointments_changed), self);
-      g_signal_connect_swapped (o, "source-removed",  G_CALLBACK(indicator_datetime_planner_emit_appointments_changed), self);
-      g_signal_connect_swapped (o, "source-changed",  G_CALLBACK(indicator_datetime_planner_emit_appointments_changed), self);
-      g_signal_connect_swapped (o, "source-disabled", G_CALLBACK(indicator_datetime_planner_emit_appointments_changed), self);
-      g_signal_connect_swapped (o, "source-enabled",  G_CALLBACK(indicator_datetime_planner_emit_appointments_changed), self);
-    }
+  p->cancellable = g_cancellable_new ();
+
+  e_source_registry_new (p->cancellable,
+                         on_source_registry_ready,
+                         self);
 }
 
 /***
