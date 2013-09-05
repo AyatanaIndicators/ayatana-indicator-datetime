@@ -113,7 +113,7 @@ on_subtask_done (gpointer gsubdata)
 
   /* poke the task */
   data = g_task_get_task_data (task);
-  if (--data->subtask_count <= 0)
+  if (g_atomic_int_dec_and_test (&data->subtask_count))
     on_all_subtasks_done (task);
 }
 
@@ -247,7 +247,7 @@ my_get_appointments (IndicatorDatetimePlanner  * planner,
       subdata->task = task;
       subdata->color = e_source_selectable_dup_color (e_source_get_extension (source, E_SOURCE_EXTENSION_CALENDAR));
 
-      data->subtask_count++;
+      g_atomic_int_inc (&data->subtask_count);
       subtasks_added = TRUE;
       e_cal_client_generate_instances (client,
                                        begin,
