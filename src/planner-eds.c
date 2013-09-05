@@ -54,7 +54,7 @@ indicator_datetime_appt_free (struct IndicatorDatetimeAppt * appt)
       g_date_time_unref (appt->begin);
       g_free (appt->color);
       g_free (appt->summary);
-      g_free (appt);
+      g_slice_free (struct IndicatorDatetimeAppt, appt);
     }
 }
 
@@ -146,7 +146,7 @@ my_get_appointments_foreach (ECalComponent * component,
           ECalComponentText text;
           struct IndicatorDatetimeAppt * appt;
 
-          appt = g_new0 (struct IndicatorDatetimeAppt, 1);
+          appt = g_slice_new0 (struct IndicatorDatetimeAppt);
 
           /* Determine whether this is a recurring event.
              NB: icalrecurrencetype supports complex recurrence patterns;
