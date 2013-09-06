@@ -178,17 +178,44 @@ compare_appointments_by_start_time (gconstpointer ga, gconstpointer gb)
   return g_date_time_compare (a->begin, b->begin);
 }
 
-GSList *
-indicator_datetime_planner_get_appointments (IndicatorDatetimePlanner * self, GDateTime * begin, GDateTime * end)
+void
+indicator_datetime_planner_get_appointments (IndicatorDatetimePlanner * self,
+                                             GDateTime                * begin,
+                                             GDateTime                * end,
+                                             GAsyncReadyCallback        callback,
+                                             gpointer                   user_data)
 {
+  IndicatorDatetimePlannerClass * klass;
+
+  g_return_if_fail (INDICATOR_IS_DATETIME_PLANNER (self));
+
+  klass = INDICATOR_DATETIME_PLANNER_GET_CLASS (self);
+  g_return_if_fail (klass->get_appointments != NULL);
+  klass->get_appointments (self, begin, end, callback, user_data);
+}
+
+GSList *
+indicator_datetime_planner_get_appointments_finish (IndicatorDatetimePlanner  * self,
+                                                    GAsyncResult              * res,
+                                                    GError                   ** error)
+{
+  IndicatorDatetimePlannerClass * klass;
   GSList * appointments;
 
   g_return_val_if_fail (INDICATOR_IS_DATETIME_PLANNER (self), NULL);
   g_return_val_if_fail (begin != NULL, NULL);
   g_return_val_if_fail (end != NULL, NULL);
 
-  appointments = INDICATOR_DATETIME_PLANNER_GET_CLASS (self)->get_appointments (self, begin, end);
+  klass = INDICATOR_DATETIME_PLANNER_GET_CLASS (self);
+  g_return_val_if_fail (klass->get_appointments_finish != NULL, NULL);
+  appointments = klass->get_appointments_finish (self, res, error);
   return g_slist_sort (appointments, compare_appointments_by_start_time);
+}
+
+void
+indicator_datetime_planner_free_appointments (GSList * l)
+{
+  g_slist_free_full (l, (GDestroyNotify)indicator_datetime_appt_free);
 }
 
 gboolean

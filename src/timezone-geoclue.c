@@ -77,6 +77,18 @@ on_address_changed (GeoclueAddress  * address     G_GNUC_UNUSED,
     }
 }
 
+/* The signal doesn't have the parameter for an error, so it ends up needing
+   a NULL inserted. */
+static void
+on_address_changed_sig (GeoclueAddress  * address     G_GNUC_UNUSED,
+                        int               timestamp   G_GNUC_UNUSED,
+                        GHashTable      * addy_data,
+                        GeoclueAccuracy * accuracy    G_GNUC_UNUSED,
+                        gpointer          gself)
+{
+  return on_address_changed(address, timestamp, addy_data, accuracy, NULL, gself);
+}
+
 static void
 on_address_created (GeoclueMasterClient * master   G_GNUC_UNUSED,
                     GeoclueAddress      * address,
@@ -95,7 +107,7 @@ on_address_created (GeoclueMasterClient * master   G_GNUC_UNUSED,
       p->address = g_object_ref (address);
 
       geoclue_address_get_address_async (address, on_address_changed, gself);
-      g_signal_connect (address, "address-changed", G_CALLBACK(on_address_changed), gself);
+      g_signal_connect (address, "address-changed", G_CALLBACK(on_address_changed_sig), gself);
     }
 }
 
@@ -161,7 +173,7 @@ geo_stop (IndicatorDatetimeTimezoneGeoclue * self)
 
   if (p->address != NULL)
     {
-      g_signal_handlers_disconnect_by_func (p->address, on_address_changed, self);
+      g_signal_handlers_disconnect_by_func (p->address, on_address_changed_sig, self);
       g_clear_object (&p->address);
     }
 

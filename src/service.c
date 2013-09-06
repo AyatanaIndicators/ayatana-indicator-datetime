@@ -118,6 +118,15 @@ struct _IndicatorDatetimeServicePrivate
   GSimpleAction * calendar_action;
 
   GDBusProxy * login1_manager;
+
+  /* all the appointments in the selected calendar_date's month.
+     Used when populating the 'appointment-days' entry in
+     create_calendar_state() */
+  GSList * calendar_appointments;
+
+  /* appointments over the next few weeks.
+     Used when building SECTION_APPOINTMENTS */
+  GSList * upcoming_appointments;
 };
 
 typedef IndicatorDatetimeServicePrivate priv_t;
@@ -569,38 +578,6 @@ get_calendar_date (IndicatorDatetimeService * self)
   return date;
 }
 
-static GSList *
-get_all_appointments_this_month (IndicatorDatetimeService * self)
-{
-  GSList * appointments = NULL;
-  priv_t * p = self->priv;
-
-  if (p->planner != NULL)
-    {
-      GDateTime * calendar_date = NULL;
-      GDateTime * begin = NULL;
-      GDateTime * end = NULL;
-      int y, m, d;
-
-      calendar_date = get_calendar_date (self);
-      g_date_time_get_ymd (calendar_date, &y, &m, &d);
-      begin = g_date_time_new_local (y, m, 1,
-                                     0, 0, 0.1);
-      end = g_date_time_new_local (y, m, g_date_get_days_in_month(m,y),
-                                   23, 59, 59.9);
-
-      appointments = indicator_datetime_planner_get_appointments (p->planner,
-                                                                  begin,
-                                                                  end);
-
-      g_date_time_unref (end);
-      g_date_time_unref (begin);
-      g_date_time_unref (calendar_date);
-    }
-
-  return appointments;
-}
-
 static GVariant *
 create_calendar_state (IndicatorDatetimeService * self)
 {
@@ -611,15 +588,13 @@ create_calendar_state (IndicatorDatetimeService * self)
   GVariantBuilder day_builder;
   GDateTime * date;
   GSList * l;
-  GSList * appts;
   gboolean b;
   priv_t * p = self->priv;
 
   g_variant_builder_init (&dict_builder, G_VARIANT_TYPE_DICTIONARY);
 
   key = "appointment-days";
-  appts = get_all_appointments_this_month (self);
-  for (l=appts; l!=NULL; l=l->next)
+  for (l=p->calendar_appointments; l!=NULL; l=l->next)
     {
       const struct IndicatorDatetimeAppt * appt = l->data;
       days[g_date_time_get_day_of_month (appt->begin)] = TRUE;
@@ -630,7 +605,6 @@ create_calendar_state (IndicatorDatetimeService * self)
       g_variant_builder_add (&day_builder, "i", i);
   g_variant_builder_add (&dict_builder, "{sv}", key,
                          g_variant_builder_end (&day_builder));
-  g_slist_free_full (appts, (GDestroyNotify)indicator_datetime_appt_free);
 
   key = "calendar-day";
   date = get_calendar_date (self);
@@ -726,38 +700,6 @@ create_phone_calendar_section (IndicatorDatetimeService * self)
 ****
 ***/
 
-/* gets the next MAX_APPTS appointments */
-static GSList *
-get_upcoming_appointments (IndicatorDatetimeService * self)
-{
-  const int MAX_APPTS = 5;
-  GSList * l;
-  GSList * appts = NULL;
-  priv_t * p = self->priv;
-
-  if (p->planner != NULL)
-    {
-      GDateTime * begin = get_calendar_date (self);
-      GDateTime * end = g_date_time_add_months (begin, 1);
-
-      appts = indicator_datetime_planner_get_appointments (p->planner,
-                                                           begin,
-                                                           end);
-
-      g_date_time_unref (end);
-      g_date_time_unref (begin);
-    }
-
-  /* truncate at MAX_APPTS */
-  if ((l = g_slist_nth (appts, MAX_APPTS-1)))
-    {
-      g_slist_free_full (l->next, (GDestroyNotify)indicator_datetime_appt_free);
-      l->next = NULL;
-    }
-
-  return appts;
-}
-
 static gboolean
 service_has_alarms (IndicatorDatetimeService * self)
 {
@@ -765,7 +707,7 @@ service_has_alarms (IndicatorDatetimeService * self)
   GSList * appts;
   GSList * l;
 
-  appts = get_upcoming_appointments (self);
+  appts = self->priv->upcoming_appointments;
   for (l=appts; l!=NULL; l=l->next)
     {
       struct IndicatorDatetimeAppt * appt = l->data;
@@ -773,7 +715,6 @@ service_has_alarms (IndicatorDatetimeService * self)
         break;
     }
 
-  g_slist_free_full (appts, (GDestroyNotify)indicator_datetime_appt_free);
   return has_alarms;
 }
 
@@ -809,13 +750,15 @@ get_appointment_time_format (struct IndicatorDatetimeAppt * appt,
 static void
 add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean terse)
 {
+  const int MAX_APPTS = 5;
   GDateTime * now = indicator_datetime_service_get_localtime (self);
   GSList * appts;
   GSList * l;
+  int i;
 
   /* build appointment menuitems */
-  appts = get_upcoming_appointments (self);
-  for (l=appts; l!=NULL; l=l->next)
+  appts = self->priv->upcoming_appointments;
+  for (l=appts, i=0; l!=NULL && i<MAX_APPTS; l=l->next, i++)
     {
       struct IndicatorDatetimeAppt * appt = l->data;
       char * fmt = get_appointment_time_format (appt, now, terse);
@@ -824,7 +767,7 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean terse)
 
       menu_item = g_menu_item_new (appt->summary, NULL);
 
-      if (!appt->has_alarms)
+      if (appt->color && !appt->has_alarms)
         g_menu_item_set_attribute (menu_item, "x-canonical-color",
                                    "s", appt->color);
 
@@ -845,7 +788,6 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean terse)
 
   /* cleanup */
   g_date_time_unref (now);
-  g_slist_free_full (appts, (GDestroyNotify)indicator_datetime_appt_free);
 }
 
 static GMenuModel *
@@ -966,7 +908,7 @@ time_location_free (struct TimeLocation * loc)
   g_date_time_unref (loc->local_time);
   g_free (loc->name);
   g_free (loc->zone);
-  g_free (loc);
+  g_slice_free (struct TimeLocation, loc);
 }
 
 static struct TimeLocation*
@@ -974,7 +916,7 @@ time_location_new (const char * zone,
                    const char * name,
                    gboolean     visible)
 {
-  struct TimeLocation * loc = g_new (struct TimeLocation, 1);
+  struct TimeLocation * loc = g_slice_new (struct TimeLocation);
   GTimeZone * tz = g_time_zone_new (zone);
   loc->zone = g_strdup (zone);
   loc->name = g_strdup (name);
@@ -1140,7 +1082,7 @@ setlocation_data_free (struct setlocation_data * data)
 {
   g_free (data->timezone_id);
   g_free (data->name);
-  g_free (data);
+  g_slice_free (struct setlocation_data, data);
 }
 
 static void
@@ -1224,7 +1166,7 @@ indicator_datetime_service_set_location (IndicatorDatetimeService * self,
   g_return_if_fail (name && *name);
   g_return_if_fail (timezone_id && *timezone_id);
 
-  data = g_new0 (struct setlocation_data, 1);
+  data = g_slice_new0 (struct setlocation_data);
   data->timezone_id = g_strdup (timezone_id);
   data->name = g_strdup (name);
   data->service = self;
@@ -1604,6 +1546,133 @@ on_login1_manager_proxy_ready (GObject       * object  G_GNUC_UNUSED,
 }
 
 /***
+****  Appointments
+***/
+
+static void
+set_calendar_appointments (IndicatorDatetimeService * self,
+                           GSList                   * appointments)
+{
+  priv_t * p = self->priv;
+
+  /* repopulate the list */
+  indicator_datetime_planner_free_appointments (p->calendar_appointments);
+  p->calendar_appointments = appointments;
+
+  /* sync the menus/actions */
+  update_calendar_action_state (self);
+  rebuild_calendar_section_soon (self);
+}
+
+static void
+on_calendar_appointments_ready (GObject      * source,
+                                GAsyncResult * res,
+                                gpointer       self)
+{
+  IndicatorDatetimePlanner * planner;
+  GError * error;
+  GSList * appointments;
+
+  planner = INDICATOR_DATETIME_PLANNER (source);
+  error = NULL;
+  appointments = indicator_datetime_planner_get_appointments_finish (planner,
+                                                                     res,
+                                                                     &error);
+
+  if (error != NULL)
+    {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("can't get this  month's appointments: %s", error->message);
+
+      g_error_free (error);
+    }
+  else
+    {
+      set_calendar_appointments (INDICATOR_DATETIME_SERVICE (self),
+                                 appointments);
+    }
+}
+
+static void
+set_upcoming_appointments (IndicatorDatetimeService * self,
+                           GSList                   * appointments)
+{
+  priv_t * p = self->priv;
+
+  /* repopulate the list */
+  indicator_datetime_planner_free_appointments (p->upcoming_appointments);
+  p->upcoming_appointments = appointments;
+
+  /* sync the menus/actions */
+  rebuild_appointments_section_soon (self);
+}
+
+static void
+on_upcoming_appointments_ready (GObject      * source,
+                                GAsyncResult * res,
+                                gpointer       self)
+{
+  IndicatorDatetimePlanner * planner;
+  GError * error;
+  GSList * appointments;
+
+  planner = INDICATOR_DATETIME_PLANNER (source);
+  error = NULL;
+  appointments = indicator_datetime_planner_get_appointments_finish (planner,
+                                                                     res,
+                                                                     &error);
+
+  if (error != NULL)
+    {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("can't get upcoming appointments: %s", error->message);
+
+      g_error_free (error);
+    }
+  else
+    {
+      set_upcoming_appointments (INDICATOR_DATETIME_SERVICE (self),
+                                 appointments);
+    }
+}
+
+static void
+update_appointment_lists (IndicatorDatetimeService * self)
+{
+  IndicatorDatetimePlanner * planner;
+  GDateTime * calendar_date;
+  GDateTime * begin;
+  GDateTime * end;
+  int y, m, d;
+
+  planner = self->priv->planner;
+  calendar_date = get_calendar_date (self);
+
+  /* get all the appointments in the calendar month */
+  g_date_time_get_ymd (calendar_date, &y, &m, &d);
+  begin = g_date_time_new_local (y, m, 1, 0, 0, 0);
+  end = g_date_time_new_local (y, m, g_date_get_days_in_month(m,y), 23, 59, 0);
+  if (begin && end)
+    indicator_datetime_planner_get_appointments (planner, begin, end,
+                                                 on_calendar_appointments_ready,
+                                                 self);
+  g_clear_pointer (&begin, g_date_time_unref);
+  g_clear_pointer (&end, g_date_time_unref);
+
+  /* get the upcoming appointments */
+  begin = g_date_time_ref (calendar_date);
+  end = g_date_time_add_months (begin, 1);
+  if (begin && end)
+    indicator_datetime_planner_get_appointments (planner, begin, end,
+                                                 on_upcoming_appointments_ready,
+                                                 self);
+  g_clear_pointer (&begin, g_date_time_unref);
+  g_clear_pointer (&end, g_date_time_unref);
+  g_clear_pointer (&calendar_date, g_date_time_unref);
+}
+
+
+/***
 ****  GDBus
 ***/
 
@@ -1641,9 +1710,6 @@ on_bus_acquired (GDBusConnection * connection,
     {
       char * path = g_strdup_printf ("%s/%s", BUS_PATH, menu_names[i]);
       struct ProfileMenuInfo * menu = &p->menus[i];
-
-      if (menu->menu == NULL)
-        create_menu (self, i);
 
       if ((id = g_dbus_connection_export_menu_model (connection,
                                                      path,
@@ -1735,6 +1801,8 @@ my_dispose (GObject * o)
       g_signal_handlers_disconnect_by_data (p->planner, self);
       g_clear_object (&p->planner);
     }
+  g_clear_pointer (&p->upcoming_appointments, indicator_datetime_planner_free_appointments);
+  g_clear_pointer (&p->calendar_appointments, indicator_datetime_planner_free_appointments);
 
   if (p->login1_manager != NULL)
     {
@@ -1758,7 +1826,6 @@ my_dispose (GObject * o)
   for (i=0; i<N_PROFILES; ++i)
     g_clear_object (&p->menus[i].menu);
 
-  g_clear_object (&p->planner);
   g_clear_object (&p->calendar_action);
   g_clear_object (&p->desktop_header_action);
   g_clear_object (&p->phone_header_action);
@@ -1841,7 +1908,7 @@ indicator_datetime_service_init (IndicatorDatetimeService * self)
   p->planner = indicator_datetime_planner_eds_new ();
 
   g_signal_connect_swapped (p->planner, "appointments-changed",
-                            G_CALLBACK(rebuild_calendar_section_soon), self);
+                            G_CALLBACK(update_appointment_lists), self);
 
 
   /***
@@ -1913,6 +1980,9 @@ indicator_datetime_service_init (IndicatorDatetimeService * self)
 
   on_local_time_jumped (self);
 
+  for (i=0; i<N_PROFILES; ++i)
+    create_menu (self, i);
+
   g_string_free (gstr, TRUE);
 }
 
@@ -1972,8 +2042,5 @@ indicator_datetime_service_set_calendar_date (IndicatorDatetimeService * self,
 
   /* sync the menuitems and action states */
   if (dirty)
-    {
-      update_calendar_action_state (self);
-      rebuild_appointments_section_soon (self);
-    }
+    update_appointment_lists (self);
 }
