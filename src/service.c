@@ -593,12 +593,9 @@ get_all_appointments_this_month (IndicatorDatetimeService * self)
                                                                   begin,
                                                                   end);
 
-      if (end != NULL)
-        g_date_time_unref (end);
-      if (begin != NULL)
-        g_date_time_unref (begin);
-      if (calendar_date != NULL)
-        g_date_time_unref (calendar_date);
+      g_date_time_unref (end);
+      g_date_time_unref (begin);
+      g_date_time_unref (calendar_date);
     }
 
   return appointments;
