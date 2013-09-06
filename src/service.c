@@ -227,7 +227,7 @@ calculate_seconds_until_next_fifteen_minutes (GDateTime * now)
                                          g_date_time_get_day_of_month (next),
                                          g_date_time_get_hour (next),
                                          g_date_time_get_minute (next),
-                                         1);
+                                         0.1);
 
   str = g_date_time_format (start_of_next, "%F %T");
   g_debug ("%s %s the next timestamp rebuild will be at %s", G_STRLOC, G_STRFUNC, str);
@@ -299,7 +299,7 @@ calculate_milliseconds_until_next_minute (GDateTime * now)
                                          g_date_time_get_day_of_month (next),
                                          g_date_time_get_hour (next),
                                          g_date_time_get_minute (next),
-                                         0);
+                                         0.1);
 
   interval_usec = g_date_time_difference (start_of_next, now);
   interval_msec = (interval_usec + 999) / 1000;
@@ -1650,8 +1650,8 @@ update_appointment_lists (IndicatorDatetimeService * self)
 
   /* get all the appointments in the calendar month */
   g_date_time_get_ymd (calendar_date, &y, &m, &d);
-  begin = g_date_time_new_local (y, m, 1, 0, 0, 0);
-  end = g_date_time_new_local (y, m, g_date_get_days_in_month(m,y), 23, 59, 0);
+  begin = g_date_time_new_local (y, m, 1, 0, 0, 0.1);
+  end = g_date_time_new_local (y, m, g_date_get_days_in_month(m,y), 23, 59, 59.9);
   if (begin && end)
     indicator_datetime_planner_get_appointments (planner, begin, end,
                                                  on_calendar_appointments_ready,
