@@ -648,10 +648,8 @@ add_localtime_menuitem (GMenu                    * menu,
 static void
 add_calendar_menuitem (GMenu * menu)
 {
-  char * label;
   GMenuItem * menu_item;
 
-  label = g_strdup ("[calendar]");
   menu_item = g_menu_item_new ("[calendar]", NULL);
   g_menu_item_set_action_and_target_value (menu_item, "indicator.calendar", g_variant_new_int64(0));
   g_menu_item_set_attribute (menu_item, "x-canonical-type", "s", "com.canonical.indicator.calendar");
@@ -659,7 +657,6 @@ add_calendar_menuitem (GMenu * menu)
 
   g_menu_append_item (menu, menu_item);
   g_object_unref (menu_item);
-  g_free (label);
 }
 
 static GMenuModel *
