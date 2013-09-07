@@ -1030,12 +1030,12 @@ create_locations_section (IndicatorDatetimeService * self)
       struct TimeLocation * loc = l->data;
       if (loc->visible)
         {
-          char * label;
+          const char * label;
           char * detailed_action;
           char * fmt;
           GMenuItem * menu_item;
 
-          label = g_strdup (loc->name);
+          label = loc->name;
           detailed_action = g_strdup_printf ("indicator.set-location::%s %s",
                                              loc->zone,
                                              loc->name);
@@ -1053,7 +1053,6 @@ create_locations_section (IndicatorDatetimeService * self)
           g_object_unref (menu_item);
           g_free (fmt);
           g_free (detailed_action);
-          g_free (label);
         }
     }
 
