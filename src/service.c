@@ -1027,18 +1027,16 @@ create_locations_section (IndicatorDatetimeService * self)
       struct TimeLocation * loc = l->data;
       if (loc->visible)
         {
-          const char * label;
           char * detailed_action;
           char * fmt;
           GMenuItem * menu_item;
 
-          label = loc->name;
           detailed_action = g_strdup_printf ("indicator.set-location::%s %s",
                                              loc->zone,
                                              loc->name);
           fmt = generate_full_format_string_at_time (now, loc->local_time);
 
-          menu_item = g_menu_item_new (label, detailed_action);
+          menu_item = g_menu_item_new (loc->name, detailed_action);
           g_menu_item_set_attribute (menu_item, "x-canonical-type",
                                      "s", "com.canonical.indicator.location");
           g_menu_item_set_attribute (menu_item, "x-canonical-timezone",
