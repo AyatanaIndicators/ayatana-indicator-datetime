@@ -439,7 +439,7 @@ get_header_label_format_string (IndicatorDatetimeService * self)
     {
       gboolean show_day = g_settings_get_boolean (s, SETTINGS_SHOW_DAY_S);
       gboolean show_date = g_settings_get_boolean (s, SETTINGS_SHOW_DATE_S);
-      fmt = generate_full_format_string (show_day, show_date);
+      fmt = generate_full_format_string (show_day, show_date, s);
     }
 
   return fmt;
@@ -690,6 +690,7 @@ service_has_alarms (IndicatorDatetimeService * self)
 static char *
 get_appointment_time_format (struct IndicatorDatetimeAppt * appt,
                              GDateTime                    * now,
+                             GSettings                    * settings,
                              gboolean                       terse)
 {
   char * fmt;
@@ -698,7 +699,7 @@ get_appointment_time_format (struct IndicatorDatetimeAppt * appt,
   if (appt->is_daily)
     {
       const char * time_fmt = terse ? get_terse_time_format_string (appt->begin)
-                                    : get_full_time_format_string ();
+                                    : get_full_time_format_string (settings);
       fmt = join_date_and_time_format_strings (_("Daily"), time_fmt);
     }
   else if (full_day)
@@ -710,7 +711,7 @@ get_appointment_time_format (struct IndicatorDatetimeAppt * appt,
   else
     {
       fmt = terse ? generate_terse_format_string_at_time (now, appt->begin)
-                  : generate_full_format_string_at_time (now, appt->begin);
+                  : generate_full_format_string_at_time (now, appt->begin, settings);
     }
 
   return fmt;
@@ -730,7 +731,7 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean terse)
   for (l=appts, i=0; l!=NULL && i<MAX_APPTS; l=l->next, i++)
     {
       struct IndicatorDatetimeAppt * appt = l->data;
-      char * fmt = get_appointment_time_format (appt, now, terse);
+      char * fmt = get_appointment_time_format (appt, now, self->priv->settings, terse);
       const gint64 unix_time = g_date_time_to_unix (appt->begin);
       GMenuItem * menu_item;
 
@@ -970,7 +971,7 @@ create_locations_section (IndicatorDatetimeService * self)
           const char * tz = indicator_datetime_timezone_get_timezone (detected_timezones[i]);
           if (tz && *tz)
             {
-              gchar * name = get_current_zone_name (tz);
+              gchar * name = get_current_zone_name (tz, p->settings);
               locations = locations_add (locations, tz, name, visible);
               g_free (name);
             }
@@ -1012,7 +1013,7 @@ create_locations_section (IndicatorDatetimeService * self)
           detailed_action = g_strdup_printf ("indicator.set-location::%s %s",
                                              loc->zone,
                                              loc->name);
-          fmt = generate_full_format_string_at_time (now, loc->local_time);
+          fmt = generate_full_format_string_at_time (now, loc->local_time, p->settings);
 
           menu_item = g_menu_item_new (label, detailed_action);
           g_menu_item_set_attribute (menu_item, "x-canonical-type",

@@ -82,19 +82,18 @@ split_settings_location (const gchar * location, gchar ** zone, gchar ** name)
 }
 
 gchar *
-get_current_zone_name (const gchar * location)
+get_current_zone_name (const gchar * location, GSettings * settings)
 {
   gchar * new_zone, * new_name;
+  gchar * tz_name;
   gchar * old_zone, * old_name;
   gchar * rv;
 
   split_settings_location (location, &new_zone, &new_name);
 
-  GSettings * conf = g_settings_new (SETTINGS_INTERFACE);
-  gchar * tz_name = g_settings_get_string (conf, SETTINGS_TIMEZONE_NAME_S);
+  tz_name = g_settings_get_string (settings, SETTINGS_TIMEZONE_NAME_S);
   split_settings_location (tz_name, &old_zone, &old_name);
   g_free (tz_name);
-  g_object_unref (conf);
 
   // new_name is always just a sanitized version of a timezone.
   // old_name is potentially a saved "pretty" version of a timezone name from
@@ -349,14 +348,13 @@ get_full_date_format_string (gboolean show_day, gboolean show_date)
  */
 
 const gchar *
-get_full_time_format_string (void)
+get_full_time_format_string (GSettings * settings)
 {
-  GSettings * settings;
   gboolean twelvehour;
   gboolean show_seconds;
   const gchar * fmt;
 
-  settings = g_settings_new (SETTINGS_INTERFACE);
+  g_return_val_if_fail (settings != NULL, NULL);
 
   show_seconds = g_settings_get_boolean (settings, SETTINGS_SHOW_SECONDS_S);
 
@@ -370,13 +368,10 @@ get_full_time_format_string (void)
         twelvehour = FALSE;
         break;
 
-      case TIME_FORMAT_MODE_12_HOUR:
-      case TIME_FORMAT_MODE_CUSTOM:
+      default:
         twelvehour = TRUE;
         break;
     }
-
-  g_object_unref (settings);
 
   if (twelvehour && show_seconds)
     /* TRANSLATORS: a strftime(3) format for 12hr time w/seconds */
@@ -395,18 +390,22 @@ get_full_time_format_string (void)
 }
 
 gchar *
-generate_full_format_string (gboolean show_day, gboolean show_date)
+generate_full_format_string (gboolean show_day, gboolean show_date, GSettings * settings)
 {
   const gchar * date_fmt = get_full_date_format_string (show_day, show_date);
-  const gchar * time_fmt = get_full_time_format_string ();
+  const gchar * time_fmt = get_full_time_format_string (settings);
   return join_date_and_time_format_strings (date_fmt, time_fmt);
 }
   
 gchar *
-generate_full_format_string_at_time (GDateTime * now, GDateTime * time)
+generate_full_format_string_at_time (GDateTime * now, GDateTime * time, GSettings * settings)
 {
   gboolean show_day;
   gboolean show_date;
+
+  g_return_val_if_fail (now != NULL, NULL);
+  g_return_val_if_fail (time != NULL, NULL);
+  g_return_val_if_fail (settings != NULL, NULL);
 
   switch (get_date_proximity (now, time))
     {
@@ -427,6 +426,6 @@ generate_full_format_string_at_time (GDateTime * now, GDateTime * time)
         break;
     }
 
-  return generate_full_format_string (show_day, show_date);
+  return generate_full_format_string (show_day, show_date, settings);
 }
 
