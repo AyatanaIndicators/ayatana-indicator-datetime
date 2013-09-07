@@ -424,15 +424,6 @@ skew_timer_func (gpointer gself)
 ****
 ***/
 
-typedef enum 
-{
-  TIME_FORMAT_MODE_LOCALE_DEFAULT,
-  TIME_FORMAT_MODE_12_HOUR,
-  TIME_FORMAT_MODE_24_HOUR,
-  TIME_FORMAT_MODE_CUSTOM
-}
-TimeFormatMode;
-
 static gchar *
 get_header_label_format_string (IndicatorDatetimeService * self)
 {

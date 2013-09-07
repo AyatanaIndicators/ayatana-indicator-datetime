@@ -348,14 +348,6 @@ get_full_date_format_string (gboolean show_day, gboolean show_date)
  *
  */
 
-enum
-{
-  SETTINGS_TIME_LOCALE = 0,
-  SETTINGS_TIME_12_HOUR = 1,
-  SETTINGS_TIME_24_HOUR = 2,
-  SETTINGS_TIME_CUSTOM = 3
-};
-
 const gchar *
 get_full_time_format_string (void)
 {
@@ -370,15 +362,16 @@ get_full_time_format_string (void)
 
   switch (g_settings_get_enum (settings, SETTINGS_TIME_FORMAT_S))
     {
-      case SETTINGS_TIME_LOCALE:
+      case TIME_FORMAT_MODE_LOCALE_DEFAULT:
         twelvehour = is_locale_12h();
         break;
 
-      case SETTINGS_TIME_24_HOUR:
+      case TIME_FORMAT_MODE_24_HOUR:
         twelvehour = FALSE;
         break;
 
-      default:
+      case TIME_FORMAT_MODE_12_HOUR:
+      case TIME_FORMAT_MODE_CUSTOM:
         twelvehour = TRUE;
         break;
     }
