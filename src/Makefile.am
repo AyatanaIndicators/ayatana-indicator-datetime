@@ -1,44 +1,67 @@
 
-if BUILD_CCPANEL
-ccpaneldir = $(libdir)/control-center-1/panels/
-ccpanel_LTLIBRARIES = libindicator-datetime.la
-endif
+SHARED_CFLAGS = \
+  -Wall \
+  -Wextra -Wno-missing-field-initializers \
+  -Werror \
+  $(SERVICE_CFLAGS) \
+  $(COVERAGE_CFLAGS) \
+  -DTIMEZONE_FILE="\"/etc/timezone\"" \
+  -DG_LOG_DOMAIN=\"Indicator-Datetime\"
+
+###
+###
+###
+
+noinst_LIBRARIES = libindicator-datetime-service.a
+
+libindicator_datetime_service_a_CFLAGS = \
+  $(SHARED_CFLAGS)
+
+libindicator_datetime_service_a_SOURCES = \
+  planner.c \
+  planner.h \
+  planner-eds.c \
+  planner-eds.h \
+  service.c \
+  service.h \
+  timezone.c \
+  timezone.h \
+  timezone-file.c \
+  timezone-file.h \
+  timezone-geoclue.c \
+  timezone-geoclue.h \
+  utils.c \
+  utils.h \
+  dbus-shared.h \
+  settings-shared.h
+
+###
+###
+###
 
 libexec_PROGRAMS = indicator-datetime-service
 
 indicator_datetime_service_SOURCES = \
-	planner.c \
-	planner.h \
-	planner-eds.c \
-	planner-eds.h \
-	service.c \
-	service.h \
-	main.c \
-	timezone.c \
-	timezone.h \
-	timezone-file.c \
-	timezone-file.h \
-	timezone-geoclue.c \
-	timezone-geoclue.h \
-	utils.c \
-	utils.h \
-	dbus-shared.h \
-	settings-shared.h
+  main.c
 
 indicator_datetime_service_CFLAGS = \
-	-Wall \
-        -Wextra -Wno-missing-field-initializers \
-	-Werror \
-	$(SERVICE_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
-	-DTIMEZONE_FILE="\"/etc/timezone\"" \
-	-DG_LOG_DOMAIN=\"Indicator-Datetime\"
+  $(SHARED_CFLAGS)
+
 indicator_datetime_service_LDADD = \
-	$(SERVICE_LIBS)
+  libindicator-datetime-service.a \
+  $(SERVICE_LIBS)
+
 indicator_datetime_service_LDFLAGS = \
-	$(COVERAGE_LDFLAGS)
+  $(COVERAGE_LDFLAGS)
+
+###
+###
+###
 
 if BUILD_CCPANEL
+ccpaneldir = $(libdir)/control-center-1/panels/
+ccpanel_LTLIBRARIES = libindicator-datetime.la
+
 libindicator_datetime_la_SOURCES =\
 	datetime-prefs.c \
 	datetime-prefs-locations.c \

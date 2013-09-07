@@ -53,6 +53,6 @@ test_indicator_CPPFLAGS = $(TEST_CPPFLAGS) -DSCHEMA_DIR="\"$(top_builddir)/tests
 
 TESTS += test-utils
 check_PROGRAMS += test-utils
-test_utils_SOURCES = test-utils.cc $(top_srcdir)/src/utils.c
-test_utils_LDADD = $(TEST_LIBS)
+test_utils_SOURCES = test-utils.cc
+test_utils_LDADD = $(top_builddir)/src/libindicator-datetime-service.a $(TEST_LIBS)
 test_utils_CPPFLAGS = $(TEST_CPPFLAGS) -DSCHEMA_DIR="\"$(top_builddir)/tests/\""
