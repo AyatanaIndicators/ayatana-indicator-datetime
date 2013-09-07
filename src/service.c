@@ -433,34 +433,12 @@ typedef enum
 }
 TimeFormatMode;
 
-/* gets the user's time-format from GSettings */
-static TimeFormatMode
-get_time_format_mode (IndicatorDatetimeService * self)
-{
-  char * str;
-  TimeFormatMode mode;
-
-  str = g_settings_get_string (self->priv->settings, SETTINGS_TIME_FORMAT_S);
-
-  if (!g_strcmp0 ("12-hour", str))
-    mode = TIME_FORMAT_MODE_12_HOUR;
-  else if (!g_strcmp0 ("24-hour", str))
-    mode = TIME_FORMAT_MODE_24_HOUR;
-  else if (!g_strcmp0 ("custom", str))
-    mode = TIME_FORMAT_MODE_CUSTOM;
-  else
-    mode = TIME_FORMAT_MODE_LOCALE_DEFAULT;
-
-  g_free (str);
-  return mode;
-}
-
 static gchar *
 get_header_label_format_string (IndicatorDatetimeService * self)
 {
   char * fmt;
-  const TimeFormatMode mode = get_time_format_mode (self);
   GSettings * s = self->priv->settings;
+  const TimeFormatMode mode = g_settings_get_enum (s, SETTINGS_TIME_FORMAT_S);
 
   if (mode == TIME_FORMAT_MODE_CUSTOM)
     {
