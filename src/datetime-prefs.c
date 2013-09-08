@@ -70,6 +70,7 @@ struct _IndicatorDatetimePanelPrivate
   gboolean             user_edited_time;
   gboolean             changing_time;
   GtkWidget *          loc_dlg;
+  GSettings *          settings;
   CcTimezoneCompletion * completion;
 };
 
@@ -214,7 +215,7 @@ toggle_ntp (GtkWidget * radio, GParamSpec * pspec, IndicatorDatetimePanel * self
 static void
 sync_entry (IndicatorDatetimePanel * self, const gchar * location)
 {
-  gchar * name = get_current_zone_name (location);
+  gchar * name = get_current_zone_name (location, self->priv->settings);
   gtk_entry_set_text (GTK_ENTRY (self->priv->tz_entry), name);
   g_free (name);
 
@@ -599,11 +600,9 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
     zone = cc_timezone_map_get_timezone_at_coords (self->priv->tzmap, lon, lat);
   }
 
-  GSettings * conf = g_settings_new (SETTINGS_INTERFACE);
   gchar * tz_name = g_strdup_printf ("%s %s", zone, name);
-  g_settings_set_string (conf, SETTINGS_TIMEZONE_NAME_S, tz_name);
+  g_settings_set_string (self->priv->settings, SETTINGS_TIMEZONE_NAME_S, tz_name);
   g_free (tz_name);
-  g_object_unref (conf);
 
   cc_timezone_map_set_timezone (self->priv->tzmap, zone);
 
@@ -623,7 +622,7 @@ entry_focus_out (GtkEntry * entry, GdkEventFocus * event, IndicatorDatetimePanel
   gchar * zone;
   g_object_get (location, "zone", &zone, NULL);
 
-  gchar * name = get_current_zone_name (zone);
+  gchar * name = get_current_zone_name (zone, self->priv->settings);
   gboolean correct = (g_strcmp0 (gtk_entry_get_text (entry), name) == 0);
   g_free (name);
   g_free (zone);
@@ -639,14 +638,18 @@ entry_focus_out (GtkEntry * entry, GdkEventFocus * event, IndicatorDatetimePanel
 static void
 indicator_datetime_panel_init (IndicatorDatetimePanel * self)
 {
+  GError * error;
+  GSettings * conf;
+
   self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self,
                                             INDICATOR_DATETIME_TYPE_PANEL,
                                             IndicatorDatetimePanelPrivate);
 
-  GError * error = NULL;
+  self->priv->settings = conf = g_settings_new (SETTINGS_INTERFACE);
 
   self->priv->builder = gtk_builder_new ();
   gtk_builder_set_translation_domain (self->priv->builder, GETTEXT_PACKAGE);
+  error = NULL;
   gtk_builder_add_from_file (self->priv->builder, DATETIME_DIALOG_UI_FILE, &error);
   if (error != NULL) {
     /* We have to abort, we can't continue without the ui file */
@@ -654,8 +657,6 @@ indicator_datetime_panel_init (IndicatorDatetimePanel * self)
     g_error_free (error);
     return;
   }
-
-  GSettings * conf = g_settings_new (SETTINGS_INTERFACE);
 
 
   /* Add policykit button */
@@ -755,8 +756,6 @@ indicator_datetime_panel_init (IndicatorDatetimePanel * self)
 
 #undef WIG
 
-  g_object_unref (conf);
-
   gtk_widget_show_all (panel);
   gtk_container_add (GTK_CONTAINER (self), panel);
 }
@@ -769,6 +768,7 @@ indicator_datetime_panel_dispose (GObject * object)
 
   g_clear_object (&priv->builder);
   g_clear_object (&priv->proxy);
+  g_clear_object (&priv->settings);
 
   if (priv->loc_dlg) {
     gtk_widget_destroy (priv->loc_dlg);

@@ -424,43 +424,12 @@ skew_timer_func (gpointer gself)
 ****
 ***/
 
-typedef enum 
-{
-  TIME_FORMAT_MODE_LOCALE_DEFAULT,
-  TIME_FORMAT_MODE_12_HOUR,
-  TIME_FORMAT_MODE_24_HOUR,
-  TIME_FORMAT_MODE_CUSTOM
-}
-TimeFormatMode;
-
-/* gets the user's time-format from GSettings */
-static TimeFormatMode
-get_time_format_mode (IndicatorDatetimeService * self)
-{
-  char * str;
-  TimeFormatMode mode;
-
-  str = g_settings_get_string (self->priv->settings, SETTINGS_TIME_FORMAT_S);
-
-  if (!g_strcmp0 ("12-hour", str))
-    mode = TIME_FORMAT_MODE_12_HOUR;
-  else if (!g_strcmp0 ("24-hour", str))
-    mode = TIME_FORMAT_MODE_24_HOUR;
-  else if (!g_strcmp0 ("custom", str))
-    mode = TIME_FORMAT_MODE_CUSTOM;
-  else
-    mode = TIME_FORMAT_MODE_LOCALE_DEFAULT;
-
-  g_free (str);
-  return mode;
-}
-
 static gchar *
 get_header_label_format_string (IndicatorDatetimeService * self)
 {
   char * fmt;
-  const TimeFormatMode mode = get_time_format_mode (self);
   GSettings * s = self->priv->settings;
+  const TimeFormatMode mode = g_settings_get_enum (s, SETTINGS_TIME_FORMAT_S);
 
   if (mode == TIME_FORMAT_MODE_CUSTOM)
     {
@@ -470,7 +439,7 @@ get_header_label_format_string (IndicatorDatetimeService * self)
     {
       gboolean show_day = g_settings_get_boolean (s, SETTINGS_SHOW_DAY_S);
       gboolean show_date = g_settings_get_boolean (s, SETTINGS_SHOW_DATE_S);
-      fmt = generate_full_format_string (show_day, show_date);
+      fmt = generate_full_format_string (show_day, show_date, s);
     }
 
   return fmt;
@@ -497,7 +466,7 @@ create_desktop_header_state (IndicatorDatetimeService * self)
       g_warning ("%s", str);
     }
 
-  g_variant_builder_init (&b, G_VARIANT_TYPE("a{sv}"));
+  g_variant_builder_init (&b, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_add (&b, "{sv}", "accessible-desc", g_variant_new_string (str));
   g_variant_builder_add (&b, "{sv}", "label", g_variant_new_take_string (str));
   g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (visible));
@@ -521,7 +490,7 @@ create_phone_header_state (IndicatorDatetimeService * self)
   gboolean has_alarms;
   gchar * a11y;
 
-  g_variant_builder_init (&b, G_VARIANT_TYPE("a{sv}"));
+  g_variant_builder_init (&b, G_VARIANT_TYPE_VARDICT);
 
   /* label */
   now = indicator_datetime_service_get_localtime (self);
@@ -714,6 +683,7 @@ service_has_alarms (IndicatorDatetimeService * self)
 static char *
 get_appointment_time_format (struct IndicatorDatetimeAppt * appt,
                              GDateTime                    * now,
+                             GSettings                    * settings,
                              gboolean                       terse)
 {
   char * fmt;
@@ -722,7 +692,7 @@ get_appointment_time_format (struct IndicatorDatetimeAppt * appt,
   if (appt->is_daily)
     {
       const char * time_fmt = terse ? get_terse_time_format_string (appt->begin)
-                                    : get_full_time_format_string ();
+                                    : get_full_time_format_string (settings);
       fmt = join_date_and_time_format_strings (_("Daily"), time_fmt);
     }
   else if (full_day)
@@ -734,7 +704,7 @@ get_appointment_time_format (struct IndicatorDatetimeAppt * appt,
   else
     {
       fmt = terse ? generate_terse_format_string_at_time (now, appt->begin)
-                  : generate_full_format_string_at_time (now, appt->begin);
+                  : generate_full_format_string_at_time (now, appt->begin, settings);
     }
 
   return fmt;
@@ -754,7 +724,7 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean terse)
   for (l=appts, i=0; l!=NULL && i<MAX_APPTS; l=l->next, i++)
     {
       struct IndicatorDatetimeAppt * appt = l->data;
-      char * fmt = get_appointment_time_format (appt, now, terse);
+      char * fmt = get_appointment_time_format (appt, now, self->priv->settings, terse);
       const gint64 unix_time = g_date_time_to_unix (appt->begin);
       GMenuItem * menu_item;
 
@@ -994,7 +964,7 @@ create_locations_section (IndicatorDatetimeService * self)
           const char * tz = indicator_datetime_timezone_get_timezone (detected_timezones[i]);
           if (tz && *tz)
             {
-              gchar * name = get_current_zone_name (tz);
+              gchar * name = get_current_zone_name (tz, p->settings);
               locations = locations_add (locations, tz, name, visible);
               g_free (name);
             }
@@ -1034,7 +1004,7 @@ create_locations_section (IndicatorDatetimeService * self)
           detailed_action = g_strdup_printf ("indicator.set-location::%s %s",
                                              loc->zone,
                                              loc->name);
-          fmt = generate_full_format_string_at_time (now, loc->local_time);
+          fmt = generate_full_format_string_at_time (now, loc->local_time, p->settings);
 
           menu_item = g_menu_item_new (loc->name, detailed_action);
           g_menu_item_set_attribute (menu_item, "x-canonical-type",
