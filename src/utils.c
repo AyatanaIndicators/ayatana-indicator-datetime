@@ -134,9 +134,9 @@ T_(const char *msg)
 	   LC_MESSAGES directory, so we won't find any translation there.
 	*/
 	char *message_locale = g_strdup(setlocale(LC_MESSAGES, NULL));
-	char *time_locale = g_strdup(setlocale(LC_TIME, NULL));
+	const char *time_locale = setlocale (LC_TIME, NULL);
 	char *language = g_strdup(g_getenv("LANGUAGE"));
-	char *rv;
+	const char *rv;
 	if (language)
 		g_unsetenv("LANGUAGE");
 	setlocale(LC_MESSAGES, time_locale);
@@ -149,7 +149,6 @@ T_(const char *msg)
 	if (language)
 		g_setenv("LANGUAGE", language, TRUE);
 	g_free(message_locale);
-	g_free(time_locale);
 	g_free(language);
 	return rv;
 }

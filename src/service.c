@@ -499,12 +499,11 @@ create_desktop_header_state (IndicatorDatetimeService * self)
 
   g_variant_builder_init (&b, G_VARIANT_TYPE("a{sv}"));
   g_variant_builder_add (&b, "{sv}", "accessible-desc", g_variant_new_string (str));
-  g_variant_builder_add (&b, "{sv}", "label", g_variant_new_string (str));
+  g_variant_builder_add (&b, "{sv}", "label", g_variant_new_take_string (str));
   g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (visible));
 
   /* cleanup */
   g_date_time_unref (now);
-  g_free (str);
   g_free (fmt);
   return g_variant_builder_end (&b);
 }
@@ -528,7 +527,6 @@ create_phone_header_state (IndicatorDatetimeService * self)
   now = indicator_datetime_service_get_localtime (self);
   fmt = get_terse_time_format_string (now);
   label = g_date_time_format (now, fmt);
-  g_variant_builder_add (&b, "{sv}", "label", g_variant_new_string (label));
 
   /* icon */
   if ((has_alarms = service_has_alarms (self)))
@@ -545,14 +543,12 @@ create_phone_header_state (IndicatorDatetimeService * self)
   else
     a11y = g_strdup (label);
   g_variant_builder_add (&b, "{sv}", "accessible-desc",
-                         g_variant_new_string (a11y));
+                         g_variant_new_take_string (a11y));
 
-  /* visible */
   g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (TRUE));
+  g_variant_builder_add (&b, "{sv}", "label", g_variant_new_take_string (label));
 
   /* cleanup */
-  g_free (a11y);
-  g_free (label);
   g_date_time_unref (now);
   return g_variant_builder_end (&b);
 }
@@ -652,10 +648,8 @@ add_localtime_menuitem (GMenu                    * menu,
 static void
 add_calendar_menuitem (GMenu * menu)
 {
-  char * label;
   GMenuItem * menu_item;
 
-  label = g_strdup ("[calendar]");
   menu_item = g_menu_item_new ("[calendar]", NULL);
   g_menu_item_set_action_and_target_value (menu_item, "indicator.calendar", g_variant_new_int64(0));
   g_menu_item_set_attribute (menu_item, "x-canonical-type", "s", "com.canonical.indicator.calendar");
@@ -663,7 +657,6 @@ add_calendar_menuitem (GMenu * menu)
 
   g_menu_append_item (menu, menu_item);
   g_object_unref (menu_item);
-  g_free (label);
 }
 
 static GMenuModel *
@@ -1034,18 +1027,16 @@ create_locations_section (IndicatorDatetimeService * self)
       struct TimeLocation * loc = l->data;
       if (loc->visible)
         {
-          char * label;
           char * detailed_action;
           char * fmt;
           GMenuItem * menu_item;
 
-          label = g_strdup (loc->name);
           detailed_action = g_strdup_printf ("indicator.set-location::%s %s",
                                              loc->zone,
                                              loc->name);
           fmt = generate_full_format_string_at_time (now, loc->local_time);
 
-          menu_item = g_menu_item_new (label, detailed_action);
+          menu_item = g_menu_item_new (loc->name, detailed_action);
           g_menu_item_set_attribute (menu_item, "x-canonical-type",
                                      "s", "com.canonical.indicator.location");
           g_menu_item_set_attribute (menu_item, "x-canonical-timezone",
@@ -1057,7 +1048,6 @@ create_locations_section (IndicatorDatetimeService * self)
           g_object_unref (menu_item);
           g_free (fmt);
           g_free (detailed_action);
-          g_free (label);
         }
     }
 
