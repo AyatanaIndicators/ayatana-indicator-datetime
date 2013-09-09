@@ -65,7 +65,7 @@ my_finalize (GObject * o)
 
   g_string_free (p->timezone, TRUE);
 
-  G_OBJECT_CLASS (indicator_datetime_timezone_parent_class)->dispose (o);
+  G_OBJECT_CLASS (indicator_datetime_timezone_parent_class)->finalize (o);
 }
 
 static void
