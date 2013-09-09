@@ -33,7 +33,8 @@ void          split_settings_location              (const char  * location,
                                                     char       ** zone,
                                                     char       ** name);
 
-gchar *       get_current_zone_name                (const char  * location);
+gchar *       get_current_zone_name                (const char  * location,
+                                                    GSettings   * settings);
 
 gchar*        join_date_and_time_format_strings    (const char  * date_fmt,
                                                     const char  * time_fmt);
@@ -43,16 +44,18 @@ gchar*        join_date_and_time_format_strings    (const char  * date_fmt,
 
 const gchar * get_terse_time_format_string         (GDateTime   * time);
 
-const gchar * get_full_time_format_string          (void);
+const gchar * get_full_time_format_string          (GSettings   * settings);
 
 gchar *       generate_terse_format_string_at_time (GDateTime   * now,
                                                     GDateTime   * time);
 
 gchar *       generate_full_format_string          (gboolean      show_day,
-                                                    gboolean      show_date);
+                                                    gboolean      show_date,
+                                                    GSettings   * settings);
 
 gchar *       generate_full_format_string_at_time  (GDateTime   * now,
-                                                    GDateTime   * time);
+                                                    GDateTime   * time,
+                                                    GSettings   * settings);
   
 G_END_DECLS
 

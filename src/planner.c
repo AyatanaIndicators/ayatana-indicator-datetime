@@ -188,6 +188,8 @@ indicator_datetime_planner_get_appointments (IndicatorDatetimePlanner * self,
   IndicatorDatetimePlannerClass * klass;
 
   g_return_if_fail (INDICATOR_IS_DATETIME_PLANNER (self));
+  g_return_val_if_fail (begin != NULL, NULL);
+  g_return_val_if_fail (end != NULL, NULL);
 
   klass = INDICATOR_DATETIME_PLANNER_GET_CLASS (self);
   g_return_if_fail (klass->get_appointments != NULL);
