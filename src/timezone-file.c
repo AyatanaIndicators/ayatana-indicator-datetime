@@ -35,9 +35,7 @@ static GParamSpec * properties[PROP_LAST] = { 0 };
 struct _IndicatorDatetimeTimezoneFilePriv
 {
   gchar * filename;
-  GFile * file;
   GFileMonitor * monitor;
-  gchar * timezone;
 };
 
 typedef IndicatorDatetimeTimezoneFilePriv priv_t;
@@ -56,26 +54,18 @@ reload (IndicatorDatetimeTimezoneFile * self)
   priv_t * p = self->priv;
 
   GError * err = NULL;
-  gchar * new_timezone = NULL;
+  gchar * timezone = NULL;
 
-  if (!g_file_get_contents (p->filename, &new_timezone, NULL, &err))
+  if (!g_file_get_contents (p->filename, &timezone, NULL, &err))
     {
       g_warning ("%s Unable to read timezone file '%s': %s", G_STRLOC, p->filename, err->message);
       g_error_free (err);
     }
   else
     {
-      g_strstrip (new_timezone);
-
-      if (g_strcmp0 (p->timezone, new_timezone))
-        {
-          g_free (p->timezone);
-          p->timezone = g_strdup (new_timezone);
-          g_debug ("%s new timezone set: '%s'", G_STRLOC, p->timezone);
-          indicator_datetime_timezone_notify_timezone (INDICATOR_DATETIME_TIMEZONE(self));
-        }
-
-      g_free (new_timezone);
+      g_strstrip (timezone);
+      indicator_datetime_timezone_set_timezone (INDICATOR_DATETIME_TIMEZONE(self), timezone);
+      g_free (timezone);
     }
 }
 
@@ -83,17 +73,17 @@ static void
 set_filename (IndicatorDatetimeTimezoneFile * self, const char * filename)
 {
   GError * err;
+  GFile * file;
   priv_t * p = self->priv;
 
   g_clear_object (&p->monitor);
-  g_clear_object (&p->file);
   g_free (p->filename);
 
   p->filename = g_strdup (filename);
-  p->file = g_file_new_for_path (p->filename);
-
   err = NULL;
-  p->monitor = g_file_monitor_file (p->file, G_FILE_MONITOR_NONE, NULL, &err);
+  file = g_file_new_for_path (p->filename);
+  p->monitor = g_file_monitor_file (file, G_FILE_MONITOR_NONE, NULL, &err);
+  g_object_unref (file);
   if (err != NULL)
     {
       g_warning ("%s Unable to monitor timezone file '%s': %s", G_STRLOC, TIMEZONE_FILE, err->message);
@@ -106,16 +96,6 @@ set_filename (IndicatorDatetimeTimezoneFile * self, const char * filename)
     }
 
   reload (self);
-}
-
-/***
-**** IndicatorDatetimeTimezoneClass funcs
-***/
-
-static const char *
-my_get_timezone (IndicatorDatetimeTimezone * self)
-{
-  return INDICATOR_DATETIME_TIMEZONE_FILE(self)->priv->timezone;
 }
 
 /***
@@ -167,7 +147,6 @@ my_dispose (GObject * o)
   priv_t * p = self->priv;
 
   g_clear_object (&p->monitor);
-  g_clear_object (&p->file);
 
   G_OBJECT_CLASS (indicator_datetime_timezone_file_parent_class)->dispose (o);
 }
@@ -179,7 +158,6 @@ my_finalize (GObject * o)
   priv_t * p = self->priv;
 
   g_free (p->filename);
-  g_free (p->timezone);
 
   G_OBJECT_CLASS (indicator_datetime_timezone_file_parent_class)->finalize (o);
 }
@@ -192,7 +170,6 @@ static void
 indicator_datetime_timezone_file_class_init (IndicatorDatetimeTimezoneFileClass * klass)
 {
   GObjectClass * object_class;
-  IndicatorDatetimeTimezoneClass * location_class;
   const GParamFlags flags = G_PARAM_CONSTRUCT | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS;
 
   object_class = G_OBJECT_CLASS (klass);
@@ -200,9 +177,6 @@ indicator_datetime_timezone_file_class_init (IndicatorDatetimeTimezoneFileClass 
   object_class->finalize = my_finalize;
   object_class->set_property = my_set_property;
   object_class->get_property = my_get_property;
-
-  location_class = INDICATOR_DATETIME_TIMEZONE_CLASS (klass);
-  location_class->get_timezone = my_get_timezone;
 
   g_type_class_add_private (klass, sizeof (IndicatorDatetimeTimezoneFilePriv));
 
