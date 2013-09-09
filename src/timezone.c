@@ -32,6 +32,13 @@ enum
 
 static GParamSpec * properties[PROP_LAST] = { 0, };
 
+struct _IndicatorDatetimeTimezonePriv
+{
+  GString * timezone;
+};
+
+typedef struct _IndicatorDatetimeTimezonePriv priv_t;
+
 static void
 my_get_property (GObject     * o,
                  guint         property_id,
@@ -52,9 +59,13 @@ my_get_property (GObject     * o,
 }
 
 static void
-my_dispose (GObject * object)
+my_finalize (GObject * o)
 {
-  G_OBJECT_CLASS (indicator_datetime_timezone_parent_class)->dispose (object);
+  priv_t * p = INDICATOR_DATETIME_TIMEZONE(o)->priv;
+
+  g_string_free (p->timezone, TRUE);
+
+  G_OBJECT_CLASS (indicator_datetime_timezone_parent_class)->dispose (o);
 }
 
 static void
@@ -64,11 +75,11 @@ indicator_datetime_timezone_class_init (IndicatorDatetimeTimezoneClass * klass)
   GObjectClass * object_class;
   const GParamFlags flags = G_PARAM_READABLE | G_PARAM_STATIC_STRINGS;
 
+  g_type_class_add_private (klass, sizeof (IndicatorDatetimeTimezonePriv));
+
   object_class = G_OBJECT_CLASS (klass);
   object_class->get_property = my_get_property;
-  object_class->dispose = my_dispose;
-
-  klass->get_timezone = NULL;
+  object_class->finalize = my_finalize;
 
   properties[PROP_TIMEZONE] = g_param_spec_string ("timezone",
                                                    "Timezone",
@@ -80,8 +91,17 @@ indicator_datetime_timezone_class_init (IndicatorDatetimeTimezoneClass * klass)
 }
 
 static void
-indicator_datetime_timezone_init (IndicatorDatetimeTimezone * self G_GNUC_UNUSED)
+indicator_datetime_timezone_init (IndicatorDatetimeTimezone * self)
 {
+  priv_t * p;
+
+  p = G_TYPE_INSTANCE_GET_PRIVATE (self,
+                                   INDICATOR_TYPE_DATETIME_TIMEZONE,
+                                   IndicatorDatetimeTimezonePriv);
+
+  p->timezone = g_string_new (NULL);
+
+  self->priv = p;
 }
 
 /***
@@ -93,13 +113,19 @@ indicator_datetime_timezone_get_timezone (IndicatorDatetimeTimezone * self)
 {
   g_return_val_if_fail (INDICATOR_IS_DATETIME_TIMEZONE (self), NULL);
 
-  return INDICATOR_DATETIME_TIMEZONE_GET_CLASS (self)->get_timezone (self);
+  return self->priv->timezone->str;
 }
 
 void
-indicator_datetime_timezone_notify_timezone (IndicatorDatetimeTimezone * self)
+indicator_datetime_timezone_set_timezone (IndicatorDatetimeTimezone * self,
+                                          const char                * timezone)
 {
-  g_return_if_fail (INDICATOR_IS_DATETIME_TIMEZONE (self));
+  priv_t * p = self->priv;
 
-  g_object_notify_by_pspec (G_OBJECT(self), properties[PROP_TIMEZONE]);
+  if (g_strcmp0 (p->timezone->str, timezone))
+    {
+      g_string_assign (p->timezone, timezone);
+      g_debug ("%s new timezone set: '%s'", G_STRLOC, timezone);
+      g_object_notify_by_pspec (G_OBJECT(self), properties[PROP_TIMEZONE]);
+    }
 }
