@@ -24,6 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define __DATETIME_UTILS_H__
 
 #include <glib.h>
+#include <gio/gio.h> /* GSettings */
 
 G_BEGIN_DECLS
 

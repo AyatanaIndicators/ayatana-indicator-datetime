@@ -53,32 +53,41 @@ is_locale_12h (void)
 void
 split_settings_location (const gchar * location, gchar ** zone, gchar ** name)
 {
-  gchar * location_dup = g_strdup (location);
-  gchar * first = strchr (location_dup, ' ');
+  gchar * location_dup;
+  gchar * first;
 
-  if (first) {
-    first[0] = 0;
-  }
+  location_dup = g_strdup (location);
+  g_strstrip (location_dup);
 
-  if (zone) {
-    *zone = location_dup;
-  }
+  if ((first = strchr (location_dup, ' ')))
+    *first = '\0';
 
-  if (name) {
-    gchar * after = first ? g_strstrip (first + 1) : NULL;
-    if (after == NULL || after[0] == 0) {
-      /* Make up name from zone */
-      gchar * chr = strrchr (location_dup, '/');
-      after = g_strdup (chr ? chr + 1 : location_dup);
-      while ((chr = strchr (after, '_')) != NULL) { /* and turn underscores to spaces */
-        *chr = ' ';
-      }
-      *name = after;
+  if (zone != NULL)
+    {
+      *zone = location_dup;
     }
-    else {
-      *name = g_strdup (after);
+
+  if (name != NULL)
+    {
+      gchar * after = first ? g_strstrip (first + 1) : NULL;
+
+      if (after && *after)
+        {
+          *name = g_strdup (after);
+        }
+      else /* make the name from zone */
+        {
+          gchar * chr = strrchr (location_dup, '/');
+          after = g_strdup (chr ? chr + 1 : location_dup);
+
+          /* replace underscores with spaces */
+          for (chr=after; chr && *chr; chr++)
+            if (*chr == '_')
+              *chr = ' ';
+
+          *name = after;
+        }
     }
-  }
 }
 
 gchar *
