@@ -453,6 +453,7 @@ create_desktop_header_state (IndicatorDatetimeService * self)
   gchar * str;
   gboolean visible;
   GDateTime * now;
+  const gchar * title = _("Date and Time");
 
   visible = g_settings_get_boolean (self->priv->settings, SETTINGS_SHOW_CLOCK_S);
 
@@ -469,6 +470,7 @@ create_desktop_header_state (IndicatorDatetimeService * self)
   g_variant_builder_init (&b, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_add (&b, "{sv}", "accessible-desc", g_variant_new_string (str));
   g_variant_builder_add (&b, "{sv}", "label", g_variant_new_take_string (str));
+  g_variant_builder_add (&b, "{sv}", "title", g_variant_new_string (title));
   g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (visible));
 
   /* cleanup */
@@ -489,6 +491,7 @@ create_phone_header_state (IndicatorDatetimeService * self)
   gchar * label;
   gboolean has_alarms;
   gchar * a11y;
+  const gchar * title = _("Date and Time");
 
   g_variant_builder_init (&b, G_VARIANT_TYPE_VARDICT);
 
@@ -515,6 +518,7 @@ create_phone_header_state (IndicatorDatetimeService * self)
                          g_variant_new_take_string (a11y));
 
   g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (TRUE));
+  g_variant_builder_add (&b, "{sv}", "title", g_variant_new_string (title));
   g_variant_builder_add (&b, "{sv}", "label", g_variant_new_take_string (label));
 
   /* cleanup */
