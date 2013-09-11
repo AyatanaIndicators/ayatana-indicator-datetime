@@ -491,7 +491,7 @@ create_phone_header_state (IndicatorDatetimeService * self)
   gchar * label;
   gboolean has_alarms;
   gchar * a11y;
-  const gchar * title = _("Date and Time");
+  gchar * title;
 
   g_variant_builder_init (&b, G_VARIANT_TYPE_VARDICT);
 
@@ -518,8 +518,11 @@ create_phone_header_state (IndicatorDatetimeService * self)
                          g_variant_new_take_string (a11y));
 
   g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (TRUE));
-  g_variant_builder_add (&b, "{sv}", "title", g_variant_new_string (title));
   g_variant_builder_add (&b, "{sv}", "label", g_variant_new_take_string (label));
+
+  /* title is day-of-week */
+  title = g_date_time_format (now, _("%A"));
+  g_variant_builder_add (&b, "{sv}", "title", g_variant_new_take_string (title));
 
   /* cleanup */
   g_date_time_unref (now);
@@ -650,9 +653,6 @@ static GMenuModel *
 create_phone_calendar_section (IndicatorDatetimeService * self)
 {
   GMenu * menu = g_menu_new ();
-
-  /* strftime(3) format string to show day of week */
-  add_localtime_menuitem (menu, self, _("%A"), NULL);
 
   /* strftime(3) format string to show date */
   add_localtime_menuitem (menu, self, _("%e %B %Y"), "calendar");
