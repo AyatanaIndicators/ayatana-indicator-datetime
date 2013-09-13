@@ -1,3 +1,27 @@
+indicator-datetime (13.10.0+13.10.20130913-0ubuntu1) saucy; urgency=low
+
+  [ Charles Kerr ]
+  * Make the EDS planner nonblocking. (LP: #1204532)
+  * Minor changes that eliminate unnecessary temporary strings.
+  * This change adds a GSettings* arg to the utils functions so that
+    they don't have to churn through temporary GSettings objects. These
+    functions are usually called in a loop, causing a lot of GSettings
+    temporaries, even though the calling code already has an instance
+    for that GSettings schema.
+  * name says it all; this branch is for improving indicator-datetime
+    test coverage.
+  * Remove code duplication between timezone-file and timezone-geoclue.
+  * Adds a title in the header's action state. (LP: #1223635)
+
+  [ Ted Gould ]
+  * Fix GeoClue signal handler to have proper prototype. (LP: #1195874)
+  * Protect against invalid begin or end dates. (LP: #1216263)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 256
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 13 Sep 2013 15:16:38 +0000
+
 indicator-datetime (13.10.0+13.10.20130903-0ubuntu1) saucy; urgency=low
 
   [ Jeremy Bicha ]
