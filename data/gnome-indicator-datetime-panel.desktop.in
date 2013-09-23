@@ -10,3 +10,4 @@ Type=Application
 Categories=GNOME;GTK;Utility;DesktopSettings;Settings;X-GNOME-SystemSettings;X-GNOME-Settings-Panel;
 X-GNOME-Settings-Panel=indicator-datetime
 OnlyShowIn=Unity;
+X-Ubuntu-Gettext-Domain=indicator-datetime
