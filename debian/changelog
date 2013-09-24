@@ -1,3 +1,14 @@
+indicator-datetime (13.10.0+13.10.20130924.2-0ubuntu1) saucy; urgency=low
+
+  [ Timo Jyrinki ]
+  * Add X-Ubuntu-Gettext-Domain in .desktop file to use translations
+    (LP: #1223498). (LP: #1223498)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 258
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 24 Sep 2013 08:58:52 +0000
+
 indicator-datetime (13.10.0+13.10.20130913-0ubuntu1) saucy; urgency=low
 
   [ Charles Kerr ]
