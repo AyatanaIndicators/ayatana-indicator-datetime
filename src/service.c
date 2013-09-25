@@ -24,6 +24,7 @@
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
+#include <url-dispatcher.h>
 
 #include "dbus-shared.h"
 #include "planner-eds.h"
@@ -1282,7 +1283,7 @@ on_phone_settings_activated (GSimpleAction * a      G_GNUC_UNUSED,
                              GVariant      * param  G_GNUC_UNUSED,
                              gpointer        gself  G_GNUC_UNUSED)
 {
-  execute_command ("system-settings time-date");
+  url_dispatch_send ("settings://system/time-date", NULL, NULL);
 }
 
 static void
