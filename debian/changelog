@@ -1,3 +1,14 @@
+indicator-datetime (13.10.0+13.10.20130930-0ubuntu1) saucy; urgency=low
+
+  [ Charles Kerr ]
+  * Use url-dispatcher instead of invoking system-settings directly.
+    (LP: #1230819)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 260
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 30 Sep 2013 06:32:59 +0000
+
 indicator-datetime (13.10.0+13.10.20130924.2-0ubuntu1) saucy; urgency=low
 
   [ Timo Jyrinki ]
