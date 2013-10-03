@@ -498,7 +498,7 @@ create_phone_header_state (IndicatorDatetimeService * self)
 
   /* label */
   now = indicator_datetime_service_get_localtime (self);
-  fmt = get_terse_time_format_string (now);
+  fmt = get_terse_header_time_format_string ();
   label = g_date_time_format (now, fmt);
 
   /* icon */
