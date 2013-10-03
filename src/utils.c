@@ -294,6 +294,13 @@ get_terse_date_format_string (date_proximity_t proximity)
   return fmt;
 }
 
+const gchar*
+get_terse_header_time_format_string (void)
+{
+  /* a strftime(3) fmt string for a H:MM 12 hour time, eg "6:59 PM" */
+  return T_("%l:%M %p");
+}
+
 const gchar *
 get_terse_time_format_string (GDateTime * time)
 {
@@ -301,8 +308,7 @@ get_terse_time_format_string (GDateTime * time)
 
   if (g_date_time_get_minute (time) != 0)
     {
-      /* a strftime(3) fmt string for a H:MM 12 hour time, eg "6:59 PM" */
-      fmt = T_("%l:%M %p");
+      fmt = get_terse_header_time_format_string ();
     }
   else
     {

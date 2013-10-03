@@ -45,6 +45,8 @@ gchar*        join_date_and_time_format_strings    (const char  * date_fmt,
 
 const gchar * get_terse_time_format_string         (GDateTime   * time);
 
+const gchar * get_terse_header_time_format_string  (void);
+
 const gchar * get_full_time_format_string          (GSettings   * settings);
 
 gchar *       generate_terse_format_string_at_time (GDateTime   * now,
