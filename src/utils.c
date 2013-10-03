@@ -301,8 +301,8 @@ get_terse_time_format_string (GDateTime * time)
 
   if (g_date_time_get_minute (time) != 0)
     {
-      /* a strftime(3) fmt string for a HH:MM 12 hour time, eg "06:59 PM" */
-      fmt = T_("%I:%M %p");
+      /* a strftime(3) fmt string for a H:MM 12 hour time, eg "6:59 PM" */
+      fmt = T_("%l:%M %p");
     }
   else
     {
