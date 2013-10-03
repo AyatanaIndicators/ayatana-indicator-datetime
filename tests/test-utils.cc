@@ -78,12 +78,12 @@ TEST (UtilsTest, GenerateTerseFormatString)
     GDateTime * time;
     const char * expected_format_string;
   } test_cases[] = {
-    { g_date_time_ref(arbitrary_day), g_date_time_ref(arbitrary_day), "%I:%M %p" }, /* identical time */
-    { g_date_time_ref(arbitrary_day), g_date_time_add_hours(arbitrary_day,1), "%I:%M %p" }, /* later today */
-    { g_date_time_ref(arbitrary_day), g_date_time_add_days(arbitrary_day,1), "Tomorrow" EM_SPACE "%I:%M %p" }, /* tomorrow */
-    { g_date_time_ref(arbitrary_day), g_date_time_add_days(arbitrary_day,2), "%a" EM_SPACE "%I:%M %p" },
-    { g_date_time_ref(arbitrary_day), g_date_time_add_days(arbitrary_day,6), "%a" EM_SPACE "%I:%M %p" },
-    { g_date_time_ref(arbitrary_day), g_date_time_add_days(arbitrary_day,7), "%d %b" EM_SPACE "%I:%M %p" }, /* over one week away */
+    { g_date_time_ref(arbitrary_day), g_date_time_ref(arbitrary_day), "%l:%M %p" }, /* identical time */
+    { g_date_time_ref(arbitrary_day), g_date_time_add_hours(arbitrary_day,1), "%l:%M %p" }, /* later today */
+    { g_date_time_ref(arbitrary_day), g_date_time_add_days(arbitrary_day,1), "Tomorrow" EM_SPACE "%l:%M %p" }, /* tomorrow */
+    { g_date_time_ref(arbitrary_day), g_date_time_add_days(arbitrary_day,2), "%a" EM_SPACE "%l:%M %p" },
+    { g_date_time_ref(arbitrary_day), g_date_time_add_days(arbitrary_day,6), "%a" EM_SPACE "%l:%M %p" },
+    { g_date_time_ref(arbitrary_day), g_date_time_add_days(arbitrary_day,7), "%d %b" EM_SPACE "%l:%M %p" }, /* over one week away */
 
     { g_date_time_ref(on_the_hour), g_date_time_ref(on_the_hour), "%l %p" }, /* identical time */
     { g_date_time_ref(on_the_hour), g_date_time_add_hours(on_the_hour,1), "%l %p" }, /* later today */
