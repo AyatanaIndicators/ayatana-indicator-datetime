@@ -1,3 +1,18 @@
+indicator-datetime (13.10.0+13.10.20131004-0ubuntu1) saucy; urgency=low
+
+  [ Charles Kerr ]
+  * Change the tablet time format string to remove leading zeroes from
+    the hour component of the time format (ie, H:MM rather than HH:MM).
+    (LP: #1234483)
+  * on the phone, show appointments at 1AM as '1 AM', clock times as
+    '1:00 AM'. (LP: #1220297)
+  * Update settings URL to settings:///system. (LP: #1231444)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 264
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 04 Oct 2013 02:29:26 +0000
+
 indicator-datetime (13.10.0+13.10.20130930-0ubuntu1) saucy; urgency=low
 
   [ Charles Kerr ]
