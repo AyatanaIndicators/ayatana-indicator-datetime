@@ -464,7 +464,7 @@ create_desktop_header_state (IndicatorDatetimeService * self)
   str = g_date_time_format (now, fmt);
   if (str == NULL)
     {
-      str = g_strdup (_("Unsupported date format"));
+      str = g_strdup_printf (_("Unsupported date format '%s'"), fmt);
       g_warning ("%s", str);
     }
 
