@@ -55,6 +55,7 @@ indicator_datetime_appt_free (struct IndicatorDatetimeAppt * appt)
       g_free (appt->color);
       g_free (appt->summary);
       g_free (appt->url);
+      g_free (appt->uid);
       g_slice_free (struct IndicatorDatetimeAppt, appt);
     }
 }
@@ -76,9 +77,6 @@ struct appointment_task_data
 
   /* the list of appointments to be returned */
   GSList * appointments;
-
-  /* ensure that recurring events don't get multiple IndicatorDatetimeAppts */
-  GHashTable * added;
 };
 
 static struct appointment_task_data *
@@ -87,7 +85,6 @@ appointment_task_data_new (GCancellable * cancellable)
   struct appointment_task_data * data;
 
   data = g_slice_new0 (struct appointment_task_data);
-  data->added = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
   data->cancellable = g_object_ref (cancellable);
   return data;
 }
@@ -98,7 +95,7 @@ appointment_task_data_free (gpointer gdata)
   struct appointment_task_data * data = gdata;
 
   g_object_unref (data->cancellable);
-  g_hash_table_unref (data->added);
+
   g_slice_free (struct appointment_task_data, data);
 }
 
@@ -260,7 +257,6 @@ my_get_appointments_foreach (ECalComponent * component,
       e_cal_component_get_status (component, &status);
 
       if ((uid != NULL) &&
-          (!g_hash_table_contains (data->added, uid)) &&
           (status != ICAL_STATUS_COMPLETED) &&
           (status != ICAL_STATUS_CANCELLED))
         {
@@ -294,13 +290,13 @@ my_get_appointments_foreach (ECalComponent * component,
           appt->color = g_strdup (subdata->color);
           appt->is_event = vtype == E_CAL_COMPONENT_EVENT;
           appt->summary = g_strdup (text.value);
+          appt->uid = g_strdup (uid);
 
           alarm_uids = e_cal_component_get_alarm_uids (component);
           appt->has_alarms = alarm_uids != NULL;
           cal_obj_uid_list_free (alarm_uids);
 
           data->appointments = g_slist_prepend (data->appointments, appt);
-          g_hash_table_add (data->added, g_strdup(uid));
 
           /* start a new subtask to get the associated URIs */
           uri_subdata = appointment_uri_subtask_data_new (subdata->task, appt);
