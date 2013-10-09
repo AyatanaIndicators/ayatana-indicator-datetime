@@ -381,7 +381,15 @@ start_header_timer (IndicatorDatetimeService * self)
 ****
 ***/
 
-static void start_alarm_timer (IndicatorDatetimeService * self);
+static void set_alarm_timer (IndicatorDatetimeService * self);
+
+static gboolean
+appointment_has_alarm_url (const struct IndicatorDatetimeAppt * appt)
+{
+  return (appt->has_alarms) &&
+         (appt->url != NULL);// &&
+         //(g_str_has_prefix (appt->url, "alarm:///"));
+}
 
 static gboolean
 datetimes_have_the_same_minute (GDateTime * a, GDateTime * b)
@@ -394,13 +402,12 @@ datetimes_have_the_same_minute (GDateTime * a, GDateTime * b)
 
   return (ay == by) &&
          (am == bm) &&
-         (ad == ad) &&
+         (ad == bd) &&
          (g_date_time_get_hour (a) == g_date_time_get_hour (b)) &&
          (g_date_time_get_minute (a) == g_date_time_get_minute (b));
 }
 
-/* This is called on the minute, every minute.
-   We check for alarms that start at the current time.
+/* Check for alarms that start at the current time.
    If we find any, we dispatch the URL associated with them. */
 static void
 dispatch_alarm_urls (IndicatorDatetimeService * self)
@@ -412,13 +419,12 @@ dispatch_alarm_urls (IndicatorDatetimeService * self)
     {
       const struct IndicatorDatetimeAppt * appt = l->data;
 
-      if ((appt->has_alarms) &&
-          (appt->url != NULL) &&
-          (g_str_has_prefix (appt->url, "alarm:///")) &&
-          (datetimes_have_the_same_minute (now, appt->begin)))
+      if (appointment_has_alarm_url (appt) &&
+          datetimes_have_the_same_minute (now, appt->begin))
         {
-          gchar * str = g_date_time_format (appt->begin, "%F %H:%M");
-          g_debug ("at %s, dispatching url \"%s\" for appointment \"%s\"", str, appt->url, appt->summary);
+          gchar * str = g_date_time_format (appt->begin, "%F %T");
+          g_debug ("at %s, dispatching url \"%s\" for appointment \"%s\"",
+                   str, appt->url, appt->summary);
           url_dispatch_send (appt->url, NULL, NULL);
           g_free (str);
         }
@@ -427,38 +433,73 @@ dispatch_alarm_urls (IndicatorDatetimeService * self)
   g_date_time_unref (now);
 }
 
+static void update_appointment_lists (IndicatorDatetimeService * self);
+
 static gboolean
 on_alarm_timer (gpointer self)
 {
   dispatch_alarm_urls (self);
- 
-  /* Restarting the timer to recalculate the interval. This helps us to hit
-     our marks despite clock skew, suspend+resume, leap seconds, etc */
-  start_alarm_timer (self);
+
+  /* rebuild the alarm list asynchronously.
+     when it's done, set_upcoming_appointments() will update the alarm timer */
+  update_appointment_lists (self);
+
   return G_SOURCE_REMOVE;
 }
 
+/* if there are upcoming alarms, set the alarm timer to the nearest one.
+   otherwise, unset the alarm timer. */
 static void
-start_alarm_timer (IndicatorDatetimeService * self)
+set_alarm_timer (IndicatorDatetimeService * self)
 {
   priv_t * p;
   GDateTime * now;
-  guint interval_msec;
- 
-  p = self->priv;
+  GDateTime * alarm_time;
+  GSList * l;
 
+  p = self->priv;
   indicator_clear_timer (&p->alarm_timer);
 
   now = indicator_datetime_service_get_localtime (self);
-  interval_msec = calculate_milliseconds_until_next_minute (now);
-  interval_msec += 50; /* add a small margin to ensure the callback
-                          fires /after/ next is reached */
 
-  p->alarm_timer = g_timeout_add_full (G_PRIORITY_HIGH,
-                                       interval_msec,
-                                       on_alarm_timer,
-                                       self,
-                                       NULL);
+  /* find the time of the next alarm on our calendar */
+  alarm_time = NULL;
+  for (l=p->upcoming_appointments; l!=NULL; l=l->next)
+    {
+      const struct IndicatorDatetimeAppt * appt = l->data;
+
+      if (appointment_has_alarm_url (appt))
+        if (g_date_time_compare (appt->begin, now) > 0)
+          if (!alarm_time || g_date_time_compare (alarm_time, appt->begin) > 0)
+            alarm_time = appt->begin;
+    }
+
+  /* if there's an upcoming alarm, set a timer to wake up at that time */
+  if (alarm_time != NULL)
+    {
+      GTimeSpan interval_msec;
+      gchar * str;
+      GDateTime * then;
+
+      interval_msec = g_date_time_difference (alarm_time, now);
+      interval_msec += G_USEC_PER_SEC; /* fire a moment after alarm_time */
+      interval_msec /= 1000; /* convert from usec to msec */
+
+      str = g_date_time_format (alarm_time, "%F %T");
+      g_debug ("%s is the next alarm time", str);
+      g_free (str);
+      then = g_date_time_add_seconds (now, interval_msec/1000);
+      str = g_date_time_format (then, "%F %T");
+      g_debug ("%s is when we'll wake up for it", str);
+      g_free (str);
+      g_date_time_unref (then);
+
+      p->alarm_timer = g_timeout_add_full (G_PRIORITY_HIGH,
+                                           (guint) interval_msec,
+                                           on_alarm_timer,
+                                           self,
+                                           NULL);
+    }
 
   g_date_time_unref (now);
 }
@@ -810,19 +851,32 @@ static void
 add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean terse)
 {
   const int MAX_APPTS = 5;
-  GDateTime * now = indicator_datetime_service_get_localtime (self);
+  GDateTime * now;
+  GHashTable * added;
   GSList * appts;
   GSList * l;
   int i;
+
+  now = indicator_datetime_service_get_localtime (self);
+
+  added = g_hash_table_new (g_str_hash, g_str_equal);
 
   /* build appointment menuitems */
   appts = self->priv->upcoming_appointments;
   for (l=appts, i=0; l!=NULL && i<MAX_APPTS; l=l->next, i++)
     {
       struct IndicatorDatetimeAppt * appt = l->data;
-      char * fmt = get_appointment_time_format (appt, now, self->priv->settings, terse);
-      const gint64 unix_time = g_date_time_to_unix (appt->begin);
+      char * fmt;
+      gint64 unix_time;
       GMenuItem * menu_item;
+
+      if (g_hash_table_contains (added, appt->uid))
+        continue;
+
+      g_hash_table_add (added, appt->uid);
+
+      fmt = get_appointment_time_format (appt, now, self->priv->settings, terse);
+      unix_time = g_date_time_to_unix (appt->begin);
 
       menu_item = g_menu_item_new (appt->summary, NULL);
 
@@ -846,6 +900,7 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean terse)
     }
 
   /* cleanup */
+  g_hash_table_unref (added);
   g_date_time_unref (now);
 }
 
@@ -1661,6 +1716,10 @@ set_upcoming_appointments (IndicatorDatetimeService * self,
 
   /* sync the menus/actions */
   rebuild_appointments_section_soon (self);
+
+  /* alarm timer is keyed off of the next alarm time,
+     so it needs to be rebuilt when tehe appointment list changes */
+  set_alarm_timer (self);
 }
 
 static void
@@ -2040,7 +2099,7 @@ indicator_datetime_service_init (IndicatorDatetimeService * self)
 
   on_local_time_jumped (self);
 
-  start_alarm_timer (self);
+  set_alarm_timer (self);
 
   for (i=0; i<N_PROFILES; ++i)
     create_menu (self, i);
