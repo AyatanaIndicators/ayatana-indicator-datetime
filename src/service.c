@@ -107,6 +107,7 @@ struct _IndicatorDatetimeServicePrivate
 
   guint header_timer;
   guint timezone_timer;
+  guint alarm_timer;
 
   /* Which year/month to show in the calendar,
      and which day should get the cursor.
@@ -375,6 +376,96 @@ start_header_timer (IndicatorDatetimeService * self)
 
   g_date_time_unref (now);
 }
+
+/***
+****
+***/
+
+static void start_alarm_timer (IndicatorDatetimeService * self);
+
+static gboolean
+datetimes_have_the_same_minute (GDateTime * a, GDateTime * b)
+{
+  int ay, am, ad;
+  int by, bm, bd;
+
+  g_date_time_get_ymd (a, &ay, &am, &ad);
+  g_date_time_get_ymd (b, &by, &bm, &bd);
+
+  return (ay == by) &&
+         (am == bm) &&
+         (ad == ad) &&
+         (g_date_time_get_hour (a) == g_date_time_get_hour (b)) &&
+         (g_date_time_get_minute (a) == g_date_time_get_minute (b));
+}
+
+/* This is called on the minute, every minute.
+   We check for alarms that start at the current time.
+   If we find any, we dispatch the URL associated with them. */
+static void
+dispatch_alarm_urls (IndicatorDatetimeService * self)
+{
+  GDateTime * now = indicator_datetime_service_get_localtime (self);
+  GSList * l;
+
+  for (l=self->priv->upcoming_appointments; l!=NULL; l=l->next)
+    {
+      const struct IndicatorDatetimeAppt * appt = l->data;
+
+      if ((appt->has_alarms) &&
+          (appt->url != NULL) &&
+          (g_str_has_prefix (appt->url, "alarm:///")) &&
+          (datetimes_have_the_same_minute (now, appt->begin)))
+        {
+          gchar * str = g_date_time_format (appt->begin, "%F %H:%M");
+          g_debug ("at %s, dispatching url \"%s\" for appointment \"%s\"", str, appt->url, appt->summary);
+          url_dispatch_send (appt->url, NULL, NULL);
+          g_free (str);
+        }
+    }
+
+  g_date_time_unref (now);
+}
+
+static gboolean
+on_alarm_timer (gpointer self)
+{
+  dispatch_alarm_urls (self);
+ 
+  /* Restarting the timer to recalculate the interval. This helps us to hit
+     our marks despite clock skew, suspend+resume, leap seconds, etc */
+  start_alarm_timer (self);
+  return G_SOURCE_REMOVE;
+}
+
+static void
+start_alarm_timer (IndicatorDatetimeService * self)
+{
+  priv_t * p;
+  GDateTime * now;
+  guint interval_msec;
+ 
+  p = self->priv;
+
+  indicator_clear_timer (&p->alarm_timer);
+
+  now = indicator_datetime_service_get_localtime (self);
+  interval_msec = calculate_milliseconds_until_next_minute (now);
+  interval_msec += 50; /* add a small margin to ensure the callback
+                          fires /after/ next is reached */
+
+  p->alarm_timer = g_timeout_add_full (G_PRIORITY_HIGH,
+                                       interval_msec,
+                                       on_alarm_timer,
+                                       self,
+                                       NULL);
+
+  g_date_time_unref (now);
+}
+
+/***
+****
+***/
 
 /**
  * General purpose handler for rebuilding sections and restarting their timers
@@ -1782,6 +1873,7 @@ my_dispose (GObject * o)
   indicator_clear_timer (&p->rebuild_id);
   indicator_clear_timer (&p->timezone_timer);
   indicator_clear_timer (&p->header_timer);
+  indicator_clear_timer (&p->alarm_timer);
 
   if (p->settings != NULL)
     {
@@ -1947,6 +2039,8 @@ indicator_datetime_service_init (IndicatorDatetimeService * self)
                               NULL);
 
   on_local_time_jumped (self);
+
+  start_alarm_timer (self);
 
   for (i=0; i<N_PROFILES; ++i)
     create_menu (self, i);
