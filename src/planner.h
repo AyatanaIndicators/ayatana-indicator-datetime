@@ -42,6 +42,7 @@ struct IndicatorDatetimeAppt
 {
   char * color;
   char * summary;
+  char * url;
   GDateTime * begin;
   GDateTime * end;
   gboolean is_event;
