@@ -387,8 +387,8 @@ static gboolean
 appointment_has_alarm_url (const struct IndicatorDatetimeAppt * appt)
 {
   return (appt->has_alarms) &&
-         (appt->url != NULL);// &&
-         //(g_str_has_prefix (appt->url, "alarm:///"));
+         (appt->url != NULL) &&
+         (g_str_has_prefix (appt->url, "alarm:///"));
 }
 
 static gboolean
