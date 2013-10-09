@@ -378,7 +378,7 @@ start_header_timer (IndicatorDatetimeService * self)
 }
 
 /***
-****
+****  ALARMS
 ***/
 
 static void set_alarm_timer (IndicatorDatetimeService * self);
@@ -407,6 +407,22 @@ datetimes_have_the_same_minute (GDateTime * a, GDateTime * b)
          (g_date_time_get_minute (a) == g_date_time_get_minute (b));
 }
 
+static void
+dispatch_alarm_url (const struct IndicatorDatetimeAppt * appt)
+{
+  gchar * str;
+
+  g_return_if_fail (appt != NULL);
+  g_return_if_fail (appointment_has_alarm_url (appt));
+
+  str = g_date_time_format (appt->begin, "%F %T");
+  g_debug ("dispatching url \"%s\" for appointment \"%s\", which begins at %s",
+           appt->url, appt->summary, str);
+  g_free (str);
+
+  url_dispatch_send (appt->url, NULL, NULL);
+}
+
 /* Check for alarms that start at the current time.
    If we find any, we dispatch the URL associated with them. */
 static void
@@ -419,15 +435,8 @@ dispatch_alarm_urls (IndicatorDatetimeService * self)
     {
       const struct IndicatorDatetimeAppt * appt = l->data;
 
-      if (appointment_has_alarm_url (appt) &&
-          datetimes_have_the_same_minute (now, appt->begin))
-        {
-          gchar * str = g_date_time_format (appt->begin, "%F %T");
-          g_debug ("at %s, dispatching url \"%s\" for appointment \"%s\"",
-                   str, appt->url, appt->summary);
-          url_dispatch_send (appt->url, NULL, NULL);
-          g_free (str);
-        }
+      if (appointment_has_alarm_url (appt) && datetimes_have_the_same_minute (now, appt->begin))
+        dispatch_alarm_url (appt);
     }
 
   g_date_time_unref (now);
@@ -848,7 +857,7 @@ get_appointment_time_format (struct IndicatorDatetimeAppt * appt,
 }
 
 static void
-add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean terse)
+add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean phone)
 {
   const int MAX_APPTS = 5;
   GDateTime * now;
@@ -875,7 +884,7 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean terse)
 
       g_hash_table_add (added, appt->uid);
 
-      fmt = get_appointment_time_format (appt, now, self->priv->settings, terse);
+      fmt = get_appointment_time_format (appt, now, self->priv->settings, phone);
       unix_time = g_date_time_to_unix (appt->begin);
 
       menu_item = g_menu_item_new (appt->summary, NULL);
@@ -891,9 +900,15 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean terse)
       g_menu_item_set_attribute (menu_item, "x-canonical-type",
                                      "s", appt->has_alarms ? "com.canonical.indicator.alarm"
                                                            : "com.canonical.indicator.appointment");
-      g_menu_item_set_action_and_target_value (menu_item,
-                                                   "indicator.activate-planner",
-                                                   g_variant_new_int64 (unix_time));
+
+      if (phone)
+        g_menu_item_set_action_and_target_value (menu_item,
+                                                 "indicator.activate-appointment",
+                                                 g_variant_new_string (appt->uid));
+      else
+        g_menu_item_set_action_and_target_value (menu_item,
+                                                 "indicator.activate-planner",
+                                                 g_variant_new_int64 (unix_time));
       g_menu_append_item (menu, menu_item);
       g_object_unref (menu_item);
       g_free (fmt);
@@ -1433,6 +1448,34 @@ on_phone_settings_activated (GSimpleAction * a      G_GNUC_UNUSED,
 }
 
 static void
+on_activate_appointment (GSimpleAction * a G_GNUC_UNUSED,
+                         GVariant      * param,
+                         gpointer        gself)
+{
+  priv_t * p = INDICATOR_DATETIME_SERVICE(gself)->priv;
+  const gchar * uid = g_variant_get_string (param, NULL);
+
+  if (uid != NULL)
+    {
+      const struct IndicatorDatetimeAppt * appt;
+      GSList * l;
+
+      /* find the appointment that matches that uid */
+      for (l=p->upcoming_appointments, appt=NULL; l && !appt; l=l->next)
+        {
+          const struct IndicatorDatetimeAppt * tmp = l->data;
+          if (!g_strcmp0 (uid, tmp->uid))
+            appt = tmp;
+        }
+
+      /* if that appointment's an alarm, dispatch its url */
+      g_debug ("%s: uri '%s'; matching appt is %p", G_STRFUNC, uid, appt);
+      if (appt && appointment_has_alarm_url (appt))
+        dispatch_alarm_url (appt);
+    }
+}
+
+static void
 on_activate_planner (GSimpleAction * a         G_GNUC_UNUSED,
                      GVariant      * param,
                      gpointer        gself)
@@ -1486,6 +1529,7 @@ init_gactions (IndicatorDatetimeService * self)
     { "activate-desktop-settings", on_desktop_settings_activated },
     { "activate-phone-settings", on_phone_settings_activated },
     { "activate-planner", on_activate_planner, "x", NULL },
+    { "activate-appointment", on_activate_appointment, "s", NULL },
     { "set-location", on_set_location, "s" }
   };
 
