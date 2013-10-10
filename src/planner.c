@@ -259,3 +259,23 @@ indicator_datetime_planner_get_timezone (IndicatorDatetimePlanner * self)
 
   return self->priv->timezone;
 }
+
+/***
+****
+***/
+
+void
+indicator_datetime_appt_free (struct IndicatorDatetimeAppt * appt)
+{
+  if (appt != NULL)
+    {
+      g_date_time_unref (appt->end);
+      g_date_time_unref (appt->begin);
+      g_free (appt->color);
+      g_free (appt->summary);
+      g_free (appt->url);
+      g_free (appt->uid);
+      g_slice_free (struct IndicatorDatetimeAppt, appt);
+    }
+}
+
