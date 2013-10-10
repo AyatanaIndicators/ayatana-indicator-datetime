@@ -26,6 +26,7 @@
 #include <gio/gio.h>
 
 #include "planner-eds.h"
+#include "planner-mock.h"
 #include "service.h"
 
 /***
@@ -52,7 +53,15 @@ main (int argc G_GNUC_UNUSED, char ** argv G_GNUC_UNUSED)
   textdomain (GETTEXT_PACKAGE);
 
   /* get the planner */
-  planner = indicator_datetime_planner_eds_new ();
+  if (g_getenv ("INDICATOR_DATETIME_USE_FAKE_PLANNER") != NULL)
+    {
+      g_message ("Using fake appointment book for testing");
+      planner = indicator_datetime_planner_mock_new ();
+    }
+  else
+    {
+      planner = indicator_datetime_planner_eds_new ();
+    }
 
   /* run */
   service = indicator_datetime_service_new (planner);
