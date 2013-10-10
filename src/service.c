@@ -453,7 +453,40 @@ on_alarm_popup_ok_clicked (NotifyNotification * nn G_GNUC_UNUSED, char * action 
   url_dispatch_send (url, NULL, NULL);
 }
 
-#define ALARM_ICON_NAME "alarm-symbolic"
+static void
+show_snap_decision_for_alarm (const struct IndicatorDatetimeAppt * appt)
+{
+  gchar * title;
+  const gchar * body;
+  const gchar * icon_name;
+  NotifyNotification * nn;
+  GError * error;
+
+  title = g_date_time_format (appt->begin,
+                              get_terse_time_format_string (appt->begin));
+  body = appt->summary;
+  icon_name = "alarm-symbolic";
+  g_debug ("creating a snap decision with title '%s', body '%s', icon '%s'",
+           title, body, icon_name);
+  nn = notify_notification_new (title, body, icon_name);
+  notify_notification_set_hint (nn, "x-canonical-snap-decisions",
+                                g_variant_new_boolean(TRUE));
+  notify_notification_set_hint (nn, "x-canonical-private-button-tint",
+                                g_variant_new_boolean(TRUE));
+  notify_notification_add_action (nn, "ok", _("OK"),
+                                  on_alarm_popup_ok_clicked,
+                                  g_strdup (appt->url), g_free);
+  error = NULL;
+  notify_notification_show (nn, &error);
+  if (error != NULL)
+    {
+      g_warning ("Unable to show alarm '%s' popup: %s", body, error->message);
+      g_error_free (error);
+      dispatch_alarm_url (appt);
+    }
+
+  g_free (title);
+}
 
 static void update_appointment_lists (IndicatorDatetimeService * self);
 
@@ -470,43 +503,11 @@ on_alarm_timer (gpointer gself)
   now = indicator_datetime_service_get_localtime (self);
   for (l=self->priv->upcoming_appointments; l!=NULL; l=l->next)
     {
-      gchar * title;
-      const gchar * body;
-      const gchar * icon_name;
       const struct IndicatorDatetimeAppt * appt = l->data;
-      NotifyNotification * nn;
-      GError * error;
 
-      if (!appointment_has_alarm_url (appt))
-        continue;
-
-      if (!datetimes_have_the_same_minute (now, appt->begin))
-        continue;
-
-      title = g_date_time_format (now, get_terse_time_format_string (now));
-      body = appt->summary;
-      icon_name = ALARM_ICON_NAME;
-      g_debug ("creating a snap decision with title '%s', body '%s', icon '%s'",
-               title, body, icon_name);
-      nn = notify_notification_new (title, body, icon_name);
-      notify_notification_set_hint (nn, "x-canonical-snap-decisions",
-                                    g_variant_new_boolean(TRUE));
-      notify_notification_set_hint (nn, "x-canonical-private-button-tint",
-                                    g_variant_new_boolean(TRUE));
-      notify_notification_add_action (nn, "ok", _("OK"),
-                                      on_alarm_popup_ok_clicked,
-                                      g_strdup (appt->url), g_free);
-      //g_signal_connect (nn, "closed", G_CALLBACK(on_notification_closed), self);
-
-      error = NULL;
-      notify_notification_show (nn, &error);
-      if (error != NULL)
-        {
-          g_warning ("Unable to show alarm '%s' popup: %s", body, error->message);
-          g_error_free (error);
-          dispatch_alarm_url (appt);
-        }
-      g_free (title);
+      if (appointment_has_alarm_url (appt))
+        if (datetimes_have_the_same_minute (now, appt->begin))
+          show_snap_decision_for_alarm (appt);
     }
   g_date_time_unref (now);
 
