@@ -472,6 +472,7 @@ on_alarm_timer (gpointer gself)
     {
       gchar * title;
       const gchar * body;
+      const gchar * icon_name;
       const struct IndicatorDatetimeAppt * appt = l->data;
       NotifyNotification * nn;
       GError * error;
@@ -484,8 +485,10 @@ on_alarm_timer (gpointer gself)
 
       title = g_date_time_format (now, get_terse_time_format_string (now));
       body = appt->summary;
-      nn = notify_notification_new (title, body, ALARM_ICON_NAME);
-
+      icon_name = ALARM_ICON_NAME;
+      g_debug ("creating a snap decision with title '%s', body '%s', icon '%s'",
+               title, body, icon_name);
+      nn = notify_notification_new (title, body, icon_name);
       notify_notification_set_hint (nn, "x-canonical-snap-decisions",
                                     g_variant_new_boolean(TRUE));
       notify_notification_set_hint (nn, "x-canonical-private-button-tint",

@@ -21,6 +21,7 @@
 
 #include <locale.h>
 #include <stdlib.h> /* exit() */
+#include <stdio.h>
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
@@ -29,6 +30,8 @@
 #include "planner-eds.h"
 #include "planner-mock.h"
 #include "service.h"
+
+#define TEST_MODE
 
 /***
 ****
@@ -40,6 +43,18 @@ on_name_lost (gpointer instance G_GNUC_UNUSED, gpointer loop)
   g_message ("exiting: service couldn't acquire or lost ownership of busname");
   g_main_loop_quit ((GMainLoop*)loop);
 }
+
+#ifdef TEST_MODE
+static void
+log_handler (const gchar    * log_domain,
+             GLogLevelFlags   log_level,
+             const gchar    * message,
+             gpointer         fp)
+{
+  fprintf (fp, "%s %d %s\n", log_domain, (int)log_level, message);
+  fflush (fp);
+}
+#endif
 
 int
 main (int argc G_GNUC_UNUSED, char ** argv G_GNUC_UNUSED)
@@ -57,17 +72,15 @@ main (int argc G_GNUC_UNUSED, char ** argv G_GNUC_UNUSED)
   if (!notify_init ("indicator-datetime-service"))
     g_critical ("libnotify initialization failed");
 
-
-  /* get the planner */
-  if (g_getenv ("INDICATOR_DATETIME_USE_FAKE_PLANNER") != NULL)
-    {
-      g_message ("Using fake appointment book for testing");
-      planner = indicator_datetime_planner_mock_new ();
-    }
-  else
-    {
-      planner = indicator_datetime_planner_eds_new ();
-    }
+  /* set up the planner */
+#ifdef TEST_MODE
+  g_warning ("Using fake appointment book for testing! Probably shouldn't merge this to trunk.");
+  FILE * fp = fopen ("/tmp/indicator-datetime-log.txt", "w+");
+  g_log_set_handler ("Indicator-Datetime", G_LOG_LEVEL_MASK, log_handler, fp);
+  planner = indicator_datetime_planner_mock_new ();
+#else
+  planner = indicator_datetime_planner_eds_new ();
+#endif
 
   /* run */
   service = indicator_datetime_service_new (planner);
@@ -80,5 +93,8 @@ main (int argc G_GNUC_UNUSED, char ** argv G_GNUC_UNUSED)
   g_main_loop_unref (loop);
   g_object_unref (service);
   g_object_unref (planner);
+#ifdef TEST_MODE
+  fclose (fp);
+#endif
   return 0;
 }
