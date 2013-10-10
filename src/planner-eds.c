@@ -379,7 +379,7 @@ my_get_appointments_finish (IndicatorDatetimePlanner  * self  G_GNUC_UNUSED,
   return g_task_propagate_pointer (G_TASK(res), error);
 }
 
-gboolean
+static gboolean
 my_is_configured (IndicatorDatetimePlanner * planner)
 {
   IndicatorDatetimePlannerEds * self;
