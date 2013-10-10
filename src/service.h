@@ -22,6 +22,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
+#include "planner.h"
 
 G_BEGIN_DECLS
 
@@ -62,12 +63,16 @@ struct _IndicatorDatetimeServiceClass
 
 GType indicator_datetime_service_get_type (void);
 
-IndicatorDatetimeService * indicator_datetime_service_new (void);
+IndicatorDatetimeService * indicator_datetime_service_new (IndicatorDatetimePlanner * planner);
 
 GDateTime * indicator_datetime_service_get_localtime (IndicatorDatetimeService * service);
 
 void indicator_datetime_service_set_calendar_date (IndicatorDatetimeService * self,
                                                    GDateTime                * date);
+
+void indicator_datetime_service_set_planner (IndicatorDatetimeService * self,
+                                             IndicatorDatetimePlanner * planner);
+
 
 
 G_END_DECLS

@@ -25,6 +25,7 @@
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 
+#include "planner-eds.h"
 #include "service.h"
 
 /***
@@ -41,23 +42,28 @@ on_name_lost (gpointer instance G_GNUC_UNUSED, gpointer loop)
 int
 main (int argc G_GNUC_UNUSED, char ** argv G_GNUC_UNUSED)
 {
-  GMainLoop * loop;
+  IndicatorDatetimePlanner * planner;
   IndicatorDatetimeService * service;
+  GMainLoop * loop;
 
   /* boilerplate i18n */
   setlocale (LC_ALL, "");
   bindtextdomain (GETTEXT_PACKAGE, GNOMELOCALEDIR);
   textdomain (GETTEXT_PACKAGE);
 
+  /* get the planner */
+  planner = indicator_datetime_planner_eds_new ();
+
   /* run */
-  service = indicator_datetime_service_new ();
+  service = indicator_datetime_service_new (planner);
   loop = g_main_loop_new (NULL, FALSE);
   g_signal_connect (service, INDICATOR_DATETIME_SERVICE_SIGNAL_NAME_LOST,
                     G_CALLBACK(on_name_lost), loop);
   g_main_loop_run (loop);
 
   /* cleanup */
-  g_clear_object (&service);
   g_main_loop_unref (loop);
+  g_object_unref (service);
+  g_object_unref (planner);
   return 0;
 }

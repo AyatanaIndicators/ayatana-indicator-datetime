@@ -27,7 +27,6 @@
 #include <url-dispatcher.h>
 
 #include "dbus-shared.h"
-#include "planner-eds.h"
 #include "timezone-file.h"
 #include "timezone-geoclue.h"
 #include "service.h"
@@ -48,6 +47,15 @@ enum
 };
 
 static guint signals[LAST_SIGNAL] = { 0 };
+
+enum
+{
+  PROP_0,
+  PROP_PLANNER,
+  PROP_LAST
+};
+
+static GParamSpec * properties[PROP_LAST] = { 0 };
 
 enum
 {
@@ -1936,6 +1944,45 @@ on_name_lost (GDBusConnection * connection G_GNUC_UNUSED,
 ***/
 
 static void
+my_get_property (GObject     * o,
+                 guint         property_id,
+                 GValue      * value,
+                 GParamSpec  * pspec)
+{
+  IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (o);
+
+  switch (property_id)
+    {
+      case PROP_PLANNER:
+        g_value_set_object (value, self->priv->planner);
+        break;
+
+      default:
+        G_OBJECT_WARN_INVALID_PROPERTY_ID (o, property_id, pspec);
+    }
+}
+
+static void
+my_set_property (GObject       * o,
+                 guint           property_id,
+                 const GValue  * value,
+                 GParamSpec    * pspec)
+{
+  IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (o);
+
+  switch (property_id)
+    {
+      case PROP_PLANNER:
+        indicator_datetime_service_set_planner (self, g_value_get_object (value));
+        break;
+
+      default:
+        G_OBJECT_WARN_INVALID_PROPERTY_ID (o, property_id, pspec);
+    }
+}
+
+
+static void
 my_dispose (GObject * o)
 {
   int i;
@@ -1958,13 +2005,7 @@ my_dispose (GObject * o)
 
   set_detect_location_enabled (self, FALSE);
 
-  if (p->planner != NULL)
-    {
-      g_signal_handlers_disconnect_by_data (p->planner, self);
-      g_clear_object (&p->planner);
-    }
-  g_clear_pointer (&p->upcoming_appointments, indicator_datetime_planner_free_appointments);
-  g_clear_pointer (&p->calendar_appointments, indicator_datetime_planner_free_appointments);
+  indicator_datetime_service_set_planner (self, NULL);
 
   if (p->login1_manager != NULL)
     {
@@ -2065,16 +2106,6 @@ indicator_datetime_service_init (IndicatorDatetimeService * self)
   p->cancellable = g_cancellable_new ();
 
   /***
-  ****  Create the planner and listen for changes
-  ***/
-
-  p->planner = indicator_datetime_planner_eds_new ();
-
-  g_signal_connect_swapped (p->planner, "appointments-changed",
-                            G_CALLBACK(update_appointment_lists), self);
-
-
-  /***
   ****  Create the settings object and listen for changes
   ***/
 
@@ -2155,9 +2186,12 @@ static void
 indicator_datetime_service_class_init (IndicatorDatetimeServiceClass * klass)
 {
   GObjectClass * object_class = G_OBJECT_CLASS (klass);
+  const GParamFlags flags = G_PARAM_CONSTRUCT | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS;
 
   object_class->dispose = my_dispose;
   object_class->finalize = my_finalize;
+  object_class->get_property = my_get_property;
+  object_class->set_property = my_set_property;
 
   g_type_class_add_private (klass, sizeof (IndicatorDatetimeServicePrivate));
 
@@ -2169,6 +2203,18 @@ indicator_datetime_service_class_init (IndicatorDatetimeServiceClass * klass)
     NULL, NULL,
     g_cclosure_marshal_VOID__VOID,
     G_TYPE_NONE, 0);
+
+  /* install properties */
+
+  properties[PROP_0] = NULL;
+
+  properties[PROP_PLANNER] = g_param_spec_object ("planner",
+                                                  "Planner",
+                                                  "The appointment provider",
+                                                  INDICATOR_TYPE_DATETIME_PLANNER,
+                                                  flags);
+
+  g_object_class_install_properties (object_class, PROP_LAST, properties);
 }
 
 /***
@@ -2176,9 +2222,11 @@ indicator_datetime_service_class_init (IndicatorDatetimeServiceClass * klass)
 ***/
 
 IndicatorDatetimeService *
-indicator_datetime_service_new (void)
+indicator_datetime_service_new (IndicatorDatetimePlanner * planner)
 {
-  GObject * o = g_object_new (INDICATOR_TYPE_DATETIME_SERVICE, NULL);
+  GObject * o = g_object_new (INDICATOR_TYPE_DATETIME_SERVICE,
+                              "planner", planner,
+                              NULL);
 
   return INDICATOR_DATETIME_SERVICE (o);
 }
@@ -2208,4 +2256,39 @@ indicator_datetime_service_set_calendar_date (IndicatorDatetimeService * self,
   /* sync the menuitems and action states */
   if (dirty)
     update_appointment_lists (self);
+}
+
+void
+indicator_datetime_service_set_planner (IndicatorDatetimeService * self,
+                                        IndicatorDatetimePlanner * planner)
+{
+  priv_t * p;
+
+  g_return_if_fail (INDICATOR_IS_DATETIME_SERVICE (self));
+  g_return_if_fail (INDICATOR_IS_DATETIME_PLANNER (planner));
+
+  p = self->priv;
+
+  /* clear the old planner & appointments */
+
+  if (p->planner != NULL)
+    {
+      g_signal_handlers_disconnect_by_data (p->planner, self);
+      g_clear_object (&p->planner);
+    }
+
+  g_clear_pointer (&p->upcoming_appointments, indicator_datetime_planner_free_appointments);
+  g_clear_pointer (&p->calendar_appointments, indicator_datetime_planner_free_appointments);
+
+  /* set the new planner & begin fetching appointments from it */
+
+  if (planner != NULL)
+    {
+      p->planner = g_object_ref (planner);
+
+      g_signal_connect_swapped (p->planner, "appointments-changed",
+                                G_CALLBACK(update_appointment_lists), self);
+
+      update_appointment_lists (self);
+    }
 }
