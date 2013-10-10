@@ -24,6 +24,7 @@
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
+#include <libnotify/notify.h> 
 
 #include "planner-eds.h"
 #include "planner-mock.h"
@@ -51,6 +52,11 @@ main (int argc G_GNUC_UNUSED, char ** argv G_GNUC_UNUSED)
   setlocale (LC_ALL, "");
   bindtextdomain (GETTEXT_PACKAGE, GNOMELOCALEDIR);
   textdomain (GETTEXT_PACKAGE);
+
+  /* init libnotify */
+  if (!notify_init ("indicator-datetime-service"))
+    g_critical ("libnotify initialization failed");
+
 
   /* get the planner */
   if (g_getenv ("INDICATOR_DATETIME_USE_FAKE_PLANNER") != NULL)

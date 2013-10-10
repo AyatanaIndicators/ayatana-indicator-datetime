@@ -24,6 +24,7 @@
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
+#include <libnotify/notify.h>
 #include <url-dispatcher.h>
 
 #include "dbus-shared.h"
@@ -431,31 +432,80 @@ dispatch_alarm_url (const struct IndicatorDatetimeAppt * appt)
   url_dispatch_send (appt->url, NULL, NULL);
 }
 
-/* Check for alarms that start at the current time.
-   If we find any, we dispatch the URL associated with them. */
+#if 0
 static void
-dispatch_alarm_urls (IndicatorDatetimeService * self)
+on_notification_closed (NotifyNotification * nn, gpointer gself)
 {
-  GDateTime * now = indicator_datetime_service_get_localtime (self);
-  GSList * l;
+  //IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (gself);
 
-  for (l=self->priv->upcoming_appointments; l!=NULL; l=l->next)
-    {
-      const struct IndicatorDatetimeAppt * appt = l->data;
+  g_message ("hello world");
 
-      if (appointment_has_alarm_url (appt) && datetimes_have_the_same_minute (now, appt->begin))
-        dispatch_alarm_url (appt);
-    }
-
-  g_date_time_unref (now);
+  /* cleanup */
+  g_signal_handlers_disconnect_by_data (nn, gself);
+  g_object_unref (nn);
 }
+#endif
+
+static void
+on_alarm_popup_ok_clicked (NotifyNotification * nn G_GNUC_UNUSED, char * action G_GNUC_UNUSED, gpointer gurl)
+{
+  const char * url = gurl;
+  url_dispatch_send (url, NULL, NULL);
+}
+
+#define ALARM_ICON_NAME "alarm-symbolic"
 
 static void update_appointment_lists (IndicatorDatetimeService * self);
 
 static gboolean
-on_alarm_timer (gpointer self)
+on_alarm_timer (gpointer gself)
 {
-  dispatch_alarm_urls (self);
+  GDateTime * now;
+  GSList * l;
+  IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (gself);
+
+  /* Check for alarms that start at the current time.
+   * If we find one, trigger a snap decision displaying
+   * the appointment text and a single button to dismiss */
+  now = indicator_datetime_service_get_localtime (self);
+  for (l=self->priv->upcoming_appointments; l!=NULL; l=l->next)
+    {
+      gchar * title;
+      const gchar * body;
+      const struct IndicatorDatetimeAppt * appt = l->data;
+      NotifyNotification * nn;
+      GError * error;
+
+      if (!appointment_has_alarm_url (appt))
+        continue;
+
+      if (!datetimes_have_the_same_minute (now, appt->begin))
+        continue;
+
+      title = g_date_time_format (now, get_terse_time_format_string (now));
+      body = appt->summary;
+      nn = notify_notification_new (title, body, ALARM_ICON_NAME);
+
+      notify_notification_set_hint (nn, "x-canonical-snap-decisions",
+                                    g_variant_new_boolean(TRUE));
+      notify_notification_set_hint (nn, "x-canonical-private-button-tint",
+                                    g_variant_new_boolean(TRUE));
+      notify_notification_add_action (nn, "ok", _("OK"),
+                                      on_alarm_popup_ok_clicked,
+                                      g_strdup (appt->url), g_free);
+      //g_signal_connect (nn, "closed", G_CALLBACK(on_notification_closed), self);
+
+      error = NULL;
+      notify_notification_show (nn, &error);
+      if (error != NULL)
+        {
+          g_warning ("Unable to show alarm '%s' popup: %s", body, error->message);
+          g_error_free (error);
+          dispatch_alarm_url (appt);
+        }
+      g_free (title);
+    }
+  g_date_time_unref (now);
 
   /* rebuild the alarm list asynchronously.
      when it's done, set_upcoming_appointments() will update the alarm timer */
