@@ -1,3 +1,17 @@
+indicator-datetime (13.10.0+13.10.20131011-0ubuntu1) saucy; urgency=low
+
+  [ Charles Kerr ]
+  * start tracking failure-to-connect-to-bus errors on indicator-
+    datetime. (LP: #1227519)
+  * When an unsupported date format is being used, improve the error
+    message to also include the unsupported date format so that users
+    can include it in their bug reports. (LP: #1196059)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 267
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 11 Oct 2013 04:27:40 +0000
+
 indicator-datetime (13.10.0+13.10.20131004-0ubuntu1) saucy; urgency=low
 
   [ Charles Kerr ]
