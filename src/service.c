@@ -99,6 +99,13 @@ struct _IndicatorDatetimeServicePrivate
   /* cached GTimeZone for use by indicator_datetime_service_get_localtime() */
   GTimeZone * internal_timezone;
 
+  /* the clock app's icon filename */
+  gchar * clock_app_icon_filename;
+
+  /* Whether or not we've tried to load the clock app's icon.
+     This way we don't keep trying to reload it on the desktop */
+  gboolean clock_app_icon_initialized;
+
   guint own_id;
   guint actions_export_id;
   GDBusConnection * conn;
@@ -784,42 +791,39 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean terse)
   g_date_time_unref (now);
 }
 
-static const gchar *
+
+/* try to extract the clock app's filename from click. (/$pkgdir/$icon) */
+static gchar *
 get_clock_app_icon_filename (void)
 {
-  static gboolean initialized = FALSE;
-  static gchar * icon_filename = NULL;
+  gchar * icon_filename = NULL;
+  gchar * pkgdir;
 
-  /* try to extract the clock app's filename from click. (/$pkgdir/$icon) */
-  if (!initialized)
+  pkgdir = NULL;
+  g_spawn_command_line_sync ("click pkgdir com.ubuntu.clock", &pkgdir, NULL, NULL, NULL);
+  if (pkgdir != NULL)
     {
-      gchar * pkgdir = NULL;
-      g_spawn_command_line_sync ("click pkgdir com.ubuntu.clock", &pkgdir, NULL, NULL, NULL);
-      if (pkgdir != NULL)
+      gchar * manifest = NULL;
+      g_strstrip (pkgdir);
+      g_spawn_command_line_sync ("click info com.ubuntu.clock", &manifest, NULL, NULL, NULL);
+      if (manifest != NULL)
         {
-          gchar * manifest = NULL;
-          g_strstrip (pkgdir);
-          g_spawn_command_line_sync ("click info com.ubuntu.clock", &manifest, NULL, NULL, NULL);
-          if (manifest != NULL)
+          JsonParser * parser = json_parser_new ();
+          if (json_parser_load_from_data (parser, manifest, -1, NULL))
             {
-              JsonParser * parser = json_parser_new ();
-              if (json_parser_load_from_data (parser, manifest, -1, NULL))
+              JsonNode * root = json_parser_get_root (parser); /* transfer-none */
+              if ((root != NULL) && (JSON_NODE_TYPE(root) == JSON_NODE_OBJECT))
                 {
-                  JsonNode * root = json_parser_get_root (parser); /* transfer-none */
-                  if ((root != NULL) && (JSON_NODE_TYPE(root) == JSON_NODE_OBJECT))
-                    {
-                      JsonObject * o = json_node_get_object (root); /* transfer-none */
-                      const gchar * icon_name = json_object_get_string_member (o, "icon");
-                      icon_filename = g_build_filename (pkgdir, icon_name, NULL);
-                    }
+                  JsonObject * o = json_node_get_object (root); /* transfer-none */
+                  const gchar * icon_name = json_object_get_string_member (o, "icon");
+                  if (icon_name != NULL)
+                    icon_filename = g_build_filename (pkgdir, icon_name, NULL);
                 }
-              g_object_unref (parser);
-              g_free (manifest);
             }
-          g_free (pkgdir);
+          g_object_unref (parser);
+          g_free (manifest);
         }
-
-      initialized = TRUE;
+      g_free (pkgdir);
     }
 
   return icon_filename;
@@ -828,13 +832,19 @@ get_clock_app_icon_filename (void)
 static GMenuModel *
 create_phone_appointments_section (IndicatorDatetimeService * self)
 {
+  priv_t * p = self->priv;
   GMenu * menu = g_menu_new ();
   GMenuItem * menu_item;
-  const gchar * icon_filename;
+
+  if (G_UNLIKELY (!p->clock_app_icon_initialized))
+    {
+      p->clock_app_icon_initialized = TRUE;
+      p->clock_app_icon_filename = get_clock_app_icon_filename ();
+    }
 
   menu_item = g_menu_item_new (_("Clock"), "indicator.activate-phone-clock-app");
-  if ((icon_filename = get_clock_app_icon_filename ()))
-    g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON, "s", icon_filename);
+  if (p->clock_app_icon_filename != NULL)
+    g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON, "s", p->clock_app_icon_filename);
   g_menu_append_item (menu, menu_item);
   g_object_unref (menu_item);
 
@@ -1888,6 +1898,7 @@ my_finalize (GObject * o)
   IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE(o);
   priv_t * p = self->priv;
 
+  g_free (p->clock_app_icon_filename);
   g_clear_pointer (&p->skew_time, g_date_time_unref);
   g_clear_pointer (&p->calendar_date, g_date_time_unref);
 
