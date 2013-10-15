@@ -24,6 +24,7 @@
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
+#include <json-glib/json-glib.h>
 #include <url-dispatcher.h>
 
 #include "dbus-shared.h"
@@ -783,14 +784,57 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean terse)
   g_date_time_unref (now);
 }
 
+static const gchar *
+get_clock_app_icon_filename (void)
+{
+  static gboolean initialized = FALSE;
+  static gchar * icon_filename = NULL;
+
+  /* try to extract the clock app's filename from click. (/$pkgdir/$icon) */
+  if (!initialized)
+    {
+      gchar * pkgdir = NULL;
+      g_spawn_command_line_sync ("click pkgdir com.ubuntu.clock", &pkgdir, NULL, NULL, NULL);
+      if (pkgdir != NULL)
+        {
+          gchar * manifest = NULL;
+          g_strstrip (pkgdir);
+          g_spawn_command_line_sync ("click info com.ubuntu.clock", &manifest, NULL, NULL, NULL);
+          if (manifest != NULL)
+            {
+              JsonParser * parser = json_parser_new ();
+              if (json_parser_load_from_data (parser, manifest, -1, NULL))
+                {
+                  JsonNode * root = json_parser_get_root (parser); /* transfer-none */
+                  if ((root != NULL) && (JSON_NODE_TYPE(root) == JSON_NODE_OBJECT))
+                    {
+                      JsonObject * o = json_node_get_object (root); /* transfer-none */
+                      const gchar * icon_name = json_object_get_string_member (o, "icon");
+                      icon_filename = g_build_filename (pkgdir, icon_name, NULL);
+                    }
+                }
+              g_object_unref (parser);
+              g_free (manifest);
+            }
+          g_free (pkgdir);
+        }
+
+      initialized = TRUE;
+    }
+
+  return icon_filename;
+}
+
 static GMenuModel *
 create_phone_appointments_section (IndicatorDatetimeService * self)
 {
   GMenu * menu = g_menu_new ();
   GMenuItem * menu_item;
+  const gchar * icon_filename;
 
-  menu_item = g_menu_item_new (_("Clock"), NULL);
-  g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON, "s", "clock");
+  menu_item = g_menu_item_new (_("Clock"), "indicator.activate-phone-clock-app");
+  if ((icon_filename = get_clock_app_icon_filename ()))
+    g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON, "s", icon_filename);
   g_menu_append_item (menu, menu_item);
   g_object_unref (menu_item);
 
@@ -1312,6 +1356,15 @@ on_phone_settings_activated (GSimpleAction * a      G_GNUC_UNUSED,
 }
 
 static void
+on_phone_clock_activated (GSimpleAction * a      G_GNUC_UNUSED,
+                          GVariant      * param  G_GNUC_UNUSED,
+                          gpointer        gself  G_GNUC_UNUSED)
+{
+  const char * url = "appid://com.ubuntu.clock/clock/current-user-version";
+  url_dispatch_send (url, NULL, NULL);
+}
+
+static void
 on_activate_planner (GSimpleAction * a         G_GNUC_UNUSED,
                      GVariant      * param,
                      gpointer        gself)
@@ -1364,6 +1417,7 @@ init_gactions (IndicatorDatetimeService * self)
   GActionEntry entries[] = {
     { "activate-desktop-settings", on_desktop_settings_activated },
     { "activate-phone-settings", on_phone_settings_activated },
+    { "activate-phone-clock-app", on_phone_clock_activated },
     { "activate-planner", on_activate_planner, "x", NULL },
     { "set-location", on_set_location, "s" }
   };
