@@ -2015,7 +2015,7 @@ indicator_datetime_service_get_localtime (IndicatorDatetimeService * self)
 {
   priv_t * p = self->priv;
 
-  if (p->internal_timezone == NULL)
+  if (G_UNLIKELY (p->internal_timezone == NULL))
     update_internal_timezone (self);
 
   return g_date_time_new_now (p->internal_timezone);
