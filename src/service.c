@@ -505,7 +505,7 @@ create_phone_header_state (IndicatorDatetimeService * self)
   if ((has_alarms = service_has_alarms (self)))
     {
       GIcon * icon;
-      icon = g_themed_icon_new_with_default_fallbacks ("alarm-symbolic");
+      icon = g_themed_icon_new_with_default_fallbacks ("alarm-clock");
       g_variant_builder_add (&b, "{sv}", "icon", g_icon_serialize (icon));
       g_object_unref (icon);
     }
