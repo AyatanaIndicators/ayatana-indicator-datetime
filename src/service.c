@@ -94,6 +94,9 @@ struct _IndicatorDatetimeServicePrivate
   IndicatorDatetimeTimezone * tz_geoclue;
   IndicatorDatetimePlanner * planner;
 
+  /* cached GTimeZone for use by indicator_datetime_service_get_localtime() */
+  GTimeZone * internal_timezone;
+
   guint own_id;
   guint actions_export_id;
   GDBusConnection * conn;
@@ -376,6 +379,23 @@ start_header_timer (IndicatorDatetimeService * self)
   g_date_time_unref (now);
 }
 
+static void
+update_internal_timezone (IndicatorDatetimeService * self)
+{
+  priv_t * p = self->priv;
+  const char * id;
+
+  /* find the id from tz_file or tz_geoclue if possible; NULL otherwise */
+  id = NULL;
+  if (!id && p->tz_file)
+    id = indicator_datetime_timezone_get_timezone (p->tz_file);
+  if (!id && p->tz_geoclue)
+    id = indicator_datetime_timezone_get_timezone (p->tz_geoclue);
+
+  g_clear_pointer (&p->internal_timezone, g_time_zone_unref);
+  p->internal_timezone = g_time_zone_new (id);
+}
+
 /**
  * General purpose handler for rebuilding sections and restarting their timers
  * when time jumps for whatever reason:
@@ -394,6 +414,7 @@ on_local_time_jumped (IndicatorDatetimeService * self)
      1. rebuild the necessary states / menuitems when time jumps
      2. restart the timers so their new wait interval is correct */
 
+  update_internal_timezone (self);
   on_header_timer (self);
   on_timezone_timer (self);
 }
@@ -1794,6 +1815,7 @@ my_dispose (GObject * o)
   for (i=0; i<N_PROFILES; ++i)
     g_clear_object (&p->menus[i].menu);
 
+  g_clear_pointer (&p->internal_timezone, g_time_zone_unref);
   g_clear_object (&p->calendar_action);
   g_clear_object (&p->desktop_header_action);
   g_clear_object (&p->phone_header_action);
@@ -1989,9 +2011,14 @@ indicator_datetime_service_new (void)
 /* This currently just returns the system time,
    As we add test coverage, we'll need this to bypass the system time. */
 GDateTime *
-indicator_datetime_service_get_localtime (IndicatorDatetimeService * self G_GNUC_UNUSED)
+indicator_datetime_service_get_localtime (IndicatorDatetimeService * self)
 {
-  return g_date_time_new_now_local ();
+  priv_t * p = self->priv;
+
+  if (p->internal_timezone == NULL)
+    update_internal_timezone (self);
+
+  return g_date_time_new_now (p->internal_timezone);
 }
 
 void
