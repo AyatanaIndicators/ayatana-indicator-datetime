@@ -493,13 +493,11 @@ static void update_appointment_lists (IndicatorDatetimeService * self);
 static gboolean
 on_alarm_timer (gpointer gself)
 {
+  IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (gself);
   GDateTime * now;
   GSList * l;
-  IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (gself);
 
-  /* Check for alarms that start at the current time.
-   * If we find one, trigger a snap decision displaying
-   * the appointment text and a single button to dismiss */
+  /* If there are any alarms at the current time, show a snap decision */
   now = indicator_datetime_service_get_localtime (self);
   for (l=self->priv->upcoming_appointments; l!=NULL; l=l->next)
     {
@@ -512,7 +510,8 @@ on_alarm_timer (gpointer gself)
   g_date_time_unref (now);
 
   /* rebuild the alarm list asynchronously.
-     when it's done, set_upcoming_appointments() will update the alarm timer */
+     set_upcoming_appointments() will update the alarm timer when this
+     async call is done, so no need to restart the timer here... */
   update_appointment_lists (self);
 
   return G_SOURCE_REMOVE;
