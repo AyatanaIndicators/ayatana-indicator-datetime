@@ -36,6 +36,7 @@
 
 #define SKEW_CHECK_INTERVAL_SEC 10
 #define SKEW_DIFF_THRESHOLD_USEC ((SKEW_CHECK_INTERVAL_SEC+5) * G_USEC_PER_SEC)
+#define ALARM_CLOCK_ICON_NAME "alarm-clock"
 
 G_DEFINE_TYPE (IndicatorDatetimeService,
                indicator_datetime_service,
@@ -505,7 +506,7 @@ create_phone_header_state (IndicatorDatetimeService * self)
   if ((has_alarms = service_has_alarms (self)))
     {
       GIcon * icon;
-      icon = g_themed_icon_new_with_default_fallbacks ("alarm-clock");
+      icon = g_themed_icon_new_with_default_fallbacks (ALARM_CLOCK_ICON_NAME);
       g_variant_builder_add (&b, "{sv}", "icon", g_icon_serialize (icon));
       g_object_unref (icon);
     }
@@ -735,7 +736,10 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean terse)
 
       menu_item = g_menu_item_new (appt->summary, NULL);
 
-      if (appt->color && !appt->has_alarms)
+      if (appt->has_alarms)
+        g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON,
+                                   "s", ALARM_CLOCK_ICON_NAME);
+      else if (appt->color != NULL)
         g_menu_item_set_attribute (menu_item, "x-canonical-color",
                                    "s", appt->color);
 
