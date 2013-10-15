@@ -24,6 +24,7 @@
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
+#include <json-glib/json-glib.h>
 #include <url-dispatcher.h>
 
 #include "dbus-shared.h"
@@ -97,6 +98,13 @@ struct _IndicatorDatetimeServicePrivate
 
   /* cached GTimeZone for use by indicator_datetime_service_get_localtime() */
   GTimeZone * internal_timezone;
+
+  /* the clock app's icon filename */
+  gchar * clock_app_icon_filename;
+
+  /* Whether or not we've tried to load the clock app's icon.
+     This way we don't keep trying to reload it on the desktop */
+  gboolean clock_app_icon_initialized;
 
   guint own_id;
   guint actions_export_id;
@@ -783,14 +791,60 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean terse)
   g_date_time_unref (now);
 }
 
+
+/* try to extract the clock app's filename from click. (/$pkgdir/$icon) */
+static gchar *
+get_clock_app_icon_filename (void)
+{
+  gchar * icon_filename = NULL;
+  gchar * pkgdir;
+
+  pkgdir = NULL;
+  g_spawn_command_line_sync ("click pkgdir com.ubuntu.clock", &pkgdir, NULL, NULL, NULL);
+  if (pkgdir != NULL)
+    {
+      gchar * manifest = NULL;
+      g_strstrip (pkgdir);
+      g_spawn_command_line_sync ("click info com.ubuntu.clock", &manifest, NULL, NULL, NULL);
+      if (manifest != NULL)
+        {
+          JsonParser * parser = json_parser_new ();
+          if (json_parser_load_from_data (parser, manifest, -1, NULL))
+            {
+              JsonNode * root = json_parser_get_root (parser); /* transfer-none */
+              if ((root != NULL) && (JSON_NODE_TYPE(root) == JSON_NODE_OBJECT))
+                {
+                  JsonObject * o = json_node_get_object (root); /* transfer-none */
+                  const gchar * icon_name = json_object_get_string_member (o, "icon");
+                  if (icon_name != NULL)
+                    icon_filename = g_build_filename (pkgdir, icon_name, NULL);
+                }
+            }
+          g_object_unref (parser);
+          g_free (manifest);
+        }
+      g_free (pkgdir);
+    }
+
+  return icon_filename;
+}
+
 static GMenuModel *
 create_phone_appointments_section (IndicatorDatetimeService * self)
 {
+  priv_t * p = self->priv;
   GMenu * menu = g_menu_new ();
   GMenuItem * menu_item;
 
-  menu_item = g_menu_item_new (_("Clock"), NULL);
-  g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON, "s", "clock");
+  if (G_UNLIKELY (!p->clock_app_icon_initialized))
+    {
+      p->clock_app_icon_initialized = TRUE;
+      p->clock_app_icon_filename = get_clock_app_icon_filename ();
+    }
+
+  menu_item = g_menu_item_new (_("Clock"), "indicator.activate-phone-clock-app");
+  if (p->clock_app_icon_filename != NULL)
+    g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON, "s", p->clock_app_icon_filename);
   g_menu_append_item (menu, menu_item);
   g_object_unref (menu_item);
 
@@ -1312,6 +1366,15 @@ on_phone_settings_activated (GSimpleAction * a      G_GNUC_UNUSED,
 }
 
 static void
+on_phone_clock_activated (GSimpleAction * a      G_GNUC_UNUSED,
+                          GVariant      * param  G_GNUC_UNUSED,
+                          gpointer        gself  G_GNUC_UNUSED)
+{
+  const char * url = "appid://com.ubuntu.clock/clock/current-user-version";
+  url_dispatch_send (url, NULL, NULL);
+}
+
+static void
 on_activate_planner (GSimpleAction * a         G_GNUC_UNUSED,
                      GVariant      * param,
                      gpointer        gself)
@@ -1364,6 +1427,7 @@ init_gactions (IndicatorDatetimeService * self)
   GActionEntry entries[] = {
     { "activate-desktop-settings", on_desktop_settings_activated },
     { "activate-phone-settings", on_phone_settings_activated },
+    { "activate-phone-clock-app", on_phone_clock_activated },
     { "activate-planner", on_activate_planner, "x", NULL },
     { "set-location", on_set_location, "s" }
   };
@@ -1834,6 +1898,7 @@ my_finalize (GObject * o)
   IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE(o);
   priv_t * p = self->priv;
 
+  g_free (p->clock_app_icon_filename);
   g_clear_pointer (&p->skew_time, g_date_time_unref);
   g_clear_pointer (&p->calendar_date, g_date_time_unref);
 
