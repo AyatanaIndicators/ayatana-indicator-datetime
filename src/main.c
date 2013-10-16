@@ -21,7 +21,6 @@
 
 #include <locale.h>
 #include <stdlib.h> /* exit() */
-#include <stdio.h>
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
@@ -44,7 +43,7 @@ static GOptionEntry entries[] = {
 };
 
 static void
-on_name_lost (gpointer instance G_GNUC_UNUSED, gpointer loop G_GNUC_UNUSED)
+on_name_lost (gpointer instance G_GNUC_UNUSED, gpointer loop)
 {
   g_message ("exiting: service couldn't acquire or lost ownership of busname");
 

@@ -53,6 +53,7 @@ ECAL_REQUIRED_VERSION=3.5
 EDS_REQUIRED_VERSION=3.5
 LIBNOTIFY_REQUIRED_VERSION=0.7.6
 URL_DISPATCHER_1_REQUIRED_VERSION=1
+JSON_GLIB_REQUIRED_VERSION=0.16.2
 
 GTK3_REQUIRED_VERSION=3.1.4
 
@@ -61,9 +62,10 @@ PKG_CHECK_MODULES(SERVICE, [glib-2.0 >= $GLIB_REQUIRED_VERSION
                             geoclue >= $GEOCLUE_REQUIRED_VERSION
                             libical >= $ICAL_REQUIRED_VERSION
                             libecal-1.2 >= $ECAL_REQUIRED_VERSION
-                            libedataserver-1.2 >= EDS_REQUIRED_VERSION
+                            libedataserver-1.2 >= $EDS_REQUIRED_VERSION
                             libnotify >= $LIBNOTIFY_REQUIRED_VERSION
-                            url-dispatcher-1 >= URL_DISPATCHER_1_REQUIRED_VERSION])
+                            url-dispatcher-1 >= $URL_DISPATCHER_1_REQUIRED_VERSION
+                            json-glib-1.0 >= $JSON_GLIB_REQUIRED_VERSION])
 
 ###########################
 # Control Center panel

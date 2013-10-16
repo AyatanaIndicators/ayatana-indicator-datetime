@@ -42,6 +42,7 @@ Depends: ${shlibs:Depends},
 Recommends: indicator-applet | indicator-renderer,
             evolution-data-server,
             gnome-control-center-datetime | ubuntu-system-settings,
+Suggests: click,
 Conflicts: indicator-datetime (<< 13.10.0)
 Replaces: indicator-datetime (<< 13.10.0)
 Description: Simple clock

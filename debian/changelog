@@ -1,3 +1,46 @@
+indicator-datetime (13.10.0+13.10.20131016.2-0ubuntu1) saucy; urgency=low
+
+  [ Charles Kerr ]
+  * Remove the g_error() call that caused an abort() in the call to
+    on_name_lost() in our bus handler. (LP: #1238737)
+
+  [ Didier Roche ]
+  * remove invalid click recommends and downgrade to Suggests
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 274
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 16 Oct 2013 15:30:10 +0000
+
+indicator-datetime (13.10.0+13.10.20131016-0ubuntu1) saucy; urgency=low
+
+  [ Charles Kerr ]
+  * Use the Unity Mobile icon name for the alarm clock icon.
+  * cache our internal GTimeZone instead of constantly re-creating it.
+    (LP: #1238043)
+  * Changes the phone profile's "Clock" menuitem in two ways: 1. instead
+    of using a stock icon, try to use the clock app's icon. 2. when
+    clicked, launch the clock app. (LP: #1227106)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 271
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 16 Oct 2013 02:35:10 +0000
+
+indicator-datetime (13.10.0+13.10.20131011-0ubuntu1) saucy; urgency=low
+
+  [ Charles Kerr ]
+  * start tracking failure-to-connect-to-bus errors on indicator-
+    datetime. (LP: #1227519)
+  * When an unsupported date format is being used, improve the error
+    message to also include the unsupported date format so that users
+    can include it in their bug reports. (LP: #1196059)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 267
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 11 Oct 2013 04:27:40 +0000
+
 indicator-datetime (13.10.0+13.10.20131004-0ubuntu1) saucy; urgency=low
 
   [ Charles Kerr ]

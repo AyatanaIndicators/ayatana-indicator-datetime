@@ -25,6 +25,7 @@
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 #include <libnotify/notify.h>
+#include <json-glib/json-glib.h>
 #include <url-dispatcher.h>
 
 #include "dbus-shared.h"
@@ -36,6 +37,7 @@
 
 #define SKEW_CHECK_INTERVAL_SEC 10
 #define SKEW_DIFF_THRESHOLD_USEC ((SKEW_CHECK_INTERVAL_SEC+5) * G_USEC_PER_SEC)
+#define ALARM_CLOCK_ICON_NAME "alarm-clock"
 
 G_DEFINE_TYPE (IndicatorDatetimeService,
                indicator_datetime_service,
@@ -102,6 +104,16 @@ struct _IndicatorDatetimeServicePrivate
   IndicatorDatetimeTimezone * tz_file;
   IndicatorDatetimeTimezone * tz_geoclue;
   IndicatorDatetimePlanner * planner;
+
+  /* cached GTimeZone for use by indicator_datetime_service_get_localtime() */
+  GTimeZone * internal_timezone;
+
+  /* the clock app's icon filename */
+  gchar * clock_app_icon_filename;
+
+  /* Whether or not we've tried to load the clock app's icon.
+     This way we don't keep trying to reload it on the desktop */
+  gboolean clock_app_icon_initialized;
 
   guint own_id;
   guint actions_export_id;
@@ -403,8 +415,6 @@ appointment_has_alarm_url (const struct IndicatorDatetimeAppt * appt)
 static gboolean
 datetimes_have_the_same_minute (GDateTime * a G_GNUC_UNUSED, GDateTime * b G_GNUC_UNUSED)
 {
-return TRUE;
-#if 0
   int ay, am, ad;
   int by, bm, bd;
 
@@ -416,7 +426,6 @@ return TRUE;
          (ad == bd) &&
          (g_date_time_get_hour (a) == g_date_time_get_hour (b)) &&
          (g_date_time_get_minute (a) == g_date_time_get_minute (b));
-#endif
 }
 
 static void
@@ -462,7 +471,7 @@ show_snap_decision_for_alarm (const struct IndicatorDatetimeAppt * appt)
   title = g_date_time_format (appt->begin,
                               get_terse_time_format_string (appt->begin));
   body = appt->summary;
-  icon_name = "alarm-clock";
+  icon_name = ALARM_CLOCK_ICON_NAME;
   g_debug ("creating a snap decision with title '%s', body '%s', icon '%s'",
            title, body, icon_name);
 
@@ -500,8 +509,6 @@ on_alarm_timer (gpointer gself)
   for (l=self->priv->upcoming_appointments; l!=NULL; l=l->next)
     {
       const struct IndicatorDatetimeAppt * appt = l->data;
-
-g_message ("[%s][%s]", g_date_time_format (appt->begin, "%F %T"), appt->url);
 
       if (appointment_has_alarm_url (appt))
         if (datetimes_have_the_same_minute (now, appt->begin))
@@ -578,6 +585,23 @@ set_alarm_timer (IndicatorDatetimeService * self)
 ****
 ***/
 
+static void
+update_internal_timezone (IndicatorDatetimeService * self)
+{
+  priv_t * p = self->priv;
+  const char * id;
+
+  /* find the id from tz_file or tz_geoclue if possible; NULL otherwise */
+  id = NULL;
+  if (!id && p->tz_file)
+    id = indicator_datetime_timezone_get_timezone (p->tz_file);
+  if (!id && p->tz_geoclue)
+    id = indicator_datetime_timezone_get_timezone (p->tz_geoclue);
+
+  g_clear_pointer (&p->internal_timezone, g_time_zone_unref);
+  p->internal_timezone = g_time_zone_new (id);
+}
+
 /**
  * General purpose handler for rebuilding sections and restarting their timers
  * when time jumps for whatever reason:
@@ -596,6 +620,7 @@ on_local_time_jumped (IndicatorDatetimeService * self)
      1. rebuild the necessary states / menuitems when time jumps
      2. restart the timers so their new wait interval is correct */
 
+  update_internal_timezone (self);
   on_header_timer (self);
   on_timezone_timer (self);
 }
@@ -707,7 +732,7 @@ create_phone_header_state (IndicatorDatetimeService * self)
   if ((has_alarms = service_has_alarms (self)))
     {
       GIcon * icon;
-      icon = g_themed_icon_new_with_default_fallbacks ("alarm-symbolic");
+      icon = g_themed_icon_new_with_default_fallbacks (ALARM_CLOCK_ICON_NAME);
       g_variant_builder_add (&b, "{sv}", "icon", g_icon_serialize (icon));
       g_object_unref (icon);
     }
@@ -950,7 +975,10 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean phone)
 
       menu_item = g_menu_item_new (appt->summary, NULL);
 
-      if (appt->color && !appt->has_alarms)
+      if (appt->has_alarms)
+        g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON,
+                                   "s", ALARM_CLOCK_ICON_NAME);
+      else if (appt->color != NULL)
         g_menu_item_set_attribute (menu_item, "x-canonical-color",
                                    "s", appt->color);
 
@@ -980,14 +1008,60 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean phone)
   g_date_time_unref (now);
 }
 
+
+/* try to extract the clock app's filename from click. (/$pkgdir/$icon) */
+static gchar *
+get_clock_app_icon_filename (void)
+{
+  gchar * icon_filename = NULL;
+  gchar * pkgdir;
+
+  pkgdir = NULL;
+  g_spawn_command_line_sync ("click pkgdir com.ubuntu.clock", &pkgdir, NULL, NULL, NULL);
+  if (pkgdir != NULL)
+    {
+      gchar * manifest = NULL;
+      g_strstrip (pkgdir);
+      g_spawn_command_line_sync ("click info com.ubuntu.clock", &manifest, NULL, NULL, NULL);
+      if (manifest != NULL)
+        {
+          JsonParser * parser = json_parser_new ();
+          if (json_parser_load_from_data (parser, manifest, -1, NULL))
+            {
+              JsonNode * root = json_parser_get_root (parser); /* transfer-none */
+              if ((root != NULL) && (JSON_NODE_TYPE(root) == JSON_NODE_OBJECT))
+                {
+                  JsonObject * o = json_node_get_object (root); /* transfer-none */
+                  const gchar * icon_name = json_object_get_string_member (o, "icon");
+                  if (icon_name != NULL)
+                    icon_filename = g_build_filename (pkgdir, icon_name, NULL);
+                }
+            }
+          g_object_unref (parser);
+          g_free (manifest);
+        }
+      g_free (pkgdir);
+    }
+
+  return icon_filename;
+}
+
 static GMenuModel *
 create_phone_appointments_section (IndicatorDatetimeService * self)
 {
+  priv_t * p = self->priv;
   GMenu * menu = g_menu_new ();
   GMenuItem * menu_item;
 
-  menu_item = g_menu_item_new (_("Clock"), NULL);
-  g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON, "s", "clock");
+  if (G_UNLIKELY (!p->clock_app_icon_initialized))
+    {
+      p->clock_app_icon_initialized = TRUE;
+      p->clock_app_icon_filename = get_clock_app_icon_filename ();
+    }
+
+  menu_item = g_menu_item_new (_("Clock"), "indicator.activate-phone-clock-app");
+  if (p->clock_app_icon_filename != NULL)
+    g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON, "s", p->clock_app_icon_filename);
   g_menu_append_item (menu, menu_item);
   g_object_unref (menu_item);
 
@@ -1537,6 +1611,15 @@ on_activate_appointment (GSimpleAction * a G_GNUC_UNUSED,
 }
 
 static void
+on_phone_clock_activated (GSimpleAction * a      G_GNUC_UNUSED,
+                          GVariant      * param  G_GNUC_UNUSED,
+                          gpointer        gself  G_GNUC_UNUSED)
+{
+  const char * url = "appid://com.ubuntu.clock/clock/current-user-version";
+  url_dispatch_send (url, NULL, NULL);
+}
+
+static void
 on_activate_planner (GSimpleAction * a         G_GNUC_UNUSED,
                      GVariant      * param,
                      gpointer        gself)
@@ -1589,6 +1672,7 @@ init_gactions (IndicatorDatetimeService * self)
   GActionEntry entries[] = {
     { "activate-desktop-settings", on_desktop_settings_activated },
     { "activate-phone-settings", on_phone_settings_activated },
+    { "activate-phone-clock-app", on_phone_clock_activated },
     { "activate-planner", on_activate_planner, "x", NULL },
     { "activate-appointment", on_activate_appointment, "s", NULL },
     { "set-location", on_set_location, "s" }
@@ -1823,7 +1907,7 @@ set_upcoming_appointments (IndicatorDatetimeService * self,
   rebuild_appointments_section_soon (self);
 
   /* alarm timer is keyed off of the next alarm time,
-     so it needs to be rebuilt when tehe appointment list changes */
+     so it needs to be rebuilt when the appointment list changes */
   set_alarm_timer (self);
 }
 
@@ -2080,6 +2164,7 @@ my_dispose (GObject * o)
   for (i=0; i<N_PROFILES; ++i)
     g_clear_object (&p->menus[i].menu);
 
+  g_clear_pointer (&p->internal_timezone, g_time_zone_unref);
   g_clear_object (&p->calendar_action);
   g_clear_object (&p->desktop_header_action);
   g_clear_object (&p->phone_header_action);
@@ -2094,6 +2179,7 @@ my_finalize (GObject * o)
   IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE(o);
   priv_t * p = self->priv;
 
+  g_free (p->clock_app_icon_filename);
   g_clear_pointer (&p->skew_time, g_date_time_unref);
   g_clear_pointer (&p->calendar_date, g_date_time_unref);
 
@@ -2284,9 +2370,14 @@ indicator_datetime_service_new (IndicatorDatetimePlanner * planner)
 /* This currently just returns the system time,
    As we add test coverage, we'll need this to bypass the system time. */
 GDateTime *
-indicator_datetime_service_get_localtime (IndicatorDatetimeService * self G_GNUC_UNUSED)
+indicator_datetime_service_get_localtime (IndicatorDatetimeService * self)
 {
-  return g_date_time_new_now_local ();
+  priv_t * p = self->priv;
+
+  if (G_UNLIKELY (p->internal_timezone == NULL))
+    update_internal_timezone (self);
+
+  return g_date_time_new_now (p->internal_timezone);
 }
 
 void
