@@ -1815,9 +1815,6 @@ on_name_lost (GDBusConnection * connection G_GNUC_UNUSED,
 {
   IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (gself);
 
-  if (connection == NULL)
-    g_error ("Unable to get bus connection to own name '%s'", name);
-
   g_debug ("%s %s name lost %s", G_STRLOC, G_STRFUNC, name);
 
   unexport (self);
