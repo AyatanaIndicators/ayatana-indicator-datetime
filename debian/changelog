@@ -1,3 +1,17 @@
+indicator-datetime (13.10.0+13.10.20131016.2-0ubuntu1) saucy; urgency=low
+
+  [ Charles Kerr ]
+  * Remove the g_error() call that caused an abort() in the call to
+    on_name_lost() in our bus handler. (LP: #1238737)
+
+  [ Didier Roche ]
+  * remove invalid click recommends and downgrade to Suggests
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 274
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 16 Oct 2013 15:30:10 +0000
+
 indicator-datetime (13.10.0+13.10.20131016-0ubuntu1) saucy; urgency=low
 
   [ Charles Kerr ]
