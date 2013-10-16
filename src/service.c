@@ -683,7 +683,7 @@ create_phone_calendar_section (IndicatorDatetimeService * self)
   GMenu * menu = g_menu_new ();
 
   /* strftime(3) format string to show date */
-  add_localtime_menuitem (menu, self, _("%a, %e %B %Y"), "calendar");
+  add_localtime_menuitem (menu, self, _("%A, %e %B %Y"), "calendar");
 
   return G_MENU_MODEL (menu);
 }
