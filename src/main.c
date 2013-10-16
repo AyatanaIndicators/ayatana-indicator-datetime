@@ -31,30 +31,55 @@
 #include "planner-mock.h"
 #include "service.h"
 
-#define TEST_MODE
-
 /***
 ****
 ***/
 
 static void
-on_name_lost (gpointer instance G_GNUC_UNUSED, gpointer loop)
+on_name_lost (gpointer instance G_GNUC_UNUSED, gpointer loop G_GNUC_UNUSED)
 {
   g_message ("exiting: service couldn't acquire or lost ownership of busname");
   g_main_loop_quit ((GMainLoop*)loop);
 }
 
-#ifdef TEST_MODE
 static void
-log_handler (const gchar    * log_domain,
-             GLogLevelFlags   log_level,
-             const gchar    * message,
-             gpointer         fp)
+action_ok (NotifyNotification *notification  G_GNUC_UNUSED,
+           char               *action,
+           gpointer            gurl)
 {
-  fprintf (fp, "%s %d %s\n", log_domain, (int)log_level, message);
-  fflush (fp);
+  const char * url = gurl;
+  g_message ("'%s' clicked for snap decision; url is '%s'", action, url);
 }
-#endif
+
+static void
+show_snap_decision (void)
+{
+  const gchar * title = "Title";
+  const gchar * body = "Body";
+  const gchar * icon_name = "alarm-clock";
+  NotifyNotification * nn;
+  GError * error;
+
+  g_debug ("creating a snap decision with title '%s', body '%s', icon '%s'",
+           title, body, icon_name);
+
+  nn = notify_notification_new (title, body, icon_name);
+  notify_notification_set_hint (nn, "x-canonical-snap-decisions",
+                                g_variant_new_boolean(TRUE));
+  notify_notification_set_hint (nn, "x-canonical-private-button-tint",
+                                g_variant_new_boolean(TRUE));
+  notify_notification_add_action (nn, "action_accept", _("OK"),
+                                  action_ok, g_strdup("hello world"), g_free);
+
+  g_message ("showing notification %p", nn);
+  error = NULL;
+  notify_notification_show (nn, &error);
+  if (error != NULL)
+    {
+      g_warning ("Unable to show alarm '%s' popup: %s", body, error->message);
+      g_error_free (error);
+    }
+}
 
 int
 main (int argc G_GNUC_UNUSED, char ** argv G_GNUC_UNUSED)
@@ -74,13 +99,14 @@ main (int argc G_GNUC_UNUSED, char ** argv G_GNUC_UNUSED)
 
   /* set up the planner */
 #ifdef TEST_MODE
-  g_warning ("Using fake appointment book for testing! Probably shouldn't merge this to trunk.");
-  FILE * fp = fopen ("/tmp/indicator-datetime-log.txt", "w+");
-  g_log_set_handler ("Indicator-Datetime", G_LOG_LEVEL_MASK, log_handler, fp);
+  g_warning ("Using fake appointment book for testing! "
+             "Probably shouldn't merge this to trunk.");
   planner = indicator_datetime_planner_mock_new ();
 #else
   planner = indicator_datetime_planner_eds_new ();
 #endif
+
+  show_snap_decision ();
 
   /* run */
   service = indicator_datetime_service_new (planner);
@@ -93,8 +119,5 @@ main (int argc G_GNUC_UNUSED, char ** argv G_GNUC_UNUSED)
   g_main_loop_unref (loop);
   g_object_unref (service);
   g_object_unref (planner);
-#ifdef TEST_MODE
-  fclose (fp);
-#endif
   return 0;
 }

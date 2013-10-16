@@ -432,24 +432,13 @@ dispatch_alarm_url (const struct IndicatorDatetimeAppt * appt)
   url_dispatch_send (appt->url, NULL, NULL);
 }
 
-#if 0
 static void
-on_notification_closed (NotifyNotification * nn, gpointer gself)
-{
-  //IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (gself);
-
-  g_message ("hello world");
-
-  /* cleanup */
-  g_signal_handlers_disconnect_by_data (nn, gself);
-  g_object_unref (nn);
-}
-#endif
-
-static void
-on_alarm_popup_ok_clicked (NotifyNotification * nn G_GNUC_UNUSED, char * action G_GNUC_UNUSED, gpointer gurl)
+action_ok (NotifyNotification *notification  G_GNUC_UNUSED,
+           char               *action,
+           gpointer            gurl)
 {
   const char * url = gurl;
+  g_debug ("'%s' clicked for snap decision %s", action, url);
   url_dispatch_send (url, NULL, NULL);
 }
 
@@ -465,17 +454,18 @@ show_snap_decision_for_alarm (const struct IndicatorDatetimeAppt * appt)
   title = g_date_time_format (appt->begin,
                               get_terse_time_format_string (appt->begin));
   body = appt->summary;
-  icon_name = "alarm-symbolic";
+  icon_name = "alarm-clock";
   g_debug ("creating a snap decision with title '%s', body '%s', icon '%s'",
            title, body, icon_name);
+
   nn = notify_notification_new (title, body, icon_name);
   notify_notification_set_hint (nn, "x-canonical-snap-decisions",
                                 g_variant_new_boolean(TRUE));
   notify_notification_set_hint (nn, "x-canonical-private-button-tint",
                                 g_variant_new_boolean(TRUE));
-  notify_notification_add_action (nn, "ok", _("OK"),
-                                  on_alarm_popup_ok_clicked,
-                                  g_strdup (appt->url), g_free);
+  notify_notification_add_action (nn, "action_accept", _("OK"),
+                                  action_ok, g_strdup(appt->url), g_free);
+
   error = NULL;
   notify_notification_show (nn, &error);
   if (error != NULL)
@@ -1981,14 +1971,11 @@ on_name_lost (GDBusConnection * connection G_GNUC_UNUSED,
 {
   IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (gself);
 
-  if (connection == NULL)
-    g_error ("Unable to get bus connection to own name '%s'", name);
-
   g_debug ("%s %s name lost %s", G_STRLOC, G_STRFUNC, name);
 
   unexport (self);
 
-  g_signal_emit (self, signals[SIGNAL_NAME_LOST], 0, NULL);
+  //g_signal_emit (self, signals[SIGNAL_NAME_LOST], 0, NULL);
 }
 
 
