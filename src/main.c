@@ -35,55 +35,28 @@
 ****
 ***/
 
+/* When enabled, new alarms will show up every minute to test snap decisions */
+static gboolean test_alarms = FALSE;
+
+static GOptionEntry entries[] = {
+  { "test-alarms", '\0', 0, G_OPTION_ARG_NONE, &test_alarms, "Test Alarms", NULL },
+  { NULL }
+};
+
 static void
 on_name_lost (gpointer instance G_GNUC_UNUSED, gpointer loop G_GNUC_UNUSED)
 {
   g_message ("exiting: service couldn't acquire or lost ownership of busname");
-  g_main_loop_quit ((GMainLoop*)loop);
-}
 
-static void
-action_ok (NotifyNotification *notification  G_GNUC_UNUSED,
-           char               *action,
-           gpointer            gurl)
-{
-  const char * url = gurl;
-  g_message ("'%s' clicked for snap decision; url is '%s'", action, url);
-}
-
-static void
-show_snap_decision (void)
-{
-  const gchar * title = "Title";
-  const gchar * body = "Body";
-  const gchar * icon_name = "alarm-clock";
-  NotifyNotification * nn;
-  GError * error;
-
-  g_debug ("creating a snap decision with title '%s', body '%s', icon '%s'",
-           title, body, icon_name);
-
-  nn = notify_notification_new (title, body, icon_name);
-  notify_notification_set_hint (nn, "x-canonical-snap-decisions",
-                                g_variant_new_boolean(TRUE));
-  notify_notification_set_hint (nn, "x-canonical-private-button-tint",
-                                g_variant_new_boolean(TRUE));
-  notify_notification_add_action (nn, "action_accept", _("OK"),
-                                  action_ok, g_strdup("hello world"), g_free);
-
-  g_message ("showing notification %p", nn);
-  error = NULL;
-  notify_notification_show (nn, &error);
-  if (error != NULL)
-    {
-      g_warning ("Unable to show alarm '%s' popup: %s", body, error->message);
-      g_error_free (error);
-    }
+  if (!test_alarms)
+    g_main_loop_quit ((GMainLoop*)loop);
 }
 
 int
 main (int argc G_GNUC_UNUSED, char ** argv G_GNUC_UNUSED)
 {
+  GOptionContext * context;
+  GError * error;
   IndicatorDatetimePlanner * planner;
   IndicatorDatetimeService * service;
   GMainLoop * loop;
@@ -97,16 +70,25 @@ main (int argc G_GNUC_UNUSED, char ** argv G_GNUC_UNUSED)
   if (!notify_init ("indicator-datetime-service"))
     g_critical ("libnotify initialization failed");
 
-  /* set up the planner */
-#ifdef TEST_MODE
-  g_warning ("Using fake appointment book for testing! "
-             "Probably shouldn't merge this to trunk.");
-  planner = indicator_datetime_planner_mock_new ();
-#else
-  planner = indicator_datetime_planner_eds_new ();
-#endif
+  /* parse command-line options */
+  context = g_option_context_new (NULL);
+  g_option_context_add_main_entries (context, entries, GETTEXT_PACKAGE);
+  if (!g_option_context_parse (context, &argc, &argv, &error))
+    {
+      g_print("option parsing failed: %s\n", error->message);
+      return EXIT_FAILURE;
+    }
 
-  show_snap_decision ();
+  /* set up the planner */
+  if (test_alarms)
+    {
+      g_message ("Using fake appointment book for testing alarms.");
+      planner = indicator_datetime_planner_mock_new ();
+    }
+  else
+    {
+      planner = indicator_datetime_planner_eds_new ();
+    }
 
   /* run */
   service = indicator_datetime_service_new (planner);
