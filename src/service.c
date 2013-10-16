@@ -522,7 +522,7 @@ create_phone_header_state (IndicatorDatetimeService * self)
   gchar * label;
   gboolean has_alarms;
   gchar * a11y;
-  const gchar * title = _("Date and Time");
+  const gchar * title = _("Upcoming");
 
   g_variant_builder_init (&b, G_VARIANT_TYPE_VARDICT);
 
