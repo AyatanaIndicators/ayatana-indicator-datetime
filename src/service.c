@@ -401,8 +401,10 @@ appointment_has_alarm_url (const struct IndicatorDatetimeAppt * appt)
 }
 
 static gboolean
-datetimes_have_the_same_minute (GDateTime * a, GDateTime * b)
+datetimes_have_the_same_minute (GDateTime * a G_GNUC_UNUSED, GDateTime * b G_GNUC_UNUSED)
 {
+return TRUE;
+#if 0
   int ay, am, ad;
   int by, bm, bd;
 
@@ -414,6 +416,7 @@ datetimes_have_the_same_minute (GDateTime * a, GDateTime * b)
          (ad == bd) &&
          (g_date_time_get_hour (a) == g_date_time_get_hour (b)) &&
          (g_date_time_get_minute (a) == g_date_time_get_minute (b));
+#endif
 }
 
 static void
@@ -433,13 +436,18 @@ dispatch_alarm_url (const struct IndicatorDatetimeAppt * appt)
 }
 
 static void
-action_ok (NotifyNotification *notification  G_GNUC_UNUSED,
-           char               *action,
-           gpointer            gurl)
+on_snap_decided (NotifyNotification * notification  G_GNUC_UNUSED,
+                 char               * action,
+                 gpointer             gurl)
 {
-  const char * url = gurl;
-  g_debug ("'%s' clicked for snap decision %s", action, url);
-  url_dispatch_send (url, NULL, NULL);
+  g_debug ("%s: %s", G_STRFUNC, action);
+
+  if (!g_strcmp0 (action, "ok"))
+    {
+      const gchar * url = gurl;
+      g_debug ("dispatching url '%s'", url);
+      url_dispatch_send (url, NULL, NULL);
+    }
 }
 
 static void
@@ -461,10 +469,10 @@ show_snap_decision_for_alarm (const struct IndicatorDatetimeAppt * appt)
   nn = notify_notification_new (title, body, icon_name);
   notify_notification_set_hint (nn, "x-canonical-snap-decisions",
                                 g_variant_new_boolean(TRUE));
-  notify_notification_set_hint (nn, "x-canonical-private-button-tint",
-                                g_variant_new_boolean(TRUE));
-  notify_notification_add_action (nn, "action_accept", _("OK"),
-                                  action_ok, g_strdup(appt->url), g_free);
+  notify_notification_add_action (nn, "ok", _("OK"),
+                                  on_snap_decided, g_strdup(appt->url), g_free);
+  notify_notification_add_action (nn, "cancel", _("Cancel"),
+                                  on_snap_decided, NULL, NULL);
 
   error = NULL;
   notify_notification_show (nn, &error);
@@ -492,6 +500,8 @@ on_alarm_timer (gpointer gself)
   for (l=self->priv->upcoming_appointments; l!=NULL; l=l->next)
     {
       const struct IndicatorDatetimeAppt * appt = l->data;
+
+g_message ("[%s][%s]", g_date_time_format (appt->begin, "%F %T"), appt->url);
 
       if (appointment_has_alarm_url (appt))
         if (datetimes_have_the_same_minute (now, appt->begin))
@@ -1975,7 +1985,7 @@ on_name_lost (GDBusConnection * connection G_GNUC_UNUSED,
 
   unexport (self);
 
-  //g_signal_emit (self, signals[SIGNAL_NAME_LOST], 0, NULL);
+  g_signal_emit (self, signals[SIGNAL_NAME_LOST], 0, NULL);
 }
 
 
