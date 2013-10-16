@@ -1,3 +1,18 @@
+indicator-datetime (13.10.0+13.10.20131016-0ubuntu1) saucy; urgency=low
+
+  [ Charles Kerr ]
+  * Use the Unity Mobile icon name for the alarm clock icon.
+  * cache our internal GTimeZone instead of constantly re-creating it.
+    (LP: #1238043)
+  * Changes the phone profile's "Clock" menuitem in two ways: 1. instead
+    of using a stock icon, try to use the clock app's icon. 2. when
+    clicked, launch the clock app. (LP: #1227106)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 271
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 16 Oct 2013 02:35:10 +0000
+
 indicator-datetime (13.10.0+13.10.20131011-0ubuntu1) saucy; urgency=low
 
   [ Charles Kerr ]
