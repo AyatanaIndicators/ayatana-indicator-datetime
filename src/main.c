@@ -60,6 +60,12 @@ main (int argc G_GNUC_UNUSED, char ** argv G_GNUC_UNUSED)
   IndicatorDatetimeService * service;
   GMainLoop * loop;
 
+  /* Work around a deadlock in glib's type initialization. It can be
+   * removed when https://bugzilla.gnome.org/show_bug.cgi?id=674885 is
+   * fixed.
+   */
+  g_type_ensure (G_TYPE_DBUS_CONNECTION);
+
   /* boilerplate i18n */
   setlocale (LC_ALL, "");
   bindtextdomain (GETTEXT_PACKAGE, GNOMELOCALEDIR);
