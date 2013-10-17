@@ -476,8 +476,12 @@ show_snap_decision_for_alarm (const struct IndicatorDatetimeAppt * appt)
            title, body, icon_name);
 
   nn = notify_notification_new (title, body, icon_name);
-  notify_notification_set_hint (nn, "x-canonical-snap-decisions",
-                                g_variant_new_boolean(TRUE));
+  notify_notification_set_hint_string (nn,
+                                       "x-canonical-snap-decisions",
+                                       "true");
+  notify_notification_set_hint_string (nn,
+                                       "x-canonical-private-button-tint",
+                                       "true");
   notify_notification_add_action (nn, "show", _("Show"),
                                   on_snap_decided, g_strdup(appt->url), g_free);
   notify_notification_add_action (nn, "dismiss", _("Dismiss"),
