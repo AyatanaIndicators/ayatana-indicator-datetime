@@ -29,8 +29,6 @@
 #include <url-dispatcher.h>
 
 #include "dbus-shared.h"
-#include "timezone-file.h"
-#include "timezone-geoclue.h"
 #include "service.h"
 #include "settings-shared.h"
 #include "utils.h"
@@ -54,6 +52,7 @@ static guint signals[LAST_SIGNAL] = { 0 };
 enum
 {
   PROP_0,
+  PROP_CLOCK,
   PROP_PLANNER,
   PROP_LAST
 };
@@ -101,12 +100,8 @@ struct _IndicatorDatetimeServicePrivate
 
   GSettings * settings;
 
-  IndicatorDatetimeTimezone * tz_file;
-  IndicatorDatetimeTimezone * tz_geoclue;
+  IndicatorDatetimeClock * clock;
   IndicatorDatetimePlanner * planner;
-
-  /* cached GTimeZone for use by indicator_datetime_service_get_localtime() */
-  GTimeZone * internal_timezone;
 
   /* the clock app's icon filename */
   gchar * clock_app_icon_filename;
@@ -166,6 +161,12 @@ indicator_clear_timer (guint * tag)
       g_source_remove (*tag);
       *tag = 0;
     }
+}
+
+static inline GDateTime *
+indicator_datetime_service_get_localtime (IndicatorDatetimeService * self)
+{
+  return indicator_datetime_clock_get_current_time (self->priv->clock);
 }
 
 /***
@@ -589,23 +590,6 @@ set_alarm_timer (IndicatorDatetimeService * self)
 ****
 ***/
 
-static void
-update_internal_timezone (IndicatorDatetimeService * self)
-{
-  priv_t * p = self->priv;
-  const char * id;
-
-  /* find the id from tz_file or tz_geoclue if possible; NULL otherwise */
-  id = NULL;
-  if (!id && p->tz_file)
-    id = indicator_datetime_timezone_get_timezone (p->tz_file);
-  if (!id && p->tz_geoclue)
-    id = indicator_datetime_timezone_get_timezone (p->tz_geoclue);
-
-  g_clear_pointer (&p->internal_timezone, g_time_zone_unref);
-  p->internal_timezone = g_time_zone_new (id);
-}
-
 /**
  * General purpose handler for rebuilding sections and restarting their timers
  * when time jumps for whatever reason:
@@ -624,7 +608,6 @@ on_local_time_jumped (IndicatorDatetimeService * self)
      1. rebuild the necessary states / menuitems when time jumps
      2. restart the timers so their new wait interval is correct */
 
-  update_internal_timezone (self);
   on_header_timer (self);
   on_timezone_timer (self);
 }
@@ -1100,61 +1083,6 @@ create_desktop_appointments_section (IndicatorDatetimeService * self)
 ****
 ***/
 
-static void
-on_current_timezone_changed (IndicatorDatetimeService * self)
-{
-  on_local_time_jumped (self);
-}
-
-/* When the 'auto-detect timezone' boolean setting changes,
-   start or stop watching geoclue and /etc/timezone */
-static void
-set_detect_location_enabled (IndicatorDatetimeService * self, gboolean enabled)
-{
-  gboolean changed = FALSE;
-  priv_t * p = self->priv;
-
-  /* geoclue */
-
-  if (!p->tz_geoclue && enabled)
-    {
-      p->tz_geoclue = indicator_datetime_timezone_geoclue_new ();
-      g_signal_connect_swapped (p->tz_geoclue, "notify::timezone",
-                                G_CALLBACK(on_current_timezone_changed),
-                                self);
-      changed = TRUE;
-    }
-  else if (p->tz_geoclue && !enabled)
-    {
-      g_signal_handlers_disconnect_by_func (p->tz_geoclue,
-                                            on_current_timezone_changed,
-                                            self);
-      g_clear_object (&p->tz_geoclue);
-      changed = TRUE;
-    }
-
-  /* timezone file */
-
-  if (!p->tz_file && enabled)
-    {
-      p->tz_file = indicator_datetime_timezone_file_new (TIMEZONE_FILE);
-      g_signal_connect_swapped (p->tz_file, "notify::timezone",
-                                G_CALLBACK(on_current_timezone_changed),
-                                self);
-      changed = TRUE;
-    }
-  else if (p->tz_file && !enabled)
-    {
-      g_signal_handlers_disconnect_by_func (p->tz_file,
-                                            on_current_timezone_changed,
-                                            self);
-      g_clear_object (&p->tz_file);
-      changed = TRUE;
-    }
-
-  if (changed)
-    on_current_timezone_changed (self);
-}
 
 /* A temp struct used by create_locations_section()
    for pruning duplicates and sorting. */
@@ -1240,44 +1168,30 @@ create_locations_section (IndicatorDatetimeService * self)
   GSList * l;
   GSList * locations = NULL;
   gchar ** user_locations;
-  gboolean visible;
-  IndicatorDatetimeTimezone * detected_timezones[2];
+  gchar ** detected_timezones;
   priv_t * p = self->priv;
   GDateTime * now = indicator_datetime_service_get_localtime (self);
-
-  set_detect_location_enabled (self,
-                               g_settings_get_boolean (p->settings, SETTINGS_SHOW_DETECTED_S));
 
   menu = g_menu_new ();
 
   /***
-  ****  Build a list of locations to add: use geo_timezone,
-  ****  current_timezone, and SETTINGS_LOCATIONS_S, but omit duplicates.
+  ****  Build a list of locations to add, omitting duplicates
   ***/
 
-  /* maybe add the auto-detected timezones */
-  detected_timezones[0] = p->tz_geoclue;
-  detected_timezones[1] = p->tz_file;
-  visible = g_settings_get_boolean (p->settings, SETTINGS_SHOW_DETECTED_S);
-  for (i=0; i<G_N_ELEMENTS(detected_timezones); i++)
+  detected_timezones = indicator_datetime_clock_get_timezones (p->clock);
+  for (i=0; detected_timezones && detected_timezones[i]; i++)
     {
-      if (detected_timezones[i] != NULL)
-        {
-          const char * tz = indicator_datetime_timezone_get_timezone (detected_timezones[i]);
-          if (tz && *tz)
-            {
-              gchar * name = get_current_zone_name (tz, p->settings);
-              locations = locations_add (locations, tz, name, visible);
-              g_free (name);
-            }
-        }
+      const char * tz = detected_timezones[i];
+      gchar * name = get_current_zone_name (tz, p->settings);
+      locations = locations_add (locations, tz, name, TRUE);
     }
+  g_strfreev (detected_timezones);
 
   /* maybe add the user-specified locations */
   user_locations = g_settings_get_strv (p->settings, SETTINGS_LOCATIONS_S);
   if (user_locations != NULL)
     {
-      visible = g_settings_get_boolean (p->settings, SETTINGS_SHOW_LOCATIONS_S);
+      const gboolean visible = g_settings_get_boolean (p->settings, SETTINGS_SHOW_LOCATIONS_S);
 
       for (i=0; user_locations[i] != NULL; i++)
         {
@@ -1735,6 +1649,9 @@ rebuild_now (IndicatorDatetimeService * self, int sections)
   struct ProfileMenuInfo * desktop = &p->menus[PROFILE_DESKTOP];
   struct ProfileMenuInfo * greeter = &p->menus[PROFILE_GREETER];
 
+  if (p->actions == NULL)
+    return;
+
   if (sections & SECTION_HEADER)
     {
       g_simple_action_set_state (p->desktop_header_action,
@@ -2088,6 +2005,10 @@ my_get_property (GObject     * o,
 
   switch (property_id)
     {
+      case PROP_CLOCK:
+        g_value_set_object (value, self->priv->clock);
+        break;
+
       case PROP_PLANNER:
         g_value_set_object (value, self->priv->planner);
         break;
@@ -2107,6 +2028,10 @@ my_set_property (GObject       * o,
 
   switch (property_id)
     {
+      case PROP_CLOCK:
+        indicator_datetime_service_set_clock (self, g_value_get_object (value));
+        break;
+
       case PROP_PLANNER:
         indicator_datetime_service_set_planner (self, g_value_get_object (value));
         break;
@@ -2138,8 +2063,7 @@ my_dispose (GObject * o)
       g_clear_object (&p->cancellable);
     }
 
-  set_detect_location_enabled (self, FALSE);
-
+  indicator_datetime_service_set_clock (self, NULL);
   indicator_datetime_service_set_planner (self, NULL);
 
   if (p->login1_manager != NULL)
@@ -2165,7 +2089,6 @@ my_dispose (GObject * o)
   for (i=0; i<N_PROFILES; ++i)
     g_clear_object (&p->menus[i].menu);
 
-  g_clear_pointer (&p->internal_timezone, g_time_zone_unref);
   g_clear_object (&p->calendar_action);
   g_clear_object (&p->desktop_header_action);
   g_clear_object (&p->phone_header_action);
@@ -2194,9 +2117,27 @@ my_finalize (GObject * o)
 static void
 indicator_datetime_service_init (IndicatorDatetimeService * self)
 {
-  guint i, n;
   priv_t * p;
+
+  /* init the priv pointer */
+
+  p = G_TYPE_INSTANCE_GET_PRIVATE (self,
+                                   INDICATOR_TYPE_DATETIME_SERVICE,
+                                   IndicatorDatetimeServicePrivate);
+  self->priv = p;
+
+  p->cancellable = g_cancellable_new ();
+
+  p->settings = g_settings_new (SETTINGS_INTERFACE);
+}
+
+static void
+my_constructed (GObject * gself)
+{
+  IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (gself);
+  priv_t * p = self->priv;
   GString * gstr = g_string_new (NULL);
+  guint i, n;
 
   /* these are the settings that affect the
      contents of the respective sections */
@@ -2233,20 +2174,10 @@ indicator_datetime_service_init (IndicatorDatetimeService * self)
   };
     
 
-  /* init the priv pointer */
-
-  p = G_TYPE_INSTANCE_GET_PRIVATE (self,
-                                   INDICATOR_TYPE_DATETIME_SERVICE,
-                                   IndicatorDatetimeServicePrivate);
-  self->priv = p;
-
-  p->cancellable = g_cancellable_new ();
-
   /***
-  ****  Create the settings object and listen for changes
+  ****  Listen for settings changes
   ***/
 
-  p->settings = g_settings_new (SETTINGS_INTERFACE);
   for (i=0, n=G_N_ELEMENTS(header_settings); i<n; i++)
     {
       g_string_printf (gstr, "changed::%s", header_settings[i]);
@@ -2327,6 +2258,7 @@ indicator_datetime_service_class_init (IndicatorDatetimeServiceClass * klass)
 
   object_class->dispose = my_dispose;
   object_class->finalize = my_finalize;
+  object_class->constructed = my_constructed;
   object_class->get_property = my_get_property;
   object_class->set_property = my_set_property;
 
@@ -2345,6 +2277,12 @@ indicator_datetime_service_class_init (IndicatorDatetimeServiceClass * klass)
 
   properties[PROP_0] = NULL;
 
+  properties[PROP_CLOCK] = g_param_spec_object ("clock",
+                                                "Clock",
+                                                "The clock",
+                                                G_TYPE_OBJECT,
+                                                flags);
+
   properties[PROP_PLANNER] = g_param_spec_object ("planner",
                                                   "Planner",
                                                   "The appointment provider",
@@ -2359,26 +2297,15 @@ indicator_datetime_service_class_init (IndicatorDatetimeServiceClass * klass)
 ***/
 
 IndicatorDatetimeService *
-indicator_datetime_service_new (IndicatorDatetimePlanner * planner)
+indicator_datetime_service_new (IndicatorDatetimeClock   * clock,
+                                IndicatorDatetimePlanner * planner)
 {
   GObject * o = g_object_new (INDICATOR_TYPE_DATETIME_SERVICE,
+                              "clock", clock,
                               "planner", planner,
                               NULL);
 
   return INDICATOR_DATETIME_SERVICE (o);
-}
-
-/* This currently just returns the system time,
-   As we add test coverage, we'll need this to bypass the system time. */
-GDateTime *
-indicator_datetime_service_get_localtime (IndicatorDatetimeService * self)
-{
-  priv_t * p = self->priv;
-
-  if (G_UNLIKELY (p->internal_timezone == NULL))
-    update_internal_timezone (self);
-
-  return g_date_time_new_now (p->internal_timezone);
 }
 
 void
@@ -2400,6 +2327,43 @@ indicator_datetime_service_set_calendar_date (IndicatorDatetimeService * self,
     update_appointment_lists (self);
 }
 
+static void
+on_clock_changed (IndicatorDatetimeService * self)
+{
+  on_local_time_jumped (self);
+}
+
+void
+indicator_datetime_service_set_clock (IndicatorDatetimeService * self,
+                                      IndicatorDatetimeClock   * clock)
+{
+  priv_t * p;
+
+  g_return_if_fail (INDICATOR_IS_DATETIME_SERVICE (self));
+  g_return_if_fail ((clock == NULL) || INDICATOR_IS_DATETIME_CLOCK (clock));
+
+  p = self->priv;
+
+  /* clear the old clock */
+
+  if (p->clock != NULL)
+    {
+      g_signal_handlers_disconnect_by_data (p->clock, self);
+      g_clear_object (&p->clock);
+    }
+
+  /* set the new clock */
+
+  if (clock != NULL)
+    {
+      p->clock = g_object_ref (clock);
+
+      g_signal_connect_swapped (p->clock, "changed",
+                                G_CALLBACK(on_clock_changed), self);
+      on_clock_changed (self);
+    }
+}
+
 void
 indicator_datetime_service_set_planner (IndicatorDatetimeService * self,
                                         IndicatorDatetimePlanner * planner)
@@ -2407,7 +2371,7 @@ indicator_datetime_service_set_planner (IndicatorDatetimeService * self,
   priv_t * p;
 
   g_return_if_fail (INDICATOR_IS_DATETIME_SERVICE (self));
-  g_return_if_fail (INDICATOR_IS_DATETIME_PLANNER (planner));
+  g_return_if_fail ((planner == NULL) || INDICATOR_IS_DATETIME_PLANNER (planner));
 
   p = self->priv;
 

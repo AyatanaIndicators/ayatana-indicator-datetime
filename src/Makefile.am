@@ -18,10 +18,12 @@ libindicator_datetime_service_a_CFLAGS = \
   $(SHARED_CFLAGS)
 
 libindicator_datetime_service_a_SOURCES = \
+  clock.c \
+  clock.h \
+  clock-live.c \
+  clock-live.h \
   planner.c \
   planner.h \
-  planner-mock.c \
-  planner-mock.h \
   planner-eds.c \
   planner-eds.h \
   service.c \

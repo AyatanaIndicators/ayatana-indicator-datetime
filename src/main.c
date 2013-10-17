@@ -26,36 +26,26 @@
 #include <gio/gio.h>
 #include <libnotify/notify.h> 
 
+#include "clock-live.h"
 #include "planner-eds.h"
-#include "planner-mock.h"
 #include "service.h"
 
 /***
 ****
 ***/
 
-/* When enabled, new alarms will show up every minute to test snap decisions */
-static gboolean test_alarms = FALSE;
-
-static GOptionEntry entries[] = {
-  { "test-alarms", '\0', 0, G_OPTION_ARG_NONE, &test_alarms, "Test Alarms", NULL },
-  { NULL }
-};
-
 static void
 on_name_lost (gpointer instance G_GNUC_UNUSED, gpointer loop)
 {
   g_message ("exiting: service couldn't acquire or lost ownership of busname");
 
-  if (!test_alarms)
-    g_main_loop_quit ((GMainLoop*)loop);
+  g_main_loop_quit ((GMainLoop*)loop);
 }
 
 int
 main (int argc G_GNUC_UNUSED, char ** argv G_GNUC_UNUSED)
 {
-  GOptionContext * context;
-  GError * error;
+  IndicatorDatetimeClock * clock;
   IndicatorDatetimePlanner * planner;
   IndicatorDatetimeService * service;
   GMainLoop * loop;
@@ -69,28 +59,10 @@ main (int argc G_GNUC_UNUSED, char ** argv G_GNUC_UNUSED)
   if (!notify_init ("indicator-datetime-service"))
     g_critical ("libnotify initialization failed");
 
-  /* parse command-line options */
-  context = g_option_context_new (NULL);
-  g_option_context_add_main_entries (context, entries, GETTEXT_PACKAGE);
-  if (!g_option_context_parse (context, &argc, &argv, &error))
-    {
-      g_print("option parsing failed: %s\n", error->message);
-      return EXIT_FAILURE;
-    }
-
-  /* set up the planner */
-  if (test_alarms)
-    {
-      g_message ("Using fake appointment book for testing alarms.");
-      planner = indicator_datetime_planner_mock_new ();
-    }
-  else
-    {
-      planner = indicator_datetime_planner_eds_new ();
-    }
-
   /* run */
-  service = indicator_datetime_service_new (planner);
+  clock = indicator_datetime_clock_live_new ();
+  planner = indicator_datetime_planner_eds_new ();
+  service = indicator_datetime_service_new (clock, planner);
   loop = g_main_loop_new (NULL, FALSE);
   g_signal_connect (service, INDICATOR_DATETIME_SERVICE_SIGNAL_NAME_LOST,
                     G_CALLBACK(on_name_lost), loop);
@@ -100,5 +72,6 @@ main (int argc G_GNUC_UNUSED, char ** argv G_GNUC_UNUSED)
   g_main_loop_unref (loop);
   g_object_unref (service);
   g_object_unref (planner);
+  g_object_unref (clock);
   return 0;
 }
