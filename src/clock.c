@@ -55,10 +55,10 @@ indicator_datetime_clock_default_init (IndicatorDatetimeClockInterface * klass)
  *               (transfer full):
  *               array of timezone strings
  */
-gchar **
+const gchar **
 indicator_datetime_clock_get_timezones (IndicatorDatetimeClock * self)
 {
-  gchar ** timezones;
+  const gchar ** timezones;
   IndicatorDatetimeClockInterface * iface;
 
   g_return_val_if_fail (INDICATOR_IS_DATETIME_CLOCK(self), NULL);

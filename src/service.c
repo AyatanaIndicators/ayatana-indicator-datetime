@@ -1168,7 +1168,7 @@ create_locations_section (IndicatorDatetimeService * self)
   GSList * l;
   GSList * locations = NULL;
   gchar ** user_locations;
-  gchar ** detected_timezones;
+  const gchar ** detected_timezones;
   priv_t * p = self->priv;
   GDateTime * now = indicator_datetime_service_get_localtime (self);
 
@@ -1185,7 +1185,6 @@ create_locations_section (IndicatorDatetimeService * self)
       gchar * name = get_current_zone_name (tz, p->settings);
       locations = locations_add (locations, tz, name, TRUE);
     }
-  g_strfreev (detected_timezones);
 
   /* maybe add the user-specified locations */
   user_locations = g_settings_get_strv (p->settings, SETTINGS_LOCATIONS_S);
