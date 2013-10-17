@@ -7,10 +7,16 @@ ACTIONS
    Parameter: None
 
  * "activate-planner"
-   Description: opens up a calendar appointment editor.
+   Description: opens an appointment editor.
    State: None
    Parameter: int64, a time_t hinting which day/time to show in the planner,
                      or 0 for the current day
+
+ * "activate-appointment"
+   Description: opens an appointment editor to the specified appointment.
+   State: None
+   Parameter: string, an opaque uid to specify which appointment to use.
+                      This uid comes from the menuitems' target values.
 
  * "set-location"
    Description: Set the current location. This will try to set the current

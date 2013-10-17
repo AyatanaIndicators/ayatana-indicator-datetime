@@ -20,6 +20,8 @@ libindicator_datetime_service_a_CFLAGS = \
 libindicator_datetime_service_a_SOURCES = \
   planner.c \
   planner.h \
+  planner-mock.c \
+  planner-mock.h \
   planner-eds.c \
   planner-eds.h \
   service.c \

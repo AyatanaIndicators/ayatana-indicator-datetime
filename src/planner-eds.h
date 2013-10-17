@@ -51,8 +51,6 @@ struct _IndicatorDatetimePlannerEdsClass
   IndicatorDatetimePlannerClass parent_class;
 };
 
-gboolean indicator_datetime_planner_eds_is_usable (void);
-
 IndicatorDatetimePlanner * indicator_datetime_planner_eds_new (void);
 
 G_END_DECLS
