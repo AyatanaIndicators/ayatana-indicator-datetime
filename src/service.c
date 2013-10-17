@@ -451,7 +451,7 @@ on_snap_decided (NotifyNotification * notification  G_GNUC_UNUSED,
 {
   g_debug ("%s: %s", G_STRFUNC, action);
 
-  if (!g_strcmp0 (action, "ok"))
+  if (!g_strcmp0 (action, "show"))
     {
       const gchar * url = gurl;
       g_debug ("dispatching url '%s'", url);
@@ -478,9 +478,9 @@ show_snap_decision_for_alarm (const struct IndicatorDatetimeAppt * appt)
   nn = notify_notification_new (title, body, icon_name);
   notify_notification_set_hint (nn, "x-canonical-snap-decisions",
                                 g_variant_new_boolean(TRUE));
-  notify_notification_add_action (nn, "ok", _("OK"),
+  notify_notification_add_action (nn, "show", _("Show"),
                                   on_snap_decided, g_strdup(appt->url), g_free);
-  notify_notification_add_action (nn, "cancel", _("Cancel"),
+  notify_notification_add_action (nn, "dismiss", _("Dismiss"),
                                   on_snap_decided, NULL, NULL);
 
   error = NULL;
