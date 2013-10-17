@@ -55,7 +55,7 @@ struct _IndicatorDatetimeClockInterface
 
   /* virtual functions */
   gchar** (*get_timezones) (IndicatorDatetimeClock * self);
-  GDateTime* (*get_current_time) (IndicatorDatetimeClock * self);
+  GDateTime* (*get_localtime) (IndicatorDatetimeClock * self);
 };
 
 GType indicator_datetime_clock_get_type (void);
@@ -66,7 +66,7 @@ GType indicator_datetime_clock_get_type (void);
 
 gchar    ** indicator_datetime_clock_get_timezones    (IndicatorDatetimeClock * clock);
 
-GDateTime * indicator_datetime_clock_get_current_time (IndicatorDatetimeClock * clock);
+GDateTime * indicator_datetime_clock_get_localtime    (IndicatorDatetimeClock * clock);
 
 void        indicator_datetime_clock_emit_changed     (IndicatorDatetimeClock * clock);
 

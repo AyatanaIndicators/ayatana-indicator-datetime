@@ -35,7 +35,7 @@ struct _IndicatorDatetimeClockLivePriv
 {
   GSettings * settings;
 
-  /* cached GTimeZone for use by indicator_datetime_service_get_localtime() */
+  /* cached GTimeZone for use by get_localtime() */
   GTimeZone * internal_timezone;
 
   IndicatorDatetimeTimezone * tz_file;
@@ -59,37 +59,8 @@ G_DEFINE_TYPE_WITH_CODE (
                          indicator_datetime_clock_interface_init));
 
 /***
-****  Convenience func
-***/
-
-#if 0
-static void
-emit_changed (IndicatorDatetimeClockLive * self)
-{
-  indicator_datetime_clock_emit_changed (INDICATOR_DATETIME_CLOCK (self));
-}
-#endif
-
-/***
 ****  Timezones
 ***/
-
-static void
-update_internal_timezone (IndicatorDatetimeClockLive * self)
-{
-  priv_t * p = self->priv;
-  const char * id;
-
-  /* find the id from tz_file or tz_geoclue if possible; NULL otherwise */
-  id = NULL;
-  if (p->tz_file != NULL )
-    id = indicator_datetime_timezone_get_timezone (p->tz_file);
-  if (!id && p->tz_geoclue)
-    id = indicator_datetime_timezone_get_timezone (p->tz_geoclue);
-
-  g_clear_pointer (&p->internal_timezone, g_time_zone_unref);
-  p->internal_timezone = g_time_zone_new (id);
-}
 
 static void
 on_current_timezone_changed (IndicatorDatetimeClockLive * self)
@@ -159,7 +130,7 @@ on_detect_location_changed (IndicatorDatetimeClockLive * self)
 ***/
 
 static gchar **
-my_get_timezones (IndicatorDatetimeClock * clock G_GNUC_UNUSED)
+my_get_timezones (IndicatorDatetimeClock * clock)
 {
   IndicatorDatetimeClockLive * self;
   priv_t * p;
@@ -197,8 +168,18 @@ my_get_timezones (IndicatorDatetimeClock * clock G_GNUC_UNUSED)
   return timezones;
 }
 
+static void
+update_internal_timezone (IndicatorDatetimeClockLive * self)
+{
+  priv_t * p = self->priv;
+  gchar ** timezones = my_get_timezones (INDICATOR_DATETIME_CLOCK (self));
+  g_clear_pointer (&p->internal_timezone, g_time_zone_unref);
+  p->internal_timezone = g_time_zone_new (timezones ? timezones[0] : NULL);
+  g_strfreev (timezones);
+}
+
 static GDateTime *
-my_get_current_time (IndicatorDatetimeClock * clock)
+my_get_localtime (IndicatorDatetimeClock * clock)
 {
   IndicatorDatetimeClockLive * self;
   priv_t * p;
@@ -271,8 +252,8 @@ indicator_datetime_clock_live_class_init (IndicatorDatetimeClockLiveClass * klas
 static void
 indicator_datetime_clock_interface_init (IndicatorDatetimeClockInterface * iface)
 {
+  iface->get_localtime = my_get_localtime;
   iface->get_timezones = my_get_timezones;
-  iface->get_current_time = my_get_current_time;
 }
 
 static void

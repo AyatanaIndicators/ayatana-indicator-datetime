@@ -166,7 +166,7 @@ indicator_clear_timer (guint * tag)
 static inline GDateTime *
 indicator_datetime_service_get_localtime (IndicatorDatetimeService * self)
 {
-  return indicator_datetime_clock_get_current_time (self->priv->clock);
+  return indicator_datetime_clock_get_localtime (self->priv->clock);
 }
 
 /***

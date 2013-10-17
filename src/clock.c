@@ -80,7 +80,7 @@ indicator_datetime_clock_get_timezones (IndicatorDatetimeClock * self)
  *               the current time.
  */
 GDateTime *
-indicator_datetime_clock_get_current_time (IndicatorDatetimeClock * self)
+indicator_datetime_clock_get_localtime (IndicatorDatetimeClock * self)
 {
   GDateTime * now;
   IndicatorDatetimeClockInterface * iface;
@@ -88,8 +88,8 @@ indicator_datetime_clock_get_current_time (IndicatorDatetimeClock * self)
   g_return_val_if_fail (INDICATOR_IS_DATETIME_CLOCK(self), NULL);
   iface = INDICATOR_DATETIME_CLOCK_GET_INTERFACE(self);
 
-  if (iface->get_current_time != NULL)
-    now = iface->get_current_time (self);
+  if (iface->get_localtime != NULL)
+    now = iface->get_localtime (self);
   else
     now = NULL;
 

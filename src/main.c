@@ -59,17 +59,19 @@ main (int argc G_GNUC_UNUSED, char ** argv G_GNUC_UNUSED)
   if (!notify_init ("indicator-datetime-service"))
     g_critical ("libnotify initialization failed");
 
-  /* run */
+  /* create the service */
   clock = indicator_datetime_clock_live_new ();
   planner = indicator_datetime_planner_eds_new ();
   service = indicator_datetime_service_new (clock, planner);
+
+  /* run */
   loop = g_main_loop_new (NULL, FALSE);
   g_signal_connect (service, INDICATOR_DATETIME_SERVICE_SIGNAL_NAME_LOST,
                     G_CALLBACK(on_name_lost), loop);
   g_main_loop_run (loop);
+  g_main_loop_unref (loop);
 
   /* cleanup */
-  g_main_loop_unref (loop);
   g_object_unref (service);
   g_object_unref (planner);
   g_object_unref (clock);
