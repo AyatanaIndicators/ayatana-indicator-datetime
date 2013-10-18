@@ -58,17 +58,8 @@ if (BUILD_PANEL)
   set (DESKTOP_FILE "${CMAKE_CURRENT_BINARY_DIR}/${DESKTOP_NAME}")
   set (DESKTOP_FILE_IN "${CMAKE_CURRENT_SOURCE_DIR}/${DESKTOP_NAME}.in")
   set (ENV{LC_ALL} "C")
-  execute_process (COMMAND intltool-merge -quiet --xml-style --utf8 --no-translations "${DESKTOP_FILE_IN}" "${DESKTOP_FILE}")
+  execute_process (COMMAND intltool-merge -quiet --desktop-style --utf8 "${CMAKE_SOURCE_DIR}/po" "${DESKTOP_FILE_IN}" "${DESKTOP_FILE}")
   install (FILES ${DESKTOP_FILE}
            DESTINATION "${CMAKE_INSTALL_DATADIR}/applications")
 
 endif ()
-
-#if BUILD_CCPANEL
-# @INTLTOOL_DESKTOP_RULE@
-# desktopdir = $(datadir)/applications
-# desktop_DATA = gnome-indicator-datetime-panel.desktop
-# EXTRA_DIST += $(desktop_DATA)
-# CLEANFILES += $(desktop_DATA)
-#endif
-#EXTRA_DIST += datetime-dialog.ui $(desktop_DATA:.desktop=.desktop.in)
