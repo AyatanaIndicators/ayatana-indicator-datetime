@@ -38,6 +38,7 @@ struct _IndicatorDatetimeClockLivePriv
   IndicatorDatetimeTimezone * tz_file;
   IndicatorDatetimeTimezone * tz_geoclue;
   gchar ** timezones;
+  GTimeZone * localtime_zone;
 };
 
 typedef IndicatorDatetimeClockLivePriv priv_t;
@@ -63,7 +64,10 @@ G_DEFINE_TYPE_WITH_CODE (
 static void
 on_current_timezone_changed (IndicatorDatetimeClockLive * self)
 {
-  g_clear_pointer (&self->priv->timezones, g_strfreev);
+  priv_t * p = self->priv;
+
+  g_clear_pointer (&p->timezones, g_strfreev);
+  g_clear_pointer (&p->localtime_zone, g_time_zone_unref);
 
   indicator_datetime_clock_emit_changed (INDICATOR_DATETIME_CLOCK (self));
 }
@@ -130,7 +134,7 @@ on_detect_location_changed (IndicatorDatetimeClockLive * self)
 ***/
 
 static void
-rebuild_timezone_strv (IndicatorDatetimeClockLive * self)
+rebuild_timezones (IndicatorDatetimeClockLive * self)
 {
   priv_t * p;
   GHashTable * hash;
@@ -163,6 +167,9 @@ rebuild_timezone_strv (IndicatorDatetimeClockLive * self)
   while (g_hash_table_iter_next (&iter, &key, NULL))
     p->timezones[i++] = g_strdup (key);
   g_hash_table_unref (hash);
+
+  g_clear_pointer (&p->localtime_zone, g_time_zone_unref);
+  p->localtime_zone = g_time_zone_new (p->timezones ? p->timezones[0] : NULL);
 }
 
 static const gchar **
@@ -171,8 +178,8 @@ my_get_timezones (IndicatorDatetimeClock * clock)
   IndicatorDatetimeClockLive * self = INDICATOR_DATETIME_CLOCK_LIVE (clock);
   priv_t * p = self->priv;
 
-  if (p->timezones == NULL)
-    rebuild_timezone_strv (self);
+  if (G_UNLIKELY (p->timezones == NULL))
+    rebuild_timezones (self);
 
   return (const gchar **) p->timezones;
 }
@@ -180,11 +187,13 @@ my_get_timezones (IndicatorDatetimeClock * clock)
 static GDateTime *
 my_get_localtime (IndicatorDatetimeClock * clock)
 {
-  const gchar ** zones = my_get_timezones (clock);
-  GTimeZone * zone = g_time_zone_new (zones ? zones[0] : NULL);
-  GDateTime * time = g_date_time_new_now (zone);
-  g_time_zone_unref (zone);
-  return time;
+  IndicatorDatetimeClockLive * self = INDICATOR_DATETIME_CLOCK_LIVE (clock);
+  priv_t * p = self->priv;
+
+  if (G_UNLIKELY (p->localtime_zone == NULL))
+    rebuild_timezones (self);
+
+  return g_date_time_new_now (p->localtime_zone);
 }
 
 /***
@@ -220,6 +229,7 @@ my_finalize (GObject * o)
   self = INDICATOR_DATETIME_CLOCK_LIVE(o);
   p = self->priv;
 
+  g_clear_pointer (&p->localtime_zone, g_time_zone_unref);
   g_strfreev (p->timezones);
 
   G_OBJECT_CLASS (indicator_datetime_clock_live_parent_class)->dispose (o);
