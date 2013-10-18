@@ -70,7 +70,7 @@ on_address_changed_sig (GeoclueAddress  * address     G_GNUC_UNUSED,
                         GeoclueAccuracy * accuracy    G_GNUC_UNUSED,
                         gpointer          gself)
 {
-  return on_address_changed(address, timestamp, addy_data, accuracy, NULL, gself);
+  on_address_changed(address, timestamp, addy_data, accuracy, NULL, gself);
 }
 
 static void
