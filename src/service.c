@@ -147,6 +147,13 @@ struct _IndicatorDatetimeServicePrivate
   /* appointments over the next few weeks.
      Used when building SECTION_APPOINTMENTS */
   GSList * upcoming_appointments;
+
+  /* variant cache */
+  GVariant * desktop_title_variant;
+  GVariant * phone_title_variant;
+  GVariant * visible_true_variant;
+  GVariant * visible_false_variant;
+  GVariant * alarm_icon_variant;
 };
 
 typedef IndicatorDatetimeServicePrivate priv_t;
@@ -673,15 +680,15 @@ get_header_label_format_string (IndicatorDatetimeService * self)
 static GVariant *
 create_desktop_header_state (IndicatorDatetimeService * self)
 {
+  priv_t * p = self->priv;
   GVariantBuilder b;
   const gchar * fmt;
   gchar * str;
   gboolean visible;
   GDateTime * now;
-  const gchar * title = _("Date and Time");
   GVariant * label_variant;
 
-  visible = g_settings_get_boolean (self->priv->settings, SETTINGS_SHOW_CLOCK_S);
+  visible = g_settings_get_boolean (p->settings, SETTINGS_SHOW_CLOCK_S);
 
   /* build the time string for the label & a11y */
   fmt = get_header_label_format_string (self);
@@ -697,8 +704,8 @@ create_desktop_header_state (IndicatorDatetimeService * self)
   g_variant_builder_init (&b, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_add (&b, "{sv}", "accessible-desc", label_variant);
   g_variant_builder_add (&b, "{sv}", "label", label_variant);
-  g_variant_builder_add (&b, "{sv}", "title", g_variant_new_string (title));
-  g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (visible));
+  g_variant_builder_add_value (&b, p->desktop_title_variant);
+  g_variant_builder_add_value (&b, visible ? p->visible_true_variant : p->visible_false_variant);
 
   /* cleanup */
   g_date_time_unref (now);
@@ -711,43 +718,37 @@ service_has_alarms (IndicatorDatetimeService * self);
 static GVariant *
 create_phone_header_state (IndicatorDatetimeService * self)
 {
+  priv_t * p = self->priv;
+  const gboolean has_alarms = service_has_alarms (self);
   GVariantBuilder b;
   GDateTime * now;
   const gchar * fmt;
-  gchar * label;
-  gboolean has_alarms;
-  gchar * a11y;
-  const gchar * title = _("Upcoming");
 
   g_variant_builder_init (&b, G_VARIANT_TYPE_VARDICT);
-
-  /* label */
-  now = indicator_datetime_service_get_localtime (self);
-  fmt = get_terse_header_time_format_string ();
-  label = g_date_time_format (now, fmt);
+  g_variant_builder_add_value (&b, p->phone_title_variant);
+  g_variant_builder_add_value (&b, p->visible_true_variant);
 
   /* icon */
-  if ((has_alarms = service_has_alarms (self)))
+  if (has_alarms)
+    g_variant_builder_add_value (&b, p->alarm_icon_variant);
+
+  /* label, a11y */
+  now = indicator_datetime_service_get_localtime (self);
+  fmt = get_terse_header_time_format_string ();
+  if (has_alarms)
     {
-      GIcon * icon;
-      icon = g_themed_icon_new_with_default_fallbacks (ALARM_CLOCK_ICON_NAME);
-      g_variant_builder_add (&b, "{sv}", "icon", g_icon_serialize (icon));
-      g_object_unref (icon);
+      gchar * label = g_date_time_format (now, fmt);
+      gchar * a11y =  g_strdup_printf (_("%s (has alarms)"), label);
+      g_variant_builder_add (&b, "{sv}", "label", g_variant_new_take_string (label));
+      g_variant_builder_add (&b, "{sv}", "accessible-desc", g_variant_new_take_string (a11y));
+    }
+  else
+    {
+      GVariant * v = g_variant_new_take_string (g_date_time_format (now, fmt));
+      g_variant_builder_add (&b, "{sv}", "label", v);
+      g_variant_builder_add (&b, "{sv}", "accessible-desc", v);
     }
 
-  /* a11y */
-  if (has_alarms)
-    a11y = g_strdup_printf (_("%s (has alarms)"), label);
-  else
-    a11y = g_strdup (label);
-  g_variant_builder_add (&b, "{sv}", "accessible-desc",
-                         g_variant_new_take_string (a11y));
-
-  g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (TRUE));
-  g_variant_builder_add (&b, "{sv}", "label", g_variant_new_take_string (label));
-  g_variant_builder_add (&b, "{sv}", "title", g_variant_new_string (title));
-
-  /* cleanup */
   g_date_time_unref (now);
   return g_variant_builder_end (&b);
 }
@@ -2105,6 +2106,12 @@ my_dispose (GObject * o)
   g_clear_object (&p->phone_header_action);
   g_clear_object (&p->conn);
 
+  g_clear_pointer (&p->desktop_title_variant, g_variant_unref);
+  g_clear_pointer (&p->phone_title_variant, g_variant_unref);
+  g_clear_pointer (&p->visible_true_variant, g_variant_unref);
+  g_clear_pointer (&p->visible_false_variant, g_variant_unref);
+  g_clear_pointer (&p->alarm_icon_variant, g_variant_unref);
+
   G_OBJECT_CLASS (indicator_datetime_service_parent_class)->dispose (o);
 }
 
@@ -2129,6 +2136,7 @@ my_finalize (GObject * o)
 static void
 indicator_datetime_service_init (IndicatorDatetimeService * self)
 {
+  GIcon * icon;
   priv_t * p;
 
   /* init the priv pointer */
@@ -2141,6 +2149,23 @@ indicator_datetime_service_init (IndicatorDatetimeService * self)
   p->cancellable = g_cancellable_new ();
 
   p->settings = g_settings_new (SETTINGS_INTERFACE);
+
+  p->desktop_title_variant = g_variant_new ("{sv}", "title", g_variant_new_string (_("Date and Time")));
+  g_variant_ref_sink (p->desktop_title_variant);
+
+  p->phone_title_variant = g_variant_new ("{sv}", "title", g_variant_new_string (_("Upcoming")));
+  g_variant_ref_sink (p->phone_title_variant);
+
+  p->visible_true_variant = g_variant_new ("{sv}", "visible", g_variant_new_boolean (TRUE));
+  g_variant_ref_sink (p->visible_true_variant);
+
+  p->visible_false_variant = g_variant_new ("{sv}", "visible", g_variant_new_boolean (FALSE));
+  g_variant_ref_sink (p->visible_false_variant);
+
+  icon = g_themed_icon_new_with_default_fallbacks (ALARM_CLOCK_ICON_NAME);
+  p->alarm_icon_variant = g_variant_new ("{sv}", "icon", g_icon_serialize (icon));
+  g_variant_ref_sink (p->alarm_icon_variant);
+  g_object_unref (icon);
 }
 
 static void
