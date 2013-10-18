@@ -106,6 +106,8 @@ struct _IndicatorDatetimeServicePrivate
   /* the clock app's icon filename */
   gchar * clock_app_icon_filename;
 
+  gchar * header_label_format_string;
+
   /* Whether or not we've tried to load the clock app's icon.
      This way we don't keep trying to reload it on the desktop */
   gboolean clock_app_icon_initialized;
@@ -179,6 +181,8 @@ static void rebuild_soon (IndicatorDatetimeService * self, int section);
 static inline void
 rebuild_header_soon (IndicatorDatetimeService * self)
 {
+  g_clear_pointer (&self->priv->header_label_format_string, g_free);
+
   rebuild_soon (self, SECTION_HEADER);
 }
 
@@ -361,7 +365,7 @@ on_header_timer (gpointer gself)
   return G_SOURCE_REMOVE;
 }
 
-static char * get_header_label_format_string (IndicatorDatetimeService *);
+static const char * get_header_label_format_string (IndicatorDatetimeService *);
 
 static void
 start_header_timer (IndicatorDatetimeService * self)
@@ -375,11 +379,10 @@ start_header_timer (IndicatorDatetimeService * self)
 
   if (g_settings_get_boolean (self->priv->settings, SETTINGS_SHOW_CLOCK_S))
     {
-      char * fmt = get_header_label_format_string (self);
+      const char * fmt = get_header_label_format_string (self);
       header_shows_seconds = fmt && (strstr(fmt,"%s") || strstr(fmt,"%S") ||
                                      strstr(fmt,"%T") || strstr(fmt,"%X") ||
                                      strstr(fmt,"%c"));
-      g_free (fmt);
     }
 
   if (header_shows_seconds)
@@ -639,32 +642,39 @@ skew_timer_func (gpointer gself)
 ****
 ***/
 
-static gchar *
+static const gchar *
 get_header_label_format_string (IndicatorDatetimeService * self)
 {
-  char * fmt;
-  GSettings * s = self->priv->settings;
-  const TimeFormatMode mode = g_settings_get_enum (s, SETTINGS_TIME_FORMAT_S);
+  priv_t * p = self->priv;
 
-  if (mode == TIME_FORMAT_MODE_CUSTOM)
+  if (p->header_label_format_string == NULL)
     {
-      fmt = g_settings_get_string (s, SETTINGS_CUSTOM_TIME_FORMAT_S);
-    }
-  else
-    {
-      gboolean show_day = g_settings_get_boolean (s, SETTINGS_SHOW_DAY_S);
-      gboolean show_date = g_settings_get_boolean (s, SETTINGS_SHOW_DATE_S);
-      fmt = generate_full_format_string (show_day, show_date, s);
+      char * fmt;
+      GSettings * s = p->settings;
+      const TimeFormatMode mode = g_settings_get_enum (s, SETTINGS_TIME_FORMAT_S);
+
+      if (mode == TIME_FORMAT_MODE_CUSTOM)
+        {
+          fmt = g_settings_get_string (s, SETTINGS_CUSTOM_TIME_FORMAT_S);
+        }
+      else
+        {
+          gboolean show_day = g_settings_get_boolean (s, SETTINGS_SHOW_DAY_S);
+          gboolean show_date = g_settings_get_boolean (s, SETTINGS_SHOW_DATE_S);
+          fmt = generate_full_format_string (show_day, show_date, s);
+        }
+
+      p->header_label_format_string = fmt;
     }
 
-  return fmt;
+  return p->header_label_format_string;
 }
 
 static GVariant *
 create_desktop_header_state (IndicatorDatetimeService * self)
 {
   GVariantBuilder b;
-  gchar * fmt;
+  const gchar * fmt;
   gchar * str;
   gboolean visible;
   GDateTime * now;
@@ -690,7 +700,6 @@ create_desktop_header_state (IndicatorDatetimeService * self)
 
   /* cleanup */
   g_date_time_unref (now);
-  g_free (fmt);
   return g_variant_builder_end (&b);
 }
 
@@ -2103,6 +2112,7 @@ my_finalize (GObject * o)
   priv_t * p = self->priv;
 
   g_free (p->clock_app_icon_filename);
+  g_free (p->header_label_format_string);
   g_clear_pointer (&p->skew_time, g_date_time_unref);
   g_clear_pointer (&p->calendar_date, g_date_time_unref);
 
