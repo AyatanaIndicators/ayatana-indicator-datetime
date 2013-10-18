@@ -679,6 +679,7 @@ create_desktop_header_state (IndicatorDatetimeService * self)
   gboolean visible;
   GDateTime * now;
   const gchar * title = _("Date and Time");
+  GVariant * label_variant;
 
   visible = g_settings_get_boolean (self->priv->settings, SETTINGS_SHOW_CLOCK_S);
 
@@ -692,9 +693,10 @@ create_desktop_header_state (IndicatorDatetimeService * self)
       g_warning ("%s", str);
     }
 
+  label_variant = g_variant_new_take_string (str);
   g_variant_builder_init (&b, G_VARIANT_TYPE_VARDICT);
-  g_variant_builder_add (&b, "{sv}", "accessible-desc", g_variant_new_string (str));
-  g_variant_builder_add (&b, "{sv}", "label", g_variant_new_take_string (str));
+  g_variant_builder_add (&b, "{sv}", "accessible-desc", label_variant);
+  g_variant_builder_add (&b, "{sv}", "label", label_variant);
   g_variant_builder_add (&b, "{sv}", "title", g_variant_new_string (title));
   g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (visible));
 
@@ -1193,6 +1195,7 @@ create_locations_section (IndicatorDatetimeService * self)
       const char * tz = detected_timezones[i];
       gchar * name = get_current_zone_name (tz, p->settings);
       locations = locations_add (locations, tz, name, TRUE);
+      g_free (name);
     }
 
   /* maybe add the user-specified locations */
