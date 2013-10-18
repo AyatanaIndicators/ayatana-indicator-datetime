@@ -107,7 +107,9 @@ time_location_array_new_from_model (GtkTreeModel * model)
 }
 
 static void
-handle_sort(GtkWidget * button, GtkTreeView * tree_view, GCompareFunc compare)
+handle_sort(GtkWidget * button G_GNUC_UNUSED,
+            GtkTreeView * tree_view,
+            GCompareFunc compare)
 {
   GtkTreeModel * model = gtk_tree_view_get_model (tree_view);
   GSList * l;
@@ -178,7 +180,7 @@ location_model_test_sorted (GtkTreeModel * model, gboolean * is_sorted_by_name, 
 ***/
 
 static void
-handle_add (GtkWidget * button, GtkTreeView * tree)
+handle_add (GtkWidget * button G_GNUC_UNUSED, GtkTreeView * tree)
 {
   GtkListStore * store = GTK_LIST_STORE (gtk_tree_view_get_model (tree));
 
@@ -191,7 +193,7 @@ handle_add (GtkWidget * button, GtkTreeView * tree)
 }
 
 static void
-handle_remove (GtkWidget * button, GtkTreeView * tree)
+handle_remove (GtkWidget * button G_GNUC_UNUSED, GtkTreeView * tree)
 {
   GtkListStore * store = GTK_LIST_STORE (gtk_tree_view_get_model (tree));
   GtkTreeSelection * selection = gtk_tree_view_get_selection (tree);
@@ -288,7 +290,9 @@ handle_remove (GtkWidget * button, GtkTreeView * tree)
 }
 
 static void
-handle_edit (GtkCellRendererText * renderer, gchar * path, gchar * new_text,
+handle_edit (GtkCellRendererText * renderer G_GNUC_UNUSED,
+             gchar * path,
+             gchar * new_text,
              GtkListStore * store)
 {
   GtkTreeIter iter;
@@ -386,8 +390,10 @@ query_tooltip (GtkTreeView * tree, gint x, gint y, gboolean keyboard_mode,
 }
 
 static void
-handle_edit_started (GtkCellRendererText * renderer, GtkCellEditable * editable,
-                     gchar * path, CcTimezoneCompletion * completion)
+handle_edit_started (GtkCellRendererText * renderer G_GNUC_UNUSED,
+                     GtkCellEditable * editable,
+                     gchar * path,
+                     CcTimezoneCompletion * completion)
 {
   if (GTK_IS_ENTRY (editable)) {
     GtkEntry *entry = GTK_ENTRY (editable);
@@ -546,7 +552,7 @@ save_when_idle (GtkWidget *dlg)
 }
 
 static void
-dialog_closed (GtkWidget * dlg, GObject * store)
+dialog_closed (GtkWidget * dlg, GObject * store G_GNUC_UNUSED)
 {
   /* Cleanup a tad */
   guint time_id = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (dlg), "time-id"));

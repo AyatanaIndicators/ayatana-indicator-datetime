@@ -20,8 +20,6 @@
 #include <glib.h>
 #include <gio/gio.h>
 
-#include "config.h"
-
 #include "clock-live.h"
 #include "settings-shared.h"
 #include "timezone-file.h"
@@ -55,7 +53,7 @@ G_DEFINE_TYPE_WITH_CODE (
   indicator_datetime_clock_live,
   G_TYPE_OBJECT,
   G_IMPLEMENT_INTERFACE (INDICATOR_TYPE_DATETIME_CLOCK,
-                         indicator_datetime_clock_interface_init));
+                         indicator_datetime_clock_interface_init))
 
 /***
 ****  Timezones

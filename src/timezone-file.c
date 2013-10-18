@@ -17,8 +17,6 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "config.h"
-
 #include <gio/gio.h> /* GFile, GFileMonitor */
 
 #include "timezone-file.h"
