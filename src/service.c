@@ -2317,7 +2317,7 @@ indicator_datetime_service_class_init (IndicatorDatetimeServiceClass * klass)
   properties[PROP_CLOCK] = g_param_spec_object ("clock",
                                                 "Clock",
                                                 "The clock",
-                                                G_TYPE_OBJECT,
+                                                INDICATOR_TYPE_DATETIME_CLOCK,
                                                 flags);
 
   properties[PROP_PLANNER] = g_param_spec_object ("planner",
