@@ -29,7 +29,7 @@ static guint signals[SIGNAL_LAST] = { 0 };
 
 G_DEFINE_INTERFACE (IndicatorDatetimeClock,
                     indicator_datetime_clock,
-                    0)
+                    G_TYPE_OBJECT);
 
 static void
 indicator_datetime_clock_default_init (IndicatorDatetimeClockInterface * klass)
