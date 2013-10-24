@@ -37,8 +37,6 @@ typedef struct _IndicatorDatetimeTimezoneClass   IndicatorDatetimeTimezoneClass;
 
 GType indicator_datetime_timezone_get_type (void);
 
-#define INDICATOR_DATETIME_TIMEZONE_PROPERTY_TIMEZONE "timezone"
-
 /**
  * Abstract Base Class for objects that provide a timezone.
  *
