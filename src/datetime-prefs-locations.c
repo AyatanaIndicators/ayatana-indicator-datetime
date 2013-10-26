@@ -96,7 +96,9 @@ time_location_array_new_from_model (GtkTreeModel * model)
                           COL_ZONE, &zone,
                           COL_VISIBLE_NAME, &name,
                           -1);
-      list = g_slist_prepend (list, time_location_new (zone, name, pos++, now));
+
+      if (zone && name)
+        list = g_slist_prepend (list, time_location_new (zone, name, pos++, now));
 
       g_free (name);
       g_free (zone);
