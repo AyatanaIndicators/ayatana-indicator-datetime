@@ -22,6 +22,7 @@
 
 #include <glib.h>
 #include <glib-object.h> /* parent class */
+#include <gio/gio.h>
 
 G_BEGIN_DECLS
 
@@ -39,8 +40,10 @@ GType indicator_datetime_planner_get_type (void);
 
 struct IndicatorDatetimeAppt
 {
-  char * color;
-  char * summary;
+  gchar * color;
+  gchar * summary;
+  gchar * url;
+  gchar * uid;
   GDateTime * begin;
   GDateTime * end;
   gboolean is_event;
@@ -70,7 +73,16 @@ struct _IndicatorDatetimePlannerClass
 
   /* virtual functions */
 
-  GSList* (*get_appointments)   (IndicatorDatetimePlanner * self, GDateTime * begin, GDateTime * end);
+  void (*get_appointments)      (IndicatorDatetimePlanner * self,
+                                 GDateTime                * begin,
+                                 GDateTime                * end,
+                                 GAsyncReadyCallback        callback,
+                                 gpointer                   user_data);
+
+  GSList* (*get_appointments_finish) (IndicatorDatetimePlanner  * self,
+                                      GAsyncResult              * res,       
+                                      GError                   ** error);        
+
 
   gboolean (*is_configured)     (IndicatorDatetimePlanner * self);
   void (*activate)              (IndicatorDatetimePlanner * self);
@@ -85,17 +97,33 @@ void indicator_datetime_appt_free (struct IndicatorDatetimeAppt * appt);
 
 /**
  * Get a list of appointments, sorted by start time.
+ */
+void indicator_datetime_planner_get_appointments (IndicatorDatetimePlanner * self,
+                                                  GDateTime                * begin,
+                                                  GDateTime                * end,
+                                                  GAsyncReadyCallback        callback,
+                                                  gpointer                   user_data);
+
+/**
+ * Finishes the async call begun with indicator_datetime_planner_get_appointments()
  *
- * An easy way to free the list properly in one step is as follows:
- *
- *   g_slist_free_full (list, (GDestroyNotify)indicator_datetime_appt_free);
- *
+ * To free the list properly, use indicator_datetime_planner_free_appointments()
  * 
  * Return value: (element-type IndicatorDatetimeAppt)
  *               (transfer full):
  *               list of appointments
  */
-GSList * indicator_datetime_planner_get_appointments (IndicatorDatetimePlanner * self, GDateTime * begin, GDateTime * end);
+GSList * indicator_datetime_planner_get_appointments_finish (IndicatorDatetimePlanner  * self,
+                                                             GAsyncResult              * res,
+                                                             GError                   ** error);
+
+/**
+ * Convenience function for freeing a GSList of IndicatorDatetimeAppt.
+ *
+ * Equivalent to g_slist_free_full (list, (GDestroyNotify)indicator_datetime_appt_free);
+ */
+void indicator_datetime_planner_free_appointments (GSList *);
+
 
 /**
  * Returns false if the planner's backend is not configured.

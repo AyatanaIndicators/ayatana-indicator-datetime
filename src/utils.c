@@ -53,48 +53,56 @@ is_locale_12h (void)
 void
 split_settings_location (const gchar * location, gchar ** zone, gchar ** name)
 {
-  gchar * location_dup = g_strdup (location);
-  gchar * first = strchr (location_dup, ' ');
+  gchar * location_dup;
+  gchar * first;
 
-  if (first) {
-    first[0] = 0;
-  }
+  location_dup = g_strdup (location);
+  g_strstrip (location_dup);
 
-  if (zone) {
-    *zone = location_dup;
-  }
+  if ((first = strchr (location_dup, ' ')))
+    *first = '\0';
 
-  if (name) {
-    gchar * after = first ? g_strstrip (first + 1) : NULL;
-    if (after == NULL || after[0] == 0) {
-      /* Make up name from zone */
-      gchar * chr = strrchr (location_dup, '/');
-      after = g_strdup (chr ? chr + 1 : location_dup);
-      while ((chr = strchr (after, '_')) != NULL) { /* and turn underscores to spaces */
-        *chr = ' ';
-      }
-      *name = after;
+  if (zone != NULL)
+    {
+      *zone = location_dup;
     }
-    else {
-      *name = g_strdup (after);
+
+  if (name != NULL)
+    {
+      gchar * after = first ? g_strstrip (first + 1) : NULL;
+
+      if (after && *after)
+        {
+          *name = g_strdup (after);
+        }
+      else /* make the name from zone */
+        {
+          gchar * chr = strrchr (location_dup, '/');
+          after = g_strdup (chr ? chr + 1 : location_dup);
+
+          /* replace underscores with spaces */
+          for (chr=after; chr && *chr; chr++)
+            if (*chr == '_')
+              *chr = ' ';
+
+          *name = after;
+        }
     }
-  }
 }
 
 gchar *
-get_current_zone_name (const gchar * location)
+get_current_zone_name (const gchar * location, GSettings * settings)
 {
   gchar * new_zone, * new_name;
+  gchar * tz_name;
   gchar * old_zone, * old_name;
   gchar * rv;
 
   split_settings_location (location, &new_zone, &new_name);
 
-  GSettings * conf = g_settings_new (SETTINGS_INTERFACE);
-  gchar * tz_name = g_settings_get_string (conf, SETTINGS_TIMEZONE_NAME_S);
+  tz_name = g_settings_get_string (settings, SETTINGS_TIMEZONE_NAME_S);
   split_settings_location (tz_name, &old_zone, &old_name);
   g_free (tz_name);
-  g_object_unref (conf);
 
   // new_name is always just a sanitized version of a timezone.
   // old_name is potentially a saved "pretty" version of a timezone name from
@@ -134,9 +142,9 @@ T_(const char *msg)
 	   LC_MESSAGES directory, so we won't find any translation there.
 	*/
 	char *message_locale = g_strdup(setlocale(LC_MESSAGES, NULL));
-	char *time_locale = g_strdup(setlocale(LC_TIME, NULL));
+	const char *time_locale = setlocale (LC_TIME, NULL);
 	char *language = g_strdup(g_getenv("LANGUAGE"));
-	char *rv;
+	const char *rv;
 	if (language)
 		g_unsetenv("LANGUAGE");
 	setlocale(LC_MESSAGES, time_locale);
@@ -149,7 +157,6 @@ T_(const char *msg)
 	if (language)
 		g_setenv("LANGUAGE", language, TRUE);
 	g_free(message_locale);
-	g_free(time_locale);
 	g_free(language);
 	return rv;
 }
@@ -287,6 +294,13 @@ get_terse_date_format_string (date_proximity_t proximity)
   return fmt;
 }
 
+const gchar*
+get_terse_header_time_format_string (void)
+{
+  /* a strftime(3) fmt string for a H:MM 12 hour time, eg "6:59 PM" */
+  return T_("%l:%M %p");
+}
+
 const gchar *
 get_terse_time_format_string (GDateTime * time)
 {
@@ -294,8 +308,7 @@ get_terse_time_format_string (GDateTime * time)
 
   if (g_date_time_get_minute (time) != 0)
     {
-      /* a strftime(3) fmt string for a HH:MM 12 hour time, eg "06:59 PM" */
-      fmt = T_("%I:%M %p");
+      fmt = get_terse_header_time_format_string ();
     }
   else
     {
@@ -348,33 +361,24 @@ get_full_date_format_string (gboolean show_day, gboolean show_date)
  *
  */
 
-enum
-{
-  SETTINGS_TIME_LOCALE = 0,
-  SETTINGS_TIME_12_HOUR = 1,
-  SETTINGS_TIME_24_HOUR = 2,
-  SETTINGS_TIME_CUSTOM = 3
-};
-
 const gchar *
-get_full_time_format_string (void)
+get_full_time_format_string (GSettings * settings)
 {
-  GSettings * settings;
   gboolean twelvehour;
   gboolean show_seconds;
   const gchar * fmt;
 
-  settings = g_settings_new (SETTINGS_INTERFACE);
+  g_return_val_if_fail (settings != NULL, NULL);
 
   show_seconds = g_settings_get_boolean (settings, SETTINGS_SHOW_SECONDS_S);
 
   switch (g_settings_get_enum (settings, SETTINGS_TIME_FORMAT_S))
     {
-      case SETTINGS_TIME_LOCALE:
+      case TIME_FORMAT_MODE_LOCALE_DEFAULT:
         twelvehour = is_locale_12h();
         break;
 
-      case SETTINGS_TIME_24_HOUR:
+      case TIME_FORMAT_MODE_24_HOUR:
         twelvehour = FALSE;
         break;
 
@@ -382,8 +386,6 @@ get_full_time_format_string (void)
         twelvehour = TRUE;
         break;
     }
-
-  g_object_unref (settings);
 
   if (twelvehour && show_seconds)
     /* TRANSLATORS: a strftime(3) format for 12hr time w/seconds */
@@ -402,18 +404,22 @@ get_full_time_format_string (void)
 }
 
 gchar *
-generate_full_format_string (gboolean show_day, gboolean show_date)
+generate_full_format_string (gboolean show_day, gboolean show_date, GSettings * settings)
 {
   const gchar * date_fmt = get_full_date_format_string (show_day, show_date);
-  const gchar * time_fmt = get_full_time_format_string ();
+  const gchar * time_fmt = get_full_time_format_string (settings);
   return join_date_and_time_format_strings (date_fmt, time_fmt);
 }
   
 gchar *
-generate_full_format_string_at_time (GDateTime * now, GDateTime * time)
+generate_full_format_string_at_time (GDateTime * now, GDateTime * time, GSettings * settings)
 {
   gboolean show_day;
   gboolean show_date;
+
+  g_return_val_if_fail (now != NULL, NULL);
+  g_return_val_if_fail (time != NULL, NULL);
+  g_return_val_if_fail (settings != NULL, NULL);
 
   switch (get_date_proximity (now, time))
     {
@@ -434,6 +440,6 @@ generate_full_format_string_at_time (GDateTime * now, GDateTime * time)
         break;
     }
 
-  return generate_full_format_string (show_day, show_date);
+  return generate_full_format_string (show_day, show_date, settings);
 }
 

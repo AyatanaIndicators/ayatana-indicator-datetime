@@ -24,17 +24,18 @@
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
+#include <libnotify/notify.h>
+#include <json-glib/json-glib.h>
+#include <url-dispatcher.h>
 
 #include "dbus-shared.h"
-#include "planner-eds.h"
-#include "timezone-file.h"
-#include "timezone-geoclue.h"
 #include "service.h"
 #include "settings-shared.h"
 #include "utils.h"
 
 #define SKEW_CHECK_INTERVAL_SEC 10
 #define SKEW_DIFF_THRESHOLD_USEC ((SKEW_CHECK_INTERVAL_SEC+5) * G_USEC_PER_SEC)
+#define ALARM_CLOCK_ICON_NAME "alarm-clock"
 
 G_DEFINE_TYPE (IndicatorDatetimeService,
                indicator_datetime_service,
@@ -47,6 +48,16 @@ enum
 };
 
 static guint signals[LAST_SIGNAL] = { 0 };
+
+enum
+{
+  PROP_0,
+  PROP_CLOCK,
+  PROP_PLANNER,
+  PROP_LAST
+};
+
+static GParamSpec * properties[PROP_LAST] = { 0 };
 
 enum
 {
@@ -89,9 +100,17 @@ struct _IndicatorDatetimeServicePrivate
 
   GSettings * settings;
 
-  IndicatorDatetimeTimezone * tz_file;
-  IndicatorDatetimeTimezone * tz_geoclue;
+  IndicatorDatetimeClock * clock;
   IndicatorDatetimePlanner * planner;
+
+  /* the clock app's icon filename */
+  gchar * clock_app_icon_filename;
+
+  gchar * header_label_format_string;
+
+  /* Whether or not we've tried to load the clock app's icon.
+     This way we don't keep trying to reload it on the desktop */
+  gboolean clock_app_icon_initialized;
 
   guint own_id;
   guint actions_export_id;
@@ -106,6 +125,7 @@ struct _IndicatorDatetimeServicePrivate
 
   guint header_timer;
   guint timezone_timer;
+  guint alarm_timer;
 
   /* Which year/month to show in the calendar,
      and which day should get the cursor.
@@ -118,6 +138,22 @@ struct _IndicatorDatetimeServicePrivate
   GSimpleAction * calendar_action;
 
   GDBusProxy * login1_manager;
+
+  /* all the appointments in the selected calendar_date's month.
+     Used when populating the 'appointment-days' entry in
+     create_calendar_state() */
+  GSList * calendar_appointments;
+
+  /* appointments over the next few weeks.
+     Used when building SECTION_APPOINTMENTS */
+  GSList * upcoming_appointments;
+
+  /* variant cache */
+  GVariant * desktop_title_variant;
+  GVariant * phone_title_variant;
+  GVariant * visible_true_variant;
+  GVariant * visible_false_variant;
+  GVariant * alarm_icon_variant;
 };
 
 typedef IndicatorDatetimeServicePrivate priv_t;
@@ -136,6 +172,12 @@ indicator_clear_timer (guint * tag)
     }
 }
 
+static inline GDateTime *
+indicator_datetime_service_get_localtime (IndicatorDatetimeService * self)
+{
+  return indicator_datetime_clock_get_localtime (self->priv->clock);
+}
+
 /***
 ****
 ***/
@@ -146,6 +188,8 @@ static void rebuild_soon (IndicatorDatetimeService * self, int section);
 static inline void
 rebuild_header_soon (IndicatorDatetimeService * self)
 {
+  g_clear_pointer (&self->priv->header_label_format_string, g_free);
+
   rebuild_soon (self, SECTION_HEADER);
 }
 
@@ -218,7 +262,7 @@ calculate_seconds_until_next_fifteen_minutes (GDateTime * now)
                                          g_date_time_get_day_of_month (next),
                                          g_date_time_get_hour (next),
                                          g_date_time_get_minute (next),
-                                         1);
+                                         0.1);
 
   str = g_date_time_format (start_of_next, "%F %T");
   g_debug ("%s %s the next timestamp rebuild will be at %s", G_STRLOC, G_STRFUNC, str);
@@ -290,7 +334,7 @@ calculate_milliseconds_until_next_minute (GDateTime * now)
                                          g_date_time_get_day_of_month (next),
                                          g_date_time_get_hour (next),
                                          g_date_time_get_minute (next),
-                                         0);
+                                         0.1);
 
   interval_usec = g_date_time_difference (start_of_next, now);
   interval_msec = (interval_usec + 999) / 1000;
@@ -328,7 +372,7 @@ on_header_timer (gpointer gself)
   return G_SOURCE_REMOVE;
 }
 
-static char * get_header_label_format_string (IndicatorDatetimeService *);
+static const char * get_header_label_format_string (IndicatorDatetimeService *);
 
 static void
 start_header_timer (IndicatorDatetimeService * self)
@@ -342,11 +386,10 @@ start_header_timer (IndicatorDatetimeService * self)
 
   if (g_settings_get_boolean (self->priv->settings, SETTINGS_SHOW_CLOCK_S))
     {
-      char * fmt = get_header_label_format_string (self);
+      const char * fmt = get_header_label_format_string (self);
       header_shows_seconds = fmt && (strstr(fmt,"%s") || strstr(fmt,"%S") ||
                                      strstr(fmt,"%T") || strstr(fmt,"%X") ||
                                      strstr(fmt,"%c"));
-      g_free (fmt);
     }
 
   if (header_shows_seconds)
@@ -365,6 +408,197 @@ start_header_timer (IndicatorDatetimeService * self)
 
   g_date_time_unref (now);
 }
+
+/***
+****  ALARMS
+***/
+
+static void set_alarm_timer (IndicatorDatetimeService * self);
+
+static gboolean
+appointment_has_alarm_url (const struct IndicatorDatetimeAppt * appt)
+{
+  return (appt->has_alarms) &&
+         (appt->url != NULL) &&
+         (g_str_has_prefix (appt->url, "alarm:///"));
+}
+
+static gboolean
+datetimes_have_the_same_minute (GDateTime * a G_GNUC_UNUSED, GDateTime * b G_GNUC_UNUSED)
+{
+  int ay, am, ad;
+  int by, bm, bd;
+
+  g_date_time_get_ymd (a, &ay, &am, &ad);
+  g_date_time_get_ymd (b, &by, &bm, &bd);
+
+  return (ay == by) &&
+         (am == bm) &&
+         (ad == bd) &&
+         (g_date_time_get_hour (a) == g_date_time_get_hour (b)) &&
+         (g_date_time_get_minute (a) == g_date_time_get_minute (b));
+}
+
+static void
+dispatch_alarm_url (const struct IndicatorDatetimeAppt * appt)
+{
+  gchar * str;
+
+  g_return_if_fail (appt != NULL);
+  g_return_if_fail (appointment_has_alarm_url (appt));
+
+  str = g_date_time_format (appt->begin, "%F %T");
+  g_debug ("dispatching url \"%s\" for appointment \"%s\", which begins at %s",
+           appt->url, appt->summary, str);
+  g_free (str);
+
+  url_dispatch_send (appt->url, NULL, NULL);
+}
+
+static void
+on_snap_decided (NotifyNotification * notification  G_GNUC_UNUSED,
+                 char               * action,
+                 gpointer             gurl)
+{
+  g_debug ("%s: %s", G_STRFUNC, action);
+
+  if (!g_strcmp0 (action, "show"))
+    {
+      const gchar * url = gurl;
+      g_debug ("dispatching url '%s'", url);
+      url_dispatch_send (url, NULL, NULL);
+    }
+}
+
+static void
+show_snap_decision_for_alarm (const struct IndicatorDatetimeAppt * appt)
+{
+  gchar * title;
+  const gchar * body;
+  const gchar * icon_name;
+  NotifyNotification * nn;
+  GError * error;
+
+  title = g_date_time_format (appt->begin,
+                              get_terse_time_format_string (appt->begin));
+  body = appt->summary;
+  icon_name = ALARM_CLOCK_ICON_NAME;
+  g_debug ("creating a snap decision with title '%s', body '%s', icon '%s'",
+           title, body, icon_name);
+
+  nn = notify_notification_new (title, body, icon_name);
+  notify_notification_set_hint_string (nn,
+                                       "x-canonical-snap-decisions",
+                                       "true");
+  notify_notification_set_hint_string (nn,
+                                       "x-canonical-private-button-tint",
+                                       "true");
+  notify_notification_add_action (nn, "show", _("Show"),
+                                  on_snap_decided, g_strdup(appt->url), g_free);
+  notify_notification_add_action (nn, "dismiss", _("Dismiss"),
+                                  on_snap_decided, NULL, NULL);
+
+  error = NULL;
+  notify_notification_show (nn, &error);
+  if (error != NULL)
+    {
+      g_warning ("Unable to show alarm '%s' popup: %s", body, error->message);
+      g_error_free (error);
+      dispatch_alarm_url (appt);
+    }
+
+  g_free (title);
+}
+
+static void update_appointment_lists (IndicatorDatetimeService * self);
+
+static gboolean
+on_alarm_timer (gpointer gself)
+{
+  IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (gself);
+  GDateTime * now;
+  GSList * l;
+
+  /* If there are any alarms at the current time, show a snap decision */
+  now = indicator_datetime_service_get_localtime (self);
+  for (l=self->priv->upcoming_appointments; l!=NULL; l=l->next)
+    {
+      const struct IndicatorDatetimeAppt * appt = l->data;
+
+      if (appointment_has_alarm_url (appt))
+        if (datetimes_have_the_same_minute (now, appt->begin))
+          show_snap_decision_for_alarm (appt);
+    }
+  g_date_time_unref (now);
+
+  /* rebuild the alarm list asynchronously.
+     set_upcoming_appointments() will update the alarm timer when this
+     async call is done, so no need to restart the timer here... */
+  update_appointment_lists (self);
+
+  return G_SOURCE_REMOVE;
+}
+
+/* if there are upcoming alarms, set the alarm timer to the nearest one.
+   otherwise, unset the alarm timer. */
+static void
+set_alarm_timer (IndicatorDatetimeService * self)
+{
+  priv_t * p;
+  GDateTime * now;
+  GDateTime * alarm_time;
+  GSList * l;
+
+  p = self->priv;
+  indicator_clear_timer (&p->alarm_timer);
+
+  now = indicator_datetime_service_get_localtime (self);
+
+  /* find the time of the next alarm on our calendar */
+  alarm_time = NULL;
+  for (l=p->upcoming_appointments; l!=NULL; l=l->next)
+    {
+      const struct IndicatorDatetimeAppt * appt = l->data;
+
+      if (appointment_has_alarm_url (appt))
+        if (g_date_time_compare (appt->begin, now) > 0)
+          if (!alarm_time || g_date_time_compare (alarm_time, appt->begin) > 0)
+            alarm_time = appt->begin;
+    }
+
+  /* if there's an upcoming alarm, set a timer to wake up at that time */
+  if (alarm_time != NULL)
+    {
+      GTimeSpan interval_msec;
+      gchar * str;
+      GDateTime * then;
+
+      interval_msec = g_date_time_difference (alarm_time, now);
+      interval_msec += G_USEC_PER_SEC; /* fire a moment after alarm_time */
+      interval_msec /= 1000; /* convert from usec to msec */
+
+      str = g_date_time_format (alarm_time, "%F %T");
+      g_debug ("%s is the next alarm time", str);
+      g_free (str);
+      then = g_date_time_add_seconds (now, interval_msec/1000);
+      str = g_date_time_format (then, "%F %T");
+      g_debug ("%s is when we'll wake up for it", str);
+      g_free (str);
+      g_date_time_unref (then);
+
+      p->alarm_timer = g_timeout_add_full (G_PRIORITY_HIGH,
+                                           (guint) interval_msec,
+                                           on_alarm_timer,
+                                           self,
+                                           NULL);
+    }
+
+  g_date_time_unref (now);
+}
+
+/***
+****
+***/
 
 /**
  * General purpose handler for rebuilding sections and restarting their timers
@@ -415,68 +649,46 @@ skew_timer_func (gpointer gself)
 ****
 ***/
 
-typedef enum 
-{
-  TIME_FORMAT_MODE_LOCALE_DEFAULT,
-  TIME_FORMAT_MODE_12_HOUR,
-  TIME_FORMAT_MODE_24_HOUR,
-  TIME_FORMAT_MODE_CUSTOM
-}
-TimeFormatMode;
-
-/* gets the user's time-format from GSettings */
-static TimeFormatMode
-get_time_format_mode (IndicatorDatetimeService * self)
-{
-  char * str;
-  TimeFormatMode mode;
-
-  str = g_settings_get_string (self->priv->settings, SETTINGS_TIME_FORMAT_S);
-
-  if (!g_strcmp0 ("12-hour", str))
-    mode = TIME_FORMAT_MODE_12_HOUR;
-  else if (!g_strcmp0 ("24-hour", str))
-    mode = TIME_FORMAT_MODE_24_HOUR;
-  else if (!g_strcmp0 ("custom", str))
-    mode = TIME_FORMAT_MODE_CUSTOM;
-  else
-    mode = TIME_FORMAT_MODE_LOCALE_DEFAULT;
-
-  g_free (str);
-  return mode;
-}
-
-static gchar *
+static const gchar *
 get_header_label_format_string (IndicatorDatetimeService * self)
 {
-  char * fmt;
-  const TimeFormatMode mode = get_time_format_mode (self);
-  GSettings * s = self->priv->settings;
+  priv_t * p = self->priv;
 
-  if (mode == TIME_FORMAT_MODE_CUSTOM)
+  if (p->header_label_format_string == NULL)
     {
-      fmt = g_settings_get_string (s, SETTINGS_CUSTOM_TIME_FORMAT_S);
-    }
-  else
-    {
-      gboolean show_day = g_settings_get_boolean (s, SETTINGS_SHOW_DAY_S);
-      gboolean show_date = g_settings_get_boolean (s, SETTINGS_SHOW_DATE_S);
-      fmt = generate_full_format_string (show_day, show_date);
+      char * fmt;
+      GSettings * s = p->settings;
+      const TimeFormatMode mode = g_settings_get_enum (s, SETTINGS_TIME_FORMAT_S);
+
+      if (mode == TIME_FORMAT_MODE_CUSTOM)
+        {
+          fmt = g_settings_get_string (s, SETTINGS_CUSTOM_TIME_FORMAT_S);
+        }
+      else
+        {
+          gboolean show_day = g_settings_get_boolean (s, SETTINGS_SHOW_DAY_S);
+          gboolean show_date = g_settings_get_boolean (s, SETTINGS_SHOW_DATE_S);
+          fmt = generate_full_format_string (show_day, show_date, s);
+        }
+
+      p->header_label_format_string = fmt;
     }
 
-  return fmt;
+  return p->header_label_format_string;
 }
 
 static GVariant *
 create_desktop_header_state (IndicatorDatetimeService * self)
 {
+  priv_t * p = self->priv;
   GVariantBuilder b;
-  gchar * fmt;
+  const gchar * fmt;
   gchar * str;
   gboolean visible;
   GDateTime * now;
+  GVariant * label_variant;
 
-  visible = g_settings_get_boolean (self->priv->settings, SETTINGS_SHOW_CLOCK_S);
+  visible = g_settings_get_boolean (p->settings, SETTINGS_SHOW_CLOCK_S);
 
   /* build the time string for the label & a11y */
   fmt = get_header_label_format_string (self);
@@ -484,19 +696,19 @@ create_desktop_header_state (IndicatorDatetimeService * self)
   str = g_date_time_format (now, fmt);
   if (str == NULL)
     {
-      str = g_strdup (_("Unsupported date format"));
+      str = g_strdup_printf (_("Unsupported date format “%s”"), fmt);
       g_warning ("%s", str);
     }
 
-  g_variant_builder_init (&b, G_VARIANT_TYPE("a{sv}"));
-  g_variant_builder_add (&b, "{sv}", "accessible-desc", g_variant_new_string (str));
-  g_variant_builder_add (&b, "{sv}", "label", g_variant_new_string (str));
-  g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (visible));
+  label_variant = g_variant_new_take_string (str);
+  g_variant_builder_init (&b, G_VARIANT_TYPE_VARDICT);
+  g_variant_builder_add (&b, "{sv}", "accessible-desc", label_variant);
+  g_variant_builder_add (&b, "{sv}", "label", label_variant);
+  g_variant_builder_add_value (&b, p->desktop_title_variant);
+  g_variant_builder_add_value (&b, visible ? p->visible_true_variant : p->visible_false_variant);
 
   /* cleanup */
   g_date_time_unref (now);
-  g_free (str);
-  g_free (fmt);
   return g_variant_builder_end (&b);
 }
 
@@ -506,44 +718,37 @@ service_has_alarms (IndicatorDatetimeService * self);
 static GVariant *
 create_phone_header_state (IndicatorDatetimeService * self)
 {
+  priv_t * p = self->priv;
+  const gboolean has_alarms = service_has_alarms (self);
   GVariantBuilder b;
   GDateTime * now;
   const gchar * fmt;
-  gchar * label;
-  gboolean has_alarms;
-  gchar * a11y;
 
-  g_variant_builder_init (&b, G_VARIANT_TYPE("a{sv}"));
-
-  /* label */
-  now = indicator_datetime_service_get_localtime (self);
-  fmt = get_terse_time_format_string (now);
-  label = g_date_time_format (now, fmt);
-  g_variant_builder_add (&b, "{sv}", "label", g_variant_new_string (label));
+  g_variant_builder_init (&b, G_VARIANT_TYPE_VARDICT);
+  g_variant_builder_add_value (&b, p->phone_title_variant);
+  g_variant_builder_add_value (&b, p->visible_true_variant);
 
   /* icon */
-  if ((has_alarms = service_has_alarms (self)))
+  if (has_alarms)
+    g_variant_builder_add_value (&b, p->alarm_icon_variant);
+
+  /* label, a11y */
+  now = indicator_datetime_service_get_localtime (self);
+  fmt = get_terse_header_time_format_string ();
+  if (has_alarms)
     {
-      GIcon * icon;
-      icon = g_themed_icon_new_with_default_fallbacks ("alarm-symbolic");
-      g_variant_builder_add (&b, "{sv}", "icon", g_icon_serialize (icon));
-      g_object_unref (icon);
+      gchar * label = g_date_time_format (now, fmt);
+      gchar * a11y =  g_strdup_printf (_("%s (has alarms)"), label);
+      g_variant_builder_add (&b, "{sv}", "label", g_variant_new_take_string (label));
+      g_variant_builder_add (&b, "{sv}", "accessible-desc", g_variant_new_take_string (a11y));
+    }
+  else
+    {
+      GVariant * v = g_variant_new_take_string (g_date_time_format (now, fmt));
+      g_variant_builder_add (&b, "{sv}", "label", v);
+      g_variant_builder_add (&b, "{sv}", "accessible-desc", v);
     }
 
-  /* a11y */
-  if (has_alarms)
-    a11y = g_strdup_printf (_("%s (has alarms)"), label);
-  else
-    a11y = g_strdup (label);
-  g_variant_builder_add (&b, "{sv}", "accessible-desc",
-                         g_variant_new_string (a11y));
-
-  /* visible */
-  g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (TRUE));
-
-  /* cleanup */
-  g_free (a11y);
-  g_free (label);
   g_date_time_unref (now);
   return g_variant_builder_end (&b);
 }
@@ -569,38 +774,6 @@ get_calendar_date (IndicatorDatetimeService * self)
   return date;
 }
 
-static GSList *
-get_all_appointments_this_month (IndicatorDatetimeService * self)
-{
-  GSList * appointments = NULL;
-  priv_t * p = self->priv;
-
-  if (p->planner != NULL)
-    {
-      GDateTime * calendar_date;
-      GDateTime * begin;
-      GDateTime * end;
-      int y, m, d;
-
-      calendar_date = get_calendar_date (self);
-      g_date_time_get_ymd (calendar_date, &y, &m, &d);
-      begin = g_date_time_new_local (y, m, 1,
-                                     0, 0, 0);
-      end = g_date_time_new_local (y, m, g_date_get_days_in_month(m,y),
-                                   23, 59, 0);
-
-      appointments = indicator_datetime_planner_get_appointments (p->planner,
-                                                                  begin,
-                                                                  end);
-
-      g_date_time_unref (end);
-      g_date_time_unref (begin);
-      g_date_time_unref (calendar_date);
-    }
-
-  return appointments;
-}
-
 static GVariant *
 create_calendar_state (IndicatorDatetimeService * self)
 {
@@ -611,15 +784,13 @@ create_calendar_state (IndicatorDatetimeService * self)
   GVariantBuilder day_builder;
   GDateTime * date;
   GSList * l;
-  GSList * appts;
   gboolean b;
   priv_t * p = self->priv;
 
   g_variant_builder_init (&dict_builder, G_VARIANT_TYPE_DICTIONARY);
 
   key = "appointment-days";
-  appts = get_all_appointments_this_month (self);
-  for (l=appts; l!=NULL; l=l->next)
+  for (l=p->calendar_appointments; l!=NULL; l=l->next)
     {
       const struct IndicatorDatetimeAppt * appt = l->data;
       days[g_date_time_get_day_of_month (appt->begin)] = TRUE;
@@ -630,7 +801,6 @@ create_calendar_state (IndicatorDatetimeService * self)
       g_variant_builder_add (&day_builder, "i", i);
   g_variant_builder_add (&dict_builder, "{sv}", key,
                          g_variant_builder_end (&day_builder));
-  g_slist_free_full (appts, (GDestroyNotify)indicator_datetime_appt_free);
 
   key = "calendar-day";
   date = get_calendar_date (self);
@@ -678,10 +848,8 @@ add_localtime_menuitem (GMenu                    * menu,
 static void
 add_calendar_menuitem (GMenu * menu)
 {
-  char * label;
   GMenuItem * menu_item;
 
-  label = g_strdup ("[calendar]");
   menu_item = g_menu_item_new ("[calendar]", NULL);
   g_menu_item_set_action_and_target_value (menu_item, "indicator.calendar", g_variant_new_int64(0));
   g_menu_item_set_attribute (menu_item, "x-canonical-type", "s", "com.canonical.indicator.calendar");
@@ -689,7 +857,6 @@ add_calendar_menuitem (GMenu * menu)
 
   g_menu_append_item (menu, menu_item);
   g_object_unref (menu_item);
-  g_free (label);
 }
 
 static GMenuModel *
@@ -711,11 +878,8 @@ create_phone_calendar_section (IndicatorDatetimeService * self)
 {
   GMenu * menu = g_menu_new ();
 
-  /* strftime(3) format string to show day of week */
-  add_localtime_menuitem (menu, self, _("%A"), NULL);
-
   /* strftime(3) format string to show date */
-  add_localtime_menuitem (menu, self, _("%e %B %Y"), "calendar");
+  add_localtime_menuitem (menu, self, _("%A, %e %B %Y"), "calendar");
 
   return G_MENU_MODEL (menu);
 }
@@ -726,38 +890,6 @@ create_phone_calendar_section (IndicatorDatetimeService * self)
 ****
 ***/
 
-/* gets the next MAX_APPTS appointments */
-static GSList *
-get_upcoming_appointments (IndicatorDatetimeService * self)
-{
-  const int MAX_APPTS = 5;
-  GSList * l;
-  GSList * appts = NULL;
-  priv_t * p = self->priv;
-
-  if (p->planner != NULL)
-    {
-      GDateTime * begin = get_calendar_date (self);
-      GDateTime * end = g_date_time_add_months (begin, 1);
-
-      appts = indicator_datetime_planner_get_appointments (p->planner,
-                                                           begin,
-                                                           end);
-
-      g_date_time_unref (end);
-      g_date_time_unref (begin);
-    }
-
-  /* truncate at MAX_APPTS */
-  if ((l = g_slist_nth (appts, MAX_APPTS-1)))
-    {
-      g_slist_free_full (l->next, (GDestroyNotify)indicator_datetime_appt_free);
-      l->next = NULL;
-    }
-
-  return appts;
-}
-
 static gboolean
 service_has_alarms (IndicatorDatetimeService * self)
 {
@@ -765,7 +897,7 @@ service_has_alarms (IndicatorDatetimeService * self)
   GSList * appts;
   GSList * l;
 
-  appts = get_upcoming_appointments (self);
+  appts = self->priv->upcoming_appointments;
   for (l=appts; l!=NULL; l=l->next)
     {
       struct IndicatorDatetimeAppt * appt = l->data;
@@ -773,13 +905,13 @@ service_has_alarms (IndicatorDatetimeService * self)
         break;
     }
 
-  g_slist_free_full (appts, (GDestroyNotify)indicator_datetime_appt_free);
   return has_alarms;
 }
 
 static char *
 get_appointment_time_format (struct IndicatorDatetimeAppt * appt,
                              GDateTime                    * now,
+                             GSettings                    * settings,
                              gboolean                       terse)
 {
   char * fmt;
@@ -788,7 +920,7 @@ get_appointment_time_format (struct IndicatorDatetimeAppt * appt,
   if (appt->is_daily)
     {
       const char * time_fmt = terse ? get_terse_time_format_string (appt->begin)
-                                    : get_full_time_format_string ();
+                                    : get_full_time_format_string (settings);
       fmt = join_date_and_time_format_strings (_("Daily"), time_fmt);
     }
   else if (full_day)
@@ -800,31 +932,49 @@ get_appointment_time_format (struct IndicatorDatetimeAppt * appt,
   else
     {
       fmt = terse ? generate_terse_format_string_at_time (now, appt->begin)
-                  : generate_full_format_string_at_time (now, appt->begin);
+                  : generate_full_format_string_at_time (now, appt->begin, settings);
     }
 
   return fmt;
 }
 
 static void
-add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean terse)
+add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean phone)
 {
-  GDateTime * now = indicator_datetime_service_get_localtime (self);
+  const int MAX_APPTS = 5;
+  GDateTime * now;
+  GHashTable * added;
   GSList * appts;
   GSList * l;
+  int i;
+
+  now = indicator_datetime_service_get_localtime (self);
+
+  added = g_hash_table_new (g_str_hash, g_str_equal);
 
   /* build appointment menuitems */
-  appts = get_upcoming_appointments (self);
-  for (l=appts; l!=NULL; l=l->next)
+  appts = self->priv->upcoming_appointments;
+  for (l=appts, i=0; l!=NULL && i<MAX_APPTS; l=l->next, i++)
     {
       struct IndicatorDatetimeAppt * appt = l->data;
-      char * fmt = get_appointment_time_format (appt, now, terse);
-      const gint64 unix_time = g_date_time_to_unix (appt->begin);
+      char * fmt;
+      gint64 unix_time;
       GMenuItem * menu_item;
+
+      if (g_hash_table_contains (added, appt->uid))
+        continue;
+
+      g_hash_table_add (added, appt->uid);
+
+      fmt = get_appointment_time_format (appt, now, self->priv->settings, phone);
+      unix_time = g_date_time_to_unix (appt->begin);
 
       menu_item = g_menu_item_new (appt->summary, NULL);
 
-      if (!appt->has_alarms)
+      if (appt->has_alarms)
+        g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON,
+                                   "s", ALARM_CLOCK_ICON_NAME);
+      else if (appt->color != NULL)
         g_menu_item_set_attribute (menu_item, "x-canonical-color",
                                    "s", appt->color);
 
@@ -835,27 +985,79 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean terse)
       g_menu_item_set_attribute (menu_item, "x-canonical-type",
                                      "s", appt->has_alarms ? "com.canonical.indicator.alarm"
                                                            : "com.canonical.indicator.appointment");
-      g_menu_item_set_action_and_target_value (menu_item,
-                                                   "indicator.activate-planner",
-                                                   g_variant_new_int64 (unix_time));
+
+      if (phone)
+        g_menu_item_set_action_and_target_value (menu_item,
+                                                 "indicator.activate-appointment",
+                                                 g_variant_new_string (appt->uid));
+      else
+        g_menu_item_set_action_and_target_value (menu_item,
+                                                 "indicator.activate-planner",
+                                                 g_variant_new_int64 (unix_time));
       g_menu_append_item (menu, menu_item);
       g_object_unref (menu_item);
       g_free (fmt);
     }
 
   /* cleanup */
+  g_hash_table_unref (added);
   g_date_time_unref (now);
-  g_slist_free_full (appts, (GDestroyNotify)indicator_datetime_appt_free);
+}
+
+
+/* try to extract the clock app's filename from click. (/$pkgdir/$icon) */
+static gchar *
+get_clock_app_icon_filename (void)
+{
+  gchar * icon_filename = NULL;
+  gchar * pkgdir;
+
+  pkgdir = NULL;
+  g_spawn_command_line_sync ("click pkgdir com.ubuntu.clock", &pkgdir, NULL, NULL, NULL);
+  if (pkgdir != NULL)
+    {
+      gchar * manifest = NULL;
+      g_strstrip (pkgdir);
+      g_spawn_command_line_sync ("click info com.ubuntu.clock", &manifest, NULL, NULL, NULL);
+      if (manifest != NULL)
+        {
+          JsonParser * parser = json_parser_new ();
+          if (json_parser_load_from_data (parser, manifest, -1, NULL))
+            {
+              JsonNode * root = json_parser_get_root (parser); /* transfer-none */
+              if ((root != NULL) && (JSON_NODE_TYPE(root) == JSON_NODE_OBJECT))
+                {
+                  JsonObject * o = json_node_get_object (root); /* transfer-none */
+                  const gchar * icon_name = json_object_get_string_member (o, "icon");
+                  if (icon_name != NULL)
+                    icon_filename = g_build_filename (pkgdir, icon_name, NULL);
+                }
+            }
+          g_object_unref (parser);
+          g_free (manifest);
+        }
+      g_free (pkgdir);
+    }
+
+  return icon_filename;
 }
 
 static GMenuModel *
 create_phone_appointments_section (IndicatorDatetimeService * self)
 {
+  priv_t * p = self->priv;
   GMenu * menu = g_menu_new ();
   GMenuItem * menu_item;
 
-  menu_item = g_menu_item_new (_("Clock"), NULL);
-  g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON, "s", "clock");
+  if (G_UNLIKELY (!p->clock_app_icon_initialized))
+    {
+      p->clock_app_icon_initialized = TRUE;
+      p->clock_app_icon_filename = get_clock_app_icon_filename ();
+    }
+
+  menu_item = g_menu_item_new (_("Clock"), "indicator.activate-phone-clock-app");
+  if (p->clock_app_icon_filename != NULL)
+    g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON, "s", p->clock_app_icon_filename);
   g_menu_append_item (menu, menu_item);
   g_object_unref (menu_item);
 
@@ -893,61 +1095,6 @@ create_desktop_appointments_section (IndicatorDatetimeService * self)
 ****
 ***/
 
-static void
-on_current_timezone_changed (IndicatorDatetimeService * self)
-{
-  on_local_time_jumped (self);
-}
-
-/* When the 'auto-detect timezone' boolean setting changes,
-   start or stop watching geoclue and /etc/timezone */
-static void
-set_detect_location_enabled (IndicatorDatetimeService * self, gboolean enabled)
-{
-  gboolean changed = FALSE;
-  priv_t * p = self->priv;
-
-  /* geoclue */
-
-  if (!p->tz_geoclue && enabled)
-    {
-      p->tz_geoclue = indicator_datetime_timezone_geoclue_new ();
-      g_signal_connect_swapped (p->tz_geoclue, "notify::timezone",
-                                G_CALLBACK(on_current_timezone_changed),
-                                self);
-      changed = TRUE;
-    }
-  else if (p->tz_geoclue && !enabled)
-    {
-      g_signal_handlers_disconnect_by_func (p->tz_geoclue,
-                                            on_current_timezone_changed,
-                                            self);
-      g_clear_object (&p->tz_geoclue);
-      changed = TRUE;
-    }
-
-  /* timezone file */
-
-  if (!p->tz_file && enabled)
-    {
-      p->tz_file = indicator_datetime_timezone_file_new (TIMEZONE_FILE);
-      g_signal_connect_swapped (p->tz_file, "notify::timezone",
-                                G_CALLBACK(on_current_timezone_changed),
-                                self);
-      changed = TRUE;
-    }
-  else if (p->tz_file && !enabled)
-    {
-      g_signal_handlers_disconnect_by_func (p->tz_file,
-                                            on_current_timezone_changed,
-                                            self);
-      g_clear_object (&p->tz_file);
-      changed = TRUE;
-    }
-
-  if (changed)
-    on_current_timezone_changed (self);
-}
 
 /* A temp struct used by create_locations_section()
    for pruning duplicates and sorting. */
@@ -966,7 +1113,7 @@ time_location_free (struct TimeLocation * loc)
   g_date_time_unref (loc->local_time);
   g_free (loc->name);
   g_free (loc->zone);
-  g_free (loc);
+  g_slice_free (struct TimeLocation, loc);
 }
 
 static struct TimeLocation*
@@ -974,7 +1121,7 @@ time_location_new (const char * zone,
                    const char * name,
                    gboolean     visible)
 {
-  struct TimeLocation * loc = g_new (struct TimeLocation, 1);
+  struct TimeLocation * loc = g_slice_new (struct TimeLocation);
   GTimeZone * tz = g_time_zone_new (zone);
   loc->zone = g_strdup (zone);
   loc->name = g_strdup (name);
@@ -1033,44 +1180,30 @@ create_locations_section (IndicatorDatetimeService * self)
   GSList * l;
   GSList * locations = NULL;
   gchar ** user_locations;
-  gboolean visible;
-  IndicatorDatetimeTimezone * detected_timezones[2];
+  const gchar ** detected_timezones;
   priv_t * p = self->priv;
   GDateTime * now = indicator_datetime_service_get_localtime (self);
-
-  set_detect_location_enabled (self,
-                               g_settings_get_boolean (p->settings, SETTINGS_SHOW_DETECTED_S));
 
   menu = g_menu_new ();
 
   /***
-  ****  Build a list of locations to add: use geo_timezone,
-  ****  current_timezone, and SETTINGS_LOCATIONS_S, but omit duplicates.
+  ****  Build a list of locations to add, omitting duplicates
   ***/
 
-  /* maybe add the auto-detected timezones */
-  detected_timezones[0] = p->tz_geoclue;
-  detected_timezones[1] = p->tz_file;
-  visible = g_settings_get_boolean (p->settings, SETTINGS_SHOW_DETECTED_S);
-  for (i=0; i<G_N_ELEMENTS(detected_timezones); i++)
+  detected_timezones = indicator_datetime_clock_get_timezones (p->clock);
+  for (i=0; detected_timezones && detected_timezones[i]; i++)
     {
-      if (detected_timezones[i] != NULL)
-        {
-          const char * tz = indicator_datetime_timezone_get_timezone (detected_timezones[i]);
-          if (tz && *tz)
-            {
-              gchar * name = get_current_zone_name (tz);
-              locations = locations_add (locations, tz, name, visible);
-              g_free (name);
-            }
-        }
+      const char * tz = detected_timezones[i];
+      gchar * name = get_current_zone_name (tz, p->settings);
+      locations = locations_add (locations, tz, name, TRUE);
+      g_free (name);
     }
 
   /* maybe add the user-specified locations */
   user_locations = g_settings_get_strv (p->settings, SETTINGS_LOCATIONS_S);
   if (user_locations != NULL)
     {
-      visible = g_settings_get_boolean (p->settings, SETTINGS_SHOW_LOCATIONS_S);
+      const gboolean visible = g_settings_get_boolean (p->settings, SETTINGS_SHOW_LOCATIONS_S);
 
       for (i=0; user_locations[i] != NULL; i++)
         {
@@ -1092,18 +1225,16 @@ create_locations_section (IndicatorDatetimeService * self)
       struct TimeLocation * loc = l->data;
       if (loc->visible)
         {
-          char * label;
           char * detailed_action;
           char * fmt;
           GMenuItem * menu_item;
 
-          label = g_strdup (loc->name);
           detailed_action = g_strdup_printf ("indicator.set-location::%s %s",
                                              loc->zone,
                                              loc->name);
-          fmt = generate_full_format_string_at_time (now, loc->local_time);
+          fmt = generate_full_format_string_at_time (now, loc->local_time, p->settings);
 
-          menu_item = g_menu_item_new (label, detailed_action);
+          menu_item = g_menu_item_new (loc->name, detailed_action);
           g_menu_item_set_attribute (menu_item, "x-canonical-type",
                                      "s", "com.canonical.indicator.location");
           g_menu_item_set_attribute (menu_item, "x-canonical-timezone",
@@ -1115,7 +1246,6 @@ create_locations_section (IndicatorDatetimeService * self)
           g_object_unref (menu_item);
           g_free (fmt);
           g_free (detailed_action);
-          g_free (label);
         }
     }
 
@@ -1140,7 +1270,7 @@ setlocation_data_free (struct setlocation_data * data)
 {
   g_free (data->timezone_id);
   g_free (data->name);
-  g_free (data);
+  g_slice_free (struct setlocation_data, data);
 }
 
 static void
@@ -1224,7 +1354,7 @@ indicator_datetime_service_set_location (IndicatorDatetimeService * self,
   g_return_if_fail (name && *name);
   g_return_if_fail (timezone_id && *timezone_id);
 
-  data = g_new0 (struct setlocation_data, 1);
+  data = g_slice_new0 (struct setlocation_data);
   data->timezone_id = g_strdup (timezone_id);
   data->name = g_strdup (name);
   data->service = self;
@@ -1376,7 +1506,44 @@ on_phone_settings_activated (GSimpleAction * a      G_GNUC_UNUSED,
                              GVariant      * param  G_GNUC_UNUSED,
                              gpointer        gself  G_GNUC_UNUSED)
 {
-  execute_command ("system-settings time-date");
+  url_dispatch_send ("settings:///system/time-date", NULL, NULL);
+}
+
+static void
+on_activate_appointment (GSimpleAction * a G_GNUC_UNUSED,
+                         GVariant      * param,
+                         gpointer        gself)
+{
+  priv_t * p = INDICATOR_DATETIME_SERVICE(gself)->priv;
+  const gchar * uid = g_variant_get_string (param, NULL);
+
+  if (uid != NULL)
+    {
+      const struct IndicatorDatetimeAppt * appt;
+      GSList * l;
+
+      /* find the appointment that matches that uid */
+      for (l=p->upcoming_appointments, appt=NULL; l && !appt; l=l->next)
+        {
+          const struct IndicatorDatetimeAppt * tmp = l->data;
+          if (!g_strcmp0 (uid, tmp->uid))
+            appt = tmp;
+        }
+
+      /* if that appointment's an alarm, dispatch its url */
+      g_debug ("%s: uri '%s'; matching appt is %p", G_STRFUNC, uid, appt);
+      if (appt && appointment_has_alarm_url (appt))
+        dispatch_alarm_url (appt);
+    }
+}
+
+static void
+on_phone_clock_activated (GSimpleAction * a      G_GNUC_UNUSED,
+                          GVariant      * param  G_GNUC_UNUSED,
+                          gpointer        gself  G_GNUC_UNUSED)
+{
+  const char * url = "appid://com.ubuntu.clock/clock/current-user-version";
+  url_dispatch_send (url, NULL, NULL);
 }
 
 static void
@@ -1432,7 +1599,9 @@ init_gactions (IndicatorDatetimeService * self)
   GActionEntry entries[] = {
     { "activate-desktop-settings", on_desktop_settings_activated },
     { "activate-phone-settings", on_phone_settings_activated },
+    { "activate-phone-clock-app", on_phone_clock_activated },
     { "activate-planner", on_activate_planner, "x", NULL },
+    { "activate-appointment", on_activate_appointment, "s", NULL },
     { "set-location", on_set_location, "s" }
   };
 
@@ -1491,6 +1660,9 @@ rebuild_now (IndicatorDatetimeService * self, int sections)
   struct ProfileMenuInfo * phone   = &p->menus[PROFILE_PHONE];
   struct ProfileMenuInfo * desktop = &p->menus[PROFILE_DESKTOP];
   struct ProfileMenuInfo * greeter = &p->menus[PROFILE_GREETER];
+
+  if (p->actions == NULL)
+    return;
 
   if (sections & SECTION_HEADER)
     {
@@ -1604,6 +1776,137 @@ on_login1_manager_proxy_ready (GObject       * object  G_GNUC_UNUSED,
 }
 
 /***
+****  Appointments
+***/
+
+static void
+set_calendar_appointments (IndicatorDatetimeService * self,
+                           GSList                   * appointments)
+{
+  priv_t * p = self->priv;
+
+  /* repopulate the list */
+  indicator_datetime_planner_free_appointments (p->calendar_appointments);
+  p->calendar_appointments = appointments;
+
+  /* sync the menus/actions */
+  update_calendar_action_state (self);
+  rebuild_calendar_section_soon (self);
+}
+
+static void
+on_calendar_appointments_ready (GObject      * source,
+                                GAsyncResult * res,
+                                gpointer       self)
+{
+  IndicatorDatetimePlanner * planner;
+  GError * error;
+  GSList * appointments;
+
+  planner = INDICATOR_DATETIME_PLANNER (source);
+  error = NULL;
+  appointments = indicator_datetime_planner_get_appointments_finish (planner,
+                                                                     res,
+                                                                     &error);
+
+  if (error != NULL)
+    {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("can't get this  month's appointments: %s", error->message);
+
+      g_error_free (error);
+    }
+  else
+    {
+      set_calendar_appointments (INDICATOR_DATETIME_SERVICE (self),
+                                 appointments);
+    }
+}
+
+static void
+set_upcoming_appointments (IndicatorDatetimeService * self,
+                           GSList                   * appointments)
+{
+  priv_t * p = self->priv;
+
+  /* repopulate the list */
+  indicator_datetime_planner_free_appointments (p->upcoming_appointments);
+  p->upcoming_appointments = appointments;
+
+  /* sync the menus/actions */
+  rebuild_appointments_section_soon (self);
+
+  /* alarm timer is keyed off of the next alarm time,
+     so it needs to be rebuilt when the appointment list changes */
+  set_alarm_timer (self);
+}
+
+static void
+on_upcoming_appointments_ready (GObject      * source,
+                                GAsyncResult * res,
+                                gpointer       self)
+{
+  IndicatorDatetimePlanner * planner;
+  GError * error;
+  GSList * appointments;
+
+  planner = INDICATOR_DATETIME_PLANNER (source);
+  error = NULL;
+  appointments = indicator_datetime_planner_get_appointments_finish (planner,
+                                                                     res,
+                                                                     &error);
+
+  if (error != NULL)
+    {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("can't get upcoming appointments: %s", error->message);
+
+      g_error_free (error);
+    }
+  else
+    {
+      set_upcoming_appointments (INDICATOR_DATETIME_SERVICE (self),
+                                 appointments);
+    }
+}
+
+static void
+update_appointment_lists (IndicatorDatetimeService * self)
+{
+  IndicatorDatetimePlanner * planner;
+  GDateTime * calendar_date;
+  GDateTime * begin;
+  GDateTime * end;
+  int y, m, d;
+
+  planner = self->priv->planner;
+  calendar_date = get_calendar_date (self);
+
+  /* get all the appointments in the calendar month */
+  g_date_time_get_ymd (calendar_date, &y, &m, &d);
+  begin = g_date_time_new_local (y, m, 1, 0, 0, 0.1);
+  end = g_date_time_new_local (y, m, g_date_get_days_in_month(m,y), 23, 59, 59.9);
+  if (begin && end)
+    indicator_datetime_planner_get_appointments (planner, begin, end,
+                                                 on_calendar_appointments_ready,
+                                                 self);
+  g_clear_pointer (&begin, g_date_time_unref);
+  g_clear_pointer (&end, g_date_time_unref);
+
+  /* get the upcoming appointments */
+  begin = g_date_time_ref (calendar_date);
+  end = g_date_time_add_months (begin, 1);
+  if (begin && end)
+    indicator_datetime_planner_get_appointments (planner, begin, end,
+                                                 on_upcoming_appointments_ready,
+                                                 self);
+  g_clear_pointer (&begin, g_date_time_unref);
+  g_clear_pointer (&end, g_date_time_unref);
+  g_clear_pointer (&calendar_date, g_date_time_unref);
+}
+
+
+/***
 ****  GDBus
 ***/
 
@@ -1641,9 +1944,6 @@ on_bus_acquired (GDBusConnection * connection,
     {
       char * path = g_strdup_printf ("%s/%s", BUS_PATH, menu_names[i]);
       struct ProfileMenuInfo * menu = &p->menus[i];
-
-      if (menu->menu == NULL)
-        create_menu (self, i);
 
       if ((id = g_dbus_connection_export_menu_model (connection,
                                                      path,
@@ -1708,6 +2008,53 @@ on_name_lost (GDBusConnection * connection G_GNUC_UNUSED,
 ***/
 
 static void
+my_get_property (GObject     * o,
+                 guint         property_id,
+                 GValue      * value,
+                 GParamSpec  * pspec)
+{
+  IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (o);
+
+  switch (property_id)
+    {
+      case PROP_CLOCK:
+        g_value_set_object (value, self->priv->clock);
+        break;
+
+      case PROP_PLANNER:
+        g_value_set_object (value, self->priv->planner);
+        break;
+
+      default:
+        G_OBJECT_WARN_INVALID_PROPERTY_ID (o, property_id, pspec);
+    }
+}
+
+static void
+my_set_property (GObject       * o,
+                 guint           property_id,
+                 const GValue  * value,
+                 GParamSpec    * pspec)
+{
+  IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (o);
+
+  switch (property_id)
+    {
+      case PROP_CLOCK:
+        indicator_datetime_service_set_clock (self, g_value_get_object (value));
+        break;
+
+      case PROP_PLANNER:
+        indicator_datetime_service_set_planner (self, g_value_get_object (value));
+        break;
+
+      default:
+        G_OBJECT_WARN_INVALID_PROPERTY_ID (o, property_id, pspec);
+    }
+}
+
+
+static void
 my_dispose (GObject * o)
 {
   int i;
@@ -1728,13 +2075,8 @@ my_dispose (GObject * o)
       g_clear_object (&p->cancellable);
     }
 
-  set_detect_location_enabled (self, FALSE);
-
-  if (p->planner != NULL)
-    {
-      g_signal_handlers_disconnect_by_data (p->planner, self);
-      g_clear_object (&p->planner);
-    }
+  indicator_datetime_service_set_clock (self, NULL);
+  indicator_datetime_service_set_planner (self, NULL);
 
   if (p->login1_manager != NULL)
     {
@@ -1746,6 +2088,7 @@ my_dispose (GObject * o)
   indicator_clear_timer (&p->rebuild_id);
   indicator_clear_timer (&p->timezone_timer);
   indicator_clear_timer (&p->header_timer);
+  indicator_clear_timer (&p->alarm_timer);
 
   if (p->settings != NULL)
     {
@@ -1758,11 +2101,16 @@ my_dispose (GObject * o)
   for (i=0; i<N_PROFILES; ++i)
     g_clear_object (&p->menus[i].menu);
 
-  g_clear_object (&p->planner);
   g_clear_object (&p->calendar_action);
   g_clear_object (&p->desktop_header_action);
   g_clear_object (&p->phone_header_action);
   g_clear_object (&p->conn);
+
+  g_clear_pointer (&p->desktop_title_variant, g_variant_unref);
+  g_clear_pointer (&p->phone_title_variant, g_variant_unref);
+  g_clear_pointer (&p->visible_true_variant, g_variant_unref);
+  g_clear_pointer (&p->visible_false_variant, g_variant_unref);
+  g_clear_pointer (&p->alarm_icon_variant, g_variant_unref);
 
   G_OBJECT_CLASS (indicator_datetime_service_parent_class)->dispose (o);
 }
@@ -1773,6 +2121,8 @@ my_finalize (GObject * o)
   IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE(o);
   priv_t * p = self->priv;
 
+  g_free (p->clock_app_icon_filename);
+  g_free (p->header_label_format_string);
   g_clear_pointer (&p->skew_time, g_date_time_unref);
   g_clear_pointer (&p->calendar_date, g_date_time_unref);
 
@@ -1786,9 +2136,45 @@ my_finalize (GObject * o)
 static void
 indicator_datetime_service_init (IndicatorDatetimeService * self)
 {
-  guint i, n;
+  GIcon * icon;
   priv_t * p;
+
+  /* init the priv pointer */
+
+  p = G_TYPE_INSTANCE_GET_PRIVATE (self,
+                                   INDICATOR_TYPE_DATETIME_SERVICE,
+                                   IndicatorDatetimeServicePrivate);
+  self->priv = p;
+
+  p->cancellable = g_cancellable_new ();
+
+  p->settings = g_settings_new (SETTINGS_INTERFACE);
+
+  p->desktop_title_variant = g_variant_new ("{sv}", "title", g_variant_new_string (_("Date and Time")));
+  g_variant_ref_sink (p->desktop_title_variant);
+
+  p->phone_title_variant = g_variant_new ("{sv}", "title", g_variant_new_string (_("Upcoming")));
+  g_variant_ref_sink (p->phone_title_variant);
+
+  p->visible_true_variant = g_variant_new ("{sv}", "visible", g_variant_new_boolean (TRUE));
+  g_variant_ref_sink (p->visible_true_variant);
+
+  p->visible_false_variant = g_variant_new ("{sv}", "visible", g_variant_new_boolean (FALSE));
+  g_variant_ref_sink (p->visible_false_variant);
+
+  icon = g_themed_icon_new_with_default_fallbacks (ALARM_CLOCK_ICON_NAME);
+  p->alarm_icon_variant = g_variant_new ("{sv}", "icon", g_icon_serialize (icon));
+  g_variant_ref_sink (p->alarm_icon_variant);
+  g_object_unref (icon);
+}
+
+static void
+my_constructed (GObject * gself)
+{
+  IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE (gself);
+  priv_t * p = self->priv;
   GString * gstr = g_string_new (NULL);
+  guint i, n;
 
   /* these are the settings that affect the
      contents of the respective sections */
@@ -1825,30 +2211,10 @@ indicator_datetime_service_init (IndicatorDatetimeService * self)
   };
     
 
-  /* init the priv pointer */
-
-  p = G_TYPE_INSTANCE_GET_PRIVATE (self,
-                                   INDICATOR_TYPE_DATETIME_SERVICE,
-                                   IndicatorDatetimeServicePrivate);
-  self->priv = p;
-
-  p->cancellable = g_cancellable_new ();
-
   /***
-  ****  Create the planner and listen for changes
+  ****  Listen for settings changes
   ***/
 
-  p->planner = indicator_datetime_planner_eds_new ();
-
-  g_signal_connect_swapped (p->planner, "appointments-changed",
-                            G_CALLBACK(rebuild_calendar_section_soon), self);
-
-
-  /***
-  ****  Create the settings object and listen for changes
-  ***/
-
-  p->settings = g_settings_new (SETTINGS_INTERFACE);
   for (i=0, n=G_N_ELEMENTS(header_settings); i<n; i++)
     {
       g_string_printf (gstr, "changed::%s", header_settings[i]);
@@ -1913,6 +2279,11 @@ indicator_datetime_service_init (IndicatorDatetimeService * self)
 
   on_local_time_jumped (self);
 
+  set_alarm_timer (self);
+
+  for (i=0; i<N_PROFILES; ++i)
+    create_menu (self, i);
+
   g_string_free (gstr, TRUE);
 }
 
@@ -1920,9 +2291,13 @@ static void
 indicator_datetime_service_class_init (IndicatorDatetimeServiceClass * klass)
 {
   GObjectClass * object_class = G_OBJECT_CLASS (klass);
+  const GParamFlags flags = G_PARAM_CONSTRUCT | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS;
 
   object_class->dispose = my_dispose;
   object_class->finalize = my_finalize;
+  object_class->constructed = my_constructed;
+  object_class->get_property = my_get_property;
+  object_class->set_property = my_set_property;
 
   g_type_class_add_private (klass, sizeof (IndicatorDatetimeServicePrivate));
 
@@ -1934,6 +2309,24 @@ indicator_datetime_service_class_init (IndicatorDatetimeServiceClass * klass)
     NULL, NULL,
     g_cclosure_marshal_VOID__VOID,
     G_TYPE_NONE, 0);
+
+  /* install properties */
+
+  properties[PROP_0] = NULL;
+
+  properties[PROP_CLOCK] = g_param_spec_object ("clock",
+                                                "Clock",
+                                                "The clock",
+                                                INDICATOR_TYPE_DATETIME_CLOCK,
+                                                flags);
+
+  properties[PROP_PLANNER] = g_param_spec_object ("planner",
+                                                  "Planner",
+                                                  "The appointment provider",
+                                                  INDICATOR_TYPE_DATETIME_PLANNER,
+                                                  flags);
+
+  g_object_class_install_properties (object_class, PROP_LAST, properties);
 }
 
 /***
@@ -1941,19 +2334,15 @@ indicator_datetime_service_class_init (IndicatorDatetimeServiceClass * klass)
 ***/
 
 IndicatorDatetimeService *
-indicator_datetime_service_new (void)
+indicator_datetime_service_new (IndicatorDatetimeClock   * clock,
+                                IndicatorDatetimePlanner * planner)
 {
-  GObject * o = g_object_new (INDICATOR_TYPE_DATETIME_SERVICE, NULL);
+  GObject * o = g_object_new (INDICATOR_TYPE_DATETIME_SERVICE,
+                              "clock", clock,
+                              "planner", planner,
+                              NULL);
 
   return INDICATOR_DATETIME_SERVICE (o);
-}
-
-/* This currently just returns the system time,
-   As we add test coverage, we'll need this to bypass the system time. */
-GDateTime *
-indicator_datetime_service_get_localtime (IndicatorDatetimeService * self G_GNUC_UNUSED)
-{
-  return g_date_time_new_now_local ();
 }
 
 void
@@ -1972,8 +2361,77 @@ indicator_datetime_service_set_calendar_date (IndicatorDatetimeService * self,
 
   /* sync the menuitems and action states */
   if (dirty)
+    update_appointment_lists (self);
+}
+
+static void
+on_clock_changed (IndicatorDatetimeService * self)
+{
+  on_local_time_jumped (self);
+}
+
+void
+indicator_datetime_service_set_clock (IndicatorDatetimeService * self,
+                                      IndicatorDatetimeClock   * clock)
+{
+  priv_t * p;
+
+  g_return_if_fail (INDICATOR_IS_DATETIME_SERVICE (self));
+  g_return_if_fail ((clock == NULL) || INDICATOR_IS_DATETIME_CLOCK (clock));
+
+  p = self->priv;
+
+  /* clear the old clock */
+
+  if (p->clock != NULL)
     {
-      update_calendar_action_state (self);
-      rebuild_appointments_section_soon (self);
+      g_signal_handlers_disconnect_by_data (p->clock, self);
+      g_clear_object (&p->clock);
+    }
+
+  /* set the new clock */
+
+  if (clock != NULL)
+    {
+      p->clock = g_object_ref (clock);
+
+      g_signal_connect_swapped (p->clock, "changed",
+                                G_CALLBACK(on_clock_changed), self);
+      on_clock_changed (self);
+    }
+}
+
+void
+indicator_datetime_service_set_planner (IndicatorDatetimeService * self,
+                                        IndicatorDatetimePlanner * planner)
+{
+  priv_t * p;
+
+  g_return_if_fail (INDICATOR_IS_DATETIME_SERVICE (self));
+  g_return_if_fail ((planner == NULL) || INDICATOR_IS_DATETIME_PLANNER (planner));
+
+  p = self->priv;
+
+  /* clear the old planner & appointments */
+
+  if (p->planner != NULL)
+    {
+      g_signal_handlers_disconnect_by_data (p->planner, self);
+      g_clear_object (&p->planner);
+    }
+
+  g_clear_pointer (&p->upcoming_appointments, indicator_datetime_planner_free_appointments);
+  g_clear_pointer (&p->calendar_appointments, indicator_datetime_planner_free_appointments);
+
+  /* set the new planner & begin fetching appointments from it */
+
+  if (planner != NULL)
+    {
+      p->planner = g_object_ref (planner);
+
+      g_signal_connect_swapped (p->planner, "appointments-changed",
+                                G_CALLBACK(update_appointment_lists), self);
+
+      update_appointment_lists (self);
     }
 }

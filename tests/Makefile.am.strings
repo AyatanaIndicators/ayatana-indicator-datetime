@@ -29,7 +29,7 @@ test-space-ellipsis: $(top_srcdir)/po
 test-ascii-quotes: $(top_srcdir)/po
 	@echo "#!/bin/bash" > $@
 	@echo "(cd $(top_srcdir)/po && make $(GETTEXT_PACKAGE).pot)" >> $@
-	@echo "grep -c -e \"^msgid \\\".*'.*\\\"\" $(top_srcdir)/po/$(GETTEXT_PACKAGE).pot > /dev/null && echo \"ASCII apostrophy found in user visible strings\" >&2 && exit 1" >> $@
+	@echo "grep -c -e \"^msgid \\\".*'.*\\\"\" $(top_srcdir)/po/$(GETTEXT_PACKAGE).pot > /dev/null && echo \"ASCII apostrophe found in user visible strings\" >&2 && exit 1" >> $@
 	@echo "grep -c -e \"^msgid \\\".*\\\".*\\\"\" $(top_srcdir)/po/$(GETTEXT_PACKAGE).pot > /dev/null && echo \"ASCII quote found in user visible strings\" >&2 && exit 1" >> $@
 	@echo "grep -c -e \"^msgid \\\".*\\\`.*\\\"\" $(top_srcdir)/po/$(GETTEXT_PACKAGE).pot > /dev/null && echo \"ASCII backtick found in user visible strings\" >&2 && exit 1" >> $@
 	@echo "exit 0" >> $@

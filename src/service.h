@@ -23,6 +23,9 @@
 #include <glib.h>
 #include <glib-object.h>
 
+#include "clock.h"
+#include "planner.h"
+
 G_BEGIN_DECLS
 
 /* standard GObject macros */
@@ -62,12 +65,18 @@ struct _IndicatorDatetimeServiceClass
 
 GType indicator_datetime_service_get_type (void);
 
-IndicatorDatetimeService * indicator_datetime_service_new (void);
-
-GDateTime * indicator_datetime_service_get_localtime (IndicatorDatetimeService * service);
+IndicatorDatetimeService * indicator_datetime_service_new (IndicatorDatetimeClock   * clock,
+                                                           IndicatorDatetimePlanner * planner);
 
 void indicator_datetime_service_set_calendar_date (IndicatorDatetimeService * self,
                                                    GDateTime                * date);
+
+void indicator_datetime_service_set_planner (IndicatorDatetimeService * self,
+                                             IndicatorDatetimePlanner * planner);
+
+
+void indicator_datetime_service_set_clock (IndicatorDatetimeService * self,
+                                           IndicatorDatetimeClock * clock);
 
 
 G_END_DECLS

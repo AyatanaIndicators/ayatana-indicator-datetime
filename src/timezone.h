@@ -32,11 +32,10 @@ G_BEGIN_DECLS
 #define INDICATOR_IS_DATETIME_TIMEZONE(o)         (G_TYPE_CHECK_INSTANCE_TYPE ((o), INDICATOR_TYPE_DATETIME_TIMEZONE))
 
 typedef struct _IndicatorDatetimeTimezone        IndicatorDatetimeTimezone;
+typedef struct _IndicatorDatetimeTimezonePriv    IndicatorDatetimeTimezonePriv;
 typedef struct _IndicatorDatetimeTimezoneClass   IndicatorDatetimeTimezoneClass;
 
 GType indicator_datetime_timezone_get_type (void);
-
-#define INDICATOR_DATETIME_TIMEZONE_PROPERTY_TIMEZONE "timezone"
 
 /**
  * Abstract Base Class for objects that provide a timezone.
@@ -51,14 +50,12 @@ struct _IndicatorDatetimeTimezone
 {
   /*< private >*/
   GObject parent;
+  IndicatorDatetimeTimezonePriv * priv;
 };
 
 struct _IndicatorDatetimeTimezoneClass
 {
   GObjectClass parent_class;
-
-  /* virtual functions */
-  const char * (*get_timezone) (IndicatorDatetimeTimezone * self);
 };
 
 /***
@@ -67,7 +64,8 @@ struct _IndicatorDatetimeTimezoneClass
 
 const char * indicator_datetime_timezone_get_timezone    (IndicatorDatetimeTimezone *);
 
-void         indicator_datetime_timezone_notify_timezone (IndicatorDatetimeTimezone *);
+void         indicator_datetime_timezone_set_timezone    (IndicatorDatetimeTimezone *,
+                                                          const char * new_timezone);
 
 G_END_DECLS
 

@@ -96,7 +96,9 @@ time_location_array_new_from_model (GtkTreeModel * model)
                           COL_ZONE, &zone,
                           COL_VISIBLE_NAME, &name,
                           -1);
-      list = g_slist_prepend (list, time_location_new (zone, name, pos++, now));
+
+      if (zone && name)
+        list = g_slist_prepend (list, time_location_new (zone, name, pos++, now));
 
       g_free (name);
       g_free (zone);
@@ -417,6 +419,7 @@ update_times (GtkWidget * dlg)
 
   g_signal_handlers_block_by_func (store, save_when_idle, dlg);
 
+  GSettings * settings = g_settings_new (SETTINGS_INTERFACE);
   GtkTreeIter iter;
   if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter)) {
     GDateTime * now = g_date_time_new_now_local ();
@@ -428,7 +431,7 @@ update_times (GtkWidget * dlg)
       if (strzone && *strzone) {
         GTimeZone * tz = g_time_zone_new (strzone);
         GDateTime * now_tz = g_date_time_to_timezone (now, tz);
-        gchar * format = generate_full_format_string_at_time (now, now_tz);
+        gchar * format = generate_full_format_string_at_time (now, now_tz, settings);
         gchar * time_str = g_date_time_format (now_tz, format);
         gchar * old_time_str;
 
@@ -446,6 +449,8 @@ update_times (GtkWidget * dlg)
     } while (gtk_tree_model_iter_next (GTK_TREE_MODEL (store), &iter));
     g_date_time_unref (now);
   }
+
+  g_object_unref (settings);
 
   g_signal_handlers_unblock_by_func (store, save_when_idle, dlg);
 

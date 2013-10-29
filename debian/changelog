@@ -1,9 +1,127 @@
-indicator-datetime (13.10.0-0ubuntu1) UNRELEASED; urgency=low
+indicator-datetime (13.10.0+13.10.20131016.2-0ubuntu1) saucy; urgency=low
 
+  [ Charles Kerr ]
+  * Remove the g_error() call that caused an abort() in the call to
+    on_name_lost() in our bus handler. (LP: #1238737)
+
+  [ Didier Roche ]
+  * remove invalid click recommends and downgrade to Suggests
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 274
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 16 Oct 2013 15:30:10 +0000
+
+indicator-datetime (13.10.0+13.10.20131016-0ubuntu1) saucy; urgency=low
+
+  [ Charles Kerr ]
+  * Use the Unity Mobile icon name for the alarm clock icon.
+  * cache our internal GTimeZone instead of constantly re-creating it.
+    (LP: #1238043)
+  * Changes the phone profile's "Clock" menuitem in two ways: 1. instead
+    of using a stock icon, try to use the clock app's icon. 2. when
+    clicked, launch the clock app. (LP: #1227106)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 271
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 16 Oct 2013 02:35:10 +0000
+
+indicator-datetime (13.10.0+13.10.20131011-0ubuntu1) saucy; urgency=low
+
+  [ Charles Kerr ]
+  * start tracking failure-to-connect-to-bus errors on indicator-
+    datetime. (LP: #1227519)
+  * When an unsupported date format is being used, improve the error
+    message to also include the unsupported date format so that users
+    can include it in their bug reports. (LP: #1196059)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 267
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 11 Oct 2013 04:27:40 +0000
+
+indicator-datetime (13.10.0+13.10.20131004-0ubuntu1) saucy; urgency=low
+
+  [ Charles Kerr ]
+  * Change the tablet time format string to remove leading zeroes from
+    the hour component of the time format (ie, H:MM rather than HH:MM).
+    (LP: #1234483)
+  * on the phone, show appointments at 1AM as '1 AM', clock times as
+    '1:00 AM'. (LP: #1220297)
+  * Update settings URL to settings:///system. (LP: #1231444)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 264
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 04 Oct 2013 02:29:26 +0000
+
+indicator-datetime (13.10.0+13.10.20130930-0ubuntu1) saucy; urgency=low
+
+  [ Charles Kerr ]
+  * Use url-dispatcher instead of invoking system-settings directly.
+    (LP: #1230819)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 260
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 30 Sep 2013 06:32:59 +0000
+
+indicator-datetime (13.10.0+13.10.20130924.2-0ubuntu1) saucy; urgency=low
+
+  [ Timo Jyrinki ]
+  * Add X-Ubuntu-Gettext-Domain in .desktop file to use translations
+    (LP: #1223498). (LP: #1223498)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 258
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 24 Sep 2013 08:58:52 +0000
+
+indicator-datetime (13.10.0+13.10.20130913-0ubuntu1) saucy; urgency=low
+
+  [ Charles Kerr ]
+  * Make the EDS planner nonblocking. (LP: #1204532)
+  * Minor changes that eliminate unnecessary temporary strings.
+  * This change adds a GSettings* arg to the utils functions so that
+    they don't have to churn through temporary GSettings objects. These
+    functions are usually called in a loop, causing a lot of GSettings
+    temporaries, even though the calling code already has an instance
+    for that GSettings schema.
+  * name says it all; this branch is for improving indicator-datetime
+    test coverage.
+  * Remove code duplication between timezone-file and timezone-geoclue.
+  * Adds a title in the header's action state. (LP: #1223635)
+
+  [ Ted Gould ]
+  * Fix GeoClue signal handler to have proper prototype. (LP: #1195874)
+  * Protect against invalid begin or end dates. (LP: #1216263)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 256
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 13 Sep 2013 15:16:38 +0000
+
+indicator-datetime (13.10.0+13.10.20130903-0ubuntu1) saucy; urgency=low
+
+  [ Jeremy Bicha ]
+  * Really don't install *.la file.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 247
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 03 Sep 2013 02:08:17 +0000
+
+indicator-datetime (13.10.0+13.10.20130828.2-0ubuntu1) saucy; urgency=low
+
+  [ Ted Gould ]
   * Updating version to make the Conflicts/Replace nicer
   * Split out gnome-control-center panel into it's own package
 
- -- Ted Gould <ted@ubuntu.com>  Tue, 27 Aug 2013 10:26:47 -0500
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 245
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 28 Aug 2013 10:09:19 +0000
 
 indicator-datetime (12.10.3+13.10.20130822.1-0ubuntu1) saucy; urgency=low
 

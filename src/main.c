@@ -24,7 +24,10 @@
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
+#include <libnotify/notify.h> 
 
+#include "clock-live.h"
+#include "planner-eds.h"
 #include "service.h"
 
 /***
@@ -35,29 +38,48 @@ static void
 on_name_lost (gpointer instance G_GNUC_UNUSED, gpointer loop)
 {
   g_message ("exiting: service couldn't acquire or lost ownership of busname");
+
   g_main_loop_quit ((GMainLoop*)loop);
 }
 
 int
 main (int argc G_GNUC_UNUSED, char ** argv G_GNUC_UNUSED)
 {
-  GMainLoop * loop;
+  IndicatorDatetimeClock * clock;
+  IndicatorDatetimePlanner * planner;
   IndicatorDatetimeService * service;
+  GMainLoop * loop;
+
+  /* Work around a deadlock in glib's type initialization. It can be
+   * removed when https://bugzilla.gnome.org/show_bug.cgi?id=674885 is
+   * fixed.
+   */
+  g_type_ensure (G_TYPE_DBUS_CONNECTION);
 
   /* boilerplate i18n */
   setlocale (LC_ALL, "");
   bindtextdomain (GETTEXT_PACKAGE, GNOMELOCALEDIR);
   textdomain (GETTEXT_PACKAGE);
 
+  /* init libnotify */
+  if (!notify_init ("indicator-datetime-service"))
+    g_critical ("libnotify initialization failed");
+
+  /* create the service */
+  clock = indicator_datetime_clock_live_new ();
+  planner = indicator_datetime_planner_eds_new ();
+  service = indicator_datetime_service_new (clock, planner);
+
   /* run */
-  service = indicator_datetime_service_new ();
   loop = g_main_loop_new (NULL, FALSE);
   g_signal_connect (service, INDICATOR_DATETIME_SERVICE_SIGNAL_NAME_LOST,
                     G_CALLBACK(on_name_lost), loop);
   g_main_loop_run (loop);
+  g_main_loop_unref (loop);
 
   /* cleanup */
-  g_clear_object (&service);
-  g_main_loop_unref (loop);
+  g_object_unref (service);
+  g_object_unref (planner);
+  g_object_unref (clock);
   return 0;
 }
