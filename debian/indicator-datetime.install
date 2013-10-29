@@ -3,3 +3,4 @@ usr/share/upstart/sessions/*
 usr/share/unity/indicators/*
 usr/lib/*/indicator-datetime-service
 usr/share/locale/*
+etc/xdg/autostart/*
