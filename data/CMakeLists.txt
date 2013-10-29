@@ -45,15 +45,16 @@ install (FILES "${UNITY_INDICATOR_FILE}"
 
 
 ##
-##  FIXME: gnome-control-center panel
+##  gnome-control-center panel: .ui and .desktop files
 ##
 
 if (BUILD_PANEL)
 
+  # the .ui file
   install (FILES "datetime-dialog.ui"
            DESTINATION "${CMAKE_INSTALL_DATADIR}/${CMAKE_PROJECT_NAME}")
 
-  # generate the desktop file using intltool
+  # the .desktop file
   set (DESKTOP_NAME "gnome-indicator-datetime-panel.desktop")
   set (DESKTOP_FILE "${CMAKE_CURRENT_BINARY_DIR}/${DESKTOP_NAME}")
   set (DESKTOP_FILE_IN "${CMAKE_CURRENT_SOURCE_DIR}/${DESKTOP_NAME}.in")
