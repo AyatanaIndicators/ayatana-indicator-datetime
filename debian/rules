@@ -7,7 +7,7 @@ LDFLAGS += -Wl,-z,defs -Wl,--as-needed
 
 override_dh_install:
 	cd po; intltool-update --pot --verbose
-	dh_install -X.la --fail-missing
+	dh_install --fail-missing
 	# Language packs
 	for d in $$(find debian/indicator-datetime -type f \( -name "*.desktop" -o -name "*.directory" \) ); do \
 		sed -ri '/^(Name|GenericName|Comment|X-GNOME-FullName)\[/d' $$d; \
