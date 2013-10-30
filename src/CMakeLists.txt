@@ -4,6 +4,11 @@ set (SERVICE_EXEC "indicator-datetime-service")
 add_definitions (-DTIMEZONE_FILE="/etc/timezone"
                  -DG_LOG_DOMAIN="Indicator-Datetime")
 
+# let service know how to launch gnome-control-center on the desktop
+if (BUILD_PANEL)
+  add_definitions (-DHAVE_CCPANEL)
+endif ()
+
 add_library (${SERVICE_LIB} STATIC
              clock.c
              clock.h
