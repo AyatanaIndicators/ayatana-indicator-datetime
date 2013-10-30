@@ -18,8 +18,6 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "config.h"
-
 #include <string.h> /* strstr() */
 
 #include <glib/gi18n.h>
@@ -1531,7 +1529,7 @@ on_activate_appointment (GSimpleAction * a G_GNUC_UNUSED,
         }
 
       /* if that appointment's an alarm, dispatch its url */
-      g_debug ("%s: uri '%s'; matching appt is %p", G_STRFUNC, uid, appt);
+      g_debug ("%s: uri '%s'; matching appt is %p", G_STRFUNC, uid, (void*)appt);
       if (appt && appointment_has_alarm_url (appt))
         dispatch_alarm_url (appt);
     }

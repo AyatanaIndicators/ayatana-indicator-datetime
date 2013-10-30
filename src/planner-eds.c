@@ -17,8 +17,6 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "config.h"
-
 #include <libical/ical.h>
 #include <libical/icaltime.h>
 #include <libecal/libecal.h>

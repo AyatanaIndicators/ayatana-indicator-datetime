@@ -20,10 +20,6 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <glib/gi18n-lib.h>
 #include <gio/gio.h>
 #include <locale.h>
@@ -104,9 +100,9 @@ get_current_zone_name (const gchar * location, GSettings * settings)
   split_settings_location (tz_name, &old_zone, &old_name);
   g_free (tz_name);
 
-  // new_name is always just a sanitized version of a timezone.
-  // old_name is potentially a saved "pretty" version of a timezone name from
-  // geonames.  So we prefer to use it if available and the zones match.
+  /* new_name is always just a sanitized version of a timezone.
+     old_name is potentially a saved "pretty" version of a timezone name from
+     geonames.  So we prefer to use it if available and the zones match. */
 
   if (g_strcmp0 (old_zone, new_zone) == 0) {
     rv = old_name;
