@@ -1496,7 +1496,6 @@ on_desktop_settings_activated (GSimpleAction * a      G_GNUC_UNUSED,
 #ifdef HAVE_CCPANEL
   execute_command ("gnome-control-center indicator-datetime");
 #else
-#error blah
   execute_command ("gnome-control-center datetime");
 #endif
 }
