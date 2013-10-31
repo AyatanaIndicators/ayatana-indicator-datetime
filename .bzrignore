@@ -15,3 +15,5 @@ src/gen-datetime-service.xml.h
 build-aux
 data/com.canonical.indicator.datetime.gschema.valid
 src/libdatetime_la-utils.lo
+data/indicator-datetime.conf
+data/indicator-datetime.desktop

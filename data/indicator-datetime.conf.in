@@ -1,0 +1,8 @@
+description "Indicator Date & Time Backend"
+
+start on indicators-loaded or indicator-services-start
+stop on desktop-end or indicator-services-end
+
+respawn
+
+exec @pkglibexecdir@/indicator-datetime-service
