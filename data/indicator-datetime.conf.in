@@ -5,4 +5,4 @@ stop on desktop-end or indicator-services-end
 
 respawn
 
-exec @libexecdir@/indicator-datetime-service
+exec @pkglibexecdir@/indicator-datetime-service

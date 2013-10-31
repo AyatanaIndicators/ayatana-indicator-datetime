@@ -54,6 +54,7 @@ gchar *       generate_terse_format_string_at_time (GDateTime   * now,
 
 gchar *       generate_full_format_string          (gboolean      show_day,
                                                     gboolean      show_date,
+                                                    gboolean      show_year,
                                                     GSettings   * settings);
 
 gchar *       generate_full_format_string_at_time  (GDateTime   * now,

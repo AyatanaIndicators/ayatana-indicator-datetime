@@ -83,7 +83,9 @@ G_DEFINE_DYNAMIC_TYPE (IndicatorDatetimePanel, indicator_datetime_panel, CC_TYPE
 
 /* Turns the boolean property into a string gsettings */
 static GVariant *
-bind_hours_set (const GValue * value, const GVariantType * type, gpointer user_data)
+bind_hours_set (const GValue       * value,
+                const GVariantType * type G_GNUC_UNUSED,
+                gpointer             user_data)
 {
   const gchar * output = NULL;
   gboolean is_12hour_button = (gboolean)GPOINTER_TO_INT(user_data);
@@ -121,7 +123,7 @@ bind_hours_get (GValue * value, GVariant * variant, gpointer user_data)
 }
 
 static void
-widget_dependency_cb (GtkWidget * parent, GParamSpec *pspec, GtkWidget * dependent)
+widget_dependency_cb (GtkWidget * parent, GParamSpec *pspec G_GNUC_UNUSED, GtkWidget * dependent)
 {
   gboolean active, sensitive;
   g_object_get (G_OBJECT (parent),
@@ -141,7 +143,7 @@ add_widget_dependency (GtkWidget * parent, GtkWidget * dependent)
 }
 
 static void
-polkit_dependency_cb (GPermission * permission, GParamSpec *pspec, GtkWidget * dependent)
+polkit_dependency_cb (GPermission * permission, GParamSpec *pspec G_GNUC_UNUSED, GtkWidget * dependent)
 {
   gboolean allowed = FALSE;
 
@@ -152,7 +154,7 @@ polkit_dependency_cb (GPermission * permission, GParamSpec *pspec, GtkWidget * d
 }
 
 static void
-add_polkit_dependency_helper (GtkWidget * parent, GParamSpec *pspec, GtkWidget * dependent)
+add_polkit_dependency_helper (GtkWidget * parent, GParamSpec *pspec G_GNUC_UNUSED, GtkWidget * dependent)
 {
   GtkLockButton * button = GTK_LOCK_BUTTON (parent);
   GPermission * permission = gtk_lock_button_get_permission (button);
@@ -171,7 +173,7 @@ add_polkit_dependency (GtkWidget * parent, GtkWidget * dependent)
 }
 
 static void
-polkit_perm_ready (GObject *source_object, GAsyncResult *res, gpointer user_data)
+polkit_perm_ready (GObject *source_object G_GNUC_UNUSED, GAsyncResult *res, gpointer user_data)
 {
   GError * error = NULL;
   GPermission * permission = polkit_permission_new_finish (res, &error);
@@ -204,7 +206,7 @@ dbus_set_answered (GObject *object, GAsyncResult *res, gpointer command)
 }
 
 static void
-toggle_ntp (GtkWidget * radio, GParamSpec * pspec, IndicatorDatetimePanel * self)
+toggle_ntp (GtkWidget * radio, GParamSpec * pspec G_GNUC_UNUSED, IndicatorDatetimePanel * self)
 {
   gboolean active = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (radio));
 
@@ -224,7 +226,9 @@ sync_entry (IndicatorDatetimePanel * self, const gchar * location)
 }
 
 static void
-tz_changed (CcTimezoneMap * map, CcTimezoneLocation * location, IndicatorDatetimePanel * self)
+tz_changed (CcTimezoneMap * map G_GNUC_UNUSED,
+            CcTimezoneLocation * location,
+            IndicatorDatetimePanel * self)
 {
   if (location == NULL)
     return;
@@ -241,7 +245,9 @@ tz_changed (CcTimezoneMap * map, CcTimezoneLocation * location, IndicatorDatetim
 }
 
 static void
-proxy_ready (GObject *object, GAsyncResult *res, IndicatorDatetimePanel * self)
+proxy_ready (GObject *object G_GNUC_UNUSED,
+             GAsyncResult *res,
+             IndicatorDatetimePanel * self)
 {
   GError * error = NULL;
   IndicatorDatetimePanelPrivate * priv = self->priv;
@@ -459,7 +465,7 @@ input_time_text (GtkWidget * spinner, gdouble * value, IndicatorDatetimePanel * 
 }
 
 static gboolean
-format_time_text (GtkWidget * spinner, gpointer user_data)
+format_time_text (GtkWidget * spinner, gpointer user_data G_GNUC_UNUSED)
 {
   gboolean is_time = (gboolean)GPOINTER_TO_INT (g_object_get_data (G_OBJECT (spinner), "is-time"));
 
@@ -570,8 +576,10 @@ show_locations (IndicatorDatetimePanel * self)
 }
 
 static gboolean
-timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
-                   GtkTreeIter * iter, IndicatorDatetimePanel * self)
+timezone_selected (GtkEntryCompletion * widget G_GNUC_UNUSED,
+                   GtkTreeModel * model,
+                   GtkTreeIter * iter,
+                   IndicatorDatetimePanel * self)
 {
   const gchar * name, * zone;
 
@@ -610,7 +618,9 @@ timezone_selected (GtkEntryCompletion * widget, GtkTreeModel * model,
 }
 
 static gboolean
-entry_focus_out (GtkEntry * entry, GdkEventFocus * event, IndicatorDatetimePanel * self)
+entry_focus_out (GtkEntry * entry,
+                 GdkEventFocus * event G_GNUC_UNUSED,
+                 IndicatorDatetimePanel * self)
 {
   // If the name left in the entry doesn't match the current timezone name,
   // show an error icon.  It's always an error for the user to manually type in
@@ -689,7 +699,9 @@ indicator_datetime_panel_init (IndicatorDatetimePanel * self)
                    "active", G_SETTINGS_BIND_DEFAULT);
   g_settings_bind (conf, SETTINGS_SHOW_DAY_S, WIG ("showWeekdayCheck"),
                    "active", G_SETTINGS_BIND_DEFAULT);
-  g_settings_bind (conf, SETTINGS_SHOW_DATE_S, WIG ("showDateTimeCheck"),
+  g_settings_bind (conf, SETTINGS_SHOW_DATE_S, WIG ("showDateAndMonthCheck"),
+                   "active", G_SETTINGS_BIND_DEFAULT);
+  g_settings_bind (conf, SETTINGS_SHOW_YEAR_S, WIG ("showYearCheck"),
                    "active", G_SETTINGS_BIND_DEFAULT);
   g_settings_bind (conf, SETTINGS_SHOW_SECONDS_S, WIG ("showSecondsCheck"),
                    "active", G_SETTINGS_BIND_DEFAULT);
@@ -715,6 +727,7 @@ indicator_datetime_panel_init (IndicatorDatetimePanel * self)
                    "active", G_SETTINGS_BIND_DEFAULT);
 
   /* Set up sensitivities */
+  add_widget_dependency (WIG ("showDateAndMonthCheck"), WIG ("showYearCheck"));
   add_widget_dependency (WIG ("showCalendarCheck"), WIG ("calendarOptions"));
   add_widget_dependency (WIG ("showClockCheck"), WIG ("clockOptions"));
   add_widget_dependency (WIG ("showLocationsCheck"), WIG ("locationsButton"));
@@ -809,12 +822,12 @@ indicator_datetime_panel_dispose (GObject * object)
 }
 
 static void
-indicator_datetime_panel_class_finalize (IndicatorDatetimePanelClass *klass)
+indicator_datetime_panel_class_finalize (IndicatorDatetimePanelClass *klass G_GNUC_UNUSED)
 {
 }
 
 static const char *
-indicator_datetime_panel_get_help_uri (CcPanel *panel)
+indicator_datetime_panel_get_help_uri (CcPanel *panel G_GNUC_UNUSED)
 {
   return "help:ubuntu-help/clock";
 }
@@ -845,6 +858,6 @@ g_io_module_load (GIOModule *module)
 }
 
 void
-g_io_module_unload (GIOModule *module)
+g_io_module_unload (GIOModule *module G_GNUC_UNUSED)
 {
 }

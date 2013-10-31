@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=Indicator Date & Time
-Exec=@libexecdir@/indicator-datetime-service
+Exec=@pkglibexecdir@/indicator-datetime-service
 NotShowIn=Unity;
 NoDisplay=true
 StartupNotify=false

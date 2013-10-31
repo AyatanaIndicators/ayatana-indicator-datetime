@@ -18,8 +18,6 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "config.h"
-
 #include <string.h> /* strstr() */
 
 #include <glib/gi18n.h>
@@ -668,7 +666,8 @@ get_header_label_format_string (IndicatorDatetimeService * self)
         {
           gboolean show_day = g_settings_get_boolean (s, SETTINGS_SHOW_DAY_S);
           gboolean show_date = g_settings_get_boolean (s, SETTINGS_SHOW_DATE_S);
-          fmt = generate_full_format_string (show_day, show_date, s);
+          gboolean show_year = show_date && g_settings_get_boolean (s, SETTINGS_SHOW_YEAR_S);
+          fmt = generate_full_format_string (show_day, show_date, show_year, s);
         }
 
       p->header_label_format_string = fmt;
@@ -1531,7 +1530,7 @@ on_activate_appointment (GSimpleAction * a G_GNUC_UNUSED,
         }
 
       /* if that appointment's an alarm, dispatch its url */
-      g_debug ("%s: uri '%s'; matching appt is %p", G_STRFUNC, uid, appt);
+      g_debug ("%s: uri '%s'; matching appt is %p", G_STRFUNC, uid, (void*)appt);
       if (appt && appointment_has_alarm_url (appt))
         dispatch_alarm_url (appt);
     }
@@ -2184,6 +2183,7 @@ my_constructed (GObject * gself)
     SETTINGS_SHOW_SECONDS_S,
     SETTINGS_SHOW_DAY_S,
     SETTINGS_SHOW_DATE_S,
+    SETTINGS_SHOW_YEAR_S,
     SETTINGS_CUSTOM_TIME_FORMAT_S
   };
   const char * const calendar_settings[] = {

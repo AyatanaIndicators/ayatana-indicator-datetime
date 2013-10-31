@@ -20,10 +20,6 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <glib/gi18n-lib.h>
 #include <gio/gio.h>
 #include <locale.h>
@@ -104,9 +100,9 @@ get_current_zone_name (const gchar * location, GSettings * settings)
   split_settings_location (tz_name, &old_zone, &old_name);
   g_free (tz_name);
 
-  // new_name is always just a sanitized version of a timezone.
-  // old_name is potentially a saved "pretty" version of a timezone name from
-  // geonames.  So we prefer to use it if available and the zones match.
+  /* new_name is always just a sanitized version of a timezone.
+     old_name is potentially a saved "pretty" version of a timezone name from
+     geonames.  So we prefer to use it if available and the zones match. */
 
   if (g_strcmp0 (old_zone, new_zone) == 0) {
     rv = old_name;
@@ -333,19 +329,31 @@ generate_terse_format_string_at_time (GDateTime * now, GDateTime * time)
 ***/
 
 static const gchar *
-get_full_date_format_string (gboolean show_day, gboolean show_date)
+get_full_date_format_string (gboolean show_day, gboolean show_date, gboolean show_year)
 {
-  const gchar * fmt;
+  const char * fmt;
 
-  if (show_date && show_day)
-    /* TRANSLATORS: a strftime(3) format showing the date and weekday */
+  if (show_day && show_date && show_year)
+    /* TRANSLATORS: a strftime(3) format showing the weekday, date, and year */
+    fmt = T_("%a %b %e %Y");
+  else if (show_day && show_date)
+    /* TRANSLATORS: a strftime(3) format showing the weekday and date */
     fmt = T_("%a %b %e");
+  else if (show_day && show_year)
+    /* TRANSLATORS: a strftime(3) format showing the weekday and year. */
+    fmt = T_("%a %Y");
+  else if (show_day)
+    /* TRANSLATORS: a strftime(3) format showing the weekday. */
+    fmt = T_("%a");
+  else if (show_date && show_year)
+    /* TRANSLATORS: a strftime(3) format showing the date and year */
+    fmt = T_("%b %e %Y");
   else if (show_date)
     /* TRANSLATORS: a strftime(3) format showing the date */
     fmt = T_("%b %e");
-  else if (show_day)
-    /* TRANSLATORS: a strftime(3) format showing the weekday */
-    fmt = T_("%a");
+  else if (show_year)
+    /* TRANSLATORS: a strftime(3) format showing the year */
+    fmt = T_("%Y");
   else
     fmt = NULL;
 
@@ -404,9 +412,9 @@ get_full_time_format_string (GSettings * settings)
 }
 
 gchar *
-generate_full_format_string (gboolean show_day, gboolean show_date, GSettings * settings)
+generate_full_format_string (gboolean show_day, gboolean show_date, gboolean show_year, GSettings * settings)
 {
-  const gchar * date_fmt = get_full_date_format_string (show_day, show_date);
+  const gchar * date_fmt = get_full_date_format_string (show_day, show_date, show_year);
   const gchar * time_fmt = get_full_time_format_string (settings);
   return join_date_and_time_format_strings (date_fmt, time_fmt);
 }
@@ -440,6 +448,6 @@ generate_full_format_string_at_time (GDateTime * now, GDateTime * time, GSetting
         break;
     }
 
-  return generate_full_format_string (show_day, show_date, settings);
+  return generate_full_format_string (show_day, show_date, FALSE, settings);
 }
 

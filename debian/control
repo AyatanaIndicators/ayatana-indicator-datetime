@@ -2,9 +2,10 @@ Source: indicator-datetime
 Section: misc
 Priority: optional
 Maintainer: Ubuntu Desktop Team <ubuntu-desktop@lists.ubuntu.com>
-Build-Depends: debhelper (>= 9), 
-               quilt,
-               dh-autoreconf,
+Build-Depends: cmake,
+               dbus,
+               debhelper (>= 9), 
+               dh-translations,
                intltool (>= 0.35.0), 
                gnome-common,
                libxorg-gtest-dev,
