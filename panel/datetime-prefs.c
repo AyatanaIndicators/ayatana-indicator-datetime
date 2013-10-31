@@ -699,7 +699,9 @@ indicator_datetime_panel_init (IndicatorDatetimePanel * self)
                    "active", G_SETTINGS_BIND_DEFAULT);
   g_settings_bind (conf, SETTINGS_SHOW_DAY_S, WIG ("showWeekdayCheck"),
                    "active", G_SETTINGS_BIND_DEFAULT);
-  g_settings_bind (conf, SETTINGS_SHOW_DATE_S, WIG ("showDateTimeCheck"),
+  g_settings_bind (conf, SETTINGS_SHOW_DATE_S, WIG ("showDateAndMonthCheck"),
+                   "active", G_SETTINGS_BIND_DEFAULT);
+  g_settings_bind (conf, SETTINGS_SHOW_YEAR_S, WIG ("showYearCheck"),
                    "active", G_SETTINGS_BIND_DEFAULT);
   g_settings_bind (conf, SETTINGS_SHOW_SECONDS_S, WIG ("showSecondsCheck"),
                    "active", G_SETTINGS_BIND_DEFAULT);
@@ -725,6 +727,7 @@ indicator_datetime_panel_init (IndicatorDatetimePanel * self)
                    "active", G_SETTINGS_BIND_DEFAULT);
 
   /* Set up sensitivities */
+  add_widget_dependency (WIG ("showDateAndMonthCheck"), WIG ("showYearCheck"));
   add_widget_dependency (WIG ("showCalendarCheck"), WIG ("calendarOptions"));
   add_widget_dependency (WIG ("showClockCheck"), WIG ("clockOptions"));
   add_widget_dependency (WIG ("showLocationsCheck"), WIG ("locationsButton"));

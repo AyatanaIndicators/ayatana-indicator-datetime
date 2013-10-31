@@ -64,6 +64,15 @@
 			  time-format value is set to custom.
 			</description>
 		</key>
+		<key name="show-year" type="b">
+			<default>false</default>
+			<summary>Show the year in the indicator</summary>
+			<description>
+			  Puts the year in the panel along with the month and the date.
+			  This setting will be ignored if either the time-format value is set to custom
+			  or if show-date is set to false.
+			</description>
+		</key>
 		<key name="show-calendar" type="b">
 			<default>true</default>
 			<summary>Show the monthly calendar in the indicator</summary>

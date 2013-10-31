@@ -666,7 +666,8 @@ get_header_label_format_string (IndicatorDatetimeService * self)
         {
           gboolean show_day = g_settings_get_boolean (s, SETTINGS_SHOW_DAY_S);
           gboolean show_date = g_settings_get_boolean (s, SETTINGS_SHOW_DATE_S);
-          fmt = generate_full_format_string (show_day, show_date, s);
+          gboolean show_year = show_date && g_settings_get_boolean (s, SETTINGS_SHOW_YEAR_S);
+          fmt = generate_full_format_string (show_day, show_date, show_year, s);
         }
 
       p->header_label_format_string = fmt;
@@ -2182,6 +2183,7 @@ my_constructed (GObject * gself)
     SETTINGS_SHOW_SECONDS_S,
     SETTINGS_SHOW_DAY_S,
     SETTINGS_SHOW_DATE_S,
+    SETTINGS_SHOW_YEAR_S,
     SETTINGS_CUSTOM_TIME_FORMAT_S
   };
   const char * const calendar_settings[] = {

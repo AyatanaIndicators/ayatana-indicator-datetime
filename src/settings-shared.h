@@ -37,6 +37,7 @@ TimeFormatMode;
 #define SETTINGS_SHOW_SECONDS_S         "show-seconds"
 #define SETTINGS_SHOW_DAY_S             "show-day"
 #define SETTINGS_SHOW_DATE_S            "show-date"
+#define SETTINGS_SHOW_YEAR_S            "show-year"
 #define SETTINGS_CUSTOM_TIME_FORMAT_S   "custom-time-format"
 #define SETTINGS_SHOW_CALENDAR_S        "show-calendar"
 #define SETTINGS_SHOW_WEEK_NUMBERS_S    "show-week-numbers"
