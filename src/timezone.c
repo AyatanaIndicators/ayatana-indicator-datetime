@@ -124,8 +124,11 @@ indicator_datetime_timezone_set_timezone (IndicatorDatetimeTimezone * self,
 
   if (g_strcmp0 (p->timezone->str, timezone))
     {
-      g_string_assign (p->timezone, timezone);
-      g_debug ("%s new timezone set: '%s'", G_STRLOC, timezone);
+      if (timezone != NULL)
+        g_string_assign (p->timezone, timezone);
+      else
+        g_string_set_size (p->timezone, 0);
+      g_debug ("%s new timezone set: '%s'", G_STRLOC, p->timezone->str);
       g_object_notify_by_pspec (G_OBJECT(self), properties[PROP_TIMEZONE]);
     }
 }
