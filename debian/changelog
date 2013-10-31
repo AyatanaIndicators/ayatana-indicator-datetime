@@ -1,3 +1,18 @@
+indicator-datetime (13.10.0+13.10.20131023.2-0ubuntu1) saucy-proposed; urgency=low
+
+  [ Marcus Tomlinson ]
+  * Fixed datetime title text to read "Date and Time" rather than the
+    day of the week (as per spec). (LP: #1236400)
+
+  [ Lars Uebernickel ]
+  * Work around glib's type initialization deadlock.
+    https://bugzilla.gnome.org/show_bug.cgi?id=674885. (LP: #1239710)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 279
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Mon, 28 Oct 2013 14:59:27 -0400
+
 indicator-datetime (13.10.0+13.10.20131016.2-0ubuntu1) saucy; urgency=low
 
   [ Charles Kerr ]
