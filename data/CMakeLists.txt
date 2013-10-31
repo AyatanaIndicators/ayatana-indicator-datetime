@@ -33,7 +33,7 @@ install (FILES "${UPSTART_JOB_FILE}"
 ##
 
 # where to install
-set (XDG_AUTOSTART_DIR "${CMAKE_INSTALL_FULL_DATADIR}/dbus-1/services")
+set (XDG_AUTOSTART_DIR "/etc/xdg/autostart")
 message (STATUS "${XDG_AUTOSTART_DIR} is the DBus Service File install dir")
 
 set (XDG_AUTOSTART_NAME "${CMAKE_PROJECT_NAME}.desktop")
