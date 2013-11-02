@@ -821,64 +821,40 @@ update_calendar_action_state (IndicatorDatetimeService * self)
                              create_calendar_state (self));
 }
 
-static void
-add_localtime_menuitem (GMenu                    * menu,
-                        IndicatorDatetimeService * self,
-                        const char               * time_format,
-                        const char               * icon_name)
+static GMenuModel *
+create_calendar_section (IndicatorDatetimeService * self, int profile)
 {
+  const gboolean allow_activation = (profile == PROFILE_PHONE) || (profile == PROFILE_DESKTOP);
+  GMenu * menu;
   GDateTime * now;
   char * label;
-  GMenuItem * menu_item;
+  GMenuItem * item;
 
+  menu = g_menu_new ();
+
+  /* add a menuitem that shows the current date & time */
   now = indicator_datetime_service_get_localtime (self);
-  label = g_date_time_format (now, time_format);
-  menu_item = g_menu_item_new (label, NULL);
-  if (icon_name && *icon_name)
-    g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON, "s", icon_name);
-  g_menu_item_set_action_and_target_value (menu_item, "indicator.activate-planner", g_variant_new_int64(0));
-  g_menu_append_item (menu, menu_item);
-
-  g_object_unref (menu_item);
+  label = g_date_time_format (now, _("%A, %e %B %Y"));
+  item = g_menu_item_new (label, NULL);
+  g_menu_item_set_attribute (item, G_MENU_ATTRIBUTE_ICON, "s", "calendar");
+  if (allow_activation)
+    g_menu_item_set_action_and_target_value (item, "indicator.activate-planner", g_variant_new_int64(0));
+  g_menu_append_item (menu, item);
+  g_object_unref (item);
   g_free (label);
   g_date_time_unref (now);
-}
 
-static void
-add_calendar_menuitem (GMenu * menu)
-{
-  GMenuItem * menu_item;
-
-  menu_item = g_menu_item_new ("[calendar]", NULL);
-  g_menu_item_set_action_and_target_value (menu_item, "indicator.calendar", g_variant_new_int64(0));
-  g_menu_item_set_attribute (menu_item, "x-canonical-type", "s", "com.canonical.indicator.calendar");
-  g_menu_item_set_attribute (menu_item, "activation-action", "s", "indicator.activate-planner");
-
-  g_menu_append_item (menu, menu_item);
-  g_object_unref (menu_item);
-}
-
-static GMenuModel *
-create_desktop_calendar_section (IndicatorDatetimeService * self)
-{
-  GMenu * menu = g_menu_new ();
-
-  /* strftime(3) format string to show the day of the week and the date */
-  add_localtime_menuitem (menu, self, _("%A, %e %B %Y"), "calendar");
-
-  if (g_settings_get_boolean (self->priv->settings, SETTINGS_SHOW_CALENDAR_S))
-    add_calendar_menuitem (menu);
-
-  return G_MENU_MODEL (menu);
-}
-
-static GMenuModel *
-create_phone_calendar_section (IndicatorDatetimeService * self)
-{
-  GMenu * menu = g_menu_new ();
-
-  /* strftime(3) format string to show date */
-  add_localtime_menuitem (menu, self, _("%A, %e %B %Y"), "calendar");
+  /* add a menuitem that shows the current date & time */
+  if ((profile == PROFILE_DESKTOP) || (profile == PROFILE_GREETER))
+    {
+      item = g_menu_item_new ("[calendar]", NULL);
+      g_menu_item_set_action_and_target_value (item, "indicator.calendar", g_variant_new_int64(0));
+      g_menu_item_set_attribute (item, "x-canonical-type", "s", "com.canonical.indicator.calendar");
+      if (allow_activation)
+        g_menu_item_set_attribute (item, "activation-action", "s", "indicator.activate-planner");
+      g_menu_append_item (menu, item);
+      g_object_unref (item);
+    }
 
   return G_MENU_MODEL (menu);
 }
@@ -1423,14 +1399,14 @@ create_menu (IndicatorDatetimeService * self, int profile)
   switch (profile)
     {
       case PROFILE_PHONE:
-        sections[n++] = create_phone_calendar_section (self);
+        sections[n++] = create_calendar_section (self, profile);
         sections[n++] = create_phone_appointments_section (self);
         sections[n++] = create_phone_settings_section (self);
         header_action = "indicator.phone-header";
         break;
 
       case PROFILE_DESKTOP:
-        sections[n++] = create_desktop_calendar_section (self);
+        sections[n++] = create_calendar_section (self, profile);
         sections[n++] = create_desktop_appointments_section (self);
         sections[n++] = create_locations_section (self);
         sections[n++] = create_desktop_settings_section (self);
@@ -1438,7 +1414,7 @@ create_menu (IndicatorDatetimeService * self, int profile)
         break;
 
       case PROFILE_GREETER:
-        sections[n++] = create_desktop_calendar_section (self);
+        sections[n++] = create_calendar_section (self, profile);
         header_action = "indicator.desktop-header";
         break;
     }
@@ -1673,9 +1649,9 @@ rebuild_now (IndicatorDatetimeService * self, int sections)
 
   if (sections & SECTION_CALENDAR)
     {
-      rebuild_section (phone->submenu,   0, create_phone_calendar_section (self));
-      rebuild_section (desktop->submenu, 0, create_desktop_calendar_section (self));
-      rebuild_section (greeter->submenu, 0, create_desktop_calendar_section (self));
+      rebuild_section (phone->submenu,   0, create_calendar_section(self, PROFILE_PHONE));
+      rebuild_section (desktop->submenu, 0, create_calendar_section(self, PROFILE_DESKTOP));
+      rebuild_section (greeter->submenu, 0, create_calendar_section(self, PROFILE_GREETER));
     }
 
   if (sections & SECTION_APPOINTMENTS)
