@@ -101,14 +101,7 @@ struct _IndicatorDatetimeServicePrivate
   IndicatorDatetimeClock * clock;
   IndicatorDatetimePlanner * planner;
 
-  /* the clock app's icon filename */
-  gchar * clock_app_icon_filename;
-
   gchar * header_label_format_string;
-
-  /* Whether or not we've tried to load the clock app's icon.
-     This way we don't keep trying to reload it on the desktop */
-  gboolean clock_app_icon_initialized;
 
   guint own_id;
   guint actions_export_id;
@@ -146,12 +139,10 @@ struct _IndicatorDatetimeServicePrivate
      Used when building SECTION_APPOINTMENTS */
   GSList * upcoming_appointments;
 
-  /* variant cache */
-  GVariant * desktop_title_variant;
-  GVariant * phone_title_variant;
-  GVariant * visible_true_variant;
-  GVariant * visible_false_variant;
-  GVariant * alarm_icon_variant;
+  /* serialized icon cache */
+  GVariant * alarm_icon_serialized;
+  GVariant * calendar_icon_serialized;
+  GVariant * clock_app_icon_serialized;
 };
 
 typedef IndicatorDatetimeServicePrivate priv_t;
@@ -703,8 +694,8 @@ create_desktop_header_state (IndicatorDatetimeService * self)
   g_variant_builder_init (&b, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_add (&b, "{sv}", "accessible-desc", label_variant);
   g_variant_builder_add (&b, "{sv}", "label", label_variant);
-  g_variant_builder_add_value (&b, p->desktop_title_variant);
-  g_variant_builder_add_value (&b, visible ? p->visible_true_variant : p->visible_false_variant);
+  g_variant_builder_add (&b, "{sv}", "title", g_variant_new_string (_("Date and Time")));
+  g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (visible));
 
   /* cleanup */
   g_date_time_unref (now);
@@ -724,12 +715,11 @@ create_phone_header_state (IndicatorDatetimeService * self)
   const gchar * fmt;
 
   g_variant_builder_init (&b, G_VARIANT_TYPE_VARDICT);
-  g_variant_builder_add_value (&b, p->phone_title_variant);
-  g_variant_builder_add_value (&b, p->visible_true_variant);
+  g_variant_builder_add (&b, "{sv}", "title", g_variant_new_string (_("Upcoming")));
+  g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (TRUE));
 
-  /* icon */
   if (has_alarms)
-    g_variant_builder_add_value (&b, p->alarm_icon_variant);
+    g_variant_builder_add (&b, "{sv}", "icon", p->alarm_icon_serialized);
 
   /* label, a11y */
   now = indicator_datetime_service_get_localtime (self);
@@ -836,7 +826,7 @@ create_calendar_section (IndicatorDatetimeService * self, int profile)
   now = indicator_datetime_service_get_localtime (self);
   label = g_date_time_format (now, _("%A, %e %B %Y"));
   item = g_menu_item_new (label, NULL);
-  g_menu_item_set_attribute (item, G_MENU_ATTRIBUTE_ICON, "s", "calendar");
+  g_menu_item_set_attribute_value (item, G_MENU_ATTRIBUTE_ICON, self->priv->calendar_icon_serialized);
   if (allow_activation)
     g_menu_item_set_action_and_target_value (item, "indicator.activate-planner", g_variant_new_int64(0));
   g_menu_append_item (menu, item);
@@ -947,8 +937,8 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean phone)
       menu_item = g_menu_item_new (appt->summary, NULL);
 
       if (appt->has_alarms)
-        g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON,
-                                   "s", ALARM_CLOCK_ICON_NAME);
+        g_menu_item_set_attribute_value (menu_item, G_MENU_ATTRIBUTE_ICON,
+                                         self->priv->alarm_icon_serialized);
       else if (appt->color != NULL)
         g_menu_item_set_attribute (menu_item, "x-canonical-color",
                                    "s", appt->color);
@@ -981,9 +971,10 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean phone)
 
 
 /* try to extract the clock app's filename from click. (/$pkgdir/$icon) */
-static gchar *
-get_clock_app_icon_filename (void)
+static GVariant *
+get_clock_app_icon (void)
 {
+  GVariant * serialized = NULL;
   gchar * icon_filename = NULL;
   gchar * pkgdir;
 
@@ -1014,7 +1005,19 @@ get_clock_app_icon_filename (void)
       g_free (pkgdir);
     }
 
-  return icon_filename;
+  if (icon_filename != NULL)
+    {
+      GFile * file = g_file_new_for_path (icon_filename);
+      GIcon * icon = g_file_icon_new (file);
+
+      serialized = g_icon_serialize (icon);
+
+      g_object_unref (icon);
+      g_object_unref (file);
+      g_free (icon_filename);
+    }
+
+  return serialized;
 }
 
 static GMenuModel *
@@ -1024,15 +1027,9 @@ create_phone_appointments_section (IndicatorDatetimeService * self)
   GMenu * menu = g_menu_new ();
   GMenuItem * menu_item;
 
-  if (G_UNLIKELY (!p->clock_app_icon_initialized))
-    {
-      p->clock_app_icon_initialized = TRUE;
-      p->clock_app_icon_filename = get_clock_app_icon_filename ();
-    }
-
   menu_item = g_menu_item_new (_("Clock"), "indicator.activate-phone-clock-app");
-  if (p->clock_app_icon_filename != NULL)
-    g_menu_item_set_attribute (menu_item, G_MENU_ATTRIBUTE_ICON, "s", p->clock_app_icon_filename);
+  if (p->clock_app_icon_serialized != NULL)
+    g_menu_item_set_attribute_value (menu_item, G_MENU_ATTRIBUTE_ICON, p->clock_app_icon_serialized);
   g_menu_append_item (menu, menu_item);
   g_object_unref (menu_item);
 
@@ -2081,11 +2078,10 @@ my_dispose (GObject * o)
   g_clear_object (&p->phone_header_action);
   g_clear_object (&p->conn);
 
-  g_clear_pointer (&p->desktop_title_variant, g_variant_unref);
-  g_clear_pointer (&p->phone_title_variant, g_variant_unref);
-  g_clear_pointer (&p->visible_true_variant, g_variant_unref);
-  g_clear_pointer (&p->visible_false_variant, g_variant_unref);
-  g_clear_pointer (&p->alarm_icon_variant, g_variant_unref);
+  /* clear the serialized icon cache */
+  g_clear_pointer (&p->alarm_icon_serialized, g_variant_unref);
+  g_clear_pointer (&p->calendar_icon_serialized, g_variant_unref);
+  g_clear_pointer (&p->clock_app_icon_serialized, g_variant_unref);
 
   G_OBJECT_CLASS (indicator_datetime_service_parent_class)->dispose (o);
 }
@@ -2096,7 +2092,6 @@ my_finalize (GObject * o)
   IndicatorDatetimeService * self = INDICATOR_DATETIME_SERVICE(o);
   priv_t * p = self->priv;
 
-  g_free (p->clock_app_icon_filename);
   g_free (p->header_label_format_string);
   g_clear_pointer (&p->skew_time, g_date_time_unref);
   g_clear_pointer (&p->calendar_date, g_date_time_unref);
@@ -2125,22 +2120,17 @@ indicator_datetime_service_init (IndicatorDatetimeService * self)
 
   p->settings = g_settings_new (SETTINGS_INTERFACE);
 
-  p->desktop_title_variant = g_variant_new ("{sv}", "title", g_variant_new_string (_("Date and Time")));
-  g_variant_ref_sink (p->desktop_title_variant);
-
-  p->phone_title_variant = g_variant_new ("{sv}", "title", g_variant_new_string (_("Upcoming")));
-  g_variant_ref_sink (p->phone_title_variant);
-
-  p->visible_true_variant = g_variant_new ("{sv}", "visible", g_variant_new_boolean (TRUE));
-  g_variant_ref_sink (p->visible_true_variant);
-
-  p->visible_false_variant = g_variant_new ("{sv}", "visible", g_variant_new_boolean (FALSE));
-  g_variant_ref_sink (p->visible_false_variant);
+  /* build the serialized icon cache */
 
   icon = g_themed_icon_new_with_default_fallbacks (ALARM_CLOCK_ICON_NAME);
-  p->alarm_icon_variant = g_variant_new ("{sv}", "icon", g_icon_serialize (icon));
-  g_variant_ref_sink (p->alarm_icon_variant);
+  p->alarm_icon_serialized = g_icon_serialize (icon);
   g_object_unref (icon);
+
+  icon = g_themed_icon_new_with_default_fallbacks ("calendar");
+  p->calendar_icon_serialized = g_icon_serialize (icon);
+  g_object_unref (icon);
+
+  p->clock_app_icon_serialized = get_clock_app_icon ();
 }
 
 static void
