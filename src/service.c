@@ -945,18 +945,18 @@ add_appointments (IndicatorDatetimeService * self, GMenu * menu, gboolean phone)
 
       if (appt->has_alarms)
         g_menu_item_set_attribute_value (menu_item, G_MENU_ATTRIBUTE_ICON,
-                                           self->priv->alarm_icon_serialized);
+                                         self->priv->alarm_icon_serialized);
       else if (appt->color != NULL)
         g_menu_item_set_attribute (menu_item, "x-canonical-color",
                                    "s", appt->color);
 
       g_menu_item_set_attribute (menu_item, "x-canonical-time",
-                                 "x", unix_time);
+                                     "x", unix_time);
       g_menu_item_set_attribute (menu_item, "x-canonical-time-format",
-                                 "s", fmt);
+                                     "s", fmt);
       g_menu_item_set_attribute (menu_item, "x-canonical-type",
-                                 "s", appt->has_alarms ? "com.canonical.indicator.alarm"
-                                                       : "com.canonical.indicator.appointment");
+                                     "s", appt->has_alarms ? "com.canonical.indicator.alarm"
+                                                           : "com.canonical.indicator.appointment");
 
       if (phone)
         g_menu_item_set_action_and_target_value (menu_item,
@@ -2085,14 +2085,17 @@ my_dispose (GObject * o)
   g_clear_object (&p->phone_header_action);
   g_clear_object (&p->conn);
 
+  /* clear the variant cache */
+
+  g_clear_pointer (&p->alarm_icon_serialized, g_variant_unref);
+  g_clear_pointer (&p->calendar_icon_serialized, g_variant_unref);
+  g_clear_pointer (&p->clock_app_icon_serialized, g_variant_unref);
+
   g_clear_pointer (&p->desktop_title_dict_entry, g_variant_unref);
   g_clear_pointer (&p->phone_title_dict_entry, g_variant_unref);
   g_clear_pointer (&p->visible_true_dict_entry, g_variant_unref);
   g_clear_pointer (&p->visible_false_dict_entry, g_variant_unref);
   g_clear_pointer (&p->alarm_icon_dict_entry, g_variant_unref);
-  g_clear_pointer (&p->alarm_icon_serialized, g_variant_unref);
-  g_clear_pointer (&p->calendar_icon_serialized, g_variant_unref);
-  g_clear_pointer (&p->clock_app_icon_serialized, g_variant_unref);
 
   G_OBJECT_CLASS (indicator_datetime_service_parent_class)->dispose (o);
 }
@@ -2117,8 +2120,8 @@ my_finalize (GObject * o)
 static void
 indicator_datetime_service_init (IndicatorDatetimeService * self)
 {
-  priv_t * p;
   GIcon * icon;
+  priv_t * p;
   GVariant * v;
 
   /* init the priv pointer */
@@ -2132,7 +2135,7 @@ indicator_datetime_service_init (IndicatorDatetimeService * self)
 
   p->settings = g_settings_new (SETTINGS_INTERFACE);
 
-  /* build our variant cache */
+  /* build the variant cache */
 
   v = p->desktop_title_dict_entry = g_variant_new ("{sv}", "title", g_variant_new_string (_("Date and Time")));
   g_variant_ref_sink (v);
