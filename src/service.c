@@ -139,17 +139,10 @@ struct _IndicatorDatetimeServicePrivate
      Used when building SECTION_APPOINTMENTS */
   GSList * upcoming_appointments;
 
-  /* variant cache */
-
+  /* serialized icon cache */
   GVariant * alarm_icon_serialized;
   GVariant * calendar_icon_serialized;
   GVariant * clock_app_icon_serialized;
-
-  GVariant * desktop_title_dict_entry;
-  GVariant * phone_title_dict_entry;
-  GVariant * visible_true_dict_entry;
-  GVariant * visible_false_dict_entry;
-  GVariant * alarm_icon_dict_entry;
 };
 
 typedef IndicatorDatetimeServicePrivate priv_t;
@@ -701,8 +694,8 @@ create_desktop_header_state (IndicatorDatetimeService * self)
   g_variant_builder_init (&b, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_add (&b, "{sv}", "accessible-desc", label_variant);
   g_variant_builder_add (&b, "{sv}", "label", label_variant);
-  g_variant_builder_add_value (&b, p->desktop_title_dict_entry);
-  g_variant_builder_add_value (&b, visible ? p->visible_true_dict_entry : p->visible_false_dict_entry);
+  g_variant_builder_add (&b, "{sv}", "title", g_variant_new_string (_("Date and Time")));
+  g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (visible));
 
   /* cleanup */
   g_date_time_unref (now);
@@ -722,11 +715,11 @@ create_phone_header_state (IndicatorDatetimeService * self)
   const gchar * fmt;
 
   g_variant_builder_init (&b, G_VARIANT_TYPE_VARDICT);
-  g_variant_builder_add_value (&b, p->phone_title_dict_entry);
-  g_variant_builder_add_value (&b, p->visible_true_dict_entry);
+  g_variant_builder_add (&b, "{sv}", "title", g_variant_new_string (_("Upcoming")));
+  g_variant_builder_add (&b, "{sv}", "visible", g_variant_new_boolean (TRUE));
 
   if (has_alarms)
-    g_variant_builder_add_value (&b, p->alarm_icon_dict_entry);
+    g_variant_builder_add (&b, "{sv}", "icon", p->alarm_icon_serialized);
 
   /* label, a11y */
   now = indicator_datetime_service_get_localtime (self);
@@ -2085,17 +2078,10 @@ my_dispose (GObject * o)
   g_clear_object (&p->phone_header_action);
   g_clear_object (&p->conn);
 
-  /* clear the variant cache */
-
+  /* clear the serialized icon cache */
   g_clear_pointer (&p->alarm_icon_serialized, g_variant_unref);
   g_clear_pointer (&p->calendar_icon_serialized, g_variant_unref);
   g_clear_pointer (&p->clock_app_icon_serialized, g_variant_unref);
-
-  g_clear_pointer (&p->desktop_title_dict_entry, g_variant_unref);
-  g_clear_pointer (&p->phone_title_dict_entry, g_variant_unref);
-  g_clear_pointer (&p->visible_true_dict_entry, g_variant_unref);
-  g_clear_pointer (&p->visible_false_dict_entry, g_variant_unref);
-  g_clear_pointer (&p->alarm_icon_dict_entry, g_variant_unref);
 
   G_OBJECT_CLASS (indicator_datetime_service_parent_class)->dispose (o);
 }
@@ -2122,7 +2108,6 @@ indicator_datetime_service_init (IndicatorDatetimeService * self)
 {
   GIcon * icon;
   priv_t * p;
-  GVariant * v;
 
   /* init the priv pointer */
 
@@ -2135,36 +2120,17 @@ indicator_datetime_service_init (IndicatorDatetimeService * self)
 
   p->settings = g_settings_new (SETTINGS_INTERFACE);
 
-  /* build the variant cache */
-
-  v = p->desktop_title_dict_entry = g_variant_new ("{sv}", "title", g_variant_new_string (_("Date and Time")));
-  g_variant_ref_sink (v);
-
-  v = p->phone_title_dict_entry = g_variant_new ("{sv}", "title", g_variant_new_string (_("Upcoming")));
-  g_variant_ref_sink (v);
-
-  v = p->visible_true_dict_entry = g_variant_new ("{sv}", "visible", g_variant_new_boolean (TRUE));
-  g_variant_ref_sink (v);
-
-  v = p->visible_false_dict_entry = g_variant_new ("{sv}", "visible", g_variant_new_boolean (FALSE));
-  g_variant_ref_sink (v);
+  /* build the serialized icon cache */
 
   icon = g_themed_icon_new_with_default_fallbacks (ALARM_CLOCK_ICON_NAME);
-  v = p->alarm_icon_serialized = g_icon_serialize (icon);
-  g_variant_ref_sink (v);
+  p->alarm_icon_serialized = g_icon_serialize (icon);
   g_object_unref (icon);
-
-  v = p->alarm_icon_dict_entry = g_variant_new ("{sv}", "icon", p->alarm_icon_serialized);
-  g_variant_ref_sink (v);
 
   icon = g_themed_icon_new_with_default_fallbacks ("calendar");
-  v = p->calendar_icon_serialized = g_icon_serialize (icon);
-  g_variant_ref_sink (v);
+  p->calendar_icon_serialized = g_icon_serialize (icon);
   g_object_unref (icon);
 
-  v = p->clock_app_icon_serialized = get_clock_app_icon ();
-  if (v != NULL)
-    g_variant_ref_sink (v);
+  p->clock_app_icon_serialized = get_clock_app_icon ();
 }
 
 static void
