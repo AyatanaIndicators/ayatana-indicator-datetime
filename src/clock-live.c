@@ -259,9 +259,8 @@ indicator_datetime_clock_live_init (IndicatorDatetimeClockLive * self)
   self->priv = p;
 
   p->settings = g_settings_new (SETTINGS_INTERFACE);
-  g_signal_connect (p->settings, "changed::" SETTINGS_SHOW_DETECTED_S,
-                    G_CALLBACK(on_detect_location_changed), self);
-
+  g_signal_connect_swapped (p->settings, "changed::" SETTINGS_SHOW_DETECTED_S,
+                            G_CALLBACK(on_detect_location_changed), self);
 
   on_detect_location_changed (self);
 }
