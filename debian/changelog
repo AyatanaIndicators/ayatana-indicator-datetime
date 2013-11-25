@@ -1,3 +1,27 @@
+indicator-datetime (13.10.0+14.04.20131125-0ubuntu1) trusty; urgency=low
+
+  [ Charles Kerr ]
+  * Switch the build system to cmake. (LP: #1237509)
+  * As per the spec, let users show the year in indicator-datetime. (LP:
+    #465689)
+  * Don't generate g_critical() messages in the log when the timezone
+    object is clearing its value. . (LP: #1246532)
+  * When in the desktop-greeter mode, don't allow clicking on calendar
+    dates to launch evolution. (LP: #1246812)
+  * Use g_icon_serialize() output when setting menuitems' "icon"
+    property.
+  * In src/clock-live.c, pass the right pointer to
+    on_detect_location_changed(). (LP: #1251460)
+
+  [ Ted Gould ]
+  * Adding a phone_greeter profile.
+  * Upstart Job. (LP: #1185565)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 289
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 25 Nov 2013 03:55:52 +0000
+
 indicator-datetime (13.10.0+13.10.20131023.2-0ubuntu2) trusty; urgency=low
 
   * No-change rebuild for new e-d-s
