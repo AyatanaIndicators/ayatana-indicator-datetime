@@ -29,9 +29,6 @@ add_custom_command (OUTPUT gschemas.compiled
 include_directories (${CMAKE_SOURCE_DIR}/src)
 include_directories (${CMAKE_CURRENT_BINARY_DIR})
 include_directories (${SERVICE_DEPS_INCLUDE_DIRS})
-include_directories (${DBUSTEST_INCLUDE_DIRS})
-
-add_definitions (-DSANDBOX="${CMAKE_CURRENT_BINARY_DIR}")
 
 # test-formatter
 set (TEST_NAME test-formatter)
