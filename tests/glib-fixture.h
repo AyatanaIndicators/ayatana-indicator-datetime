@@ -44,11 +44,12 @@ class GlibFixture : public ::testing::Test
 
   private:
 
-    static void default_log_handler (const gchar    * log_domain G_GNUC_UNUSED,
+    static void default_log_handler (const gchar    * log_domain,
                                      GLogLevelFlags   log_level,
-                                     const gchar    * message    G_GNUC_UNUSED,
+                                     const gchar    * message,
                                      gpointer         self)
     {
+      g_print ("%s - %d - %s", log_domain, (int)log_level, message);
       static_cast<GlibFixture*>(self)->logCounts[log_level]++;
     }
 
