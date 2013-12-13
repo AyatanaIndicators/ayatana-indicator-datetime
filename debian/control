@@ -25,6 +25,7 @@ Build-Depends: cmake,
                libgnome-control-center-dev,
                libtimezonemap1-dev,
                liburl-dispatcher1-dev,
+               locales,
 Standards-Version: 3.9.3
 Homepage: https://launchpad.net/indicator-datetime
 # If you aren't a member of ~indicator-applet-developers but need to upload
