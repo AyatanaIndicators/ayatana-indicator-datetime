@@ -2,12 +2,14 @@ Source: indicator-datetime
 Section: misc
 Priority: optional
 Maintainer: Ubuntu Desktop Team <ubuntu-desktop@lists.ubuntu.com>
+# language-pack-en-base is for the unit tests s.t. we can test in 12h and 24h locales
 Build-Depends: cmake,
                dbus,
                debhelper (>= 9), 
                dh-translations,
                intltool (>= 0.35.0), 
                gnome-common,
+               language-pack-en-base,
                libxorg-gtest-dev,
                libgtest-dev,
                libglib2.0-dev (>= 2.35.4),

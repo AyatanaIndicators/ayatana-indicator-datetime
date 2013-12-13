@@ -14,6 +14,3 @@ override_dh_install:
 		echo "X-Ubuntu-Gettext-Domain=indicator-datetime" >> $$d; \
        	done;
 
-override_dh_auto_test:
-	sh debian/locale-gen
-	LOCPATH="$(CURDIR)/locales" dh_auto_test
