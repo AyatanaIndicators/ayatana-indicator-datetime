@@ -25,8 +25,10 @@ add_custom_command (OUTPUT gschemas.compiled
                     COMMAND cp -f ${CMAKE_SOURCE_DIR}/data/*gschema.xml ${SCHEMA_DIR}
                     COMMAND ${COMPILE_SCHEMA_EXECUTABLE} ${SCHEMA_DIR})
 
-# look for hearder in our src dir, and also in the directories where we autogenerate files...
+# look for headers in our src dir, and also in the directories where we autogenerate files...
 include_directories (${CMAKE_SOURCE_DIR}/src)
-include_directories (${CMAKE_CURRENT_BINARY_DIR} ${SERVICE_INCLUDE_DIRS})
+include_directories (${CMAKE_CURRENT_BINARY_DIR})
+include_directories (${SERVICE_DEPS_INCLUDE_DIRS})
+include_directories (${DBUSTEST_INCLUDE_DIRS})
 
 
