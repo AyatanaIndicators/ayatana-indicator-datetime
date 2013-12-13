@@ -188,6 +188,31 @@ join_date_and_time_format_strings (const char * date_string,
 ****
 ***/
 
+static const gchar *
+get_default_header_time_format (gboolean twelvehour, gboolean show_seconds)
+{
+  const gchar * fmt;
+
+  if (twelvehour && show_seconds)
+    /* TRANSLATORS: a strftime(3) format for 12hr time w/seconds */
+    fmt = T_("%l:%M:%S %p");
+  else if (twelvehour)
+    /* TRANSLATORS: a strftime(3) format for 12hr time */
+    fmt = T_("%l:%M %p");
+  else if (show_seconds)
+    /* TRANSLATORS: a strftime(3) format for 24hr time w/seconds */
+    fmt = T_("%H:%M:%S");
+  else
+    /* TRANSLATORS: a strftime(3) format for 24hr time */
+    fmt = T_("%H:%M");
+
+  return fmt;
+}
+
+/***
+****
+***/
+
 typedef enum
 {
   DATE_PROXIMITY_TODAY,
@@ -293,8 +318,10 @@ get_terse_date_format_string (date_proximity_t proximity)
 const gchar*
 get_terse_header_time_format_string (void)
 {
-  /* a strftime(3) fmt string for a H:MM 12 hour time, eg "6:59 PM" */
-  return T_("%l:%M %p");
+  const gboolean twelvehour = is_locale_12h ();
+  const gboolean show_seconds = FALSE;
+
+  return get_default_header_time_format (twelvehour, show_seconds);
 }
 
 const gchar *
@@ -374,7 +401,6 @@ get_full_time_format_string (GSettings * settings)
 {
   gboolean twelvehour;
   gboolean show_seconds;
-  const gchar * fmt;
 
   g_return_val_if_fail (settings != NULL, NULL);
 
@@ -395,20 +421,7 @@ get_full_time_format_string (GSettings * settings)
         break;
     }
 
-  if (twelvehour && show_seconds)
-    /* TRANSLATORS: a strftime(3) format for 12hr time w/seconds */
-    fmt = T_("%l:%M:%S %p");
-  else if (twelvehour)
-    /* TRANSLATORS: a strftime(3) format for 12hr time */
-    fmt = T_("%l:%M %p");
-  else if (show_seconds)
-    /* TRANSLATORS: a strftime(3) format for 24hr time w/seconds */
-    fmt = T_("%H:%M:%S");
-  else
-    /* TRANSLATORS: a strftime(3) format for 24hr time */
-    fmt = T_("%H:%M");
-
-  return fmt;
+  return get_default_header_time_format (twelvehour, show_seconds);
 }
 
 gchar *

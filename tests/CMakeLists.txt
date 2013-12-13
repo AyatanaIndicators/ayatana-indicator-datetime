@@ -1,3 +1,12 @@
+# build libgtest
+add_library (gtest STATIC 
+             ${GTEST_SOURCE_DIR}/gtest-all.cc 
+             ${GTEST_SOURCE_DIR}/gtest_main.cc)
+set_target_properties (gtest PROPERTIES INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${GTEST_INCLUDE_DIR})
+set_target_properties (gtest PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS} -w)
+
+SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -g ${CC_WARNING_ARGS}")
+
 # build the necessary schemas
 set_directory_properties (PROPERTIES
                           ADDITIONAL_MAKE_CLEAN_FILES gschemas.compiled)
@@ -12,12 +21,19 @@ execute_process (COMMAND ${PKG_CONFIG_EXECUTABLE} gio-2.0 --variable glib_compil
                  OUTPUT_VARIABLE COMPILE_SCHEMA_EXECUTABLE
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
 add_custom_command (OUTPUT gschemas.compiled
-                    DEPENDS ${CMAKE_SOURCE_DIR}/data/com.canonical.indicator.session.gschema.xml
+                    DEPENDS ${CMAKE_SOURCE_DIR}/data/com.canonical.indicator.datetime.gschema.xml
                     COMMAND cp -f ${CMAKE_SOURCE_DIR}/data/*gschema.xml ${SCHEMA_DIR}
                     COMMAND ${COMPILE_SCHEMA_EXECUTABLE} ${SCHEMA_DIR})
 
-# look for hearder in our src dir, and also in the directories where we autogenerate files...
+# look for headers in our src dir, and also in the directories where we autogenerate files...
 include_directories (${CMAKE_SOURCE_DIR}/src)
-include_directories (${CMAKE_CURRENT_BINARY_DIR} ${SERVICE_INCLUDE_DIRS})
+include_directories (${CMAKE_CURRENT_BINARY_DIR})
+include_directories (${SERVICE_DEPS_INCLUDE_DIRS})
 
+# test-formatter
+set (TEST_NAME test-formatter)
+add_executable (${TEST_NAME} test-formatter.cc)
+add_test (${TEST_NAME} ${TEST_NAME})
+add_dependencies (${TEST_NAME} libindicatordatetimeservice)
+target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
 

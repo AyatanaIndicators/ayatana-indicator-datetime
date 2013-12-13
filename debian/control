@@ -2,12 +2,14 @@ Source: indicator-datetime
 Section: misc
 Priority: optional
 Maintainer: Ubuntu Desktop Team <ubuntu-desktop@lists.ubuntu.com>
+# language-pack-en-base is for the unit tests s.t. we can test in 12h and 24h locales
 Build-Depends: cmake,
                dbus,
                debhelper (>= 9), 
                dh-translations,
                intltool (>= 0.35.0), 
                gnome-common,
+               language-pack-en-base,
                libxorg-gtest-dev,
                libgtest-dev,
                libglib2.0-dev (>= 2.35.4),
@@ -25,6 +27,7 @@ Build-Depends: cmake,
                libgnome-control-center-dev,
                libtimezonemap1-dev,
                liburl-dispatcher1-dev,
+               locales,
 Standards-Version: 3.9.3
 Homepage: https://launchpad.net/indicator-datetime
 # If you aren't a member of ~indicator-applet-developers but need to upload
