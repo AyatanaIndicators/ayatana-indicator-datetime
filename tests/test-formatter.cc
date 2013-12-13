@@ -18,16 +18,12 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string>
-#include <vector>
-
 #include <langinfo.h>
 #include <locale.h>
 
 #include <glib/gi18n.h>
 
 #include "utils.h"
-#include "settings-shared.h"
 
 #include "glib-fixture.h"
 
@@ -44,21 +40,15 @@ class FormatterFixture: public GlibFixture
 
   protected:
 
-    GSettings * settings = nullptr;
-
     virtual void SetUp ()
     {
       super::SetUp ();
   
-      settings = g_settings_new (SETTINGS_INTERFACE);
-
       original_locale = g_strdup (setlocale (LC_TIME, NULL));
     }
 
     virtual void TearDown ()
     {
-      g_clear_object (&settings);
-
       setlocale (LC_TIME, original_locale);
       g_clear_pointer (&original_locale, g_free);
 

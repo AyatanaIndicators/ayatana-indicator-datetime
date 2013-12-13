@@ -32,7 +32,7 @@ include_directories (${SERVICE_DEPS_INCLUDE_DIRS})
 
 # test-formatter
 set (TEST_NAME test-formatter)
-add_executable (${TEST_NAME} test-formatter.cc gschemas.compiled)
+add_executable (${TEST_NAME} test-formatter.cc)
 add_test (${TEST_NAME} ${TEST_NAME})
 add_dependencies (${TEST_NAME} libindicatordatetimeservice)
 target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
