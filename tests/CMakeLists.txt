@@ -1,3 +1,12 @@
+# build libgtest
+add_library (gtest STATIC 
+             ${GTEST_SOURCE_DIR}/gtest-all.cc 
+             ${GTEST_SOURCE_DIR}/gtest_main.cc)
+set_target_properties (gtest PROPERTIES INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${GTEST_INCLUDE_DIR})
+set_target_properties (gtest PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS} -w)
+
+SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -g ${CC_WARNING_ARGS}")
+
 # build the necessary schemas
 set_directory_properties (PROPERTIES
                           ADDITIONAL_MAKE_CLEAN_FILES gschemas.compiled)
