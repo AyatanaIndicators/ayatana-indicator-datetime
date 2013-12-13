@@ -1,4 +1,4 @@
-set (SERVICE_LIB "libindicatordatetimeservice")
+set (SERVICE_LIB "indicatordatetimeservice")
 set (SERVICE_EXEC "indicator-datetime-service")
 
 add_definitions (-DTIMEZONE_FILE="/etc/timezone"
