@@ -1,3 +1,15 @@
+indicator-datetime (13.10.0+14.04.20131217-0ubuntu1) trusty; urgency=low
+
+  [ Charles Kerr ]
+  * Make the phone profile's header format sensitive to whether the
+    phone is running in a 12h or 24h locale, and use a 12h or 24h
+    notation accordingly. (LP: #1256061)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 291
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 17 Dec 2013 09:49:56 +0000
+
 indicator-datetime (13.10.0+14.04.20131125-0ubuntu1) trusty; urgency=low
 
   [ Charles Kerr ]
