@@ -1,0 +1,63 @@
+/*
+ * Copyright 2013 Canonical Ltd.
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 3, as published
+ * by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranties of
+ * MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Authors:
+ *   Charles Kerr <charles.kerr@canonical.com>
+ */
+
+#ifndef INDICATOR_DATETIME_APPOINTMENT_H
+#define INDICATOR_DATETIME_APPOINTMENT_H
+
+#include <datetime/date-time.h>
+#include <string>
+
+namespace unity {
+namespace indicator {
+namespace datetime {
+
+/**
+ * PODS representing a calendar appointment
+ */
+struct Appointment
+{
+public:
+    std::string color; 
+    std::string summary;
+    std::string url;
+    std::string uid;
+    bool is_event = false;
+    bool is_daily = false;
+    bool has_alarms = false;
+    DateTime begin;
+    DateTime end;
+
+    bool operator== (const Appointment& that) const
+    {
+      return (color==that.color) &&
+             (summary==that.summary) &&
+             (url==that.url) &&
+             (uid==that.uid) &&
+             (is_event==that.is_event) &&
+             (has_alarms==that.has_alarms) &&
+             (begin==that.begin) &&
+             (end==that.end);
+    }
+};
+
+} // namespace datetime
+} // namespace indicator
+} // namespace unity
+
+#endif // INDICATOR_DATETIME_APPOINTMENT_H
