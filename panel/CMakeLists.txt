@@ -6,9 +6,9 @@ add_library (${PANEL_LIB} SHARED
              datetime-prefs.c 
              datetime-prefs-locations.c
              datetime-prefs-locations.h
-             ${CMAKE_SOURCE_DIR}/src/utils.c
-             ${CMAKE_SOURCE_DIR}/src/utils.h
-             ${CMAKE_SOURCE_DIR}/src/settings-shared.h)
+             ${CMAKE_SOURCE_DIR}/src/utils.cpp
+             ${CMAKE_SOURCE_DIR}/include/datetime/utils.h
+             ${CMAKE_SOURCE_DIR}/include/datetime/settings-shared.h)
 
 include_directories (${PANEL_DEPS_INCLUDE_DIRS})
 

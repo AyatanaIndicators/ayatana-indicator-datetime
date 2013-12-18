@@ -25,22 +25,25 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <libintl.h>
-#include <locale.h>
-#include <langinfo.h>
-#include <glib/gi18n-lib.h>
-#include <gdk/gdkkeysyms.h>
-#include <gtk/gtk.h>
+#include "datetime-prefs-locations.h"
+
+#include <datetime/dbus-shared.h>
+#include <datetime/settings-shared.h>
+#include <datetime/utils.h>
+
 #include <polkit/polkit.h>
 #include <libgnome-control-center/cc-panel.h>
 #include <timezonemap/cc-timezone-map.h>
 #include <timezonemap/timezone-completion.h>
 
-#include "dbus-shared.h"
-#include "settings-shared.h"
-#include "utils.h"
-#include "datetime-prefs-locations.h"
+#include <glib/gi18n-lib.h>
+#include <gdk/gdkkeysyms.h>
+#include <gtk/gtk.h>
+
+#include <stdlib.h>
+#include <libintl.h>
+#include <locale.h>
+#include <langinfo.h>
 
 #define DATETIME_DIALOG_UI_FILE PKGDATADIR "/datetime-dialog.ui"
 
@@ -221,8 +224,8 @@ sync_entry (IndicatorDatetimePanel * self, const gchar * location)
   gtk_entry_set_text (GTK_ENTRY (self->priv->tz_entry), name);
   g_free (name);
 
-  gtk_entry_set_icon_from_stock (GTK_ENTRY (self->priv->tz_entry),
-                                 GTK_ENTRY_ICON_SECONDARY, NULL);
+  gtk_entry_set_icon_from_icon_name (GTK_ENTRY (self->priv->tz_entry),
+                                     GTK_ENTRY_ICON_SECONDARY, NULL);
 }
 
 static void
@@ -287,10 +290,10 @@ proxy_ready (GObject *object G_GNUC_UNUSED,
     {
       if (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING))
         {
-          const gchar *timezone = g_variant_get_string (value, NULL);
+          const gchar * str = g_variant_get_string (value, NULL);
 
-          cc_timezone_map_set_timezone (priv->tzmap, timezone);
-          sync_entry (self, timezone);
+          cc_timezone_map_set_timezone (priv->tzmap, str);
+          sync_entry (self, str);
           g_signal_connect (priv->tzmap, "location-changed", G_CALLBACK (tz_changed), self);
         }
       g_variant_unref (value);
@@ -637,8 +640,8 @@ entry_focus_out (GtkEntry * entry,
   g_free (name);
   g_free (zone);
 
-  gtk_entry_set_icon_from_stock (entry, GTK_ENTRY_ICON_SECONDARY,
-                                 correct ? NULL : GTK_STOCK_DIALOG_ERROR);
+  gtk_entry_set_icon_from_icon_name (entry, GTK_ENTRY_ICON_SECONDARY,
+                                     correct ? NULL : "dialog-error");
   gtk_entry_set_icon_tooltip_text (entry, GTK_ENTRY_ICON_SECONDARY,
                                    _("You need to choose a location to change the time zone."));
   gtk_entry_set_icon_activatable (entry, GTK_ENTRY_ICON_SECONDARY, FALSE);
