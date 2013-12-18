@@ -41,7 +41,7 @@ pkg_check_modules (SERVICE_DEPS REQUIRED
                    libnotify>=0.7.6
                    url-dispatcher-1>=1
                    json-glib-1.0>=0.16.2)
-include_directories (${SERVICE_INCLUDE_DIRS})
+include_directories (SYSTEM ${SERVICE_DEPS_INCLUDE_DIRS})
 
 pkg_check_modules (PANEL_DEPS
                    glib-2.0>=2.36
@@ -75,12 +75,14 @@ add_custom_target (cppcheck COMMAND cppcheck --enable=all -q --error-exitcode=2 
 ##
 
 set (CC_WARNING_ARGS " -Wall -Wshadow -Wextra -Wunused -Wformat=2 -Wno-missing-field-initializers")
+set (CXX_WARNING_ARGS " -Wall -Wextra -pedantic")
 
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/src)
-include_directories (${CMAKE_CURRENT_BINARY_DIR}/src)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories (${CMAKE_CURRENT_BINARY_DIR}/include)
 
 # testing & coverage
 if (${enable_tests})
+  pkg_check_modules (DBUSTEST REQUIRED dbustest-1>=14.04.0)
   set (GTEST_SOURCE_DIR /usr/src/gtest/src)
   set (GTEST_INCLUDE_DIR ${GTEST_SOURCE_DIR}/..)
   set (GTEST_LIBS -lpthread)
@@ -91,13 +93,14 @@ if (${enable_tests})
 endif ()
 
 # actually build things
-add_subdirectory (src)
+add_subdirectory(include)
+add_subdirectory(src)
 if (BUILD_PANEL)
-  add_subdirectory (panel)
+  add_subdirectory(panel)
 endif ()
-add_subdirectory (data)
-add_subdirectory (po)
+add_subdirectory(data)
+add_subdirectory(po)
 if (${enable_tests})
-  add_subdirectory (tests)
+  add_subdirectory(tests)
 endif ()
 
