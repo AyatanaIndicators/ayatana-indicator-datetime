@@ -37,104 +37,101 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 /* Check the system locale setting to see if the format is 24-hour
    time or 12-hour time */
 gboolean
-is_locale_12h (void)
+is_locale_12h()
 {
-	static const char *formats_24h[] = {"%H", "%R", "%T", "%OH", "%k", NULL};
-	const char *t_fmt = nl_langinfo (T_FMT);
-	int i;
+    const char *t_fmt = nl_langinfo(T_FMT);
 
-	for (i = 0; formats_24h[i]; ++i) {
-		if (strstr (t_fmt, formats_24h[i])) {
-			return FALSE;
-		}
-	}
+    static const char *formats_24h[] = {"%H", "%R", "%T", "%OH", "%k"};
+    for(const auto& format : formats_24h)
+        if(strstr(t_fmt, format) != nullptr)
+            return false;
 
-	return TRUE;
+    return true;
 }
 
 void
-split_settings_location (const gchar * location, gchar ** zone, gchar ** name)
+split_settings_location(const gchar* location, gchar** zone, gchar** name)
 {
-  gchar * location_dup;
-  gchar * first;
+    auto location_dup = g_strdup(location);
+    g_strstrip(location_dup);
 
-  location_dup = g_strdup (location);
-  g_strstrip (location_dup);
+    gchar* first;
+    if((first = strchr(location_dup, ' ')))
+        *first = '\0';
 
-  if ((first = strchr (location_dup, ' ')))
-    *first = '\0';
-
-  if (zone != NULL)
+    if(zone)
     {
-      *zone = location_dup;
+        *zone = location_dup;
     }
 
-  if (name != NULL)
+    if(name != nullptr)
     {
-      gchar * after = first ? g_strstrip (first + 1) : NULL;
+        gchar* after = first ? g_strstrip(first + 1) : nullptr;
 
-      if (after && *after)
+        if(after && *after)
         {
-          *name = g_strdup (after);
+            *name = g_strdup(after);
         }
-      else /* make the name from zone */
+        else // make the name from zone
         {
-          gchar * chr = strrchr (location_dup, '/');
-          after = g_strdup (chr ? chr + 1 : location_dup);
+            gchar * chr = strrchr(location_dup, '/');
+            after = g_strdup(chr ? chr + 1 : location_dup);
 
-          /* replace underscores with spaces */
-          for (chr=after; chr && *chr; chr++)
-            if (*chr == '_')
-              *chr = ' ';
+            // replace underscores with spaces
+            for(chr=after; chr && *chr; chr++)
+                if(*chr == '_')
+                    *chr = ' ';
 
-          *name = after;
+            *name = after;
         }
     }
 }
 
-gchar *
-get_current_zone_name (const gchar * location, GSettings * settings)
+gchar*
+get_current_zone_name(const gchar* location, GSettings* settings)
 {
-  gchar * new_zone, * new_name;
-  gchar * tz_name;
-  gchar * old_zone, * old_name;
-  gchar * rv;
+    gchar* new_zone;
+    gchar* new_name;
+    split_settings_location(location, &new_zone, &new_name);
 
-  split_settings_location (location, &new_zone, &new_name);
+    auto tz_name = g_settings_get_string(settings, SETTINGS_TIMEZONE_NAME_S);
+    gchar* old_zone;
+    gchar* old_name;
+    split_settings_location(tz_name, &old_zone, &old_name);
+    g_free(tz_name);
 
-  tz_name = g_settings_get_string (settings, SETTINGS_TIMEZONE_NAME_S);
-  split_settings_location (tz_name, &old_zone, &old_name);
-  g_free (tz_name);
+    /* new_name is always just a sanitized version of a timezone.
+       old_name is potentially a saved "pretty" version of a timezone name from
+       geonames.  So we prefer to use it if available and the zones match. */
 
-  /* new_name is always just a sanitized version of a timezone.
-     old_name is potentially a saved "pretty" version of a timezone name from
-     geonames.  So we prefer to use it if available and the zones match. */
+    gchar* rv;
+    if (g_strcmp0(old_zone, new_zone) == 0)
+    {
+        rv = old_name;
+        old_name = nullptr;
+    }
+    else
+    {
+        rv = new_name;
+        new_name = nullptr;
+    }
 
-  if (g_strcmp0 (old_zone, new_zone) == 0) {
-    rv = old_name;
-    old_name = NULL;
-  }
-  else {
-    rv = new_name;
-    new_name = NULL;
-  }
-
-  g_free (new_zone);
-  g_free (old_zone);
-  g_free (new_name);
-  g_free (old_name);
-
-  return rv;
+    g_free(new_zone);
+    g_free(old_zone);
+    g_free(new_name);
+    g_free(old_name);
+    return rv;
 }
 
 gchar* generate_full_format_string_at_time(GDateTime* now, GDateTime* then)
 {
-  using unity::indicator::datetime::Clock;
-  using unity::indicator::datetime::MockClock;
-  using unity::indicator::datetime::DesktopFormatter;
+    using unity::indicator::datetime::Clock;
+    using unity::indicator::datetime::DateTime;
+    using unity::indicator::datetime::MockClock;
+    using unity::indicator::datetime::DesktopFormatter;
 
-  std::shared_ptr<Clock> clock(new MockClock(now));
-  DesktopFormatter formatter(clock);
-  return g_strdup (formatter.getRelativeFormat(then).c_str());
+    std::shared_ptr<Clock> clock(new MockClock(DateTime(now)));
+    DesktopFormatter formatter(clock);
+    return g_strdup(formatter.getRelativeFormat(then).c_str());
 }
 

@@ -18,8 +18,8 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef __DATETIME_SETTINGS_SHARED_H__
-#define __DATETIME_SETTINGS_SHARED_H__
+#ifndef INDICATOR_DATETIME_SETTINGS_SHARED
+#define INDICATOR_DATETIME_SETTINGS_SHARED
 
 typedef enum
 {
@@ -46,4 +46,4 @@ TimeFormatMode;
 #define SETTINGS_LOCATIONS_S            "locations"
 #define SETTINGS_TIMEZONE_NAME_S        "timezone-name"
 
-#endif /* __DATETIME_SETTINGS_SHARED_H__ */
+#endif // INDICATOR_DATETIME_SETTINGS_SHARED

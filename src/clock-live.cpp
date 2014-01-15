@@ -28,53 +28,56 @@ class LiveClock::Impl
 public:
 
     Impl(LiveClock& owner, const std::shared_ptr<Timezones>& tzd):
-        owner_(owner),
-        timezones_(tzd)
+        m_owner(owner),
+        m_timezones(tzd)
     {
-        if (timezones_)
+        if (m_timezones)
         {
-            timezones_->timezone.changed().connect ([this](const std::string& z) {setTimezone(z);});
-            setTimezone(timezones_->timezone.get());
+            m_timezones->timezone.changed().connect([this](const std::string& z) {setTimezone(z);});
+            setTimezone(m_timezones->timezone.get());
         }
 
-        owner_.skewTestIntervalSec.changed().connect([this](unsigned int intervalSec) {setInterval(intervalSec);});
-        setInterval(owner_.skewTestIntervalSec.get());
+        m_owner.skewTestIntervalSec.changed().connect([this](unsigned int intervalSec) {setInterval(intervalSec);});
+        setInterval(m_owner.skewTestIntervalSec.get());
     }
 
     ~Impl()
     {
         clearTimer();
 
-        g_clear_pointer (&timezone_, g_time_zone_unref);
+        g_clear_pointer(&m_timezone, g_time_zone_unref);
     }
 
-    GDateTime* localtime() const
+    DateTime localtime() const
     {
-        g_assert (timezone_ != nullptr);
+        g_assert(m_timezone != nullptr);
 
-        return g_date_time_new_now (timezone_);
+        auto gdt = g_date_time_new_now(m_timezone);
+        DateTime ret(gdt);
+        g_date_time_unref(gdt);
+        return ret;
     }
 
 private:
 
-    void setTimezone (const std::string& str)
+    void setTimezone(const std::string& str)
     {
-        g_clear_pointer (&timezone_, g_time_zone_unref);
-        timezone_= g_time_zone_new (str.c_str());
-        owner_.skewDetected();
+        g_clear_pointer(&m_timezone, g_time_zone_unref);
+        m_timezone= g_time_zone_new(str.c_str());
+        m_owner.skewDetected();
     }
 
 private:
 
     void clearTimer()
     {
-        if (skew_timeout_id_)
+        if (m_skew_timeout_id)
         {
-            g_source_remove(skew_timeout_id_);
-            skew_timeout_id_ = 0;
+            g_source_remove(m_skew_timeout_id);
+            m_skew_timeout_id = 0;
         }
 
-        g_clear_pointer(&prev_datetime_, g_date_time_unref);
+        m_prev_datetime.reset();
     }
 
     void setInterval(unsigned int seconds)
@@ -83,50 +86,53 @@ private:
 
         if (seconds > 0)
         {
-            prev_datetime_ = owner_.localtime();
-            skew_timeout_id_ = g_timeout_add_seconds(seconds, onTimerPulse, this);
+            m_prev_datetime = localtime();
+            m_skew_timeout_id = g_timeout_add_seconds(seconds, onTimerPulse, this);
         }
     }
 
     static gboolean onTimerPulse(gpointer gself)
     {
-        auto self = static_cast<Impl*>(gself);
-
-        // check to see if too much time passed since the last check */
-        GDateTime * now = self->owner_.localtime();
-        const GTimeSpan diff = g_date_time_difference(now, self->prev_datetime_);
-        const GTimeSpan fuzz = 5;
-        const GTimeSpan max = (self->owner_.skewTestIntervalSec.get() + fuzz) * G_USEC_PER_SEC;
-        if (abs(diff) > max)
-            self->owner_.skewDetected();
-
-        // update prev_datetime
-        g_clear_pointer(&self->prev_datetime_, g_date_time_unref);
-        self->prev_datetime_ = now;
-
+        static_cast<Impl*>(gself)->onTimerPulse();
         return G_SOURCE_CONTINUE;
+    }
+
+    void onTimerPulse()
+    {
+        // check to see if too much time passed since the last check */
+        const auto now = localtime();
+        const auto diff = now.difference (m_prev_datetime);
+        const GTimeSpan fuzz = 5;
+        const GTimeSpan max = (m_owner.skewTestIntervalSec.get() + fuzz) * G_USEC_PER_SEC;
+        if (abs(diff) > max)
+            m_owner.skewDetected();
+
+        // check to see if the day has changed
+        if (now.day_of_year() != m_prev_datetime.day_of_year())
+            m_owner.dateChanged();
+
+        // update m_prev_datetime
+        m_prev_datetime = now;
     }
 
 protected:
 
-    LiveClock& owner_;
-    GTimeZone * timezone_ = nullptr;
-    std::shared_ptr<Timezones> timezones_;
+    LiveClock& m_owner;
+    GTimeZone * m_timezone = nullptr;
+    std::shared_ptr<Timezones> m_timezones;
 
-    GDateTime * prev_datetime_ = nullptr;
-    unsigned int skew_timeout_id_ = 0;
-    unsigned int sleep_subscription_id_ = 0;
+    DateTime m_prev_datetime;
+    unsigned int m_skew_timeout_id = 0;
 };
 
 LiveClock::LiveClock(const std::shared_ptr<Timezones>& tzd):
-  p (new Impl (*this, tzd))
+  p(new Impl(*this, tzd))
 {
 }
 
 LiveClock::~LiveClock() =default;
 
-GDateTime *
-LiveClock::localtime() const
+DateTime LiveClock::localtime() const
 {
     return p->localtime();
 }

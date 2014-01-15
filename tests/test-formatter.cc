@@ -18,9 +18,9 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "clock-mock.h"
 #include "glib-fixture.h"
 
+#include <datetime/clock-mock.h>
 #include <datetime/formatter.h>
 #include <datetime/settings-shared.h>
 
@@ -30,9 +30,10 @@
 #include <locale.h>
 
 using unity::indicator::datetime::Clock;
+using unity::indicator::datetime::DateTime;
+using unity::indicator::datetime::DesktopFormatter;
 using unity::indicator::datetime::MockClock;
 using unity::indicator::datetime::PhoneFormatter;
-using unity::indicator::datetime::DesktopFormatter;
 
 /***
 ****
@@ -94,7 +95,8 @@ class FormatterFixture: public GlibFixture
 TEST_F (FormatterFixture, TestPhoneHeader)
 {
     GDateTime * now = g_date_time_new_local (2020, 10, 31, 18, 30, 59);
-    std::shared_ptr<MockClock> mock (new MockClock(now));
+    std::shared_ptr<MockClock> mock (new MockClock(DateTime(now)));
+    g_date_time_unref(now);
     std::shared_ptr<Clock> clock = std::dynamic_pointer_cast<Clock>(mock);
 
     // test the default value in a 24h locale
@@ -146,8 +148,9 @@ TEST_F (FormatterFixture, TestDesktopHeader)
     { true,  true,  true,  true,  "%a %b %e %Y" EM_SPACE "%l:%M %p" }
   };
 
-  GDateTime * now = g_date_time_new_local (2020, 10, 31, 18, 30, 59);
-  std::shared_ptr<MockClock> mock (new MockClock(now));
+  GDateTime * now = g_date_time_new_local(2020, 10, 31, 18, 30, 59);
+  std::shared_ptr<MockClock> mock(new MockClock(DateTime(now)));
+  g_date_time_unref(now);
   std::shared_ptr<Clock> clock = std::dynamic_pointer_cast<Clock>(mock);
 
   for (int i=0, n=G_N_ELEMENTS(test_cases); i<n; i++)
@@ -174,44 +177,44 @@ TEST_F (FormatterFixture, TestDesktopHeader)
  */
 TEST_F (FormatterFixture, TestUpcomingTimes)
 {
-    GDateTime * a = g_date_time_new_local (2020, 10, 31, 18, 30, 59);
+    auto a = g_date_time_new_local (2020, 10, 31, 18, 30, 59);
 
     struct {
         gboolean is_12h;
         GDateTime * now;
         GDateTime * then;
-        GDateTime * then_end;
         const char * expected_format_string;
     } test_cases[] = {
-        { true, g_date_time_ref(a), g_date_time_ref(a), NULL, "%l:%M %p" }, // identical time
-        { true, g_date_time_ref(a), g_date_time_add_hours(a,1), NULL, "%l:%M %p" }, // later today
-        { true, g_date_time_ref(a), g_date_time_add_days(a,1), NULL, "Tomorrow" EM_SPACE "%l:%M %p" }, // tomorrow
-        { true, g_date_time_ref(a), g_date_time_add_days(a,2), NULL, "%a" EM_SPACE "%l:%M %p" },
-        { true, g_date_time_ref(a), g_date_time_add_days(a,6), NULL, "%a" EM_SPACE "%l:%M %p" },
-        { true, g_date_time_ref(a), g_date_time_add_days(a,7), NULL, "%a %d %b" EM_SPACE "%l:%M %p" }, // over one week away
+        { true, g_date_time_ref(a), g_date_time_ref(a), "%l:%M %p" }, // identical time
+        { true, g_date_time_ref(a), g_date_time_add_hours(a,1), "%l:%M %p" }, // later today
+        { true, g_date_time_ref(a), g_date_time_add_days(a,1), "Tomorrow" EM_SPACE "%l:%M %p" }, // tomorrow
+        { true, g_date_time_ref(a), g_date_time_add_days(a,2), "%a" EM_SPACE "%l:%M %p" },
+        { true, g_date_time_ref(a), g_date_time_add_days(a,6), "%a" EM_SPACE "%l:%M %p" },
+        { true, g_date_time_ref(a), g_date_time_add_days(a,7), "%a %d %b" EM_SPACE "%l:%M %p" }, // over one week away
 
-        { false, g_date_time_ref(a), g_date_time_ref(a), NULL, "%H:%M" }, // identical time
-        { false, g_date_time_ref(a), g_date_time_add_hours(a,1), NULL, "%H:%M" }, // later today
-        { false, g_date_time_ref(a), g_date_time_add_days(a,1), NULL, "Tomorrow" EM_SPACE "%H:%M" }, // tomorrow
-        { false, g_date_time_ref(a), g_date_time_add_days(a,2), NULL, "%a" EM_SPACE "%H:%M" },
-        { false, g_date_time_ref(a), g_date_time_add_days(a,6), NULL, "%a" EM_SPACE "%H:%M" },
-        { false, g_date_time_ref(a), g_date_time_add_days(a,7), NULL, "%a %d %b" EM_SPACE "%H:%M" } // over one week away
+        { false, g_date_time_ref(a), g_date_time_ref(a), "%H:%M" }, // identical time
+        { false, g_date_time_ref(a), g_date_time_add_hours(a,1), "%H:%M" }, // later today
+        { false, g_date_time_ref(a), g_date_time_add_days(a,1), "Tomorrow" EM_SPACE "%H:%M" }, // tomorrow
+        { false, g_date_time_ref(a), g_date_time_add_days(a,2), "%a" EM_SPACE "%H:%M" },
+        { false, g_date_time_ref(a), g_date_time_add_days(a,6), "%a" EM_SPACE "%H:%M" },
+        { false, g_date_time_ref(a), g_date_time_add_days(a,7), "%a %d %b" EM_SPACE "%H:%M" } // over one week away
     };
 
     for (int i=0, n=G_N_ELEMENTS(test_cases); i<n; i++)
     {
         if (test_cases[i].is_12h ? Set12hLocale() : Set24hLocale())
         {
-            std::shared_ptr<MockClock> mock (new MockClock(test_cases[i].now));
+            DateTime tmp(test_cases[i].now);
+            tmp.get();
+            std::shared_ptr<MockClock> mock (new MockClock(tmp));//DateTime(test_cases[i].now)));
             std::shared_ptr<Clock> clock = std::dynamic_pointer_cast<Clock>(mock);
             DesktopFormatter f (clock);
         
-            std::string fmt = f.getRelativeFormat (test_cases[i].then, test_cases[i].then_end);
+            std::string fmt = f.getRelativeFormat (test_cases[i].then);
             ASSERT_STREQ (test_cases[i].expected_format_string, fmt.c_str());
 
             g_clear_pointer (&test_cases[i].now, g_date_time_unref);
             g_clear_pointer (&test_cases[i].then, g_date_time_unref);
-            g_clear_pointer (&test_cases[i].then_end, g_date_time_unref);
         }
     }
 
@@ -224,11 +227,11 @@ TEST_F (FormatterFixture, TestUpcomingTimes)
  */
 TEST_F (FormatterFixture, TestEventTimes)
 {
-    GDateTime * day            = g_date_time_new_local (2013, 1, 1, 13, 0, 0);
-    GDateTime * day_begin      = g_date_time_new_local (2013, 1, 1, 13, 0, 0);
-    GDateTime * day_end        = g_date_time_add_days (day_begin, 1);
-    GDateTime * tomorrow_begin = g_date_time_add_days (day_begin, 1);
-    GDateTime * tomorrow_end   = g_date_time_add_days (tomorrow_begin, 1);
+    auto day            = g_date_time_new_local (2013, 1, 1, 13, 0, 0);
+    auto day_begin      = g_date_time_new_local (2013, 1, 1, 13, 0, 0);
+    auto day_end        = g_date_time_add_days (day_begin, 1);
+    auto tomorrow_begin = g_date_time_add_days (day_begin, 1);
+    auto tomorrow_end   = g_date_time_add_days (tomorrow_begin, 1);
 
     struct {
         bool is_12h;
@@ -247,7 +250,7 @@ TEST_F (FormatterFixture, TestEventTimes)
     {
         if (test_cases[i].is_12h ? Set12hLocale() : Set24hLocale())
         {
-            std::shared_ptr<MockClock> mock (new MockClock(test_cases[i].now));
+            std::shared_ptr<MockClock> mock (new MockClock(DateTime(test_cases[i].now)));
             std::shared_ptr<Clock> clock = std::dynamic_pointer_cast<Clock>(mock);
             DesktopFormatter f (clock);
           

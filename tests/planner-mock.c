@@ -39,7 +39,7 @@ G_DEFINE_TYPE (IndicatorDatetimePlannerMock,
 static void
 my_get_appointments (IndicatorDatetimePlanner  * planner,
                      GDateTime                 * begin_datetime,
-                     GDateTime                 * end_datetime    G_GNUC_UNUSED,
+                     GDateTime                 * /*end_datetime*/,
                      GAsyncReadyCallback         callback,
                      gpointer                    user_data)
 {
@@ -88,34 +88,34 @@ my_get_appointments (IndicatorDatetimePlanner  * planner,
 }
 
 static GSList *
-my_get_appointments_finish (IndicatorDatetimePlanner  * self  G_GNUC_UNUSED,
-                            GAsyncResult              * res,
-                            GError                   ** error)
+my_get_appointments_finish (IndicatorDatetimePlanner* /*self*/,
+                            GAsyncResult*               res,
+                            GError**                    error)
 {
-  return g_task_propagate_pointer (G_TASK(res), error);
+  return g_task_propagate_pointer(G_TASK(res), error);
 }
 
 static gboolean
-my_is_configured (IndicatorDatetimePlanner * planner)
+my_is_configured(IndicatorDatetimePlanner* planner)
 {
   IndicatorDatetimePlannerMock * self;
-  self = INDICATOR_DATETIME_PLANNER_MOCK (planner);
+  self = INDICATOR_DATETIME_PLANNER_MOCK(planner);
   return self->priv->is_configured;
 }
 
 static void
-my_activate (IndicatorDatetimePlanner * self G_GNUC_UNUSED)
+my_activate(IndicatorDatetimePlanner* /*self*/)
 {
-  g_message ("%s %s", G_STRLOC, G_STRFUNC);
+  g_message("%s %s", G_STRLOC, G_STRFUNC);
 }
 
 static void
-my_activate_time (IndicatorDatetimePlanner * self G_GNUC_UNUSED,
-                  GDateTime                * activate_time)
+my_activate_time(IndicatorDatetimePlanner* /*self*/,
+                 GDateTime*                  activate_time)
 {
-  gchar * str = g_date_time_format (activate_time, "%F %T");
-  g_message ("%s %s: %s", G_STRLOC, G_STRFUNC, str);
-  g_free (str);
+  gchar * str = g_date_time_format(activate_time, "%F %T");
+  g_message("%s %s: %s", G_STRLOC, G_STRFUNC, str);
+  g_free(str);
 }
 
 /***
@@ -123,9 +123,9 @@ my_activate_time (IndicatorDatetimePlanner * self G_GNUC_UNUSED,
 ***/
 
 static void
-my_dispose (GObject * o)
+my_dispose(GObject * o)
 {
-  G_OBJECT_CLASS (indicator_datetime_planner_mock_parent_class)->dispose (o);
+  G_OBJECT_CLASS(indicator_datetime_planner_mock_parent_class)->dispose(o);
 }
 
 /***
@@ -133,7 +133,7 @@ my_dispose (GObject * o)
 ***/
 
 static void
-indicator_datetime_planner_mock_class_init (IndicatorDatetimePlannerMockClass * klass)
+indicator_datetime_planner_mock_class_init(IndicatorDatetimePlannerMockClass* klass)
 {
   GObjectClass * object_class;
   IndicatorDatetimePlannerClass * planner_class;

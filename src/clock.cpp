@@ -31,9 +31,9 @@ namespace datetime {
 ***/
 
 Clock::Clock():
-    cancellable_(g_cancellable_new())
+    m_cancellable(g_cancellable_new())
 {
-    g_bus_get(G_BUS_TYPE_SYSTEM, cancellable_, onSystemBusReady, this);
+    g_bus_get(G_BUS_TYPE_SYSTEM, m_cancellable, onSystemBusReady, this);
 
     timezones.changed().connect([this](const std::set<std::string>& timezones){
         g_message ("timezones changed... new count is %d", (int)timezones.size());
@@ -43,13 +43,13 @@ Clock::Clock():
 
 Clock::~Clock()
 {
-    g_cancellable_cancel(cancellable_);
-    g_clear_object(&cancellable_);
+    g_cancellable_cancel(m_cancellable);
+    g_clear_object(&m_cancellable);
 
-    if (sleep_subscription_id_)
-        g_dbus_connection_signal_unsubscribe(system_bus_ , sleep_subscription_id_);
+    if (m_sleep_subscription_id)
+        g_dbus_connection_signal_unsubscribe(m_system_bus, m_sleep_subscription_id);
 
-    g_clear_object(&system_bus_);
+    g_clear_object(&m_system_bus);
 }
 
 void
@@ -61,9 +61,9 @@ Clock::onSystemBusReady(GObject*, GAsyncResult * res, gpointer gself)
     {
         auto self = static_cast<Clock*>(gself);
 
-        self->system_bus_ = system_bus;
+        self->m_system_bus = system_bus;
 
-        self->sleep_subscription_id_ = g_dbus_connection_signal_subscribe(
+        self->m_sleep_subscription_id = g_dbus_connection_signal_subscribe(
                         system_bus,
                         nullptr,
                         "org.freedesktop.login1.Manager", // interface
@@ -78,13 +78,13 @@ Clock::onSystemBusReady(GObject*, GAsyncResult * res, gpointer gself)
 }
 
 void
-Clock::onPrepareForSleep(GDBusConnection * connection      G_GNUC_UNUSED,
-                         const gchar     * sender_name     G_GNUC_UNUSED,
-                         const gchar     * object_path     G_GNUC_UNUSED,
-                         const gchar     * interface_name  G_GNUC_UNUSED,
-                         const gchar     * signal_name     G_GNUC_UNUSED,
-                         GVariant        * parameters      G_GNUC_UNUSED,
-                         gpointer          gself)
+Clock::onPrepareForSleep(GDBusConnection* /*connection*/,
+                         const gchar*     /*sender_name*/,
+                         const gchar*     /*object_path*/,
+                         const gchar*     /*interface_name*/,
+                         const gchar*     /*signal_name*/,
+                         GVariant*        /*parameters*/,
+                         gpointer           gself)
 {
     static_cast<Clock*>(gself)->skewDetected();
 }

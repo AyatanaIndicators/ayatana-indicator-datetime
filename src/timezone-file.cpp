@@ -26,12 +26,12 @@ namespace datetime {
 void
 FileTimezone::clear()
 {
-    if (monitor_handler_id_)
-        g_signal_handler_disconnect(monitor_, monitor_handler_id_);
+    if (m_monitor_handler_id)
+        g_signal_handler_disconnect(m_monitor, m_monitor_handler_id);
 
-    g_clear_object (&monitor_);
+    g_clear_object (&m_monitor);
 
-    filename_.clear();
+    m_filename.clear();
 }
 
 void
@@ -39,11 +39,11 @@ FileTimezone::setFilename(const std::string& filename)
 {
     clear();
 
-    filename_ = filename;
+    m_filename = filename;
 
     auto file = g_file_new_for_path(filename.c_str());
     GError * err = nullptr;
-    monitor_ = g_file_monitor_file(file, G_FILE_MONITOR_NONE, nullptr, &err);
+    m_monitor = g_file_monitor_file(file, G_FILE_MONITOR_NONE, nullptr, &err);
     g_object_unref(file);
     if (err)
       {
@@ -52,7 +52,7 @@ FileTimezone::setFilename(const std::string& filename)
       }
     else
       {
-        monitor_handler_id_ = g_signal_connect_swapped(monitor_, "changed", G_CALLBACK(onFileChanged), this);
+        m_monitor_handler_id = g_signal_connect_swapped(m_monitor, "changed", G_CALLBACK(onFileChanged), this);
         g_debug("%s Monitoring timezone file '%s'", G_STRLOC, filename.c_str());
       }
 
@@ -71,9 +71,9 @@ FileTimezone::reload()
     GError * err = nullptr;
     gchar * str = nullptr;
 
-    if (!g_file_get_contents(filename_.c_str(), &str, nullptr, &err))
+    if (!g_file_get_contents(m_filename.c_str(), &str, nullptr, &err))
     {
-        g_warning("%s Unable to read timezone file '%s': %s", G_STRLOC, filename_.c_str(), err->message);
+        g_warning("%s Unable to read timezone file '%s': %s", G_STRLOC, m_filename.c_str(), err->message);
         g_error_free(err);
     }
     else

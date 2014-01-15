@@ -52,25 +52,25 @@ class TimezoneFixture: public GlibFixture
 
   protected:
 
-    virtual void SetUp ()
+    virtual void SetUp()
     {
-      super::SetUp ();
+      super::SetUp();
     }
 
-    virtual void TearDown ()
+    virtual void TearDown()
     {
-      super::TearDown ();
+      super::TearDown();
     }
 
   public:
 
     /* convenience func to set the timezone file */
-    void set_file (const std::string& text)
+    void set_file(const std::string& text)
     {
-      FILE * fp = fopen (TIMEZONE_FILE, "w+");
-      fprintf (fp, "%s\n", text.c_str());
-      fclose (fp);
-      sync ();
+      auto fp = fopen(TIMEZONE_FILE, "w+");
+      fprintf(fp, "%s\n", text.c_str());
+      fclose(fp);
+      sync();
     }
 };
 
@@ -78,56 +78,56 @@ class TimezoneFixture: public GlibFixture
 /**
  * Test that timezone-file warns, but doesn't crash, if the timezone file doesn't exist
  */
-TEST_F (TimezoneFixture, NoFile)
+TEST_F(TimezoneFixture, NoFile)
 {
-  remove (TIMEZONE_FILE);
-  ASSERT_FALSE (g_file_test (TIMEZONE_FILE, G_FILE_TEST_EXISTS));
+  remove(TIMEZONE_FILE);
+  ASSERT_FALSE(g_file_test(TIMEZONE_FILE, G_FILE_TEST_EXISTS));
 
-  FileTimezone tz (TIMEZONE_FILE);
-  testLogCount (G_LOG_LEVEL_WARNING, 1);
+  FileTimezone tz(TIMEZONE_FILE);
+  testLogCount(G_LOG_LEVEL_WARNING, 1);
 }
 
 
 /**
  * Test that timezone-file picks up the initial value
  */
-TEST_F (TimezoneFixture, InitialValue)
+TEST_F(TimezoneFixture, InitialValue)
 {
   const std::string expected_timezone = "America/Chicago";
-  set_file (expected_timezone);
-  FileTimezone tz (TIMEZONE_FILE);
-  ASSERT_EQ (expected_timezone, tz.timezone.get());
+  set_file(expected_timezone);
+  FileTimezone tz(TIMEZONE_FILE);
+  ASSERT_EQ(expected_timezone, tz.timezone.get());
 }
 
 
 /**
  * Test that clearing the timezone results in an empty string
  */
-TEST_F (TimezoneFixture, ChangedValue)
+TEST_F(TimezoneFixture, ChangedValue)
 {
   const std::string initial_timezone = "America/Chicago";
   const std::string changed_timezone = "America/New_York";
-  set_file (initial_timezone);
+  set_file(initial_timezone);
 
-  FileTimezone tz (TIMEZONE_FILE);
-  ASSERT_EQ (initial_timezone, tz.timezone.get());
+  FileTimezone tz(TIMEZONE_FILE);
+  ASSERT_EQ(initial_timezone, tz.timezone.get());
 
   bool changed = false;
   auto connection = tz.timezone.changed().connect(
         [&changed, this](const std::string& s){
-          g_message ("timezone changed to %s", s.c_str());
+          g_message("timezone changed to %s", s.c_str());
           changed = true;
-          g_main_loop_quit (loop);
+          g_main_loop_quit(loop);
         });
 
-  g_idle_add ([](gpointer gself){
-    static_cast<TimezoneFixture*>(gself)->set_file ("America/New_York");
-  //  static_cast<FileTimezone*>(gtz)->timezone.set ("America/New_York");
+  g_idle_add([](gpointer gself){
+    static_cast<TimezoneFixture*>(gself)->set_file("America/New_York");
+  //  static_cast<FileTimezone*>(gtz)->timezone.set("America/New_York");
     return G_SOURCE_REMOVE;
   }, this);//&tz);
 
-  g_main_loop_run (loop);
+  g_main_loop_run(loop);
 
-  ASSERT_TRUE (changed);
-  ASSERT_EQ (changed_timezone, tz.timezone.get());
+  ASSERT_TRUE(changed);
+  ASSERT_EQ(changed_timezone, tz.timezone.get());
 }

@@ -28,11 +28,11 @@ namespace unity {
 namespace indicator {
 namespace datetime {
 
-/** \brief Base class for objects that use various means to detect the system's timezone */
+/** \brief Base a timezone, such as "America/Chicago". */
 class Timezone
 {
 protected:
-    Timezone() {}
+    Timezone() =default;
 
 public:
     //virtual ~Timezone() {}

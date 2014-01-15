@@ -50,10 +50,14 @@ private:
     void setTimezoneFromAddressVariant (GVariant*);
     static GVariant * call_finish (GObject*, GAsyncResult*);
 
-    GCancellable * cancellable_ = nullptr;
-    GDBusConnection * connection_ = nullptr;
-    std::string client_object_path_;
-    guint signal_subscription_ = 0;
+    GCancellable * m_cancellable = nullptr;
+    GDBusConnection * m_connection = nullptr;
+    std::string m_client_object_path;
+    guint m_signal_subscription = 0;
+
+    // we've got pointers and gsignal tags in here, so don't allow copying
+    GeoclueTimezone(const GeoclueTimezone&) =delete;
+    GeoclueTimezone& operator=(const GeoclueTimezone&) =delete;
 };
 
 

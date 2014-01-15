@@ -12,13 +12,18 @@ if (BUILD_PANEL)
 endif ()
 
 add_library (${SERVICE_LIB} STATIC
+             actions.cpp
+             actions-live.cpp
              clock.cpp
              clock-live.cpp
              formatter.cpp
              formatter-desktop.cpp
              locations.cpp
              locations-settings.cpp
+             menu.cpp
              planner-eds.cpp
+             service.cpp
+             settings-live.cpp
              timezone-file.cpp
              timezone-geoclue.cpp
              timezones-live.cpp
@@ -27,9 +32,9 @@ include_directories (${CMAKE_SOURCE_DIR})
 link_directories (${SERVICE_DEPS_LIBRARY_DIRS})
 
 
-#add_executable (${SERVICE_EXEC} main.c)
-#target_link_libraries (${SERVICE_EXEC} ${SERVICE_LIB} ${SERVICE_DEPS_LIBRARIES} ${GCOV_LIBS})
-#install (TARGETS ${SERVICE_EXEC} RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_PKGLIBEXECDIR})
+add_executable (${SERVICE_EXEC} main.cpp)
+target_link_libraries (${SERVICE_EXEC} ${SERVICE_LIB} ${SERVICE_DEPS_LIBRARIES} ${GCOV_LIBS})
+install (TARGETS ${SERVICE_EXEC} RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_PKGLIBEXECDIR})
 
 # common properties
 #set_property (TARGET ${SERVICE_LIB} ${SERVICE_EXEC}

@@ -31,7 +31,7 @@ namespace indicator {
 namespace datetime {
 
 /**
- * \brief Timezones object that uses a #FileTimezone and #GeoclueTimezone
+ * \brief #Timezones object that uses a #FileTimezone and #GeoclueTimezone
  *        to detect what timezone we're in
  */
 class LiveTimezones: public Timezones
@@ -40,13 +40,14 @@ public:
     LiveTimezones(const std::string& filename);
 
     /** \brief Whether or not to track location by IP address */
-    core::Property<bool> geolocationEnabled = core::Property<bool>(false);
+    core::Property<bool> geolocation_enabled = core::Property<bool>(false);
 
 private:
-    FileTimezone file_;
-    std::shared_ptr<GeoclueTimezone> geo_;
-    void updateGeolocation();
-    void updateTimezones();
+    void update_geolocation();
+    void update_timezones();
+
+    FileTimezone m_file;
+    std::shared_ptr<GeoclueTimezone> m_geo;
 };
 
 } // namespace datetime

@@ -17,38 +17,41 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_TIMEZONES_H
-#define INDICATOR_DATETIME_TIMEZONES_H
+#ifndef INDICATOR_DATETIME_ACTIONS_LIVE_H
+#define INDICATOR_DATETIME_ACTIONS_LIVE_H
 
-#include <datetime/timezone.h>
-
-#include <core/property.h>
+#include <datetime/actions.h>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
-/** \brief Aggregates one or more timezone detectors and decides which to give precedence to */
-class Timezones
+/**
+ * \brief Production implentation of the Actions interface.
+ *
+ * Delegates URLs, sets the timezone via org.freedesktop.timedate1, etc.
+ *
+ * @see MockActions
+ */
+class LiveActions: public Actions
 {
 public:
-    Timezones() =default;
-    virtual ~Timezones() =default;
+    LiveActions(std::shared_ptr<State>& state): Actions(state) {}
+    ~LiveActions() =default;
 
-    /**
-     * \brief the current timezone
-     */
-    core::Property<std::string> timezone;
-
-    /**
-     * \brief all the detected timezones.
-     * The count is >1 iff the detection mechamisms disagree.
-     */
-    core::Property<std::set<std::string> > timezones;
+    void open_desktop_settings();
+    void open_phone_settings();
+    void open_phone_clock();
+    void open_phone_planner();
+    void open_planner_at(const DateTime&);
+    void open_calendar_at(const DateTime&);
+    void open_appointment(const std::string& uid);
+    void set_location(const std::string& zone, const std::string& name);
+    void set_calendar_date(const DateTime&);
 };
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_TIMEZONES_H
+#endif // INDICATOR_DATETIME_ACTIONS_H

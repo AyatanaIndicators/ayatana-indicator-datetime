@@ -37,7 +37,26 @@ class DateTime;
 ***/
 
 /**
- * \brief Provides the right time format strings based on the profile and user's settings
+ * \brief Provide the strftime() format strings
+ *
+ * This mission's been moved out into its own class because there are
+ * a lot of options and edge cases:
+ *
+ *  - The default time format can change based on the locale.
+ *
+ *  - The user's settings can change or completely override the format string.
+ *
+ *  - The time formats are different on the Phone and Desktop profiles.
+ *
+ *  - The time format string in the Locations' menuitems uses (mostly)
+ *    the same time format as the header, except for some changes.
+ *
+ *  - The 'current time' format string in the Locations' menuitems also
+ *    prepends the string 'Yesterday' or 'Today' if it differs from the
+ *    local time, so Formatter needs to have a Clock for its state.
+ *
+ * So the Formatter monitors system settings, the current timezone, etc.
+ * and upate its time format properties appropriately.
  */
 class Formatter
 {
@@ -51,7 +70,8 @@ public:
 
     /** \brief Signal to denote when the relativeFormat has changed.
                When this is emitted, clients will want to rebuild their
-               menuitems that contain relative time strings */
+               menuitems that contain relative time strings
+               (ie, the Appointments and Locations menuitems) */
     core::Signal<> relativeFormatChanged;
 
     /** \brief Generate a relative time format for some time (or time range)
@@ -60,19 +80,18 @@ public:
     std::string getRelativeFormat(GDateTime* then, GDateTime* then_end=nullptr) const;
 
 protected:
-
     Formatter(const std::shared_ptr<Clock>&);
     virtual ~Formatter();
 
     /** \brief Returns true if the current locale prefers 12h display instead of 24h */
     static bool is_locale_12h();
 
-    static const char * getDefaultHeaderTimeFormat(bool twelvehour, bool show_seconds);
+    static const char* getDefaultHeaderTimeFormat(bool twelvehour, bool show_seconds);
 
     /** \brief Translate the string based on LC_TIME instead of LC_MESSAGES.
                The intent of this is to let users set LC_TIME to override
                their other locale settings when generating time format string */
-    static const char * T_(const char * fmt);
+    static const char* T_(const char * fmt);
 
 private:
 

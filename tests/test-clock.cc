@@ -37,27 +37,27 @@ class ClockFixture: public GlibFixture
     typedef GlibFixture super;
 
     static void
-    on_bus_opened (GObject * o G_GNUC_UNUSED, GAsyncResult * res, gpointer gself)
+    on_bus_opened(GObject* /*object*/, GAsyncResult* res, gpointer gself)
     {
       auto self = static_cast<ClockFixture*>(gself);
 
       GError * err = 0;
-      self->system_bus = g_bus_get_finish (res, &err);
-      g_assert_no_error (err);
+      self->system_bus = g_bus_get_finish(res, &err);
+      g_assert_no_error(err);
 
-      g_main_loop_quit (self->loop);
+      g_main_loop_quit(self->loop);
     }
 
     static void
-    on_bus_closed (GObject * o G_GNUC_UNUSED, GAsyncResult * res, gpointer gself)
+    on_bus_closed(GObject* /*object*/, GAsyncResult* res, gpointer gself)
     {
       auto self = static_cast<ClockFixture*>(gself);
 
       GError * err = 0;
-      g_dbus_connection_close_finish (self->system_bus, res, &err);
-      g_assert_no_error (err);
+      g_dbus_connection_close_finish(self->system_bus, res, &err);
+      g_assert_no_error(err);
 
-      g_main_loop_quit (self->loop);
+      g_main_loop_quit(self->loop);
     }
 
   protected:
@@ -65,41 +65,41 @@ class ClockFixture: public GlibFixture
     GTestDBus * test_dbus;
     GDBusConnection * system_bus;
 
-    virtual void SetUp ()
+    virtual void SetUp()
     {
-      super::SetUp ();
+      super::SetUp();
 
       // pull up a test dbus
-      test_dbus = g_test_dbus_new (G_TEST_DBUS_NONE);
-      g_test_dbus_up (test_dbus);
-      const char * address = g_test_dbus_get_bus_address (test_dbus);
-      g_setenv ("DBUS_SYSTEM_BUS_ADDRESS", address, TRUE);
-      g_debug ("test_dbus's address is %s", address);
+      test_dbus = g_test_dbus_new(G_TEST_DBUS_NONE);
+      g_test_dbus_up(test_dbus);
+      const char * address = g_test_dbus_get_bus_address(test_dbus);
+      g_setenv("DBUS_SYSTEM_BUS_ADDRESS", address, TRUE);
+      g_debug("test_dbus's address is %s", address);
 
       // wait for the GDBusConnection before returning
-      g_bus_get (G_BUS_TYPE_SYSTEM, nullptr, on_bus_opened, this);
-      g_main_loop_run (loop);
+      g_bus_get(G_BUS_TYPE_SYSTEM, nullptr, on_bus_opened, this);
+      g_main_loop_run(loop);
     }
 
-    virtual void TearDown ()
+    virtual void TearDown()
     {
       // close the system bus
-      g_dbus_connection_close (system_bus, nullptr, on_bus_closed, this);
-      g_main_loop_run (loop);
-      g_clear_object (&system_bus);
+      g_dbus_connection_close(system_bus, nullptr, on_bus_closed, this);
+      g_main_loop_run(loop);
+      g_clear_object(&system_bus);
 
       // tear down the test dbus
-      g_test_dbus_down (test_dbus);
-      g_clear_object (&test_dbus);
+      g_test_dbus_down(test_dbus);
+      g_clear_object(&test_dbus);
 
-      super::TearDown ();
+      super::TearDown();
     }
 
   public:
 
-    void emitPrepareForSleep ()
+    void emitPrepareForSleep()
     {
-      g_dbus_connection_emit_signal (g_bus_get_sync (G_BUS_TYPE_SYSTEM, nullptr, nullptr),
+      g_dbus_connection_emit_signal(g_bus_get_sync(G_BUS_TYPE_SYSTEM, nullptr, nullptr),
                                      NULL,
                                      "/org/freedesktop/login1", // object path
                                      "org.freedesktop.login1.Manager", // interface
@@ -115,93 +115,91 @@ class ClockFixture: public GlibFixture
 
 #define TIMEZONE_FILE (SANDBOX"/timezone")
 
-TEST_F (ClockFixture, HelloFixture)
+TEST_F(ClockFixture, HelloFixture)
 {
-    std::shared_ptr<Timezones> zones (new Timezones);
+    std::shared_ptr<Timezones> zones(new Timezones);
     zones->timezone.set("America/New_York");
-    LiveClock clock (zones);
+    LiveClock clock(zones);
 
 #if 0
-    GTimeZone * tz_nyc = g_time_zone_new (file_timezone.c_str());
-    GDateTime * now_nyc = g_date_time_new_now (tz_nyc);
+    GTimeZone * tz_nyc = g_time_zone_new(file_timezone.c_str());
+    GDateTime * now_nyc = g_date_time_new_now(tz_nyc);
     GDateTime * now = clock.localtime();
-    EXPECT_EQ (g_date_time_get_utc_offset(now_nyc), g_date_time_get_utc_offset(now));
-    EXPECT_LE (abs(g_date_time_difference(now_nyc,now)), G_USEC_PER_SEC);
-    g_date_time_unref (now);
-    g_date_time_unref (now_nyc);
-    g_time_zone_unref (tz_nyc);
+    EXPECT_EQ(g_date_time_get_utc_offset(now_nyc), g_date_time_get_utc_offset(now));
+    EXPECT_LE(abs(g_date_time_difference(now_nyc,now)), G_USEC_PER_SEC);
+    g_date_time_unref(now);
+    g_date_time_unref(now_nyc);
+    g_time_zone_unref(tz_nyc);
 
     /// change the timezones!
     clock.skewDetected.connect([this](){
                     g_main_loop_quit(loop);
                 });
     file_timezone = "America/Los_Angeles";
-    g_idle_add ([](gpointer str){
+    g_idle_add([](gpointer str){
                     set_file(static_cast<const char*>(str));
                     return G_SOURCE_REMOVE;
                 }, const_cast<char*>(file_timezone.c_str()));
-    g_main_loop_run (loop);
+    g_main_loop_run(loop);
 
-    GTimeZone * tz_la = g_time_zone_new (file_timezone.c_str());
-    GDateTime * now_la = g_date_time_new_now (tz_la);
+    GTimeZone * tz_la = g_time_zone_new(file_timezone.c_str());
+    GDateTime * now_la = g_date_time_new_now(tz_la);
     now = clock.localtime();
-    EXPECT_EQ (g_date_time_get_utc_offset(now_la), g_date_time_get_utc_offset(now));
-    EXPECT_LE (abs(g_date_time_difference(now_la,now)), G_USEC_PER_SEC);
-    g_date_time_unref (now);
-    g_date_time_unref (now_la);
-    g_time_zone_unref (tz_la);
+    EXPECT_EQ(g_date_time_get_utc_offset(now_la), g_date_time_get_utc_offset(now));
+    EXPECT_LE(abs(g_date_time_difference(now_la,now)), G_USEC_PER_SEC);
+    g_date_time_unref(now);
+    g_date_time_unref(now_la);
+    g_time_zone_unref(tz_la);
 #endif
 }
 
 
-TEST_F (ClockFixture, TimezoneChangeTriggersSkew)
+TEST_F(ClockFixture, TimezoneChangeTriggersSkew)
 {
-    std::shared_ptr<Timezones> zones (new Timezones);
+    std::shared_ptr<Timezones> zones(new Timezones);
     zones->timezone.set("America/New_York");
-    LiveClock clock (zones);
+    LiveClock clock(zones);
     //std::string file_timezone = "America/New_York";
-    //set_file (file_timezone);
-    //std::shared_ptr<TimezoneDetector> detector (new TimezoneDetector(TIMEZONE_FILE));
-    //LiveClock clock (detector);
+    //set_file(file_timezone);
+    //std::shared_ptr<TimezoneDetector> detector(new TimezoneDetector(TIMEZONE_FILE));
+    //LiveClock clock(detector);
 
-    GTimeZone * tz_nyc = g_time_zone_new ("America/New_York");
-    GDateTime * now_nyc = g_date_time_new_now (tz_nyc);
-    GDateTime * now = clock.localtime();
-    EXPECT_EQ (g_date_time_get_utc_offset(now_nyc), g_date_time_get_utc_offset(now));
-    EXPECT_LE (abs(g_date_time_difference(now_nyc,now)), G_USEC_PER_SEC);
-    g_date_time_unref (now);
-    g_date_time_unref (now_nyc);
-    g_time_zone_unref (tz_nyc);
+    auto tz_nyc = g_time_zone_new("America/New_York");
+    auto now_nyc = g_date_time_new_now(tz_nyc);
+    auto now = clock.localtime();
+    EXPECT_EQ(g_date_time_get_utc_offset(now_nyc), g_date_time_get_utc_offset(now.get()));
+    EXPECT_LE(abs(g_date_time_difference(now_nyc,now.get())), G_USEC_PER_SEC);
+    g_date_time_unref(now_nyc);
+    g_time_zone_unref(tz_nyc);
 
     /// change the timezones!
     clock.skewDetected.connect([this](){
-                    g_main_loop_quit(loop);
-                });
-    g_idle_add ([](gpointer gs){
-                    static_cast<Timezones*>(gs)->timezone.set("America/Los_Angeles");
-                    return G_SOURCE_REMOVE;
-                }, zones.get());
-    g_main_loop_run (loop);
+                   g_main_loop_quit(loop);
+               });
+    g_idle_add([](gpointer gs){
+                   static_cast<Timezones*>(gs)->timezone.set("America/Los_Angeles");
+                   return G_SOURCE_REMOVE;
+               }, zones.get());
+    g_main_loop_run(loop);
 
-    GTimeZone * tz_la = g_time_zone_new ("America/Los_Angeles");
-    GDateTime * now_la = g_date_time_new_now (tz_la);
+    auto tz_la = g_time_zone_new("America/Los_Angeles");
+    auto now_la = g_date_time_new_now(tz_la);
     now = clock.localtime();
-    EXPECT_EQ (g_date_time_get_utc_offset(now_la), g_date_time_get_utc_offset(now));
-    EXPECT_LE (abs(g_date_time_difference(now_la,now)), G_USEC_PER_SEC);
-    g_date_time_unref (now);
-    g_date_time_unref (now_la);
-    g_time_zone_unref (tz_la);
+    EXPECT_EQ(g_date_time_get_utc_offset(now_la), g_date_time_get_utc_offset(now.get()));
+    EXPECT_LE(abs(g_date_time_difference(now_la,now.get())), G_USEC_PER_SEC);
+    g_date_time_unref(now_la);
+    g_time_zone_unref(tz_la);
 }
 
 /**
  * Confirm that a "PrepareForSleep" event wil trigger a skew event
  */
-TEST_F (ClockFixture, SleepTriggersSkew)
+TEST_F(ClockFixture, SleepTriggersSkew)
 {
-    std::shared_ptr<Timezones> zones (new Timezones);
+    std::shared_ptr<Timezones> zones(new Timezones);
     zones->timezone.set("America/New_York");
-    LiveClock clock (zones);
-    wait_msec (500); // wait for the bus to set up
+    LiveClock clock(zones);
+    wait_msec(500); // wait for the bus to set up
 
     bool skewed = false;
     clock.skewDetected.connect([&skewed, this](){
@@ -210,12 +208,12 @@ TEST_F (ClockFixture, SleepTriggersSkew)
                     return G_SOURCE_REMOVE;
                 });
 
-    g_idle_add ([](gpointer gself){
-                    static_cast<ClockFixture*>(gself)->emitPrepareForSleep();
-                    return G_SOURCE_REMOVE;
+    g_idle_add([](gpointer gself){
+                   static_cast<ClockFixture*>(gself)->emitPrepareForSleep();
+                   return G_SOURCE_REMOVE;
                 }, this);
 
-    wait_msec (1000);
+    wait_msec(1000);
     EXPECT_TRUE(skewed);
 }
 
@@ -223,12 +221,12 @@ TEST_F (ClockFixture, SleepTriggersSkew)
  * Confirm that normal time passing doesn't trigger a skew event.
  * that idling changing the clock's time triggers a skew event
  */
-TEST_F (ClockFixture, IdleDoesNotTriggerSkew)
+TEST_F(ClockFixture, IdleDoesNotTriggerSkew)
 {
-    std::shared_ptr<Timezones> zones (new Timezones);
+    std::shared_ptr<Timezones> zones(new Timezones);
     zones->timezone.set("America/New_York");
-    LiveClock clock (zones);
-    wait_msec (500); // wait for the bus to set up
+    LiveClock clock(zones);
+    wait_msec(500); // wait for the bus to set up
 
     bool skewed = false;
     clock.skewDetected.connect([&skewed](){
@@ -239,6 +237,6 @@ TEST_F (ClockFixture, IdleDoesNotTriggerSkew)
 
     const unsigned int intervalSec = 4;
     clock.skewTestIntervalSec.set(intervalSec);
-    wait_msec (intervalSec * 2.5 * 1000);
-    EXPECT_FALSE (skewed);
+    wait_msec(intervalSec * 2.5 * 1000);
+    EXPECT_FALSE(skewed);
 }

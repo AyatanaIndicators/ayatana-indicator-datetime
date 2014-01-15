@@ -30,16 +30,16 @@
 
 namespace
 {
-void clearTimer (guint& tag)
+void clearTimer(guint& tag)
 {
     if (tag)
     {
-        g_source_remove (tag);
+        g_source_remove(tag);
         tag = 0;
     }
 }
 
-guint calculate_milliseconds_until_next_minute (GDateTime * now)
+guint calculate_milliseconds_until_next_minute(GDateTime * now)
 {
     GDateTime * next;
     GDateTime * start_of_next;
@@ -47,12 +47,12 @@ guint calculate_milliseconds_until_next_minute (GDateTime * now)
     guint interval_msec;
 
     next = g_date_time_add_minutes(now, 1);
-    start_of_next = g_date_time_new_local(g_date_time_get_year (next),
-                                              g_date_time_get_month (next),
-                                              g_date_time_get_day_of_month (next),
-                                              g_date_time_get_hour (next),
-                                              g_date_time_get_minute (next),
-                                              0.1);
+    start_of_next = g_date_time_new_local(g_date_time_get_year(next),
+                                          g_date_time_get_month(next),
+                                          g_date_time_get_day_of_month(next),
+                                          g_date_time_get_hour(next),
+                                          g_date_time_get_minute(next),
+                                          0.1);
 
     interval_usec = g_date_time_difference(start_of_next, now);
     interval_msec = (interval_usec + 999) / 1000;
@@ -62,12 +62,12 @@ guint calculate_milliseconds_until_next_minute (GDateTime * now)
     return interval_msec;
 }
 
-gint calculate_milliseconds_until_next_second (GDateTime * now)
+gint calculate_milliseconds_until_next_second(GDateTime * now)
 {
     gint interval_usec;
     guint interval_msec;
 
-    interval_usec = G_USEC_PER_SEC - g_date_time_get_microsecond (now);
+    interval_usec = G_USEC_PER_SEC - g_date_time_get_microsecond(now);
     interval_msec = (interval_usec + 999) / 1000;
     return interval_msec;
 }
@@ -94,7 +94,7 @@ gint calculate_milliseconds_until_next_second (GDateTime * now)
  * (examples: Newfoundland UTC-03:30, Nepal UTC+05:45), refreshing on the hour
  * is not enough. We need to refresh at HH:00, HH:15, HH:30, and HH:45.
  */
-guint calculate_seconds_until_next_fifteen_minutes (GDateTime * now)
+guint calculate_seconds_until_next_fifteen_minutes(GDateTime * now)
 {
     char * str;
     gint minute;
@@ -106,23 +106,22 @@ guint calculate_seconds_until_next_fifteen_minutes (GDateTime * now)
     minute = g_date_time_get_minute(now);
     minute = 15 - (minute % 15);
     next = g_date_time_add_minutes(now, minute);
-    start_of_next = g_date_time_new_local(g_date_time_get_year (next),
-                                          g_date_time_get_month (next),
-                                          g_date_time_get_day_of_month (next),
-                                          g_date_time_get_hour (next),
-                                          g_date_time_get_minute (next),
+    start_of_next = g_date_time_new_local(g_date_time_get_year(next),
+                                          g_date_time_get_month(next),
+                                          g_date_time_get_day_of_month(next),
+                                          g_date_time_get_hour(next),
+                                          g_date_time_get_minute(next),
                                           0.1);
 
     str = g_date_time_format(start_of_next, "%F %T");
-    g_debug ("%s %s the next timestamp rebuild will be at %s", G_STRLOC, G_STRFUNC, str);
-    g_free (str);
+    g_debug("%s %s the next timestamp rebuild will be at %s", G_STRLOC, G_STRFUNC, str);
+    g_free(str);
 
     diff = g_date_time_difference(start_of_next, now);
     seconds = (diff + (G_TIME_SPAN_SECOND-1)) / G_TIME_SPAN_SECOND;
 
     g_date_time_unref(start_of_next);
     g_date_time_unref(next);
-
     return seconds;
 }
 } // anonymous namespace
@@ -137,11 +136,12 @@ class Formatter::Impl
 {
 public:
 
-    Impl (Formatter* owner, const std::shared_ptr<Clock>& clock):
-        owner_(owner),
-        clock_(clock)
+    Impl(Formatter* owner, const std::shared_ptr<Clock>& clock):
+        m_owner(owner),
+        m_clock(clock)
     {
-        owner_->headerFormat.changed().connect([this](const std::string& fmt G_GNUC_UNUSED){updateHeader();});
+        m_owner->headerFormat.changed().connect([this](const std::string& /*fmt*/){updateHeader();});
+        m_clock->skewDetected.connect([this](){updateHeader();});
         updateHeader();
 
         restartRelativeTimer();
@@ -149,30 +149,25 @@ public:
 
     ~Impl()
     {
-        clearTimer(header_timer_);
+        clearTimer(m_header_timer);
     }
 
 private:
 
     void updateHeader()
     {
-        GDateTime * now = clock_->localtime();
-        const time_t unix = g_date_time_to_unix (now);
-        struct tm tm;
-        localtime_r (&unix, &tm);
-        char str[512];
-        strftime (str, sizeof(str), owner_->headerFormat.get().c_str(), &tm);
-        owner_->header.set (str);
-        g_date_time_unref (now);
+        const auto fmt = m_owner->headerFormat.get();
+        const auto str = m_clock->localtime().format(fmt);
+        m_owner->header.set(str);
 
         restartHeaderTimer();
     }
 
     void restartHeaderTimer()
     {
-        clearTimer(header_timer_);
+        clearTimer(m_header_timer);
 
-        const std::string fmt = owner_->headerFormat.get();
+        const std::string fmt = m_owner->headerFormat.get();
         const bool header_shows_seconds = (fmt.find("%s") != std::string::npos)
                                        || (fmt.find("%S") != std::string::npos)
                                        || (fmt.find("%T") != std::string::npos)
@@ -180,17 +175,17 @@ private:
                                        || (fmt.find("%c") != std::string::npos);
 
         guint interval_msec;
-        GDateTime * now = clock_->localtime();
+        const auto now = m_clock->localtime();
+        auto str = now.format("%F %T");
         if (header_shows_seconds)
-            interval_msec = calculate_milliseconds_until_next_second (now);
+            interval_msec = calculate_milliseconds_until_next_second(now.get());
         else
-            interval_msec = calculate_milliseconds_until_next_minute (now);
-        g_date_time_unref (now);
+            interval_msec = calculate_milliseconds_until_next_minute(now.get());
 
         interval_msec += 50; // add a small margin to ensure the callback
                              // fires /after/ next is reached
 
-        header_timer_ = g_timeout_add_full(G_PRIORITY_HIGH, interval_msec, onHeaderTimer, this, nullptr);
+        m_header_timer = g_timeout_add_full(G_PRIORITY_HIGH, interval_msec, onHeaderTimer, this, nullptr);
     }
 
     static gboolean onHeaderTimer(gpointer gself)
@@ -203,29 +198,28 @@ private:
 
     void restartRelativeTimer()
     {
-        clearTimer(relative_timer_);
+        clearTimer(m_relative_timer);
 
-        GDateTime * now = clock_->localtime();
-        const guint seconds = calculate_seconds_until_next_fifteen_minutes(now);
-        relative_timer_ = g_timeout_add_seconds(seconds, onRelativeTimer, this);
-        g_date_time_unref(now);
+        const auto now = m_clock->localtime();
+        const auto seconds = calculate_seconds_until_next_fifteen_minutes(now.get());
+        m_relative_timer = g_timeout_add_seconds(seconds, onRelativeTimer, this);
     }
 
     static gboolean onRelativeTimer(gpointer gself)
     {
         auto self = static_cast<Formatter::Impl*>(gself);
-        self->owner_->relativeFormatChanged();
+        self->m_owner->relativeFormatChanged();
         self->restartRelativeTimer();
         return G_SOURCE_REMOVE;
     }
 
 private:
-    Formatter * const owner_;
-    guint header_timer_ = 0;
-    guint relative_timer_ = 0;
+    Formatter * const m_owner;
+    guint m_header_timer = 0;
+    guint m_relative_timer = 0;
 
 public:
-    std::shared_ptr<Clock> clock_;
+    std::shared_ptr<Clock> m_clock;
 };
 
 /***
@@ -233,7 +227,7 @@ public:
 ***/
 
 Formatter::Formatter(const std::shared_ptr<Clock>& clock):
-    p (new Formatter::Impl(this, clock))
+    p(new Formatter::Impl(this, clock))
 {
 }
 
@@ -244,12 +238,11 @@ Formatter::~Formatter()
 bool
 Formatter::is_locale_12h()
 {
-    static const char *formats_24h[] = {"%H", "%R", "%T", "%OH", "%k", nullptr};
-    const char *t_fmt = nl_langinfo (T_FMT);
-    int i;
+    static const char *formats_24h[] = {"%H", "%R", "%T", "%OH", "%k"};
+    const auto t_fmt = nl_langinfo(T_FMT);
 
-    for (i=0; formats_24h[i]; ++i)
-        if (strstr (t_fmt, formats_24h[i]))
+    for (const auto& needle : formats_24h)
+        if (strstr(t_fmt, needle))
             return false;
 
     return true;
@@ -272,7 +265,7 @@ Formatter::T_(const char *msg)
      */
 
     char *message_locale = g_strdup(setlocale(LC_MESSAGES, nullptr));
-    const char *time_locale = setlocale (LC_TIME, nullptr);
+    const char *time_locale = setlocale(LC_TIME, nullptr);
     char *language = g_strdup(g_getenv("LANGUAGE"));
     const char *rv;
 
@@ -329,15 +322,15 @@ typedef enum
 }
 date_proximity_t;
 
-date_proximity_t getDateProximity (GDateTime * now, GDateTime * time)
+date_proximity_t getDateProximity(GDateTime * now, GDateTime * time)
 {
     date_proximity_t prox = DATE_PROXIMITY_FAR;
     gint now_year, now_month, now_day;
     gint time_year, time_month, time_day;
 
     // does it happen today?
-    g_date_time_get_ymd (now, &now_year, &now_month, &now_day);
-    g_date_time_get_ymd (time, &time_year, &time_month, &time_day);
+    g_date_time_get_ymd(now, &now_year, &now_month, &now_day);
+    g_date_time_get_ymd(time, &time_year, &time_month, &time_day);
     if ((now_year == time_year) && (now_month == time_month) && (now_day == time_day))
         prox = DATE_PROXIMITY_TODAY;
 
@@ -347,12 +340,12 @@ date_proximity_t getDateProximity (GDateTime * now, GDateTime * time)
         GDateTime * tomorrow;
         gint tom_year, tom_month, tom_day;
 
-        tomorrow = g_date_time_add_days (now, 1);
-        g_date_time_get_ymd (tomorrow, &tom_year, &tom_month, &tom_day);
+        tomorrow = g_date_time_add_days(now, 1);
+        g_date_time_get_ymd(tomorrow, &tom_year, &tom_month, &tom_day);
         if ((tom_year == time_year) && (tom_month == time_month) && (tom_day == time_day))
             prox = DATE_PROXIMITY_TOMORROW;
 
-        g_date_time_unref (tomorrow);
+        g_date_time_unref(tomorrow);
     }
 
     // does it happen this week?
@@ -361,17 +354,17 @@ date_proximity_t getDateProximity (GDateTime * now, GDateTime * time)
         GDateTime * week;
         GDateTime * week_bound;
 
-        week = g_date_time_add_days (now, 6);
-        week_bound = g_date_time_new_local (g_date_time_get_year(week),
-                                            g_date_time_get_month (week),
-                                            g_date_time_get_day_of_month(week),
-                                            23, 59, 59.9);
+        week = g_date_time_add_days(now, 6);
+        week_bound = g_date_time_new_local(g_date_time_get_year(week),
+                                           g_date_time_get_month(week),
+                                           g_date_time_get_day_of_month(week),
+                                           23, 59, 59.9);
 
-        if (g_date_time_compare (time, week_bound) <= 0)
+        if (g_date_time_compare(time, week_bound) <= 0)
             prox = DATE_PROXIMITY_WEEK;
 
-        g_date_time_unref (week_bound);
-        g_date_time_unref (week);
+        g_date_time_unref(week_bound);
+        g_date_time_unref(week);
     }
 
     return prox;
@@ -398,12 +391,12 @@ std::string
 Formatter::getRelativeFormat(GDateTime* then, GDateTime* then_end) const
 {
     std::string ret;
-    GDateTime * now = p->clock_->localtime();
+    auto now = p->m_clock->localtime().get();
 
     if (then != nullptr)
     {
-        const bool full_day = then_end && (g_date_time_difference (then_end, then) >= G_TIME_SPAN_DAY);
-        const auto prox = getDateProximity (now, then);
+        const bool full_day = then_end && (g_date_time_difference(then_end, then) >= G_TIME_SPAN_DAY);
+        const auto prox = getDateProximity(now, then);
 
         if (full_day)
         {
@@ -440,14 +433,13 @@ Formatter::getRelativeFormat(GDateTime* then, GDateTime* then_end) const
            then the time should be followed by its timezone. */
         if ((then_end != nullptr) &&
             (!full_day) &&
-            ((g_date_time_get_utc_offset (now) != g_date_time_get_utc_offset (then))))
+            ((g_date_time_get_utc_offset(now) != g_date_time_get_utc_offset(then))))
         {
             ret += ' ';
-            ret += g_date_time_get_timezone_abbreviation (then);
+            ret += g_date_time_get_timezone_abbreviation(then);
         }
     }
 
-    g_date_time_unref (now);
     return ret;
 }
 

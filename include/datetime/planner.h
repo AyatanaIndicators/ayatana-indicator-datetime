@@ -33,6 +33,9 @@ namespace datetime {
 
 /**
  * \brief Simple appointment book
+ *
+ * @see EdsPlanner
+ * @see State
  */
 class Planner
 {

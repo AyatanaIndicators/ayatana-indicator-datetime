@@ -20,12 +20,12 @@
 #ifndef INDICATOR_DATETIME_CLOCK_H
 #define INDICATOR_DATETIME_CLOCK_H
 
+#include <datetime/date-time.h>
 #include <datetime/timezones.h>
 
 #include <core/property.h>
 #include <core/signal.h>
 
-#include <glib.h>
 #include <gio/gio.h>
 
 #include <set>
@@ -45,9 +45,10 @@ class Clock
 {
 public:
     virtual ~Clock();
-    virtual GDateTime* localtime() const = 0;
-    core::Property<std::set<std::string> > timezones;
+    virtual DateTime localtime() const =0;
+    core::Property<std::set<std::string>> timezones;
     core::Signal<> skewDetected;
+    core::Signal<> dateChanged;
 
 protected:
     Clock();
@@ -56,12 +57,13 @@ private:
     static void onSystemBusReady(GObject*, GAsyncResult*, gpointer);
     static void onPrepareForSleep(GDBusConnection*, const gchar*, const gchar*, const gchar*, const gchar*, GVariant*, gpointer);
 
+    GCancellable * m_cancellable = nullptr;
+    GDBusConnection * m_system_bus = nullptr;
+    unsigned int m_sleep_subscription_id = 0;
+
+    // we've got raw pointers in here, so disable copying
     Clock(const Clock&) =delete;
     Clock& operator=(const Clock&) =delete;
-
-    GCancellable * cancellable_ = nullptr;
-    GDBusConnection * system_bus_ = nullptr;
-    unsigned int sleep_subscription_id_ = 0;
 };
 
 /***
@@ -71,16 +73,17 @@ private:
 /**
  * \brief A live clock that provides the actual system time.
  *
- * Adds another clock skew detection test: wakes up every
- * skewTestIntervalSec seconds to see how much time has passed
- * since the last time it checked.
+ * This subclass also adds another clock skew detection test:
+ * it wakes up every skewTestIntervalSec seconds to see how
+ * much time has passed since the last wakeup. If the answer
+ * isn't what it expected, the skewDetected signal is triggered.
  */
 class LiveClock: public Clock
 {
 public:
     LiveClock (const std::shared_ptr<Timezones>& zones);
     virtual ~LiveClock();
-    virtual GDateTime* localtime() const;
+    virtual DateTime localtime() const;
     core::Property<unsigned int> skewTestIntervalSec;
 
 private:

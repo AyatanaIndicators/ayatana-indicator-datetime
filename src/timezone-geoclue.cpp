@@ -27,20 +27,20 @@ namespace datetime {
 
 
 GeoclueTimezone::GeoclueTimezone():
-    cancellable_(g_cancellable_new())
+    m_cancellable(g_cancellable_new())
 {
-    g_bus_get(G_BUS_TYPE_SESSION, cancellable_, on_bus_got, this);
+    g_bus_get(G_BUS_TYPE_SESSION, m_cancellable, on_bus_got, this);
 }
 
 GeoclueTimezone::~GeoclueTimezone()
 {
-    g_cancellable_cancel(cancellable_);
-    g_object_unref(cancellable_);
+    g_cancellable_cancel(m_cancellable);
+    g_object_unref(m_cancellable);
 
-    if (signal_subscription_)
-        g_dbus_connection_signal_unsubscribe(connection_, signal_subscription_);
+    if (m_signal_subscription)
+        g_dbus_connection_signal_unsubscribe(m_connection, m_signal_subscription);
 
-    g_object_unref(connection_);
+    g_object_unref(m_connection);
 }
 
 /***
@@ -48,7 +48,9 @@ GeoclueTimezone::~GeoclueTimezone()
 ***/
 
 void
-GeoclueTimezone::on_bus_got(GObject * source G_GNUC_UNUSED, GAsyncResult * res, gpointer gself)
+GeoclueTimezone::on_bus_got(GObject*      /*source*/,
+                            GAsyncResult*   res,
+                            gpointer        gself)
 {
     GError * error;
     GDBusConnection * connection;
@@ -66,9 +68,9 @@ GeoclueTimezone::on_bus_got(GObject * source G_GNUC_UNUSED, GAsyncResult * res, 
     {
         auto self = static_cast<GeoclueTimezone*>(gself);
 
-        self->connection_ = connection;
+        self->m_connection = connection;
 
-        g_dbus_connection_call(self->connection_,
+        g_dbus_connection_call(self->m_connection,
                                GEOCLUE_BUS_NAME,
                                "/org/freedesktop/Geoclue/Master",
                                "org.freedesktop.Geoclue.Master",
@@ -77,7 +79,7 @@ GeoclueTimezone::on_bus_got(GObject * source G_GNUC_UNUSED, GAsyncResult * res, 
                                G_VARIANT_TYPE("(o)"),
                                G_DBUS_CALL_FLAGS_NONE,
                                -1,
-                               self->cancellable_,
+                               self->m_cancellable,
                                on_client_created,
                                self);
     }
@@ -93,51 +95,51 @@ GeoclueTimezone::on_client_created(GObject * source, GAsyncResult * res, gpointe
         auto self = static_cast<GeoclueTimezone*>(gself);
 
         GVariant * child = g_variant_get_child_value(result, 0);
-        self->client_object_path_ = g_variant_get_string(child, nullptr);
+        self->m_client_object_path = g_variant_get_string(child, nullptr);
         g_variant_unref(child);
         g_variant_unref(result);
 
-        self->signal_subscription_ = g_dbus_connection_signal_subscribe(
-                    self->connection_,
+        self->m_signal_subscription = g_dbus_connection_signal_subscribe(
+                    self->m_connection,
                     GEOCLUE_BUS_NAME,
                     "org.freedesktop.Geoclue.Address", // inteface
                     "AddressChanged", // signal name
-                    self->client_object_path_.c_str(), // object path
+                    self->m_client_object_path.c_str(), // object path
                     nullptr, // arg0
                     G_DBUS_SIGNAL_FLAGS_NONE,
                     on_address_changed,
                     self,
                     nullptr);
 
-        g_dbus_connection_call(self->connection_,
+        g_dbus_connection_call(self->m_connection,
                                GEOCLUE_BUS_NAME,
-                               self->client_object_path_.c_str(),
+                               self->m_client_object_path.c_str(),
                                "org.freedesktop.Geoclue.MasterClient",
                                "SetRequirements",
                                g_variant_new("(iibi)", 2, 0, FALSE, 1023),
                                nullptr,
                                G_DBUS_CALL_FLAGS_NONE,
                                -1,
-                               self->cancellable_,
+                               self->m_cancellable,
                                on_requirements_set,
                                self);
     }
 }
 
 void
-GeoclueTimezone::on_address_changed(GDBusConnection * connection      G_GNUC_UNUSED,
-                                    const gchar     * sender_name     G_GNUC_UNUSED,
-                                    const gchar     * object_path     G_GNUC_UNUSED,
-                                    const gchar     * interface_name  G_GNUC_UNUSED,
-                                    const gchar     * signal_name     G_GNUC_UNUSED,
-                                    GVariant        * parameters,
-                                    gpointer          gself)
+GeoclueTimezone::on_address_changed(GDBusConnection* /*connection*/,
+                                    const gchar*     /*sender_name*/,
+                                    const gchar*     /*object_path*/,
+                                    const gchar*     /*interface_name*/,
+                                    const gchar*     /*signal_name*/,
+                                    GVariant*          parameters,
+                                    gpointer           gself)
 {
     static_cast<GeoclueTimezone*>(gself)->setTimezoneFromAddressVariant(parameters);
 }
 
 void
-GeoclueTimezone::on_requirements_set(GObject * source, GAsyncResult * res, gpointer gself)
+GeoclueTimezone::on_requirements_set(GObject* source, GAsyncResult* res, gpointer gself)
 {
     GVariant * result;
 
@@ -145,16 +147,16 @@ GeoclueTimezone::on_requirements_set(GObject * source, GAsyncResult * res, gpoin
     {
         auto self = static_cast<GeoclueTimezone*>(gself);
 
-        g_dbus_connection_call(self->connection_,
+        g_dbus_connection_call(self->m_connection,
                                GEOCLUE_BUS_NAME,
-                               self->client_object_path_.c_str(),
+                               self->m_client_object_path.c_str(),
                                "org.freedesktop.Geoclue.MasterClient",
                                "AddressStart",
                                nullptr,
                                nullptr,
                                G_DBUS_CALL_FLAGS_NONE,
                                -1,
-                               self->cancellable_,
+                               self->m_cancellable,
                                on_address_started,
                                self);
 
@@ -171,16 +173,16 @@ GeoclueTimezone::on_address_started(GObject * source, GAsyncResult * res, gpoint
     {
         auto self = static_cast<GeoclueTimezone*>(gself);
 
-        g_dbus_connection_call(self->connection_,
+        g_dbus_connection_call(self->m_connection,
                                GEOCLUE_BUS_NAME,
-                               self->client_object_path_.c_str(),
+                               self->m_client_object_path.c_str(),
                                "org.freedesktop.Geoclue.Address",
                                "GetAddress",
                                nullptr,
                                G_VARIANT_TYPE("(ia{ss}(idd))"),
                                G_DBUS_CALL_FLAGS_NONE,
                                -1,
-                               self->cancellable_,
+                               self->m_cancellable,
                                on_address_got,
                                self);
 

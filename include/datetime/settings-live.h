@@ -17,38 +17,41 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_TIMEZONES_H
-#define INDICATOR_DATETIME_TIMEZONES_H
+#ifndef INDICATOR_DATETIME_SETTINGS_LIVE_H
+#define INDICATOR_DATETIME_SETTINGS_LIVE_H
 
-#include <datetime/timezone.h>
+#include <datetime/settings.h> // parent class
 
-#include <core/property.h>
+#include <gio/gio.h> // GSettings
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
-/** \brief Aggregates one or more timezone detectors and decides which to give precedence to */
-class Timezones
+/**
+ * \brief #Settings implementation which uses GSettings.
+ */
+class LiveSettings: public Settings
 {
 public:
-    Timezones() =default;
-    virtual ~Timezones() =default;
+    LiveSettings();
+    virtual ~LiveSettings();
 
-    /**
-     * \brief the current timezone
-     */
-    core::Property<std::string> timezone;
+private:
+    void update_show_clock();
 
-    /**
-     * \brief all the detected timezones.
-     * The count is >1 iff the detection mechamisms disagree.
-     */
-    core::Property<std::set<std::string> > timezones;
+    void update_key(const std::string& key);
+    static void on_changed(GSettings*, gchar*, gpointer);
+
+    GSettings* m_settings;
+
+    // we've got a raw pointer here, so disable copying
+    LiveSettings(const LiveSettings&) =delete;
+    LiveSettings& operator=(const LiveSettings&) =delete;
 };
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_TIMEZONES_H
+#endif // INDICATOR_DATETIME_SETTINGS_LIVE_H

@@ -30,30 +30,28 @@ namespace datetime {
 ****
 ***/
 
+/**
+ * \brief A clock that uses a client-provided time instead of the system time.
+ */
 class MockClock: public Clock
 {
 public:
+    MockClock(const DateTime& dt): m_localtime(dt) {}
+    ~MockClock() =default;
 
-    MockClock(GDateTime * dt) { setLocaltime(dt); }
+    DateTime localtime() const { return m_localtime; }
 
-    ~MockClock() {
-        g_clear_pointer(&localtime_, g_date_time_unref);
-    }
-
-    GDateTime* localtime() const {
-        g_assert (localtime_ != nullptr);
-        return g_date_time_ref(localtime_);
-    }
-
-    void setLocaltime(GDateTime* dt) {
-        g_clear_pointer(&localtime_, g_date_time_unref);
-        localtime_ = g_date_time_ref(dt);
+    void set_localtime(const DateTime& dt) {
+        const auto old_day = m_localtime.day_of_year();
+        m_localtime = dt;
         skewDetected();
+        const auto new_day = m_localtime.day_of_year();
+        if (old_day != new_day)
+            dateChanged();
     }
 
 private:
-
-    GDateTime * localtime_ = nullptr;
+    DateTime m_localtime;
 };
 
 } // namespace datetime

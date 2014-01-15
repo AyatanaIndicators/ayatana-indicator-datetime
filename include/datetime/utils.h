@@ -20,8 +20,8 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __DATETIME_UTILS_H__
-#define __DATETIME_UTILS_H__
+#ifndef INDICATOR_DATETIME_UTILS_H
+#define INDICATOR_DATETIME_UTILS_H
 
 #include <glib.h>
 #include <gio/gio.h> /* GSettings */
@@ -37,31 +37,9 @@ void          split_settings_location              (const char  * location,
 gchar *       get_current_zone_name                (const char  * location,
                                                     GSettings   * settings);
 
-#if 0
-gchar*        join_date_and_time_format_strings    (const char  * date_fmt,
-                                                    const char  * time_fmt);
-/***
-****
-***/
-
-const gchar * get_terse_time_format_string         (GDateTime   * time);
-
-const gchar * get_terse_header_time_format_string  (void);
-
-const gchar * get_full_time_format_string          (GSettings   * settings);
-
-gchar *       generate_terse_format_string_at_time (GDateTime   * now,
-                                                    GDateTime   * time);
-
-gchar *       generate_full_format_string          (gboolean      show_day,
-                                                    gboolean      show_date,
-                                                    gboolean      show_year,
-                                                    GSettings   * settings);
-#endif
-
 gchar *       generate_full_format_string_at_time  (GDateTime   * now,
                                                     GDateTime   * time);
   
 G_END_DECLS
 
-#endif
+#endif /* INDICATOR_DATETIME_UTILS_H */

@@ -75,7 +75,7 @@ add_custom_target (cppcheck COMMAND cppcheck --enable=all -q --error-exitcode=2 
 ##
 
 set (CC_WARNING_ARGS " -Wall -Wshadow -Wextra -Wunused -Wformat=2 -Wno-missing-field-initializers")
-set (CXX_WARNING_ARGS " -Wall -Wextra -pedantic")
+set (CXX_WARNING_ARGS " -Wall -Wextra -pedantic -Wno-missing-field-initializers")
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/include)

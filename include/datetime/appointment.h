@@ -28,7 +28,9 @@ namespace indicator {
 namespace datetime {
 
 /**
- * PODS representing a calendar appointment
+ * \brief Plain Old Data Structure that represents a calendar appointment.
+ *
+ * @see Planner
  */
 struct Appointment
 {

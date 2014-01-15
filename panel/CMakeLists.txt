@@ -2,6 +2,8 @@ set (PANEL_LIB "indicator-datetime")
 
 add_definitions (-DPKGDATADIR="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${CMAKE_PROJECT_NAME}")
 
+SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g ${CXX_WARNING_ARGS}")
+
 add_library (${PANEL_LIB} SHARED
              datetime-prefs.c 
              datetime-prefs-locations.c

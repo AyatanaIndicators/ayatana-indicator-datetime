@@ -43,15 +43,18 @@ public:
 
 private:
     void setFilename(const std::string& filename);
-    void clear();
     static void onFileChanged(gpointer gself);
+    void clear();
     void reload();
 
-    std::string filename_;
-    GFileMonitor * monitor_ = nullptr;
-    unsigned long monitor_handler_id_ = 0;
-};
+    std::string m_filename;
+    GFileMonitor * m_monitor = nullptr;
+    unsigned long m_monitor_handler_id = 0;
 
+    // we have raw pointers and glib tags in here, so disable copying
+    FileTimezone(const FileTimezone&) =delete;
+    FileTimezone& operator=(const FileTimezone&) =delete;
+};
 
 } // namespace datetime
 } // namespace indicator

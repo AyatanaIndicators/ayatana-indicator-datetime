@@ -20,6 +20,8 @@
 #ifndef INDICATOR_DATETIME_LOCATIONS_H
 #define INDICATOR_DATETIME_LOCATIONS_H
 
+#include <datetime/date-time.h>
+
 #include <core/property.h>
 
 #include <string>
@@ -31,28 +33,42 @@ namespace datetime {
 
 /**
  * \brief A physical place and its timezone; eg, "America/Chicago" + "Oklahoma City"
+ *
+ * @see Locations
  */
-struct Location
+class Location
 {
-    /** timezone; eg, "America/Chicago" */
-    std::string zone;
+public:
+    const std::string& zone() const { return m_zone; }
 
-    /* human-readable location name; eg, "Oklahoma City" */
-    std::string name;
-
-    /** offset from UTC in microseconds */
-    int64_t offset = 0;
+    const std::string& name() const { return m_name; }
 
     bool operator== (const Location& that) const
     {
-        return (name == that.name) && (zone == that.zone) && (offset == that.offset);
+        return (name() == that.name()) &&
+               (zone() == that.zone()) &&
+               (m_offset == that.m_offset);
     }
 
     Location (const std::string& zone, const std::string& name);
+
+private:
+
+    /** timezone; eg, "America/Chicago" */
+    std::string m_zone;
+
+    /* human-readable location name; eg, "Oklahoma City" */
+    std::string m_name;
+
+    /** offset from UTC in microseconds */
+    int64_t m_offset = 0;
 };
 
 /**
- * A container for an ordered list of Locations.
+ * Container which holds an ordered list of Locations
+ *
+ * @see Location
+ * @see State
  */
 class Locations
 {
@@ -61,7 +77,7 @@ public:
     virtual ~Locations() =default;
 
     /** \brief an ordered list of Location items */
-    core::Property<std::vector<Location> > locations;
+    core::Property<std::vector<Location>> locations;
 };
 
 } // namespace datetime

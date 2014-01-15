@@ -24,37 +24,35 @@ namespace unity {
 namespace indicator {
 namespace datetime {
 
-LiveTimezones::LiveTimezones (const std::string& filename):
-    file_ (filename)
+LiveTimezones::LiveTimezones(const std::string& filename):
+    m_file(filename)
 {
-    file_.timezone.changed().connect([this](const std::string&){updateTimezones();});
+    m_file.timezone.changed().connect([this](const std::string&){update_timezones();});
 
-    geolocationEnabled.changed().connect([this](bool){updateGeolocation();});
-    updateGeolocation();
+    geolocation_enabled.changed().connect([this](bool){update_geolocation();});
+    update_geolocation();
 
-    updateTimezones();
+    update_timezones();
 }
 
-void
-LiveTimezones::updateGeolocation()
+void LiveTimezones::update_geolocation()
 {
-    geo_.reset();
+    m_geo.reset();
 
-    if (geolocationEnabled.get())
+    if(geolocation_enabled.get())
     {
-        GeoclueTimezone * geo = new GeoclueTimezone();
-        geo->timezone.changed().connect([this](const std::string&){updateTimezones();});
-        geo_.reset(geo);
+        auto geo = new GeoclueTimezone();
+        geo->timezone.changed().connect([this](const std::string&){update_timezones();});
+        m_geo.reset(geo);
     }
 }
 
-void
-LiveTimezones::updateTimezones()
+void LiveTimezones::update_timezones()
 {
-    const std::string a = file_.timezone.get();
-    const std::string b = geo_ ? geo_->timezone.get() : "";
+    const auto a = m_file.timezone.get();
+    const auto b = m_geo ? m_geo->timezone.get() : "";
 
-    timezone.set (a.empty() ? b : a);
+    timezone.set(a.empty() ? b : a);
 
     std::set<std::string> zones;
     if (!a.empty())

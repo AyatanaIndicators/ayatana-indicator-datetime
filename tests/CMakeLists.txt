@@ -32,12 +32,6 @@ include_directories (${DBUSTEST_INCLUDE_DIRS})
 
 add_definitions (-DSANDBOX="${CMAKE_CURRENT_BINARY_DIR}")
 
-# test-core
-set (TEST_NAME test-core)
-add_executable (${TEST_NAME} ${TEST_NAME}.cc)
-add_test (${TEST_NAME} ${TEST_NAME})
-target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
-
 # test-timezone-file
 set (TEST_NAME test-timezone-file)
 add_executable (${TEST_NAME} ${TEST_NAME}.cc)
@@ -76,13 +70,6 @@ add_test (${TEST_NAME} ${TEST_NAME})
 add_dependencies (${TEST_NAME} libindicatordatetimeservice)
 target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
 
-# test-planner-eds
-set (TEST_NAME test-planner-eds)
-add_executable (${TEST_NAME} ${TEST_NAME}.cc)
-add_test (${TEST_NAME} ${TEST_NAME})
-add_dependencies (${TEST_NAME} libindicatordatetimeservice)
-target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
-
 # test-locations
 set (TEST_NAME test-locations)
 add_executable (${TEST_NAME} ${TEST_NAME}.cc)
@@ -90,4 +77,24 @@ add_test (${TEST_NAME} ${TEST_NAME})
 add_dependencies (${TEST_NAME} libindicatordatetimeservice)
 target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
 
+# test-actions
+set (TEST_NAME test-actions)
+add_executable (${TEST_NAME} ${TEST_NAME}.cc)
+add_test (${TEST_NAME} ${TEST_NAME})
+add_dependencies (${TEST_NAME} libindicatordatetimeservice)
+target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
+
+# test-menus
+set (TEST_NAME test-menus)
+add_executable (${TEST_NAME} ${TEST_NAME}.cc)
+add_test (${TEST_NAME} ${TEST_NAME})
+add_dependencies (${TEST_NAME} libindicatordatetimeservice)
+target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
+
+# test-desktop
+#set (TEST_NAME test-desktop)
+#add_executable (${TEST_NAME} ${TEST_NAME}.cc)
+#add_test (${TEST_NAME} ${TEST_NAME})
+#add_dependencies (${TEST_NAME} libindicatordatetimeservice)
+#target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
 

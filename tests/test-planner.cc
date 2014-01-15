@@ -17,18 +17,20 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "clock-mock.h"
 #include "glib-fixture.h"
 
 #include <datetime/appointment.h>
+#include <datetime/clock-mock.h>
+#include <datetime/date-time.h>
 #include <datetime/planner.h>
-
-#include <glib/gi18n.h>
+#include <datetime/planner-eds.h>
 
 #include <langinfo.h>
 #include <locale.h>
 
 using unity::indicator::datetime::Appointment;
+using unity::indicator::datetime::DateTime;
+using unity::indicator::datetime::PlannerEds;
 
 /***
 ****
@@ -36,33 +38,48 @@ using unity::indicator::datetime::Appointment;
 
 typedef GlibFixture PlannerFixture;
 
-
-TEST_F (PlannerFixture, HelloWorld)
+TEST_F(PlannerFixture, EDS)
 {
-    GDateTime * halloween = g_date_time_new_local (2020, 10, 31, 18, 30, 59);
-    GDateTime * christmas = g_date_time_new_local (2020, 12, 25,  0,  0,  0);
+    PlannerEds planner;
+    wait_msec(100);
+
+    auto now = g_date_time_new_now_local();
+    planner.time.set(DateTime(now));
+    wait_msec(2500);
+
+    std::vector<Appointment> thisMonth = planner.thisMonth.get();
+    std::cerr << thisMonth.size() << " appointments this month" << std::endl;
+    for(const auto& a : thisMonth)
+      std::cerr << a.summary << std::endl;
+}
+
+
+TEST_F(PlannerFixture, HelloWorld)
+{
+    auto halloween = g_date_time_new_local(2020, 10, 31, 18, 30, 59);
+    auto christmas = g_date_time_new_local(2020, 12, 25,  0,  0,  0);
 
     Appointment a;
     a.summary = "Test";
     a.begin = halloween;
-    a.end = g_date_time_add_hours (halloween, 1);
+    a.end = g_date_time_add_hours(halloween, 1);
     const Appointment b = a;
     a.summary = "Foo";
 
-    EXPECT_EQ (a.summary, "Foo");
-    EXPECT_EQ (b.summary, "Test");
-    EXPECT_EQ (0, g_date_time_compare (a.begin(), b.begin()));
-    EXPECT_EQ (0, g_date_time_compare (a.end(), b.end()));
+    EXPECT_EQ(a.summary, "Foo");
+    EXPECT_EQ(b.summary, "Test");
+    EXPECT_EQ(0, g_date_time_compare(a.begin(), b.begin()));
+    EXPECT_EQ(0, g_date_time_compare(a.end(), b.end()));
 
     Appointment c;
     c.begin = christmas;
-    c.end = g_date_time_add_hours (christmas, 1);
+    c.end = g_date_time_add_hours(christmas, 1);
     Appointment d;
     d = c;
-    EXPECT_EQ (0, g_date_time_compare (c.begin(), d.begin()));
-    EXPECT_EQ (0, g_date_time_compare (c.end(), d.end()));
+    EXPECT_EQ(0, g_date_time_compare(c.begin(), d.begin()));
+    EXPECT_EQ(0, g_date_time_compare(c.end(), d.end()));
     a = d;
-    EXPECT_EQ (0, g_date_time_compare (d.begin(), a.begin()));
-    EXPECT_EQ (0, g_date_time_compare (d.end(), a.end()));
+    EXPECT_EQ(0, g_date_time_compare(d.begin(), a.begin()));
+    EXPECT_EQ(0, g_date_time_compare(d.end(), a.end()));
 }
 
