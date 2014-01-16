@@ -23,7 +23,13 @@
 #include <core/property.h>
 #include <core/signal.h>
 
+#include <datetime/clock.h>
+#include <datetime/settings.h>
+
 #include <glib.h>
+
+#include <string>
+#include <memory>
 
 namespace unity {
 namespace indicator {
@@ -109,13 +115,16 @@ private:
 class DesktopFormatter: public Formatter
 {
 public:
-    DesktopFormatter(const std::shared_ptr<Clock>&);
-    ~DesktopFormatter();
+    DesktopFormatter(const std::shared_ptr<Clock>&, const std::shared_ptr<Settings>&);
 
 private:
-    class Impl;
-    friend Impl;
-    std::unique_ptr<Impl> p;
+    std::shared_ptr<Settings> m_settings;
+
+    void rebuildHeaderFormat();
+    const gchar* getFullTimeFormatString() const;
+    std::string getHeaderLabelFormatString() const;
+    const gchar* getDateFormat(bool show_day, bool show_date, bool show_year) const;
+
 };
 
 

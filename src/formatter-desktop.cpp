@@ -18,10 +18,6 @@
  */
 
 #include <datetime/formatter.h>
-#include <datetime/settings-shared.h>
-
-#include <glib.h>
-#include <gio/gio.h>
 
 namespace unity {
 namespace indicator {
@@ -31,80 +27,108 @@ namespace datetime {
 ****
 ***/
 
-class DesktopFormatter::Impl
+namespace
 {
-public:
 
-Impl(DesktopFormatter * owner, const std::shared_ptr<Clock>& clock):
-    m_owner(owner),
-    m_clock(clock),
-    m_settings(g_settings_new(SETTINGS_INTERFACE))
+std::string joinDateAndTimeFormatStrings(const char* date_string,
+                                         const char* time_string)
 {
-    const gchar * const keys[] = { "changed::" SETTINGS_SHOW_SECONDS_S,
-                                   "changed::" SETTINGS_TIME_FORMAT_S,
-                                   "changed::" SETTINGS_TIME_FORMAT_S,
-                                   "changed::" SETTINGS_CUSTOM_TIME_FORMAT_S,
-                                   "changed::" SETTINGS_SHOW_DAY_S,
-                                   "changed::" SETTINGS_SHOW_DATE_S,
-                                   "changed::" SETTINGS_SHOW_YEAR_S };
-    for(const auto& key : keys)
-        g_signal_connect(m_settings, key, G_CALLBACK(onSettingsChanged), this);
+    std::string str;
+
+    if (date_string && time_string)
+    {
+        /* TRANSLATORS: This is a format string passed to strftime to
+         * combine the date and the time.  The value of "%s\u2003%s"
+         * will result in a string like this in US English 12-hour time:
+         * 'Fri Jul 16 11:50 AM'. The space in between date and time is
+         * a Unicode en space (E28082 in UTF-8 hex). */
+        str = date_string;
+        str += "\u2003";
+        str += time_string;
+    }
+    else if (date_string)
+    {
+        str = date_string;
+    }
+    else // time_string
+    {
+        str = time_string;
+    }
+
+    return str;
+}
+} // unnamed namespace
+
+/***
+****
+***/
+
+DesktopFormatter::DesktopFormatter(const std::shared_ptr<Clock>&    clock_in,
+                                   const std::shared_ptr<Settings>& settings_in):
+    Formatter(clock_in),
+    m_settings(settings_in)
+{
+    m_settings->show_day.changed().connect([this](bool){rebuildHeaderFormat();});
+    m_settings->show_date.changed().connect([this](bool){rebuildHeaderFormat();});
+    m_settings->show_year.changed().connect([this](bool){rebuildHeaderFormat();});
+    m_settings->show_seconds.changed().connect([this](bool){rebuildHeaderFormat();});
+    m_settings->time_format_mode.changed().connect([this](TimeFormatMode){rebuildHeaderFormat();});
+    m_settings->custom_time_format.changed().connect([this](const std::string&){rebuildHeaderFormat();});
 
     rebuildHeaderFormat();
 }
 
-~Impl()
+void DesktopFormatter::rebuildHeaderFormat()
 {
-    g_signal_handlers_disconnect_by_data(m_settings, this);
-    g_object_unref(m_settings);
+    headerFormat.set(getHeaderLabelFormatString());
 }
 
-private:
-
-static void onSettingsChanged(GSettings   * /*changed*/,
-                              const gchar * /*key*/,
-                              gpointer      gself)
+std::string DesktopFormatter::getHeaderLabelFormatString() const
 {
-    static_cast<Impl*>(gself)->rebuildHeaderFormat();
-}
-
-void rebuildHeaderFormat()
-{
-    auto fmt = getHeaderLabelFormatString(m_settings);
-    m_owner->headerFormat.set(fmt);
-    g_free(fmt);
-}
-
-private:
-
-gchar* getHeaderLabelFormatString(GSettings* s) const
-{
-    char * fmt;
-    const auto mode = g_settings_get_enum(s, SETTINGS_TIME_FORMAT_S);
+    std::string fmt;
+    const auto mode = m_settings->time_format_mode.get();
 
     if (mode == TIME_FORMAT_MODE_CUSTOM)
     {
-        fmt = g_settings_get_string(s, SETTINGS_CUSTOM_TIME_FORMAT_S);
+        fmt = m_settings->custom_time_format.get();
     }
     else
     {
-        const auto show_day = g_settings_get_boolean(s, SETTINGS_SHOW_DAY_S);
-        const auto show_date = g_settings_get_boolean(s, SETTINGS_SHOW_DATE_S);
-        const auto show_year = show_date && g_settings_get_boolean(s, SETTINGS_SHOW_YEAR_S);
+        const auto show_day = m_settings->show_day.get();
+        const auto show_date = m_settings->show_date.get();
+        const auto show_year = show_date && m_settings->show_year.get();
         const auto date_fmt = getDateFormat(show_day, show_date, show_year);
-        const auto time_fmt = getFullTimeFormatString(s);
+        const auto time_fmt = getFullTimeFormatString();
         fmt = joinDateAndTimeFormatStrings(date_fmt, time_fmt);
     }
 
     return fmt;
 }
 
-const gchar* T_(const gchar* in) const
+const gchar* DesktopFormatter::getFullTimeFormatString() const
 {
-    return m_owner->T_(in);
+    const auto show_seconds = m_settings->show_seconds.get();
+
+    bool twelvehour;
+    switch (m_settings->time_format_mode.get())
+    {
+    case TIME_FORMAT_MODE_LOCALE_DEFAULT:
+        twelvehour = is_locale_12h();
+        break;
+
+    case TIME_FORMAT_MODE_24_HOUR:
+        twelvehour = false;
+        break;
+
+    default:
+        twelvehour = true;
+        break;
+    }
+
+    return getDefaultHeaderTimeFormat(twelvehour, show_seconds);
 }
 
-const gchar* getDateFormat(bool show_day, bool show_date, bool show_year) const
+const gchar* DesktopFormatter::getDateFormat(bool show_day, bool show_date, bool show_year) const
 {
     const char * fmt;
 
@@ -134,74 +158,6 @@ const gchar* getDateFormat(bool show_day, bool show_date, bool show_year) const
 
     return fmt;
 }
-
-const gchar* getFullTimeFormatString(GSettings* settings) const
-{
-    auto show_seconds = g_settings_get_boolean(settings, SETTINGS_SHOW_SECONDS_S);
-
-    bool twelvehour;
-    switch (g_settings_get_enum(settings, SETTINGS_TIME_FORMAT_S))
-    {
-    case TIME_FORMAT_MODE_LOCALE_DEFAULT:
-        twelvehour = is_locale_12h();
-        break;
-
-    case TIME_FORMAT_MODE_24_HOUR:
-        twelvehour = false;
-        break;
-
-    default:
-        twelvehour = true;
-        break;
-    }
-
-    return m_owner->getDefaultHeaderTimeFormat(twelvehour, show_seconds);
-}
-
-gchar* joinDateAndTimeFormatStrings(const char* date_string,
-                                    const char* time_string) const
-{
-    gchar * str;
-
-    if (date_string && time_string)
-    {
-        /* TRANSLATORS: This is a format string passed to strftime to
-         * combine the date and the time.  The value of "%s\u2003%s"
-         * will result in a string like this in US English 12-hour time:
-         * 'Fri Jul 16 11:50 AM'. The space in between date and time is
-         * a Unicode en space (E28082 in UTF-8 hex). */
-        str =  g_strdup_printf("%s\u2003%s", date_string, time_string);
-    }
-    else if (date_string)
-    {
-        str = g_strdup(date_string);
-    }
-    else // time_string
-    {
-        str = g_strdup(time_string);
-    }
-
-    return str;
-}
-
-private:
-
-DesktopFormatter * const m_owner;
-std::shared_ptr<Clock> m_clock;
-GSettings * m_settings;
-};
-
-/***
-****
-***/
-
-DesktopFormatter::DesktopFormatter(const std::shared_ptr<Clock>& clock):
-    Formatter(clock),
-    p(new Impl(this, clock))
-{
-}
-
-DesktopFormatter::~DesktopFormatter() = default;
 
 /***
 ****

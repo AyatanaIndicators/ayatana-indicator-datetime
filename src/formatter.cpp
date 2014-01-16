@@ -124,7 +124,7 @@ guint calculate_seconds_until_next_fifteen_minutes(GDateTime * now)
     g_date_time_unref(next);
     return seconds;
 }
-} // anonymous namespace
+} // unnamed namespace
 
 
 
@@ -167,7 +167,7 @@ private:
     {
         clearTimer(m_header_timer);
 
-        const std::string fmt = m_owner->headerFormat.get();
+        const auto fmt = m_owner->headerFormat.get();
         const bool header_shows_seconds = (fmt.find("%s") != std::string::npos)
                                        || (fmt.find("%S") != std::string::npos)
                                        || (fmt.find("%T") != std::string::npos)
@@ -214,7 +214,7 @@ private:
     }
 
 private:
-    Formatter * const m_owner;
+    Formatter* const m_owner;
     guint m_header_timer = 0;
     guint m_relative_timer = 0;
 
@@ -248,7 +248,7 @@ Formatter::is_locale_12h()
     return true;
 }
 
-const char *
+const char*
 Formatter::T_(const char *msg)
 {
     /* General strategy here is to make sure LANGUAGE is empty (since that
@@ -264,17 +264,16 @@ Formatter::T_(const char *msg)
        LC_MESSAGES directory, so we won't find any translation there.
      */
 
-    char *message_locale = g_strdup(setlocale(LC_MESSAGES, nullptr));
-    const char *time_locale = setlocale(LC_TIME, nullptr);
-    char *language = g_strdup(g_getenv("LANGUAGE"));
-    const char *rv;
+    auto message_locale = g_strdup(setlocale(LC_MESSAGES, nullptr));
+    const auto time_locale = setlocale(LC_TIME, nullptr);
+    auto language = g_strdup(g_getenv("LANGUAGE"));
 
     if (language)
         g_unsetenv("LANGUAGE");
     setlocale(LC_MESSAGES, time_locale);
 
     /* Get the LC_TIME version */
-    rv = _(msg);
+    const auto rv = _(msg);
 
     /* Put everything back the way it was */
     setlocale(LC_MESSAGES, message_locale);
@@ -286,10 +285,10 @@ Formatter::T_(const char *msg)
     return rv;
 }
 
-const char *
+const char*
 Formatter::getDefaultHeaderTimeFormat(bool twelvehour, bool show_seconds)
 {
-  const char * fmt;
+  const char* fmt;
 
   if (twelvehour && show_seconds)
     /* TRANSLATORS: a strftime(3) format for 12hr time w/seconds */
@@ -322,9 +321,9 @@ typedef enum
 }
 date_proximity_t;
 
-date_proximity_t getDateProximity(GDateTime * now, GDateTime * time)
+date_proximity_t getDateProximity(GDateTime* now, GDateTime* time)
 {
-    date_proximity_t prox = DATE_PROXIMITY_FAR;
+    auto prox = DATE_PROXIMITY_FAR;
     gint now_year, now_month, now_day;
     gint time_year, time_month, time_day;
 
@@ -337,10 +336,9 @@ date_proximity_t getDateProximity(GDateTime * now, GDateTime * time)
     // does it happen tomorrow?
     if (prox == DATE_PROXIMITY_FAR)
     {
-        GDateTime * tomorrow;
-        gint tom_year, tom_month, tom_day;
+        auto tomorrow = g_date_time_add_days(now, 1);
 
-        tomorrow = g_date_time_add_days(now, 1);
+        gint tom_year, tom_month, tom_day;
         g_date_time_get_ymd(tomorrow, &tom_year, &tom_month, &tom_day);
         if ((tom_year == time_year) && (tom_month == time_month) && (tom_day == time_day))
             prox = DATE_PROXIMITY_TOMORROW;
@@ -351,14 +349,11 @@ date_proximity_t getDateProximity(GDateTime * now, GDateTime * time)
     // does it happen this week?
     if (prox == DATE_PROXIMITY_FAR)
     {
-        GDateTime * week;
-        GDateTime * week_bound;
-
-        week = g_date_time_add_days(now, 6);
-        week_bound = g_date_time_new_local(g_date_time_get_year(week),
-                                           g_date_time_get_month(week),
-                                           g_date_time_get_day_of_month(week),
-                                           23, 59, 59.9);
+        auto week = g_date_time_add_days(now, 6);
+        auto week_bound = g_date_time_new_local(g_date_time_get_year(week),
+                                                g_date_time_get_month(week),
+                                                g_date_time_get_day_of_month(week),
+                                                23, 59, 59.9);
 
         if (g_date_time_compare(time, week_bound) <= 0)
             prox = DATE_PROXIMITY_WEEK;
@@ -369,7 +364,7 @@ date_proximity_t getDateProximity(GDateTime * now, GDateTime * time)
 
     return prox;
 }
-} // anonymous namespace
+} // unnamed namespace
 
 /**
  * _ a time today should be shown as just the time (e.g. “3:55 PM”)
@@ -391,7 +386,7 @@ std::string
 Formatter::getRelativeFormat(GDateTime* then, GDateTime* then_end) const
 {
     std::string ret;
-    auto now = p->m_clock->localtime().get();
+    const auto now = p->m_clock->localtime().get();
 
     if (then != nullptr)
     {
@@ -448,7 +443,5 @@ Formatter::getRelativeFormat(GDateTime* then, GDateTime* then_end) const
 ***/
 
 } // namespace datetime
-
 } // namespace indicator
-
 } // namespace unity

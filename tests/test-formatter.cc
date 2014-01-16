@@ -22,18 +22,14 @@
 
 #include <datetime/clock-mock.h>
 #include <datetime/formatter.h>
-#include <datetime/settings-shared.h>
+#include <datetime/settings.h>
 
 #include <glib/gi18n.h>
 
 #include <langinfo.h>
 #include <locale.h>
 
-using unity::indicator::datetime::Clock;
-using unity::indicator::datetime::DateTime;
-using unity::indicator::datetime::DesktopFormatter;
-using unity::indicator::datetime::MockClock;
-using unity::indicator::datetime::PhoneFormatter;
+using namespace unity::indicator::datetime;
 
 /***
 ****
@@ -44,75 +40,73 @@ class FormatterFixture: public GlibFixture
   private:
 
     typedef GlibFixture super;
-    gchar * original_locale = nullptr;
+    gchar* m_original_locale = nullptr;
 
   protected:
 
-    GSettings * settings = nullptr;
+    std::shared_ptr<Settings> m_settings;
 
-    virtual void SetUp ()
+    virtual void SetUp()
     {
-      super::SetUp ();
+      super::SetUp();
 
-      settings = g_settings_new (SETTINGS_INTERFACE);
-  
-      original_locale = g_strdup (setlocale (LC_TIME, NULL));
+      m_settings.reset(new Settings);
+      m_original_locale = g_strdup(setlocale(LC_TIME, nullptr));
     }
 
-    virtual void TearDown ()
+    virtual void TearDown()
     {
-      g_clear_object (&settings);
+      m_settings.reset();
 
-      setlocale (LC_TIME, original_locale);
-      g_clear_pointer (&original_locale, g_free);
+      setlocale(LC_TIME, m_original_locale);
+      g_clear_pointer(&m_original_locale, g_free);
 
-      super::TearDown ();
+      super::TearDown();
     }
 
-    bool SetLocale (const char * expected_locale, const char * name)
+    bool SetLocale(const char* expected_locale, const char* name)
     {
-      setlocale (LC_TIME, expected_locale);
-      const char * actual_locale = setlocale (LC_TIME, NULL);
-      if (!g_strcmp0 (expected_locale, actual_locale))
+      setlocale(LC_TIME, expected_locale);
+      const auto actual_locale = setlocale(LC_TIME, nullptr);
+      if (!g_strcmp0(expected_locale, actual_locale))
         {
           return true;
         }
       else
         {
-          g_warning ("Unable to set locale to %s; skipping %s locale tests.", expected_locale, name);
+          g_warning("Unable to set locale to %s; skipping %s locale tests.", expected_locale, name);
           return false;
         }
     }
 
-    inline bool Set24hLocale () { return SetLocale ("C",          "24h"); }
-    inline bool Set12hLocale () { return SetLocale ("en_US.utf8", "12h"); }
+    inline bool Set24hLocale() { return SetLocale("C",          "24h"); }
+    inline bool Set12hLocale() { return SetLocale("en_US.utf8", "12h"); }
 };
 
 
 /**
  * Test the phone header format
  */
-TEST_F (FormatterFixture, TestPhoneHeader)
+TEST_F(FormatterFixture, TestPhoneHeader)
 {
-    GDateTime * now = g_date_time_new_local (2020, 10, 31, 18, 30, 59);
-    std::shared_ptr<MockClock> mock (new MockClock(DateTime(now)));
+    auto now = g_date_time_new_local(2020, 10, 31, 18, 30, 59);
+    std::shared_ptr<Clock> clock(new MockClock(DateTime(now)));
     g_date_time_unref(now);
-    std::shared_ptr<Clock> clock = std::dynamic_pointer_cast<Clock>(mock);
 
     // test the default value in a 24h locale
-    if (Set24hLocale ())
+    if(Set24hLocale())
     {
-        PhoneFormatter formatter (clock);
-        EXPECT_EQ (std::string("%H:%M"), formatter.headerFormat.get());
-        EXPECT_EQ (std::string("18:30"), formatter.header.get());
+        PhoneFormatter formatter(clock);
+        EXPECT_EQ(std::string("%H:%M"), formatter.headerFormat.get());
+        EXPECT_EQ(std::string("18:30"), formatter.header.get());
     }
 
     // test the default value in a 12h locale
-    if (Set12hLocale ())
+    if(Set12hLocale())
     {
-        PhoneFormatter formatter (clock);
-        EXPECT_EQ (std::string("%l:%M %p"), formatter.headerFormat.get());
-        EXPECT_EQ (std::string(" 6:30 PM"), formatter.header.get());
+        PhoneFormatter formatter(clock);
+        EXPECT_EQ(std::string("%l:%M %p"), formatter.headerFormat.get());
+        EXPECT_EQ(std::string(" 6:30 PM"), formatter.header.get());
     }
 }
 
@@ -121,14 +115,14 @@ TEST_F (FormatterFixture, TestPhoneHeader)
 /**
  * Test the default values of the desktop header format
  */
-TEST_F (FormatterFixture, TestDesktopHeader)
+TEST_F(FormatterFixture, TestDesktopHeader)
 {
   struct {
     bool is_12h;
     bool show_day;
     bool show_date;
     bool show_year;
-    const char * expected_format_string;
+    const char* expected_format_string;
   } test_cases[] = {
     { false, false, false, false, "%H:%M" },
     { false, false, false, true,  "%H:%M" }, // show_year is ignored iff show_date is false
@@ -148,26 +142,21 @@ TEST_F (FormatterFixture, TestDesktopHeader)
     { true,  true,  true,  true,  "%a %b %e %Y" EM_SPACE "%l:%M %p" }
   };
 
-  GDateTime * now = g_date_time_new_local(2020, 10, 31, 18, 30, 59);
-  std::shared_ptr<MockClock> mock(new MockClock(DateTime(now)));
+  auto now = g_date_time_new_local(2020, 10, 31, 18, 30, 59);
+  std::shared_ptr<Clock> clock(new MockClock(DateTime(now)));
   g_date_time_unref(now);
-  std::shared_ptr<Clock> clock = std::dynamic_pointer_cast<Clock>(mock);
 
-  for (int i=0, n=G_N_ELEMENTS(test_cases); i<n; i++)
+  for(const auto& test_case : test_cases)
     {
-      if (test_cases[i].is_12h ? Set12hLocale() : Set24hLocale())
+      if (test_case.is_12h ? Set12hLocale() : Set24hLocale())
         {
-          DesktopFormatter f (clock);
+          DesktopFormatter f(clock, m_settings);
 
-          g_settings_set_boolean (settings, SETTINGS_SHOW_DAY_S, test_cases[i].show_day);
-          g_settings_set_boolean (settings, SETTINGS_SHOW_DATE_S, test_cases[i].show_date);
-          g_settings_set_boolean (settings, SETTINGS_SHOW_YEAR_S, test_cases[i].show_year);
+          m_settings->show_day.set(test_case.show_day);
+          m_settings->show_date.set(test_case.show_date);
+          m_settings->show_year.set(test_case.show_year);
 
-          ASSERT_STREQ (test_cases[i].expected_format_string, f.headerFormat.get().c_str());
-
-          g_settings_reset (settings, SETTINGS_SHOW_DAY_S);
-          g_settings_reset (settings, SETTINGS_SHOW_DATE_S);
-          g_settings_reset (settings, SETTINGS_SHOW_YEAR_S);
+          ASSERT_STREQ(test_case.expected_format_string, f.headerFormat.get().c_str());
         }
     }
 }
@@ -175,15 +164,15 @@ TEST_F (FormatterFixture, TestDesktopHeader)
 /**
  * Test the default values of the desktop header format
  */
-TEST_F (FormatterFixture, TestUpcomingTimes)
+TEST_F(FormatterFixture, TestUpcomingTimes)
 {
-    auto a = g_date_time_new_local (2020, 10, 31, 18, 30, 59);
+    auto a = g_date_time_new_local(2020, 10, 31, 18, 30, 59);
 
     struct {
         gboolean is_12h;
-        GDateTime * now;
-        GDateTime * then;
-        const char * expected_format_string;
+        GDateTime* now;
+        GDateTime* then;
+        const char* expected_format_string;
     } test_cases[] = {
         { true, g_date_time_ref(a), g_date_time_ref(a), "%l:%M %p" }, // identical time
         { true, g_date_time_ref(a), g_date_time_add_hours(a,1), "%l:%M %p" }, // later today
@@ -200,45 +189,42 @@ TEST_F (FormatterFixture, TestUpcomingTimes)
         { false, g_date_time_ref(a), g_date_time_add_days(a,7), "%a %d %b" EM_SPACE "%H:%M" } // over one week away
     };
 
-    for (int i=0, n=G_N_ELEMENTS(test_cases); i<n; i++)
+    for(const auto& test_case : test_cases)
     {
-        if (test_cases[i].is_12h ? Set12hLocale() : Set24hLocale())
+        if (test_case.is_12h ? Set12hLocale() : Set24hLocale())
         {
-            DateTime tmp(test_cases[i].now);
-            tmp.get();
-            std::shared_ptr<MockClock> mock (new MockClock(tmp));//DateTime(test_cases[i].now)));
-            std::shared_ptr<Clock> clock = std::dynamic_pointer_cast<Clock>(mock);
-            DesktopFormatter f (clock);
+            std::shared_ptr<Clock> clock (new MockClock(DateTime(test_case.now)));
+            DesktopFormatter f(clock, m_settings);
         
-            std::string fmt = f.getRelativeFormat (test_cases[i].then);
-            ASSERT_STREQ (test_cases[i].expected_format_string, fmt.c_str());
+            const auto fmt = f.getRelativeFormat(test_case.then);
+            ASSERT_EQ(test_case.expected_format_string, fmt);
 
-            g_clear_pointer (&test_cases[i].now, g_date_time_unref);
-            g_clear_pointer (&test_cases[i].then, g_date_time_unref);
+            g_clear_pointer(&test_case.now, g_date_time_unref);
+            g_clear_pointer(&test_case.then, g_date_time_unref);
         }
     }
 
-    g_date_time_unref (a);
+    g_date_time_unref(a);
 }
 
 
 /**
  * Test the default values of the desktop header format
  */
-TEST_F (FormatterFixture, TestEventTimes)
+TEST_F(FormatterFixture, TestEventTimes)
 {
-    auto day            = g_date_time_new_local (2013, 1, 1, 13, 0, 0);
-    auto day_begin      = g_date_time_new_local (2013, 1, 1, 13, 0, 0);
-    auto day_end        = g_date_time_add_days (day_begin, 1);
-    auto tomorrow_begin = g_date_time_add_days (day_begin, 1);
-    auto tomorrow_end   = g_date_time_add_days (tomorrow_begin, 1);
+    auto day            = g_date_time_new_local(2013, 1, 1, 13, 0, 0);
+    auto day_begin      = g_date_time_new_local(2013, 1, 1, 13, 0, 0);
+    auto day_end        = g_date_time_add_days(day_begin, 1);
+    auto tomorrow_begin = g_date_time_add_days(day_begin, 1);
+    auto tomorrow_end   = g_date_time_add_days(tomorrow_begin, 1);
 
     struct {
         bool is_12h;
-        GDateTime * now;
-        GDateTime * then;
-        GDateTime * then_end;
-        const char * expected_format_string;
+        GDateTime* now;
+        GDateTime* then;
+        GDateTime* then_end;
+        const char* expected_format_string;
     } test_cases[] = {
         { false, g_date_time_ref(day), g_date_time_ref(day_begin), g_date_time_ref(day_end), _("Today") },
         { true, g_date_time_ref(day), g_date_time_ref(day_begin), g_date_time_ref(day_end), _("Today") },
@@ -246,28 +232,25 @@ TEST_F (FormatterFixture, TestEventTimes)
         { true, g_date_time_ref(day), g_date_time_ref(tomorrow_begin), g_date_time_ref(tomorrow_end), _("Tomorrow") }
     };
 
-    for (int i=0, n=G_N_ELEMENTS(test_cases); i<n; i++)
+    for(const auto& test_case : test_cases)
     {
-        if (test_cases[i].is_12h ? Set12hLocale() : Set24hLocale())
+        if (test_case.is_12h ? Set12hLocale() : Set24hLocale())
         {
-            std::shared_ptr<MockClock> mock (new MockClock(DateTime(test_cases[i].now)));
-            std::shared_ptr<Clock> clock = std::dynamic_pointer_cast<Clock>(mock);
-            DesktopFormatter f (clock);
+            std::shared_ptr<Clock> clock(new MockClock(DateTime(test_case.now)));
+            DesktopFormatter f(clock, m_settings);
           
-            std::string fmt = f.getRelativeFormat (test_cases[i].then, test_cases[i].then_end);
-            ASSERT_STREQ (test_cases[i].expected_format_string, fmt.c_str());
+            const auto fmt = f.getRelativeFormat(test_case.then, test_case.then_end);
+            ASSERT_STREQ(test_case.expected_format_string, fmt.c_str());
 
-            g_clear_pointer (&test_cases[i].now, g_date_time_unref);
-            g_clear_pointer (&test_cases[i].then, g_date_time_unref);
-            g_clear_pointer (&test_cases[i].then_end, g_date_time_unref);
+            g_clear_pointer(&test_case.now, g_date_time_unref);
+            g_clear_pointer(&test_case.then, g_date_time_unref);
+            g_clear_pointer(&test_case.then_end, g_date_time_unref);
         }
     }
 
-    g_date_time_unref (tomorrow_end);
-    g_date_time_unref (tomorrow_begin);
-    g_date_time_unref (day_end);
-    g_date_time_unref (day_begin);
-    g_date_time_unref (day);
+    g_date_time_unref(tomorrow_end);
+    g_date_time_unref(tomorrow_begin);
+    g_date_time_unref(day_end);
+    g_date_time_unref(day_begin);
+    g_date_time_unref(day);
 }
-
-
