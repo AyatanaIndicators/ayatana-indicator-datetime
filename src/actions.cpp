@@ -154,12 +154,12 @@ GVariant* create_calendar_state(std::shared_ptr<State>& state)
     g_variant_builder_add(&dict_builder, "{sv}", key, v);
 
     key = "show-week-numbers";
-    v = g_variant_new_boolean(state->show_week_numbers.get());
+    v = g_variant_new_boolean(state->settings->show_week_numbers.get());
     g_variant_builder_add(&dict_builder, "{sv}", key, v);
 
     return g_variant_builder_end(&dict_builder);
 }
-} // anonymous namespace
+} // unnamed namespace
 
 /***
 ****

@@ -170,7 +170,7 @@ protected:
         auto submenu = g_menu_model_get_item_link(menu_model, 0, G_MENU_LINK_SUBMENU);
 
         // there shouldn't be any menuitems when "show events" is false
-        m_state->show_events.set(false);
+        m_state->settings->show_events.set(false);
         wait_msec();
         auto section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
         EXPECT_EQ(0, g_menu_model_get_n_items(section));
@@ -179,7 +179,7 @@ protected:
         // when "show_events" is true,
         // there should be an "add event" button even if there aren't any appointments
         std::vector<Appointment> appointments;
-        m_state->show_events.set(true);
+        m_state->settings->show_events.set(true);
         m_state->planner->upcoming.set(appointments);
         wait_msec();
         section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);

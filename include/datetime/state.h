@@ -21,9 +21,10 @@
 #define INDICATOR_DATETIME_STATE_H
 
 #include <datetime/clock.h>
-#include <datetime/timezones.h>
-#include <datetime/planner.h>
 #include <datetime/locations.h>
+#include <datetime/planner.h>
+#include <datetime/settings.h>
+#include <datetime/timezones.h>
    
 #include <core/property.h>
 
@@ -47,18 +48,17 @@ namespace datetime {
  * @see Clock
  * @see Planner
  * @see Locations
+ * @see Settings
  */
 struct State
 {
-    std::shared_ptr<Timezones> timezones;
     std::shared_ptr<Clock> clock;
-    std::shared_ptr<Planner> planner;
     std::shared_ptr<Locations> locations;
+    std::shared_ptr<Planner> planner;
+    std::shared_ptr<Settings> settings;
+    std::shared_ptr<Timezones> timezones;
 
-    core::Property<bool> show_events;
-    core::Property<bool> show_clock;
     core::Property<DateTime> calendar_day;
-    core::Property<bool> show_week_numbers;
 };
 
 } // namespace datetime

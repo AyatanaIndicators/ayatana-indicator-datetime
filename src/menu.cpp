@@ -69,11 +69,11 @@ protected:
             update_section(Appointments); // uses formatter.getRelativeFormat()
             update_section(Locations); // uses formatter.getRelativeFormat()
         });
-        m_state->show_clock.changed().connect([this](bool){
+        m_state->settings->show_clock.changed().connect([this](bool){
             update_header(); // update header's label
             update_section(Locations); // locations' relative time may have changed
         });
-        m_state->show_events.changed().connect([this](bool){
+        m_state->settings->show_events.changed().connect([this](bool){
             update_section(Appointments); // showing events got toggled
         });
         m_state->planner->upcoming.changed().connect([this](const std::vector<Appointment>&){
@@ -261,7 +261,7 @@ private:
     {
         auto menu = g_menu_new();
 
-        if (((profile==Phone) || (profile==Desktop)) && m_state->show_events.get())
+        if (((profile==Phone) || (profile==Desktop)) && m_state->settings->show_events.get())
         {
             add_appointments (menu, profile);
 
@@ -363,14 +363,14 @@ protected:
                     std::shared_ptr<State>& state_,
                     std::shared_ptr<Actions>& actions_):
         MenuImpl(profile_, name_, state_, actions_,
-                 std::shared_ptr<Formatter>(new DesktopFormatter(state_->clock)))
+                 std::shared_ptr<Formatter>(new DesktopFormatter(state_->clock, state_->settings)))
     {
         update_header();
     }
 
     GVariant* create_header_state()
     {
-        const auto visible = m_state->show_clock.get();
+        const auto visible = m_state->settings->show_clock.get();
         const auto title = _("Date and Time");
         auto label = g_variant_new_string(m_formatter->header.get().c_str());
 
@@ -472,32 +472,22 @@ std::shared_ptr<Menu>
 MenuFactory::buildMenu(Menu::Profile profile)
 {
     std::shared_ptr<Menu> menu;
-    m_state->show_clock.set (true); // FIXME
-
-    //std::shared_ptr<State> state(new State);
-    //state->clock = clock;
-    //state->planner = planner;
-    //state->locations = locations;
 
     switch (profile)
     {
     case Menu::Desktop:
-        m_state->show_events.set(true); // FIXME
         menu.reset(new DesktopMenu(m_state, m_actions));
         break;
 
     case Menu::DesktopGreeter:
-        m_state->show_events.set(true); // FIXME
         menu.reset(new DesktopGreeterMenu(m_state, m_actions));
         break;
 
     case Menu::Phone:
-        m_state->show_events.set(true); // FIXME
         menu.reset(new PhoneMenu(m_state, m_actions));
         break;
 
     case Menu::PhoneGreeter:
-        m_state->show_events.set(false); // FIXME
         menu.reset(new PhoneGreeterMenu(m_state, m_actions));
         break;
 
