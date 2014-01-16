@@ -50,6 +50,7 @@ protected:
         const DateTime now = DateTime::NowLocal();
         m_clock.reset(new MockClock(now));
         m_state.reset(new State);
+        m_state->settings.reset(new Settings);
         m_state->timezones.reset(new Timezones);
         m_state->clock = std::dynamic_pointer_cast<Clock>(m_clock);
         m_state->planner.reset(new MockPlanner);

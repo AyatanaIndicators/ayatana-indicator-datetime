@@ -25,10 +25,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <datetime/clock.h>
 #include <datetime/clock-mock.h>
 #include <datetime/formatter.h>
-#include <datetime/settings-shared.h>
+#include <datetime/settings-live.h>
 
-#include <glib/gi18n-lib.h>
-#include <gio/gio.h>
+#include <glib.h>
 
 #include <locale.h>
 #include <langinfo.h>
@@ -53,16 +52,15 @@ void
 split_settings_location(const gchar* location, gchar** zone, gchar** name)
 {
     auto location_dup = g_strdup(location);
-    g_strstrip(location_dup);
+    if(location_dup != nullptr)
+        g_strstrip(location_dup);
 
     gchar* first;
-    if((first = strchr(location_dup, ' ')))
+    if(location_dup && (first = strchr(location_dup, ' ')))
         *first = '\0';
 
     if(zone)
-    {
         *zone = location_dup;
-    }
 
     if(name != nullptr)
     {
@@ -72,7 +70,7 @@ split_settings_location(const gchar* location, gchar** zone, gchar** name)
         {
             *name = g_strdup(after);
         }
-        else // make the name from zone
+        else if (location_dup) // make the name from zone
         {
             gchar * chr = strrchr(location_dup, '/');
             after = g_strdup(chr ? chr + 1 : location_dup);
@@ -84,54 +82,73 @@ split_settings_location(const gchar* location, gchar** zone, gchar** name)
 
             *name = after;
         }
+        else
+        {
+            *name = nullptr;
+        }
     }
 }
 
+/**
+ * Our Locations come from two places: (1) direct user input and (2) ones
+ * guessed by the system, such as from geoclue or timedate1.
+ *
+ * Since the latter only have a timezone (eg, "America/Chicago") and the
+ * former have a descriptive name provided by the end user (eg,
+ * "America/Chicago Oklahoma City"), this function tries to make a
+ * more human-readable name by using the user-provided name if the guessed
+ * timezone matches the last one the user manually clicked on.
+ * 
+ * In the example above, this allows the menuitem for the system-guessed
+ * timezone ("America/Chicago") to read "Oklahoma City" after the user clicks
+ * on the "Oklahoma City" menuitem.
+ */
 gchar*
-get_current_zone_name(const gchar* location, GSettings* settings)
+get_beautified_timezone_name(const char* timezone, const char* saved_location)
 {
-    gchar* new_zone;
-    gchar* new_name;
-    split_settings_location(location, &new_zone, &new_name);
+    gchar* zone;
+    gchar* name;
+    split_settings_location(timezone, &zone, &name);
 
-    auto tz_name = g_settings_get_string(settings, SETTINGS_TIMEZONE_NAME_S);
-    gchar* old_zone;
-    gchar* old_name;
-    split_settings_location(tz_name, &old_zone, &old_name);
-    g_free(tz_name);
-
-    /* new_name is always just a sanitized version of a timezone.
-       old_name is potentially a saved "pretty" version of a timezone name from
-       geonames.  So we prefer to use it if available and the zones match. */
+    gchar* saved_zone;
+    gchar* saved_name;
+    split_settings_location(saved_location, &saved_zone, &saved_name);
 
     gchar* rv;
-    if (g_strcmp0(old_zone, new_zone) == 0)
+    if (g_strcmp0(zone, saved_zone) == 0)
     {
-        rv = old_name;
-        old_name = nullptr;
+        rv = saved_name;
+        saved_name = nullptr;
     }
     else
     {
-        rv = new_name;
-        new_name = nullptr;
+        rv = name;
+        name = nullptr;
     }
 
-    g_free(new_zone);
-    g_free(old_zone);
-    g_free(new_name);
-    g_free(old_name);
+    g_free(zone);
+    g_free(name);
+    g_free(saved_zone);
+    g_free(saved_name);
     return rv;
 }
 
+gchar*
+get_timezone_name(const gchar* timezone, GSettings* settings)
+{
+    auto saved_location = g_settings_get_string(settings, SETTINGS_TIMEZONE_NAME_S);
+    auto rv = get_beautified_timezone_name(timezone, saved_location);
+    g_free(saved_location);
+    return rv;
+}
+
+using namespace unity::indicator::datetime;
+
 gchar* generate_full_format_string_at_time(GDateTime* now, GDateTime* then)
 {
-    using unity::indicator::datetime::Clock;
-    using unity::indicator::datetime::DateTime;
-    using unity::indicator::datetime::MockClock;
-    using unity::indicator::datetime::DesktopFormatter;
-
     std::shared_ptr<Clock> clock(new MockClock(DateTime(now)));
-    DesktopFormatter formatter(clock);
+    std::shared_ptr<Settings> settings(new LiveSettings);
+    DesktopFormatter formatter(clock, settings);
     return g_strdup(formatter.getRelativeFormat(then).c_str());
 }
 

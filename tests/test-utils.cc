@@ -17,22 +17,16 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
+#include <datetime/utils.h>
+
 #include <gtest/gtest.h>
-
-#include <glib-object.h>
-
-#include "utils.h"
-
-/***
-****
-***/
 
 TEST(UtilsTest, SplitSettingsLocation)
 {
     struct {
-        const char * location;
-        const char * expected_zone;
-        const char * expected_name;
+        const char* location;
+        const char* expected_zone;
+        const char* expected_name;
     } test_cases[] = {
         { "America/Chicago Chicago", "America/Chicago", "Chicago" },
         { "America/Chicago Oklahoma City", "America/Chicago", "Oklahoma City" },
@@ -43,63 +37,38 @@ TEST(UtilsTest, SplitSettingsLocation)
         { "UTC UTC", "UTC", "UTC" }
     };
 
-    for(guint i=0, n=G_N_ELEMENTS(test_cases); i<n; i++)
+    for(const auto& test_case : test_cases)
     {
-        char * zone = NULL;
-        char * name = NULL;
+        char * zone = nullptr;
+        char * name = nullptr;
 
-        split_settings_location(test_cases[i].location, &zone, &name);
-        ASSERT_STREQ(test_cases[i].expected_zone, zone);
-        ASSERT_STREQ(test_cases[i].expected_name, name);
+        split_settings_location(test_case.location, &zone, &name);
+        ASSERT_STREQ(test_case.expected_zone, zone);
+        ASSERT_STREQ(test_case.expected_name, name);
 
         g_free(zone);
         g_free(name);
     }
 }
 
-/***
-****
-***/
-
-#define EM_SPACE "\xE2\x80\x82"
-
-TEST(UtilsTest, GenerateTerseFormatString)
+TEST(UtilsTest, BeautifulTimezoneName)
 {
-    auto arbitrary_day = g_date_time_new_local(2013, 6, 25, 12, 34, 56);
-    auto on_the_hour   = g_date_time_new_local(2013, 6, 25, 12,  0,  0);
-
     struct {
-        GDateTime * now;
-        GDateTime * time;
-        const char * expected_format_string;
+        const char* timezone;
+        const char* location;
+        const char* expected_name;
     } test_cases[] = {
-        { g_date_time_ref(arbitrary_day), g_date_time_ref(arbitrary_day), "%l:%M %p" }, /* identical time */
-        { g_date_time_ref(arbitrary_day), g_date_time_add_hours(arbitrary_day,1), "%l:%M %p" }, /* later today */
-        { g_date_time_ref(arbitrary_day), g_date_time_add_days(arbitrary_day,1), "Tomorrow" EM_SPACE "%l:%M %p" }, /* tomorrow */
-        { g_date_time_ref(arbitrary_day), g_date_time_add_days(arbitrary_day,2), "%a" EM_SPACE "%l:%M %p" },
-        { g_date_time_ref(arbitrary_day), g_date_time_add_days(arbitrary_day,6), "%a" EM_SPACE "%l:%M %p" },
-        { g_date_time_ref(arbitrary_day), g_date_time_add_days(arbitrary_day,7), "%d %b" EM_SPACE "%l:%M %p" }, /* over one week away */
-
-        { g_date_time_ref(on_the_hour), g_date_time_ref(on_the_hour), "%l %p" }, /* identical time */
-        { g_date_time_ref(on_the_hour), g_date_time_add_hours(on_the_hour,1), "%l %p" }, /* later today */
-        { g_date_time_ref(on_the_hour), g_date_time_add_days(on_the_hour,1), "Tomorrow" EM_SPACE "%l %p" }, /* tomorrow */
-        { g_date_time_ref(on_the_hour), g_date_time_add_days(on_the_hour,2), "%a" EM_SPACE "%l %p" },
-        { g_date_time_ref(on_the_hour), g_date_time_add_days(on_the_hour,6), "%a" EM_SPACE "%l %p" },
-        { g_date_time_ref(on_the_hour), g_date_time_add_days(on_the_hour,7), "%d %b" EM_SPACE "%l %p" }, /* over one week away */
+        { "America/Chicago", NULL, "Chicago" },
+        { "America/Chicago", "America/Chicago", "Chicago" },
+        { "America/Chicago", "America/Chigago Chicago", "Chicago" },
+        { "America/Chicago", "America/Chicago Oklahoma City", "Oklahoma City" },
+        { "America/Chicago", "Europe/London London", "Chicago" }
     };
 
-    for(guint i=0, n=G_N_ELEMENTS(test_cases); i<n; i++)
+    for(const auto& test_case : test_cases)
     {
-        auto format_string = generate_terse_format_string_at_time(test_cases[i].now,
-                                                                  test_cases[i].time); 
-
-        ASSERT_STREQ(test_cases[i].expected_format_string, format_string);
-
-        g_free(format_string);
-        g_date_time_unref(test_cases[i].now);
-        g_date_time_unref(test_cases[i].time);
+        auto name = get_beautified_timezone_name(test_case.timezone, test_case.location);
+        EXPECT_STREQ(test_case.expected_name, name);
+        g_free(name);
     }
-
-    g_date_time_unref(arbitrary_day);
-    g_date_time_unref(on_the_hour);
 }

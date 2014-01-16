@@ -34,8 +34,11 @@ void          split_settings_location              (const char  * location,
                                                     char       ** zone,
                                                     char       ** name);
 
-gchar *       get_current_zone_name                (const char  * location,
+gchar *       get_timezone_name                    (const char  * timezone,
                                                     GSettings   * settings);
+
+gchar *       get_beautified_timezone_name         (const char  * timezone,
+                                                    const char  * saved_location);
 
 gchar *       generate_full_format_string_at_time  (GDateTime   * now,
                                                     GDateTime   * time);
