@@ -18,18 +18,20 @@
  */
 
 #include <datetime/timezones-live.h>
+
 #include <glib.h>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
-LiveTimezones::LiveTimezones(const std::string& filename):
-    m_file(filename)
+LiveTimezones::LiveTimezones(std::shared_ptr<Settings>& settings, const std::string& filename):
+    m_file(filename),
+    m_settings(settings)
 {
     m_file.timezone.changed().connect([this](const std::string&){update_timezones();});
 
-    geolocation_enabled.changed().connect([this](bool){update_geolocation();});
+    m_settings->show_detected_location.changed().connect([this](bool){update_geolocation();});
     update_geolocation();
 
     update_timezones();
@@ -37,9 +39,11 @@ LiveTimezones::LiveTimezones(const std::string& filename):
 
 void LiveTimezones::update_geolocation()
 {
+    // clear the previous pointer, if any
     m_geo.reset();
 
-    if(geolocation_enabled.get())
+    // if location detection is enabled, turn on GeoClue
+    if(m_settings->show_detected_location.get())
     {
         auto geo = new GeoclueTimezone();
         geo->timezone.changed().connect([this](const std::string&){update_timezones();});

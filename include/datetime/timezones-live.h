@@ -20,9 +20,10 @@
 #ifndef INDICATOR_DATETIME_LIVE_TIMEZONES_H
 #define INDICATOR_DATETIME_LIVE_TIMEZONES_H
 
-#include <datetime/timezones.h> // base class
-#include <datetime/timezone-file.h> // aggregated
-#include <datetime/timezone-geoclue.h> // aggregated
+#include <datetime/settings.h>
+#include <datetime/timezones.h>
+#include <datetime/timezone-file.h>
+#include <datetime/timezone-geoclue.h>
 
 #include <memory> // shared_ptr<>
 
@@ -37,16 +38,14 @@ namespace datetime {
 class LiveTimezones: public Timezones
 {
 public:
-    LiveTimezones(const std::string& filename);
-
-    /** \brief Whether or not to track location by IP address */
-    core::Property<bool> geolocation_enabled = core::Property<bool>(false);
+    LiveTimezones(std::shared_ptr<Settings>& settings, const std::string& filename);
 
 private:
     void update_geolocation();
     void update_timezones();
 
     FileTimezone m_file;
+    std::shared_ptr<Settings> m_settings;
     std::shared_ptr<GeoclueTimezone> m_geo;
 };
 
