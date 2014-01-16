@@ -29,49 +29,39 @@ namespace unity {
 namespace indicator {
 namespace datetime {
 
-SettingsLocations::SettingsLocations(const std::string& schemaId,
+SettingsLocations::SettingsLocations(const std::shared_ptr<Settings>& settings,
                                      const std::shared_ptr<Timezones>& timezones):
+    m_settings(settings),
     m_timezones(timezones)
 {
-    auto deleter = [](GSettings* s){g_object_unref(s);};
-    m_settings = std::unique_ptr<GSettings,std::function<void(GSettings*)>>(g_settings_new(schemaId.c_str()), deleter);
-    const char * keys[] = { "changed::" SETTINGS_LOCATIONS_S,
-                            "changed::" SETTINGS_SHOW_LOCATIONS_S };
-    for (const auto& key : keys)
-        g_signal_connect_swapped(m_settings.get(), key, G_CALLBACK(onSettingsChanged), this);
-
-    timezones->timezone.changed().connect([this](const std::string&){reload();});
-    timezones->timezones.changed().connect([this](const std::set<std::string>&){reload();});
+    m_settings->locations.changed().connect([this](const std::vector<std::string>&){reload();});
+    m_settings->show_locations.changed().connect([this](bool){reload();});
+    m_timezones->timezone.changed().connect([this](const std::string&){reload();});
+    m_timezones->timezones.changed().connect([this](const std::set<std::string>&){reload();});
 
     reload();
-}
-
-void
-SettingsLocations::onSettingsChanged(gpointer gself)
-{
-    static_cast<SettingsLocations*>(gself)->reload();
 }
 
 void
 SettingsLocations::reload()
 {
     std::vector<Location> v;
-    auto settings = m_settings.get();
+    const std::string timezone_name = m_settings->timezone_name.get();
 
     // add the primary timezone first
     auto zone = m_timezones->timezone.get();
     if (!zone.empty())
     {
-        gchar * name = get_current_zone_name(zone.c_str(), settings);
+        gchar * name = get_beautified_timezone_name(zone.c_str(), timezone_name.c_str());
         Location l(zone, name);
         v.push_back(l);
         g_free(name);
     }
 
     // add the other detected timezones
-    for (const auto& zone : m_timezones->timezones.get())
+    for(const auto& zone : m_timezones->timezones.get())
     {
-        gchar * name = get_current_zone_name(zone.c_str(), settings);
+        gchar * name = get_beautified_timezone_name(zone.c_str(), timezone_name.c_str());
         Location l(zone, name);
         if (std::find(v.begin(), v.end(), l) == v.end())
             v.push_back(l);
@@ -79,23 +69,19 @@ SettingsLocations::reload()
     }
 
     // maybe add the user-specified locations
-    if (g_settings_get_boolean(settings, SETTINGS_SHOW_LOCATIONS_S))
+    if (m_settings->show_locations.get())
     {
-        gchar ** user_locations = g_settings_get_strv(settings, SETTINGS_LOCATIONS_S);
-
-        for (int i=0; user_locations[i]; i++)
+        for(const auto& locstr : m_settings->locations.get())
         {
-            gchar * zone;
-            gchar * name;
-            split_settings_location(user_locations[i], &zone, &name);
-            Location l(zone, name);
-            if (std::find(v.begin(), v.end(), l) == v.end())
-                v.push_back(l);
+            gchar* zone;
+            gchar* name;
+            split_settings_location(locstr.c_str(), &zone, &name);
+            Location loc(zone, name);
+            if (std::find(v.begin(), v.end(), loc) == v.end())
+                v.push_back(loc);
             g_free(name);
             g_free(zone);
         }
-
-        g_strfreev(user_locations);
     }
 
     locations.set(v);

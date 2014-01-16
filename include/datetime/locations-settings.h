@@ -22,18 +22,15 @@
 
 #include <datetime/locations.h> // base class
 
-#include <glib.h>
-#include <gio/gio.h>
+#include <datetime/settings.h>
+#include <datetime/timezones.h>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
-class Timezones;
-
 /**
- * \brief Settings implentation which builds its list from the
- *        user's GSettings and from the Timezones passed in the ctor.
+ * \brief #Locations implementation which builds its list from the #Settings.
  */
 class SettingsLocations: public Locations
 {
@@ -42,15 +39,12 @@ public:
      * @param[in] schemaId the settings schema to load 
      * @param[in] timezones the timezones to always show first in the list
      */
-    SettingsLocations (const std::string& schemaId,
+    SettingsLocations (const std::shared_ptr<Settings>& settings,
                        const std::shared_ptr<Timezones>& timezones);
 
-protected:
-    std::unique_ptr<GSettings,std::function<void(GSettings*)>> m_settings;
-    std::shared_ptr<Timezones> m_timezones;
-
 private:
-    static void onSettingsChanged (gpointer gself);
+    std::shared_ptr<Settings> m_settings;
+    std::shared_ptr<Timezones> m_timezones;
     void reload();
 };
 
