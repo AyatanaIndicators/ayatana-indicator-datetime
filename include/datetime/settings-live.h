@@ -38,10 +38,23 @@ public:
     virtual ~LiveSettings();
 
 private:
-    void update_show_clock();
-
-    void update_key(const std::string& key);
     static void on_changed(GSettings*, gchar*, gpointer);
+    void update_key(const std::string& key);
+
+    void update_custom_time_format();
+    void update_locations();
+    void update_show_calendar();
+    void update_show_clock();
+    void update_show_date();
+    void update_show_day();
+    void update_show_detected_locations();
+    void update_show_events();
+    void update_show_locations();
+    void update_show_seconds();
+    void update_show_week_numbers();
+    void update_show_year();
+    void update_time_format_mode();
+    void update_timezone_name();
 
     GSettings* m_settings;
 
