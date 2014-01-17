@@ -1,3 +1,3 @@
 usr/lib/*/control-center-1/panels/*
-usr/share/indicator-datetime/*
-usr/share/applications/*
+usr/share/indicator-datetime/gnome-control-center/*
+usr/share/applications/gnome-indicator-datetime-panel.desktop
