@@ -19,12 +19,15 @@
 
 #include "geoclue-fixture.h"
 
+#include <datetime/settings.h>
 #include <datetime/timezones-live.h>
+
+#include <memory> // std::shared_ptr
 
 #include <cstdio> // fopen()
 #include <unistd.h> // sync()
 
-using unity::indicator::datetime::LiveTimezones;
+using namespace unity::indicator::datetime;
 
 typedef GeoclueFixture TimezonesFixture;
 
@@ -49,7 +52,8 @@ TEST_F(TimezonesFixture, ManagerTest)
   std::string timezone_geo = "America/Denver";
 
   set_file(timezone_file);
-  LiveTimezones z(TIMEZONE_FILE);
+  std::shared_ptr<Settings> settings(new Settings);
+  LiveTimezones z(settings, TIMEZONE_FILE);
   wait_msec(500); // wait for the bus to get set up
   EXPECT_EQ(timezone_file, z.timezone.get());
   auto zones = z.timezones.get();
@@ -71,13 +75,13 @@ TEST_F(TimezonesFixture, ManagerTest)
           g_main_loop_quit(loop);
         });
 
-  g_idle_add([](gpointer gz) {
-          auto az = static_cast<LiveTimezones*>(gz);
-          g_message("geolocation was %d", (int)az->geolocationEnabled.get());
+  g_idle_add([](gpointer s_in) {
+          auto s = static_cast<Settings*>(s_in);
+          g_message("geolocation was %d", (int)s->show_detected_location.get());
           g_message("turning geolocation on");
-          az->geolocationEnabled.set(true);
+          s->show_detected_location.set(true);
           return G_SOURCE_REMOVE;
-        }, &z);
+        }, settings.get());
 
   // turn on geoclue during the idle... this should add timezone_1 to the 'timezones' property
   g_main_loop_run(loop);
@@ -115,9 +119,6 @@ TEST_F(TimezonesFixture, ManagerTest)
   EXPECT_EQ(2, zones.size());
   EXPECT_EQ(1, zones.count(timezone_file));
   EXPECT_EQ(1, zones.count(timezone_geo));
-  
-  
-  
 }
 
 

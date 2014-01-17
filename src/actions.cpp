@@ -130,7 +130,7 @@ GVariant* create_default_header_state()
     return g_variant_builder_end(&b);
 }
 
-GVariant* create_calendar_state(std::shared_ptr<State>& state)
+GVariant* create_calendar_state(const std::shared_ptr<State>& state)
 {
     gboolean days[32] = { 0 };
     for(const auto& appt : state->planner->thisMonth.get())
@@ -138,7 +138,7 @@ GVariant* create_calendar_state(std::shared_ptr<State>& state)
 
     GVariantBuilder day_builder;
     g_variant_builder_init(&day_builder, G_VARIANT_TYPE("ai"));
-    for (int i=0; i<G_N_ELEMENTS(days); i++)
+    for (guint i=0; i<G_N_ELEMENTS(days); i++)
         if (days[i])
             g_variant_builder_add(&day_builder, "i", i);
 
@@ -165,7 +165,7 @@ GVariant* create_calendar_state(std::shared_ptr<State>& state)
 ****
 ***/
 
-Actions::Actions(std::shared_ptr<State>& state):
+Actions::Actions(const std::shared_ptr<State>& state):
     m_state(state),
     m_actions(g_simple_action_group_new())
 {

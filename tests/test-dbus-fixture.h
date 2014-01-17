@@ -86,15 +86,17 @@ class TestDBusFixture: public GlibFixture
 
     virtual void TearDown ()
     {
+      wait_msec();
+
       // close the system bus
-      g_dbus_connection_close (system_bus, nullptr, on_bus_closed, this);
-      g_main_loop_run (loop);
-      g_clear_object (&system_bus);
+      g_dbus_connection_close(system_bus, nullptr, on_bus_closed, this);
+      g_main_loop_run(loop);
+      g_clear_object(&system_bus);
 
       // tear down the test dbus
-      g_test_dbus_down (test_dbus);
-      g_clear_object (&test_dbus);
+      g_test_dbus_down(test_dbus);
+      g_clear_object(&test_dbus);
 
-      super::TearDown ();
+      super::TearDown();
     }
 };

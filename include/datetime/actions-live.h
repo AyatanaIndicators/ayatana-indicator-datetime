@@ -36,15 +36,14 @@ namespace datetime {
 class LiveActions: public Actions
 {
 public:
-    LiveActions(std::shared_ptr<State>& state): Actions(state) {}
+    LiveActions(const std::shared_ptr<State>& state): Actions(state) {}
     ~LiveActions() =default;
 
     void open_desktop_settings();
     void open_phone_settings();
-    void open_phone_clock();
-    void open_phone_planner();
+    void open_phone_clock_app();
+    void open_planner();
     void open_planner_at(const DateTime&);
-    void open_calendar_at(const DateTime&);
     void open_appointment(const std::string& uid);
     void set_location(const std::string& zone, const std::string& name);
     void set_calendar_date(const DateTime&);

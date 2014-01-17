@@ -39,22 +39,17 @@ void LiveActions::open_phone_settings()
     g_message("%s", G_STRFUNC);
 }
 
-void LiveActions::open_phone_clock()
+void LiveActions::open_phone_clock_app()
 {
     g_message("%s", G_STRFUNC);
 }
 
-void LiveActions::open_phone_planner()
+void LiveActions::open_planner()
 {
     g_message("%s", G_STRFUNC);
 }
 
 void LiveActions::open_planner_at(const DateTime&)
-{
-    g_message("%s", G_STRFUNC);
-}
-
-void LiveActions::open_calendar_at(const DateTime&)
 {
     g_message("%s", G_STRFUNC);
 }

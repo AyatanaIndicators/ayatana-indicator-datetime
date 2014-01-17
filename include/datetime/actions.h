@@ -51,7 +51,7 @@ public:
     std::shared_ptr<State> state() { return m_state; }
 
 protected:
-    Actions(std::shared_ptr<State>& state);
+    Actions(const std::shared_ptr<State>& state);
     virtual ~Actions();
 
 private:

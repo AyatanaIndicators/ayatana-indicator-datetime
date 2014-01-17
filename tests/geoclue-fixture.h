@@ -33,8 +33,10 @@ class GeoclueFixture : public GlibFixture
 
     DbusTestService * service = nullptr;
     DbusTestDbusMock * mock = nullptr;
-    DbusTestDbusMockObject * obj_master = nullptr;
-    DbusTestDbusMockObject * obj_client = nullptr;
+    DbusTestDbusMockObject * obj_geo = nullptr;
+    DbusTestDbusMockObject * obj_geo_m = nullptr;
+    DbusTestDbusMockObject * obj_geo_mc = nullptr;
+    DbusTestDbusMockObject * obj_geo_addr = nullptr;
     const std::string timezone_1 = "America/Denver";
 
     void SetUp ()
@@ -42,25 +44,31 @@ class GeoclueFixture : public GlibFixture
       super::SetUp();
 
       GError * error = nullptr;
-      const gchar * const client_path = "/org/freedesktop/Geoclue/Master/client0";
+      const auto master_path = "/org/freedesktop/Geoclue/Master";
+      const auto client_path = "/org/freedesktop/Geoclue/Master/client0";
       GString * gstr = g_string_new (nullptr);
 
       service = dbus_test_service_new (nullptr);
       mock = dbus_test_dbus_mock_new ("org.freedesktop.Geoclue.Master");
 
-      obj_master = dbus_test_dbus_mock_get_object (mock,
-                                                   "/org/freedesktop/Geoclue/Master",
-                                                   "org.freedesktop.Geoclue.Master",
-                                                   nullptr);
+      auto interface = "org.freedesktop.Geoclue.Master";
+      obj_geo_m = dbus_test_dbus_mock_get_object (mock, master_path, interface, nullptr);
       g_string_printf (gstr, "ret = '%s'", client_path);
-      dbus_test_dbus_mock_object_add_method (mock, obj_master, nullptr, "Create", nullptr, G_VARIANT_TYPE_OBJECT_PATH, gstr->str, &error);
+      dbus_test_dbus_mock_object_add_method (mock, obj_geo_m, "Create", nullptr, G_VARIANT_TYPE_OBJECT_PATH, gstr->str, &error);
 
-      obj_client = dbus_test_dbus_mock_get_object (mock, client_path, "org.freedesktop.Geoclue.MasterClient", nullptr);
-      dbus_test_dbus_mock_object_add_method (mock, obj_client, nullptr, "SetRequirements", G_VARIANT_TYPE("(iibi)"), nullptr, "", &error);
-      dbus_test_dbus_mock_object_add_method (mock, obj_client, nullptr, "AddressStart", nullptr, nullptr, "", &error);
-      dbus_test_dbus_mock_object_add_method (mock, obj_client, "org.freedesktop.Geoclue", "AddReference", nullptr, nullptr, "", &error);
+      interface = "org.freedesktop.Geoclue.MasterClient";
+      obj_geo_mc = dbus_test_dbus_mock_get_object (mock, client_path, interface, nullptr);
+      dbus_test_dbus_mock_object_add_method (mock, obj_geo_mc, "SetRequirements", G_VARIANT_TYPE("(iibi)"), nullptr, "", &error);
+      dbus_test_dbus_mock_object_add_method (mock, obj_geo_mc, "AddressStart", nullptr, nullptr, "", &error);
+
+      interface = "org.freedesktop.Geoclue";
+      obj_geo = dbus_test_dbus_mock_get_object (mock, client_path, interface, nullptr);
+      dbus_test_dbus_mock_object_add_method (mock, obj_geo, "AddReference", nullptr, nullptr, "", &error);
       g_string_printf (gstr, "ret = (1385238033, {'timezone': '%s'}, (3, 0.0, 0.0))", timezone_1.c_str());
-      dbus_test_dbus_mock_object_add_method (mock, obj_client, "org.freedesktop.Geoclue.Address", "GetAddress", nullptr, G_VARIANT_TYPE("(ia{ss}(idd))"), gstr->str, &error);
+
+      interface = "org.freedesktop.Geoclue.Address";
+      obj_geo_addr = dbus_test_dbus_mock_get_object (mock, client_path, interface, nullptr);
+      dbus_test_dbus_mock_object_add_method (mock, obj_geo_addr, "GetAddress", nullptr, G_VARIANT_TYPE("(ia{ss}(idd))"), gstr->str, &error);
                                              
       dbus_test_service_add_task(service, DBUS_TEST_TASK(mock));
       dbus_test_service_start_tasks(service);
@@ -101,11 +109,11 @@ private:
     struct EmitAddressChangedData
     {
         DbusTestDbusMock * mock = nullptr;
-        DbusTestDbusMockObject * obj_client = nullptr;
+        DbusTestDbusMockObject * obj_geo_addr = nullptr;
         std::string timezone;
-        EmitAddressChangedData(DbusTestDbusMock * mock_,
-                               DbusTestDbusMockObject * obj_client_,
-                               const std::string& timezone_): mock(mock_), obj_client(obj_client_), timezone(timezone_) {}
+        EmitAddressChangedData(DbusTestDbusMock* mock_,
+                               DbusTestDbusMockObject* obj_geo_addr_,
+                               const std::string& timezone_): mock(mock_), obj_geo_addr(obj_geo_addr_), timezone(timezone_) {}
     };
 
     static gboolean emit_address_changed_idle (gpointer gdata)
@@ -114,8 +122,8 @@ private:
         auto fmt = g_strdup_printf ("(1385238033, {'timezone': '%s'}, (3, 0.0, 0.0))", data->timezone.c_str());
 
         GError * error = nullptr;
-        dbus_test_dbus_mock_object_emit_signal(data->mock, data->obj_client,
-                                               "org.freedesktop.Geoclue.Address",
+        dbus_test_dbus_mock_object_emit_signal(data->mock, data->obj_geo_addr,
+                                               //"org.freedesktop.Geoclue.Address",
                                                "AddressChanged",
                                                G_VARIANT_TYPE("(ia{ss}(idd))"),
                                                g_variant_new_parsed (fmt),
@@ -135,7 +143,7 @@ public:
 
     void setGeoclueTimezoneOnIdle (const std::string& newZone)
     {
-        g_timeout_add (50, emit_address_changed_idle, new EmitAddressChangedData(mock, obj_client, newZone.c_str()));
+        g_timeout_add (50, emit_address_changed_idle, new EmitAddressChangedData(mock, obj_geo_addr, newZone.c_str()));
     }
 
 };
