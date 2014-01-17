@@ -269,7 +269,7 @@ private:
             if (default_timezone == nullptr) // maybe str is a tzid?
                 default_timezone = icaltimezone_get_builtin_timezone_from_tzid(tz);
 
-            g_debug("default_timezone is %p", default_timezone);
+            g_debug("default_timezone is %p", (void*)default_timezone);
         }
 
         /**
@@ -277,7 +277,7 @@ private:
         **/
 
         std::shared_ptr<Task> main_task(new Task(this, func), [](Task* task){
-            g_message("time to delete task %p", task);
+            g_message("time to delete task %p", (void*)task);
             task->func(task->appointments);
         });
 
@@ -293,7 +293,7 @@ private:
             // start a new subtask to enumerate all the components in this client.
             auto extension = e_source_get_extension(source, E_SOURCE_EXTENSION_CALENDAR);
             const auto color = e_source_selectable_get_color(E_SOURCE_SELECTABLE(extension));
-            g_message("calling e_cal_client_generate_instances for %p", client);
+            g_message("calling e_cal_client_generate_instances for %p", (void*)client);
             e_cal_client_generate_instances(client,
                                             begin,
                                             end,
