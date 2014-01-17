@@ -220,7 +220,7 @@ toggle_ntp (GtkWidget * radio, GParamSpec * pspec G_GNUC_UNUSED, IndicatorDateti
 static void
 sync_entry (IndicatorDatetimePanel * self, const gchar * location)
 {
-  gchar * name = get_current_zone_name (location, self->priv->settings);
+  gchar * name = get_timezone_name (location, self->priv->settings);
   gtk_entry_set_text (GTK_ENTRY (self->priv->tz_entry), name);
   g_free (name);
 
@@ -635,7 +635,7 @@ entry_focus_out (GtkEntry * entry,
   gchar * zone;
   g_object_get (location, "zone", &zone, NULL);
 
-  gchar * name = get_current_zone_name (zone, self->priv->settings);
+  gchar * name = get_timezone_name (zone, self->priv->settings);
   gboolean correct = (g_strcmp0 (gtk_entry_get_text (entry), name) == 0);
   g_free (name);
   g_free (zone);
