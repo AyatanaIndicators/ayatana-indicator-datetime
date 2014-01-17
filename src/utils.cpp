@@ -104,11 +104,11 @@ split_settings_location(const gchar* location, gchar** zone, gchar** name)
  * on the "Oklahoma City" menuitem.
  */
 gchar*
-get_beautified_timezone_name(const char* timezone, const char* saved_location)
+get_beautified_timezone_name(const char* timezone_, const char* saved_location)
 {
     gchar* zone;
     gchar* name;
-    split_settings_location(timezone, &zone, &name);
+    split_settings_location(timezone_, &zone, &name);
 
     gchar* saved_zone;
     gchar* saved_name;
@@ -134,10 +134,10 @@ get_beautified_timezone_name(const char* timezone, const char* saved_location)
 }
 
 gchar*
-get_timezone_name(const gchar* timezone, GSettings* settings)
+get_timezone_name(const gchar* timezone_, GSettings* settings)
 {
     auto saved_location = g_settings_get_string(settings, SETTINGS_TIMEZONE_NAME_S);
-    auto rv = get_beautified_timezone_name(timezone, saved_location);
+    auto rv = get_beautified_timezone_name(timezone_, saved_location);
     g_free(saved_location);
     return rv;
 }
