@@ -1466,11 +1466,23 @@ on_desktop_settings_activated (GSimpleAction * a      G_GNUC_UNUSED,
                                GVariant      * param  G_GNUC_UNUSED,
                                gpointer        gself  G_GNUC_UNUSED)
 {
+  gchar *path;
+
+  path = g_find_program_in_path ("unity-control-center");
+  if (path != NULL && g_strcmp0 (g_getenv ("XDG_CURRENT_DESKTOP"), "Unity") == 0)
+    {
+      execute_command ("unity-control-center datetime");       
+    }
+  else
+    {
 #ifdef HAVE_CCPANEL
-  execute_command ("gnome-control-center indicator-datetime");
+      execute_command ("gnome-control-center indicator-datetime");
 #else
-  execute_command ("gnome-control-center datetime");
+      execute_command ("gnome-control-center datetime");
 #endif
+    }
+
+  g_free (path);
 }
 
 static void
