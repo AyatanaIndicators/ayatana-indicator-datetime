@@ -61,14 +61,14 @@ protected:
     {
         EXPECT_EQ(g_settings_get_boolean(m_gsettings, key), property.get());
         g_settings_set_boolean(m_gsettings, key, false);
-        EXPECT_EQ(false, property.get());
+        EXPECT_FALSE(property.get());
         g_settings_set_boolean(m_gsettings, key, true);
-        EXPECT_EQ(true, property.get());
+        EXPECT_TRUE(property.get());
 
         property.set(false);
-        EXPECT_EQ(false, g_settings_get_boolean(m_gsettings, key));
+        EXPECT_FALSE(g_settings_get_boolean(m_gsettings, key));
         property.set(true);
-        EXPECT_EQ(true, g_settings_get_boolean(m_gsettings, key));
+        EXPECT_TRUE(g_settings_get_boolean(m_gsettings, key));
     }
 
     void TestStringProperty(core::Property<std::string>& property, const gchar* key)
