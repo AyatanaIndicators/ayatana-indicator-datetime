@@ -38,7 +38,11 @@ public:
 
     explicit DateTime(GDateTime* in=nullptr) { reset(in); }
 
-    explicit DateTime(time_t t) { reset(g_date_time_new_from_unix_local(t)); }
+    explicit DateTime(time_t t) {
+        GDateTime * gdt = g_date_time_new_from_unix_local(t);
+        reset(gdt);
+        g_date_time_unref(gdt);
+    }
 
     static DateTime NowLocal() {
         GDateTime * gdt = g_date_time_new_now_local();
