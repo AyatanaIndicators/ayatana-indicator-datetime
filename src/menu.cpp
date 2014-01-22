@@ -19,12 +19,8 @@
 
 #include <datetime/menu.h>
 
-#include <datetime/clock.h>
 #include <datetime/formatter.h>
-#include <datetime/locations.h>
-#include <datetime/planner.h>
 #include <datetime/state.h>
-#include <datetime/timezones.h>
 
 #include <json-glib/json-glib.h>
 
