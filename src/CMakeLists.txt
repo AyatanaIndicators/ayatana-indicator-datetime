@@ -16,14 +16,16 @@ add_library (${SERVICE_LIB} STATIC
              actions-live.cpp
              clock.cpp
              clock-live.cpp
+             date-time.cpp
+             exporter.cpp
              formatter.cpp
              formatter-desktop.cpp
              locations.cpp
              locations-settings.cpp
              menu.cpp
              planner-eds.cpp
-             service.cpp
              settings-live.cpp
+             state-live.cpp
              timezone-file.cpp
              timezone-geoclue.cpp
              timezones-live.cpp
