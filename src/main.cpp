@@ -38,7 +38,7 @@ main(int /*argc*/, char** /*argv*/)
     // It can be removed when https://bugzilla.gnome.org/show_bug.cgi?id=674885 is fixed.
     g_type_ensure(G_TYPE_DBUS_CONNECTION);
 
-    // init i18n
+    // boilerplate i18n
     setlocale(LC_ALL, "");
     bindtextdomain(GETTEXT_PACKAGE, GNOMELOCALEDIR);
     textdomain(GETTEXT_PACKAGE);
@@ -47,7 +47,7 @@ main(int /*argc*/, char** /*argv*/)
     if(!notify_init("indicator-datetime-service"))
         g_critical("libnotify initialization failed");
 
-    // build the state and menu factory
+    // build the state and actions for the MenuFactory to use
     std::shared_ptr<State> state(new LiveState);
     std::shared_ptr<Actions> actions(new LiveActions(state));
     MenuFactory factory(actions, state);
@@ -56,7 +56,7 @@ main(int /*argc*/, char** /*argv*/)
     std::vector<std::shared_ptr<Menu>> menus;
     menus.push_back(factory.buildMenu(Menu::Desktop));
 
-    // export them
+    // export them & run until we lose the busname
     auto loop = g_main_loop_new(nullptr, false);
     Exporter exporter;
     exporter.name_lost.connect([loop](){

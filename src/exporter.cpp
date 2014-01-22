@@ -17,8 +17,8 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#include <datetime/service.h>
 #include <datetime/dbus-shared.h>
+#include <datetime/exporter.h>
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
@@ -31,7 +31,7 @@ namespace datetime {
 ****
 ***/
 
-Service::~Service()
+Exporter::~Exporter()
 {
     if (m_dbus_connection != nullptr)
     {
@@ -53,20 +53,23 @@ Service::~Service()
 ***/
 
 void
-Service::on_bus_acquired(GDBusConnection* connection, const gchar* name, gpointer gthis)
+Exporter::on_bus_acquired(GDBusConnection* connection, const gchar* name, gpointer gthis)
 {
     g_debug("bus acquired: %s", name);
-    static_cast<Service*>(gthis)->on_bus_acquired(connection, name);
+    static_cast<Exporter*>(gthis)->on_bus_acquired(connection, name);
 }
 
 void
-Service::on_bus_acquired(GDBusConnection* connection, const gchar* /*name*/)
+Exporter::on_bus_acquired(GDBusConnection* connection, const gchar* /*name*/)
 {
     m_dbus_connection = static_cast<GDBusConnection*>(g_object_ref(G_OBJECT(connection)));
 
     // export the actions
     GError * error = nullptr;
-    const auto id = g_dbus_connection_export_action_group(m_dbus_connection, BUS_PATH, m_actions, &error);
+    const auto id = g_dbus_connection_export_action_group(m_dbus_connection,
+                                                          BUS_PATH,
+                                                          m_actions->action_group(),
+                                                          &error);
     if (id)
     {
         m_exported_actions_id = id;
@@ -99,14 +102,14 @@ Service::on_bus_acquired(GDBusConnection* connection, const gchar* /*name*/)
 ***/
 
 void
-Service::on_name_lost(GDBusConnection* connection, const gchar* name, gpointer gthis)
+Exporter::on_name_lost(GDBusConnection* connection, const gchar* name, gpointer gthis)
 {
     g_debug("name lost: %s", name);
-    static_cast<Service*>(gthis)->on_name_lost(connection, name);
+    static_cast<Exporter*>(gthis)->on_name_lost(connection, name);
 }
 
 void
-Service::on_name_lost(GDBusConnection* /*connection*/, const gchar* /*name*/)
+Exporter::on_name_lost(GDBusConnection* /*connection*/, const gchar* /*name*/)
 {
     name_lost();
 }
@@ -116,7 +119,8 @@ Service::on_name_lost(GDBusConnection* /*connection*/, const gchar* /*name*/)
 ***/
 
 void
-Service::publish(GActionGroup* actions, std::vector<std::shared_ptr<Menu>>& menus)
+Exporter::publish(std::shared_ptr<Actions>& actions,
+                  std::vector<std::shared_ptr<Menu>>& menus)
 {
     m_actions = actions;
     m_menus = menus;

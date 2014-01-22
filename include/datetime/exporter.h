@@ -20,6 +20,7 @@
 #ifndef INDICATOR_DATETIME_EXPORTER_H
 #define INDICATOR_DATETIME_EXPORTER_H
 
+#include <datetime/actions.h>
 #include <datetime/menu.h>
 
 #include <core/signal.h>
@@ -36,15 +37,16 @@ namespace datetime {
 /**
  * \brief Exports actions and menus to DBus. 
  */
-class Service
+class Exporter
 {
 public:
-    Service() =default;
-    ~Service();
+    Exporter() =default;
+    ~Exporter();
 
     core::Signal<> name_lost;
 
-    void publish (GActionGroup* actions, std::vector<std::shared_ptr<Menu>>& menus);
+    void publish(std::shared_ptr<Actions>& actions,
+                 std::vector<std::shared_ptr<Menu>>& menus);
 
 private:
     static void on_bus_acquired(GDBusConnection*, const gchar *name, gpointer gthis);
@@ -57,12 +59,12 @@ private:
     guint m_own_id = 0;
     guint m_exported_actions_id = 0;
     GDBusConnection * m_dbus_connection = nullptr;
-    GActionGroup* m_actions = nullptr;
+    std::shared_ptr<Actions> m_actions;
     std::vector<std::shared_ptr<Menu>> m_menus;
 
     // we've got raw pointers and gsignal tags in here, so disable copying
-    Service(const Service&) =delete;
-    Service& operator=(const Service&) =delete;
+    Exporter(const Exporter&) =delete;
+    Exporter& operator=(const Exporter&) =delete;
 };
 
 } // namespace datetime

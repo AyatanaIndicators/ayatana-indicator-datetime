@@ -48,7 +48,7 @@ public:
         e_source_registry_new(m_cancellable, on_source_registry_ready, this);
 
         m_owner.time.changed().connect([this](const DateTime& dt) {
-            g_message("planner's datetime property changed to %s; calling rebuildSoon()", g_date_time_format(dt.get(), "%F %T"));
+            g_message("planner's datetime property changed to %s; calling rebuildSoon()", dt.format("%F %T").c_str());
             rebuildSoon();
         });
 
