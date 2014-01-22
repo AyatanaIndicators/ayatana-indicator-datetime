@@ -41,7 +41,6 @@ LiveState::LiveState()
     std::shared_ptr<Clock> live_clock(new LiveClock(live_timezones));
 
     settings = live_settings;
-    timezones = live_timezones;
     clock = live_clock;
     locations.reset(new SettingsLocations(live_settings, live_timezones));
     planner.reset(new PlannerEds);

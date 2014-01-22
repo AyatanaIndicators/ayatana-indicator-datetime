@@ -18,10 +18,8 @@
  */
 
 #include <datetime/clock-mock.h>
-#include <datetime/locations.h>
 #include <datetime/planner-mock.h>
 #include <datetime/state.h>
-#include <datetime/timezones.h>
 
 using namespace unity::indicator::datetime;
 
@@ -35,7 +33,6 @@ public:
         const DateTime now = DateTime::NowLocal();
         mock_clock.reset(new MockClock(now));
         settings.reset(new Settings);
-        timezones.reset(new Timezones);
         clock = std::dynamic_pointer_cast<Clock>(mock_clock);
         planner.reset(new MockPlanner);
         planner->time = now;

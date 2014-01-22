@@ -52,11 +52,20 @@ namespace datetime {
  */
 struct State
 {
+    /** \brief The current time. Used by the header, by the date menuitem,
+               and by the locations for relative timestamp */
     std::shared_ptr<Clock> clock;
+
+    /** \brief The locations to be displayed in the Locations
+               section of the #Menu */
     std::shared_ptr<Locations> locations;
+
+    /** \brief The appointments to be displayed in the Calendar and
+               Appointments sections of the #Menu */
     std::shared_ptr<Planner> planner;
+
+    /** \brief Configuration options that modify the view */
     std::shared_ptr<Settings> settings;
-    std::shared_ptr<Timezones> timezones;
 
     core::Property<DateTime> calendar_day;
 };
