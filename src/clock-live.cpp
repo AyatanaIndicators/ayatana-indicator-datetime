@@ -18,6 +18,7 @@
  */
 
 #include <datetime/clock.h>
+#include <datetime/timezones.h>
 
 namespace unity {
 namespace indicator {

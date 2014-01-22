@@ -34,11 +34,6 @@ Clock::Clock():
     m_cancellable(g_cancellable_new())
 {
     g_bus_get(G_BUS_TYPE_SYSTEM, m_cancellable, onSystemBusReady, this);
-
-    timezones.changed().connect([this](const std::set<std::string>& timezones){
-        g_message ("timezones changed... new count is %d", (int)timezones.size());
-        skewDetected();
-    });
 }
 
 Clock::~Clock()

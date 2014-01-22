@@ -28,7 +28,12 @@ namespace unity {
 namespace indicator {
 namespace datetime {
 
-/** \brief Aggregates one or more timezone detectors and decides which to give precedence to */
+/**
+ * \brief Helper class which aggregates one or more timezones
+ *
+ * @see LiveClock
+ * @see SettingsLocations
+ */
 class Timezones
 {
 public:

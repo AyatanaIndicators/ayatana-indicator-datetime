@@ -21,15 +21,13 @@
 #define INDICATOR_DATETIME_CLOCK_H
 
 #include <datetime/date-time.h>
-#include <datetime/timezones.h>
 
 #include <core/property.h>
 #include <core/signal.h>
 
-#include <gio/gio.h>
+#include <gio/gio.h> // GDBusConnection
 
-#include <set>
-#include <string>
+#include <memory> // std::shared_ptr, std::unique_ptr
 
 namespace unity {
 namespace indicator {
@@ -46,7 +44,6 @@ class Clock
 public:
     virtual ~Clock();
     virtual DateTime localtime() const =0;
-    core::Property<std::set<std::string>> timezones;
     core::Signal<> skewDetected;
     core::Signal<> dateChanged;
 
@@ -69,6 +66,8 @@ private:
 /***
 ****
 ***/
+
+class Timezones;
 
 /**
  * \brief A live clock that provides the actual system time.
