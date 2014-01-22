@@ -112,6 +112,13 @@ add_test (${TEST_NAME} ${TEST_NAME})
 add_dependencies (${TEST_NAME} libindicatordatetimeservice)
 target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
 
+# test-exporter
+set (TEST_NAME test-exporter)
+add_executable (${TEST_NAME} ${TEST_NAME}.cc)
+add_test (${TEST_NAME} ${TEST_NAME})
+add_dependencies (${TEST_NAME} libindicatordatetimeservice)
+target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
+
 # test-desktop
 #set (TEST_NAME test-desktop)
 #add_executable (${TEST_NAME} ${TEST_NAME}.cc)
