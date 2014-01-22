@@ -32,97 +32,33 @@ include_directories (${DBUSTEST_INCLUDE_DIRS})
 
 add_definitions (-DSANDBOX="${CMAKE_CURRENT_BINARY_DIR}")
 
-# test-timezone-file
-set (TEST_NAME test-timezone-file)
-add_executable (${TEST_NAME} ${TEST_NAME}.cc)
-add_test (${TEST_NAME} ${TEST_NAME})
-target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
 
-# test-timezone-geoclue
-set (TEST_NAME test-timezone-geoclue)
-add_executable (${TEST_NAME} ${TEST_NAME}.cc)
-add_test (${TEST_NAME} ${TEST_NAME})
-target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${DBUSTEST_LIBRARIES} ${GTEST_LIBS})
+function(add_test_by_name name)
+  set (TEST_NAME ${name})
+  add_executable (${TEST_NAME} ${TEST_NAME}.cc)
+  add_test (${TEST_NAME} ${TEST_NAME})
+  add_dependencies (${TEST_NAME} libindicatordatetimeservice)
+  target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
+endfunction()
+add_test_by_name(test-actions)
+add_test_by_name(test-clock)
+add_test_by_name(test-exporter)
+add_test_by_name(test-formatter)
+add_test_by_name(test-live-actions)
+add_test_by_name(test-locations)
+add_test_by_name(test-menus)
+add_test_by_name(test-planner)
+add_test_by_name(test-settings)
+add_test_by_name(test-timezone-file)
+add_test_by_name(test-utils)
 
-# test-timezones
-set (TEST_NAME test-timezones)
-add_executable (${TEST_NAME} ${TEST_NAME}.cc)
-add_test (${TEST_NAME} ${TEST_NAME})
-target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${DBUSTEST_LIBRARIES} ${GTEST_LIBS})
 
-# test-clock
-set (TEST_NAME test-clock)
-add_executable (${TEST_NAME} ${TEST_NAME}.cc)
-add_test (${TEST_NAME} ${TEST_NAME})
-target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
-
-# test-formatter
-set (TEST_NAME test-formatter)
-add_executable (${TEST_NAME} test-formatter.cc)
-add_test (${TEST_NAME} ${TEST_NAME})
-add_dependencies (${TEST_NAME} libindicatordatetimeservice)
-target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
-
-# test-planner
-set (TEST_NAME test-planner)
-add_executable (${TEST_NAME} ${TEST_NAME}.cc)
-add_test (${TEST_NAME} ${TEST_NAME})
-add_dependencies (${TEST_NAME} libindicatordatetimeservice)
-target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
-
-# test-locations
-set (TEST_NAME test-locations)
-add_executable (${TEST_NAME} ${TEST_NAME}.cc)
-add_test (${TEST_NAME} ${TEST_NAME})
-add_dependencies (${TEST_NAME} libindicatordatetimeservice)
-target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
-
-# test-actions
-set (TEST_NAME test-actions)
-add_executable (${TEST_NAME} ${TEST_NAME}.cc)
-add_test (${TEST_NAME} ${TEST_NAME})
-add_dependencies (${TEST_NAME} libindicatordatetimeservice)
-target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
-
-# test-live-actions
-set (TEST_NAME test-live-actions)
-add_executable (${TEST_NAME} ${TEST_NAME}.cc)
-add_test (${TEST_NAME} ${TEST_NAME})
-add_dependencies (${TEST_NAME} libindicatordatetimeservice)
-target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
-
-# test-menus
-set (TEST_NAME test-menus)
-add_executable (${TEST_NAME} ${TEST_NAME}.cc)
-add_test (${TEST_NAME} ${TEST_NAME})
-add_dependencies (${TEST_NAME} libindicatordatetimeservice)
-target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
-
-# test-utils
-set (TEST_NAME test-utils)
-add_executable (${TEST_NAME} ${TEST_NAME}.cc)
-add_test (${TEST_NAME} ${TEST_NAME})
-add_dependencies (${TEST_NAME} libindicatordatetimeservice)
-target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
-
-# test-settings
-set (TEST_NAME test-settings)
-add_executable (${TEST_NAME} ${TEST_NAME}.cc)
-add_test (${TEST_NAME} ${TEST_NAME})
-add_dependencies (${TEST_NAME} libindicatordatetimeservice)
-target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
-
-# test-exporter
-set (TEST_NAME test-exporter)
-add_executable (${TEST_NAME} ${TEST_NAME}.cc)
-add_test (${TEST_NAME} ${TEST_NAME})
-add_dependencies (${TEST_NAME} libindicatordatetimeservice)
-target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
-
-# test-desktop
-#set (TEST_NAME test-desktop)
-#add_executable (${TEST_NAME} ${TEST_NAME}.cc)
-#add_test (${TEST_NAME} ${TEST_NAME})
-#add_dependencies (${TEST_NAME} libindicatordatetimeservice)
-#target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
-
+function(add_dbusmock_test_by_name name)
+  set (TEST_NAME ${name})
+  add_executable (${TEST_NAME} ${TEST_NAME}.cc)
+  add_test (${TEST_NAME} ${TEST_NAME})
+  add_dependencies (${TEST_NAME} libindicatordatetimeservice)
+  target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${DBUSTEST_LIBRARIES} ${GTEST_LIBS})
+endfunction()
+add_dbusmock_test_by_name(test-timezone-geoclue)
+add_dbusmock_test_by_name(test-timezones)
