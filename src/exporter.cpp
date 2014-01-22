@@ -85,13 +85,15 @@ Exporter::on_bus_acquired(GDBusConnection* connection, const gchar* /*name*/)
     {
         const auto path = std::string(BUS_PATH) + "/" + menu->name();
         const auto id = g_dbus_connection_export_menu_model(m_dbus_connection, path.c_str(), menu->menu_model(), &error);
+g_message ("path %s id %d", path.c_str(), (int)id);
         if (id)
         {
             m_exported_menu_ids.insert(id);
         }
         else
         {
-            g_warning("cannot export %s menu: %s", menu->name().c_str(), error->message);
+            if (error != nullptr)
+                g_warning("cannot export %s menu: %s", menu->name().c_str(), error->message);
             g_clear_error(&error);
         }
     }

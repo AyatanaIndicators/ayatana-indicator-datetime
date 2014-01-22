@@ -395,7 +395,7 @@ class DesktopGreeterMenu: public DesktopBaseMenu
 {
 public:
     DesktopGreeterMenu(std::shared_ptr<State>& state_, std::shared_ptr<Actions>& actions_):
-        DesktopBaseMenu(DesktopGreeter,"desktop-greeter", state_, actions_) {}
+        DesktopBaseMenu(DesktopGreeter,"desktop_greeter", state_, actions_) {}
 };
 
 class PhoneBaseMenu: public MenuImpl
@@ -454,7 +454,7 @@ class PhoneGreeterMenu: public PhoneBaseMenu
 public:
     PhoneGreeterMenu(std::shared_ptr<State>& state_,
                      std::shared_ptr<Actions>& actions_):
-        PhoneBaseMenu(PhoneGreeter, "phone-greeter", state_, actions_) {}
+        PhoneBaseMenu(PhoneGreeter, "phone_greeter", state_, actions_) {}
 };
 
 /****

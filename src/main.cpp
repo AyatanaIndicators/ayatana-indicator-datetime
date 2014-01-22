@@ -54,7 +54,8 @@ main(int /*argc*/, char** /*argv*/)
 
     // create the menus
     std::vector<std::shared_ptr<Menu>> menus;
-    menus.push_back(factory.buildMenu(Menu::Desktop));
+    for(int i=0, n=Menu::NUM_PROFILES; i<n; i++)
+        menus.push_back(factory.buildMenu(Menu::Profile(i)));
 
     // export them & run until we lose the busname
     auto loop = g_main_loop_new(nullptr, false);
