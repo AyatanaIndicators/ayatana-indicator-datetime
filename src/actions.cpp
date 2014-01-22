@@ -188,11 +188,11 @@ Actions::Actions(const std::shared_ptr<State>& state):
     auto v = create_default_header_state();
     auto a = g_simple_action_new_stateful("desktop-header", nullptr, v);
     g_action_map_add_action(gam, G_ACTION(a));
-    a = g_simple_action_new_stateful("desktop-greeter-header", nullptr, v);
+    a = g_simple_action_new_stateful("desktop_greeter-header", nullptr, v);
     g_action_map_add_action(gam, G_ACTION(a));
     a = g_simple_action_new_stateful("phone-header", nullptr, v);
     g_action_map_add_action(gam, G_ACTION(a));
-    a = g_simple_action_new_stateful("phone-greeter-header", nullptr, v);
+    a = g_simple_action_new_stateful("phone_greeter-header", nullptr, v);
     g_action_map_add_action(gam, G_ACTION(a));
 
     // add the calendar action
