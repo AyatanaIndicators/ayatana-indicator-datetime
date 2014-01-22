@@ -36,8 +36,8 @@ class SettingsLocations: public Locations
 {
 public:
     /**
-     * @param[in] schemaId the settings schema to load 
-     * @param[in] timezones the timezones to always show first in the list
+     * @param[in] settings the #Settings whose locations property is to be used
+     * @param[in] timezones the #Timezones to always show first in the list
      */
     SettingsLocations (const std::shared_ptr<Settings>& settings,
                        const std::shared_ptr<Timezones>& timezones);

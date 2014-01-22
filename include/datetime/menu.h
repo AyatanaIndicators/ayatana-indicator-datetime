@@ -36,6 +36,7 @@ namespace datetime {
  * \brief A menu for a specific profile; eg, Desktop or Phone.
  *
  * @see MenuFactory
+ * @see Exporter
  */
 class Menu
 {
@@ -62,6 +63,9 @@ private:
 
 /**
  * \brief Builds a Menu for a given state and profile
+ *
+ * @see Menu
+ * @see Exporter
  */
 class MenuFactory
 {

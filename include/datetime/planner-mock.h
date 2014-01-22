@@ -27,8 +27,8 @@ namespace indicator {
 namespace datetime {
 
 /**
- * \brief Planner which does nothing on its own and requires
- *        its client to set its appointments property.
+ * \brief Planner which does nothing on its own.
+ *        It requires its client must set its appointments property.
  */
 class MockPlanner: public Planner
 {

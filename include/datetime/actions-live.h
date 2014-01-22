@@ -27,7 +27,7 @@ namespace indicator {
 namespace datetime {
 
 /**
- * \brief Production implentation of the Actions interface.
+ * \brief Production implementation of the Actions interface.
  *
  * Delegates URLs, sets the timezone via org.freedesktop.timedate1, etc.
  *

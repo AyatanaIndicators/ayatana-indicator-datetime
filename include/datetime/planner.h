@@ -63,6 +63,8 @@ protected:
     Planner() =default;
 
 private:
+
+    // disable copying
     Planner(const Planner&) =delete;
     Planner& operator=(const Planner&) =delete;
 };

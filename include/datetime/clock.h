@@ -61,7 +61,7 @@ private:
     GDBusConnection * m_system_bus = nullptr;
     unsigned int m_sleep_subscription_id = 0;
 
-    // we've got raw pointers in here, so disable copying
+    // we've got raw pointers and GSignal tags in here, so disable copying
     Clock(const Clock&) =delete;
     Clock& operator=(const Clock&) =delete;
 };

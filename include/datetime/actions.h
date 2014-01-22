@@ -33,7 +33,11 @@ namespace indicator {
 namespace datetime {
 
 /**
- * Interface for all the actions that can be activated by users via the menu.
+ * \brief Interface for all the actions that can be activated by users.
+ *
+ * This is a simple C++ wrapper around our GActionGroup that gets exported
+ * onto the bus. Subclasses implement the actual code that should be run
+ * when a particular action is triggered.
  */
 class Actions
 {

@@ -45,8 +45,7 @@ class DateTime;
 /**
  * \brief Provide the strftime() format strings
  *
- * This mission's been moved out into its own class because there are
- * a lot of options and edge cases:
+ * This is a simple goal, but getting there has a lot of options and edge cases:
  *
  *  - The default time format can change based on the locale.
  *

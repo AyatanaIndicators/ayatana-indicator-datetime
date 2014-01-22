@@ -34,7 +34,7 @@ namespace datetime {
  * \brief Interface that represents user-configurable settings.
  *
  * See the descriptions in data/com.canonical.indicator.datetime.gschema.xml
- * For more information.
+ * for more information on specific properties.
  */
 class Settings 
 {
