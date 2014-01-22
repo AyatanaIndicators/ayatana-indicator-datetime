@@ -35,7 +35,7 @@ namespace datetime {
 *****
 ****/
 
-#define ALARM_CLOCK_ICON_NAME "alarm-clock"
+#define FALLBACK_ALARM_CLOCK_ICON_NAME "clock"
 #define CALENDAR_ICON_NAME "calendar"
 
 class MenuImpl: public Menu
@@ -163,8 +163,15 @@ private:
             g_free(icon_filename);
         }
 
+        if (serialized == nullptr)
+        {
+            auto i = g_themed_icon_new_with_default_fallbacks(FALLBACK_ALARM_CLOCK_ICON_NAME);
+            serialized = g_icon_serialize(i);
+            g_object_unref(i);
+        }
+
         return serialized;
-   }
+    }
 
     GVariant* get_serialized_calendar_icon()
     {
