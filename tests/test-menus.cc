@@ -22,13 +22,9 @@
 #include "state-fixture.h"
 
 #include <datetime/clock-mock.h>
-#include <datetime/formatter.h>
 #include <datetime/locations.h>
 #include <datetime/menu.h>
-#include <datetime/planner-mock.h>
-#include <datetime/service.h>
 #include <datetime/state.h>
-#include <datetime/timezones.h>
 
 #include <gio/gio.h>
 
