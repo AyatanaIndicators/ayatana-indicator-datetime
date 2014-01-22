@@ -115,9 +115,9 @@ TEST_F(ExporterFixture, Publish)
     EXPECT_EQ(1, names.count("activate-phone-settings"));
     EXPECT_EQ(1, names.count("activate-planner"));
     EXPECT_EQ(1, names.count("calendar"));
-    EXPECT_EQ(1, names.count("desktop-greeter-header"));
+    EXPECT_EQ(1, names.count("desktop_greeter-header"));
     EXPECT_EQ(1, names.count("desktop-header"));
-    EXPECT_EQ(1, names.count("phone-greeter-header"));
+    EXPECT_EQ(1, names.count("phone_greeter-header"));
     EXPECT_EQ(1, names.count("phone-header"));
     EXPECT_EQ(1, names.count("set-location"));
 
