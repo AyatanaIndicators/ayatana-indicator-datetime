@@ -228,6 +228,7 @@ private:
         {
             getAppointments(begin, end, [this](const std::vector<Appointment>& appointments) {
                 g_message("got %d appointments in this calendar month", (int)appointments.size());
+                m_owner.thisMonth.set(appointments);
             });
         }
         g_clear_pointer(&begin, g_date_time_unref);
@@ -240,6 +241,7 @@ private:
         {
             getAppointments(begin, end, [this](const std::vector<Appointment>& appointments) {
                 g_message("got %d upcoming appointments", (int)appointments.size());
+                m_owner.upcoming.set(appointments);
             });
         }
         g_clear_pointer(&begin, g_date_time_unref);
