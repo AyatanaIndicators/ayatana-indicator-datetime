@@ -84,6 +84,13 @@ add_test (${TEST_NAME} ${TEST_NAME})
 add_dependencies (${TEST_NAME} libindicatordatetimeservice)
 target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
 
+# test-live-actions
+set (TEST_NAME test-live-actions)
+add_executable (${TEST_NAME} ${TEST_NAME}.cc)
+add_test (${TEST_NAME} ${TEST_NAME})
+add_dependencies (${TEST_NAME} libindicatordatetimeservice)
+target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
+
 # test-menus
 set (TEST_NAME test-menus)
 add_executable (${TEST_NAME} ${TEST_NAME}.cc)
@@ -98,7 +105,7 @@ add_test (${TEST_NAME} ${TEST_NAME})
 add_dependencies (${TEST_NAME} libindicatordatetimeservice)
 target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
 
-# test-utils
+# test-settings
 set (TEST_NAME test-settings)
 add_executable (${TEST_NAME} ${TEST_NAME}.cc)
 add_test (${TEST_NAME} ${TEST_NAME})

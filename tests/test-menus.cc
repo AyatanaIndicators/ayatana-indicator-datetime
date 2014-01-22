@@ -148,7 +148,7 @@ protected:
         auto gdt_tomorrow = g_date_time_add_days(now.get(), 1);
         auto tomorrow = DateTime(gdt_tomorrow);
         g_date_time_unref(gdt_tomorrow);
-        m_clock->set_localtime(tomorrow);
+        m_mock_state->mock_clock->set_localtime(tomorrow);
         wait_msec();
 
         section = g_menu_model_get_item_link(submenu, Menu::Calendar, G_MENU_LINK_SECTION);

@@ -36,7 +36,7 @@ namespace datetime {
 class LiveActions: public Actions
 {
 public:
-    LiveActions(const std::shared_ptr<State>& state): Actions(state) {}
+    LiveActions(const std::shared_ptr<State>& state_in): Actions(state_in) {}
     ~LiveActions() =default;
 
     void open_desktop_settings();
@@ -47,6 +47,10 @@ public:
     void open_appointment(const std::string& uid);
     void set_location(const std::string& zone, const std::string& name);
     void set_calendar_date(const DateTime&);
+
+protected:
+    virtual void execute_command(const std::string& command);
+    virtual void dispatch_url(const std::string& url);
 };
 
 } // namespace datetime

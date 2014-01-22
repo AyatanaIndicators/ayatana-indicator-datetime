@@ -19,6 +19,8 @@
 
 #include <datetime/actions-live.h>
 
+#include <url-dispatcher.h>
+
 #include <glib.h>
 
 namespace unity {
@@ -29,46 +31,171 @@ namespace datetime {
 ****
 ***/
 
+void LiveActions::execute_command(const std::string& cmdstr)
+{
+    const auto cmd = cmdstr.c_str();
+    g_debug("Issuing command '%s'", cmd);
+
+    GError* error = nullptr;
+    if (!g_spawn_command_line_async(cmd, &error))
+    {
+        g_warning("Unable to start \"%s\": %s", cmd, error->message);
+        g_error_free(error);
+    }
+}
+
+void LiveActions::dispatch_url(const std::string& url)
+{
+    url_dispatch_send(url.c_str(), nullptr, nullptr);
+}
+
+/***
+****
+***/
+
 void LiveActions::open_desktop_settings()
 {
-    g_message ("%s", G_STRFUNC);
-}
-
-void LiveActions::open_phone_settings()
-{
-    g_message("%s", G_STRFUNC);
-}
-
-void LiveActions::open_phone_clock_app()
-{
-    g_message("%s", G_STRFUNC);
+#ifdef HAVE_CCPANEL
+    execute_command("gnome-control-center indicator-datetime");
+#else
+    execute_command("gnome-control-center datetime");
+#endif
 }
 
 void LiveActions::open_planner()
 {
-    g_message("%s", G_STRFUNC);
+    execute_command("evolution -c calendar");
 }
 
-void LiveActions::open_planner_at(const DateTime&)
+void LiveActions::open_phone_settings()
 {
-    g_message("%s", G_STRFUNC);
+    dispatch_url("settings:///system/time-date");
+}
+
+void LiveActions::open_phone_clock_app()
+{
+    dispatch_url("appid://com.ubuntu.clock/clock/current-user-version");
+}
+
+void LiveActions::open_planner_at(const DateTime& dt)
+{
+    auto cmd = dt.format("evolution \"calendar:///?startdate=%Y%m%d\"");
+    execute_command(cmd.c_str());
 }
 
 void LiveActions::open_appointment(const std::string& uid)
 {
-    g_message("%s - %s", G_STRFUNC, uid.c_str());
+    for(const auto& appt : state()->planner->upcoming.get())
+    {
+        if(appt.uid != uid)
+            continue;
+
+        if (!appt.url.empty())
+            dispatch_url(appt.url);
+        break;
+    }
 }
 
-void LiveActions::set_location(const std::string& zone, const std::string& name)
+void LiveActions::set_calendar_date(const DateTime& dt)
 {
-    g_message("%s - %s %s", G_STRFUNC, zone.c_str(), name.c_str());
+    state()->calendar_day.set(dt);
 }
 
-void LiveActions::set_calendar_date(const DateTime&)
+/***
+****
+***/
+
+namespace
 {
-    g_message("%s", G_STRFUNC);
+
+struct setlocation_data
+{
+  std::string tzid;
+  std::string name;
+  std::shared_ptr<Settings> settings;
+};
+
+static void
+on_datetime1_set_timezone_response(GObject       * object,
+                                   GAsyncResult  * res,
+                                   gpointer        gdata)
+{
+  GError* err = nullptr;
+  auto response = g_dbus_proxy_call_finish(G_DBUS_PROXY(object), res, &err);
+  auto data = static_cast<struct setlocation_data*>(gdata);
+
+  if (err != nullptr)
+    {
+      if (!g_error_matches(err, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning("Could not set new timezone: %s", err->message);
+
+      g_error_free(err);
+    }
+  else
+    {
+      data->settings->timezone_name.set(data->tzid + " " + data->name);
+      g_variant_unref(response);
+    }
+
+  delete data;
 }
 
+static void
+on_datetime1_proxy_ready (GObject      * object G_GNUC_UNUSED,
+                          GAsyncResult * res,
+                          gpointer       gdata)
+{
+  auto data = static_cast<struct setlocation_data*>(gdata);
+
+  GError * err = nullptr;
+  auto proxy = g_dbus_proxy_new_for_bus_finish(res, &err);
+  if (err != NULL)
+    {
+      if (!g_error_matches(err, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning("Could not grab DBus proxy for timedated: %s", err->message);
+
+      g_error_free(err);
+
+      delete data;
+    }
+  else
+    {
+      g_dbus_proxy_call(proxy,
+                        "SetTimezone",
+                        g_variant_new ("(sb)", data->tzid.c_str(), TRUE),
+                        G_DBUS_CALL_FLAGS_NONE,
+                        -1,
+                        nullptr,
+                        on_datetime1_set_timezone_response,
+                        data);
+
+      g_object_unref (proxy);
+    }
+}
+
+} // unnamed namespace
+
+
+void LiveActions::set_location(const std::string& tzid, const std::string& name)
+{
+    g_return_if_fail(!tzid.empty());
+    g_return_if_fail(!name.empty());
+
+    auto data = new struct setlocation_data;
+    data->tzid = tzid;
+    data->name = name;
+    data->settings = state()->settings;
+
+    g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
+                              G_DBUS_PROXY_FLAGS_NONE,
+                              nullptr,
+                              "org.freedesktop.timedate1",
+                              "/org/freedesktop/timedate1",
+                              "org.freedesktop.timedate1",
+                              nullptr,
+                              on_datetime1_proxy_ready,
+                              data);
+}
 
 /***
 ****
