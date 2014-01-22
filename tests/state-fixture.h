@@ -18,16 +18,9 @@
  */
 
 #include "glib-fixture.h"
-#include "actions-mock.h"
 
-#include <datetime/clock-mock.h>
-#include <datetime/formatter.h>
-#include <datetime/locations.h>
-#include <datetime/menu.h>
-#include <datetime/planner-mock.h>
-#include <datetime/service.h>
-#include <datetime/state.h>
-#include <datetime/timezones.h>
+#include "actions-mock.h"
+#include "state-mock.h"
 
 using namespace unity::indicator::datetime;
 
@@ -37,7 +30,7 @@ private:
     typedef GlibFixture super;
 
 protected:
-    std::shared_ptr<MockClock> m_clock;
+    std::shared_ptr<MockState> m_mock_state;
     std::shared_ptr<State> m_state;
     std::shared_ptr<MockActions> m_mock_actions;
     std::shared_ptr<Actions> m_actions;
@@ -46,19 +39,9 @@ protected:
     {
         super::SetUp();
 
-        // first, build a mock backend state
-        const DateTime now = DateTime::NowLocal();
-        m_clock.reset(new MockClock(now));
-        m_state.reset(new State);
-        m_state->settings.reset(new Settings);
-        m_state->timezones.reset(new Timezones);
-        m_state->clock = std::dynamic_pointer_cast<Clock>(m_clock);
-        m_state->planner.reset(new MockPlanner);
-        m_state->planner->time = now;
-        m_state->locations.reset(new Locations);
-        m_state->calendar_day = now;
+        m_mock_state.reset(new MockState);
+        m_state = std::dynamic_pointer_cast<State>(m_mock_state);
 
-        // build the actions on top of the state
         m_mock_actions.reset(new MockActions(m_state));
         m_actions = std::dynamic_pointer_cast<Actions>(m_mock_actions);
     }
@@ -67,8 +50,9 @@ protected:
     {
         m_actions.reset();
         m_mock_actions.reset();
+
         m_state.reset();
-        m_clock.reset();
+        m_mock_state.reset();
 
         super::TearDown();
     }
