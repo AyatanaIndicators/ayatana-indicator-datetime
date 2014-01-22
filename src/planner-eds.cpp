@@ -48,7 +48,7 @@ public:
         e_source_registry_new(m_cancellable, on_source_registry_ready, this);
 
         m_owner.time.changed().connect([this](const DateTime& dt) {
-            g_message("planner's datetime property changed to %s; calling rebuildSoon()", dt.format("%F %T").c_str());
+            g_debug("planner's datetime property changed to %s; calling rebuildSoon()", dt.format("%F %T").c_str());
             rebuildSoon();
         });
 
@@ -140,7 +140,7 @@ private:
                                     client,
                                     g_object_unref);
 
-            g_message("client connected; calling rebuildSoon()");
+            g_debug("client connected; calling rebuildSoon()");
             static_cast<Impl*>(gself)->rebuildSoon();
         }
     }
@@ -154,7 +154,7 @@ private:
         {
             g_object_unref(e_cal_client);
 
-            g_message("source disabled; calling rebuildSoon()");
+            g_debug("source disabled; calling rebuildSoon()");
             static_cast<Impl*>(gself)->rebuildSoon();
         }
     }
@@ -171,7 +171,7 @@ private:
 
     static void on_source_changed(ESourceRegistry* /*registry*/, ESource* /*source*/, gpointer gself)
     {
-        g_message("source changed; calling rebuildSoon()");
+        g_debug("source changed; calling rebuildSoon()");
         static_cast<Impl*>(gself)->rebuildSoon();
     }
 
@@ -218,7 +218,6 @@ private:
         GDateTime* begin;
         GDateTime* end;
         int y, m, d;
-        g_message("in rebuildNow");
 
         // get all the appointments in the calendar month
         g_date_time_get_ymd(calendar_date, &y, &m, &d);
@@ -227,7 +226,7 @@ private:
         if (begin && end)
         {
             getAppointments(begin, end, [this](const std::vector<Appointment>& appointments) {
-                g_message("got %d appointments in this calendar month", (int)appointments.size());
+                g_debug("got %d appointments in this calendar month", (int)appointments.size());
                 m_owner.thisMonth.set(appointments);
             });
         }
@@ -240,7 +239,7 @@ private:
         if (begin && end)
         {
             getAppointments(begin, end, [this](const std::vector<Appointment>& appointments) {
-                g_message("got %d upcoming appointments", (int)appointments.size());
+                g_debug("got %d upcoming appointments", (int)appointments.size());
                 m_owner.upcoming.set(appointments);
             });
         }
@@ -253,7 +252,7 @@ private:
     {
         const auto begin = g_date_time_to_unix(begin_dt);
         const auto end = g_date_time_to_unix(end_dt);
-        g_message("getting all appointments from [%s ... %s]", g_date_time_format(begin_dt, "%F %T"),
+        g_debug("getting all appointments from [%s ... %s]", g_date_time_format(begin_dt, "%F %T"),
                                                                 g_date_time_format(end_dt, "%F %T"));
 
         /**
@@ -263,7 +262,7 @@ private:
         icaltimezone * default_timezone = nullptr;
 
         const auto tz = g_date_time_get_timezone_abbreviation(m_owner.time.get().get());
-        g_message("%s tz is %s", G_STRLOC, tz);
+        g_debug("%s tz is %s", G_STRLOC, tz);
         if (tz && *tz)
         {
             default_timezone = icaltimezone_get_builtin_timezone(tz);
@@ -279,7 +278,7 @@ private:
         **/
 
         std::shared_ptr<Task> main_task(new Task(this, func), [](Task* task){
-            g_message("time to delete task %p", (void*)task);
+            g_debug("time to delete task %p", (void*)task);
             task->func(task->appointments);
         });
 
@@ -295,7 +294,7 @@ private:
             // start a new subtask to enumerate all the components in this client.
             auto extension = e_source_get_extension(source, E_SOURCE_EXTENSION_CALENDAR);
             const auto color = e_source_selectable_get_color(E_SOURCE_SELECTABLE(extension));
-            g_message("calling e_cal_client_generate_instances for %p", (void*)client);
+            g_debug("calling e_cal_client_generate_instances for %p", (void*)client);
             e_cal_client_generate_instances(client,
                                             begin,
                                             end,
@@ -399,7 +398,7 @@ private:
             e_client_util_free_string_slist(uris);
         }
 
-        g_message("adding appointment '%s' '%s'", subtask->appointment.summary.c_str(), subtask->appointment.url.c_str());
+        g_debug("adding appointment '%s' '%s'", subtask->appointment.summary.c_str(), subtask->appointment.url.c_str());
         subtask->task->appointments.push_back(subtask->appointment);
         delete subtask;
     }
