@@ -17,8 +17,9 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
+#include "planner-mock.h"
+
 #include <datetime/clock-mock.h>
-#include <datetime/planner-mock.h>
 #include <datetime/state.h>
 
 using namespace unity::indicator::datetime;

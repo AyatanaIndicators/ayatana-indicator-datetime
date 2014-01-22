@@ -1,9 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
  *
- * Authors:
- *   Charles Kerr <charles.kerr@canonical.com>
- *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
  * by the Free Software Foundation.
@@ -15,44 +12,33 @@
  *
  * You should have received a copy of the GNU General Public License along
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Authors:
+ *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef __INDICATOR_DATETIME_PLANNER_MOCK__H__
-#define __INDICATOR_DATETIME_PLANNER_MOCK__H__
+#ifndef INDICATOR_DATETIME_PLANNER_MOCK_H
+#define INDICATOR_DATETIME_PLANNER_MOCK_H
 
-#include "planner.h" /* parent class */
+#include <datetime/planner.h>
 
-G_BEGIN_DECLS
-
-#define INDICATOR_TYPE_DATETIME_PLANNER_MOCK          (indicator_datetime_planner_mock_get_type())
-#define INDICATOR_DATETIME_PLANNER_MOCK(o)            (G_TYPE_CHECK_INSTANCE_CAST ((o), INDICATOR_TYPE_DATETIME_PLANNER_MOCK, IndicatorDatetimePlannerMock))
-#define INDICATOR_DATETIME_PLANNER_MOCK_GET_CLASS(o)  (G_TYPE_INSTANCE_GET_CLASS ((o), INDICATOR_TYPE_DATETIME_PLANNER_MOCK, IndicatorDatetimePlannerMockClass))
-#define INDICATOR_IS_DATETIME_PLANNER_MOCK(o)         (G_TYPE_CHECK_INSTANCE_TYPE ((o), INDICATOR_TYPE_DATETIME_PLANNER_MOCK))
-
-typedef struct _IndicatorDatetimePlannerMock        IndicatorDatetimePlannerMock;
-typedef struct _IndicatorDatetimePlannerMockPriv    IndicatorDatetimePlannerMockPriv;
-typedef struct _IndicatorDatetimePlannerMockClass   IndicatorDatetimePlannerMockClass;
-
-GType indicator_datetime_planner_mock_get_type (void);
+namespace unity {
+namespace indicator {
+namespace datetime {
 
 /**
- * An IndicatorDatetimePlanner which uses Evolution Data Server
- * to get its list of appointments.
+ * \brief Planner which does nothing on its own.
+ *        It requires its client must set its appointments property.
  */
-struct _IndicatorDatetimePlannerMock
+class MockPlanner: public Planner
 {
-  /*< private >*/
-  IndicatorDatetimePlanner parent;
-  IndicatorDatetimePlannerMockPriv * priv;
+public:
+    MockPlanner() =default;
+    virtual ~MockPlanner() =default;
 };
 
-struct _IndicatorDatetimePlannerMockClass
-{
-  IndicatorDatetimePlannerClass parent_class;
-};
+} // namespace datetime
+} // namespace indicator
+} // namespace unity
 
-IndicatorDatetimePlanner * indicator_datetime_planner_mock_new (void);
-
-G_END_DECLS
-
-#endif /* __INDICATOR_DATETIME_PLANNER_MOCK__H__ */
+#endif // INDICATOR_DATETIME_PLANNER_MOCK_H
