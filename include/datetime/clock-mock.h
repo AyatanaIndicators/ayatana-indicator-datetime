@@ -42,11 +42,11 @@ public:
     DateTime localtime() const { return m_localtime; }
 
     void set_localtime(const DateTime& dt) {
-        const auto old_day = m_localtime.day_of_year();
+        const auto old = m_localtime;
         m_localtime = dt;
-        skewDetected();
-        const auto new_day = m_localtime.day_of_year();
-        if (old_day != new_day)
+        if (!DateTime::is_same_minute(old, m_localtime))
+            minuteChanged();
+        if (!DateTime::is_same_day(old, m_localtime))
             dateChanged();
     }
 

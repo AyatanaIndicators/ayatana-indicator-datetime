@@ -28,9 +28,18 @@
 #include <langinfo.h> // nl_langinfo()
 #include <string.h> // strstr()
 
+namespace unity {
+namespace indicator {
+namespace datetime {
+
+/***
+****
+***/
+
 namespace
 {
-void clearTimer(guint& tag)
+
+void clear_timer(guint& tag)
 {
     if (tag)
     {
@@ -39,35 +48,12 @@ void clearTimer(guint& tag)
     }
 }
 
-guint calculate_milliseconds_until_next_minute(GDateTime * now)
-{
-    GDateTime * next;
-    GDateTime * start_of_next;
-    GTimeSpan interval_usec;
-    guint interval_msec;
-
-    next = g_date_time_add_minutes(now, 1);
-    start_of_next = g_date_time_new_local(g_date_time_get_year(next),
-                                          g_date_time_get_month(next),
-                                          g_date_time_get_day_of_month(next),
-                                          g_date_time_get_hour(next),
-                                          g_date_time_get_minute(next),
-                                          0.1);
-
-    interval_usec = g_date_time_difference(start_of_next, now);
-    interval_msec = (interval_usec + 999) / 1000;
-
-    g_date_time_unref(start_of_next);
-    g_date_time_unref(next);
-    return interval_msec;
-}
-
-gint calculate_milliseconds_until_next_second(GDateTime * now)
+gint calculate_milliseconds_until_next_second(const DateTime& now)
 {
     gint interval_usec;
     guint interval_msec;
 
-    interval_usec = G_USEC_PER_SEC - g_date_time_get_microsecond(now);
+    interval_usec = G_USEC_PER_SEC - g_date_time_get_microsecond(now.get());
     interval_msec = (interval_usec + 999) / 1000;
     return interval_msec;
 }
@@ -127,11 +113,6 @@ guint calculate_seconds_until_next_fifteen_minutes(GDateTime * now)
 } // unnamed namespace
 
 
-
-namespace unity {
-namespace indicator {
-namespace datetime {
-
 class Formatter::Impl
 {
 public:
@@ -140,57 +121,64 @@ public:
         m_owner(owner),
         m_clock(clock)
     {
-        m_owner->headerFormat.changed().connect([this](const std::string& /*fmt*/){updateHeader();});
-        m_clock->skewDetected.connect([this](){updateHeader();});
-        updateHeader();
+        m_owner->headerFormat.changed().connect([this](const std::string& /*fmt*/){update_header();});
+        m_clock->minuteChanged.connect([this](){update_header();});
+        update_header();
 
         restartRelativeTimer();
     }
 
     ~Impl()
     {
-        clearTimer(m_header_timer);
+        clear_timer(m_header_seconds_timer);
+        clear_timer(m_relative_timer);
     }
 
 private:
 
-    void updateHeader()
+    static bool format_shows_seconds(const std::string& fmt)
     {
+        return (fmt.find("%s") != std::string::npos)
+            || (fmt.find("%S") != std::string::npos)
+            || (fmt.find("%T") != std::string::npos)
+            || (fmt.find("%X") != std::string::npos)
+            || (fmt.find("%c") != std::string::npos);
+    }
+
+    void update_header()
+    {
+        // update the header property
         const auto fmt = m_owner->headerFormat.get();
         const auto str = m_clock->localtime().format(fmt);
         m_owner->header.set(str);
 
-        restartHeaderTimer();
+        // if the header needs to show seconds, set a timer.
+        if (format_shows_seconds(fmt))
+            start_header_timer();
+        else
+            clear_timer(m_header_seconds_timer);
     }
 
-    void restartHeaderTimer()
+    // we've got a header format that shows seconds,
+    // so we need to update it every second
+    void start_header_timer()
     {
-        clearTimer(m_header_timer);
+        clear_timer(m_header_seconds_timer);
 
-        const auto fmt = m_owner->headerFormat.get();
-        const bool header_shows_seconds = (fmt.find("%s") != std::string::npos)
-                                       || (fmt.find("%S") != std::string::npos)
-                                       || (fmt.find("%T") != std::string::npos)
-                                       || (fmt.find("%X") != std::string::npos)
-                                       || (fmt.find("%c") != std::string::npos);
-
-        guint interval_msec;
         const auto now = m_clock->localtime();
-        auto str = now.format("%F %T");
-        if (header_shows_seconds)
-            interval_msec = calculate_milliseconds_until_next_second(now.get());
-        else
-            interval_msec = calculate_milliseconds_until_next_minute(now.get());
-
+        auto interval_msec = calculate_milliseconds_until_next_second(now);
         interval_msec += 50; // add a small margin to ensure the callback
                              // fires /after/ next is reached
-
-        m_header_timer = g_timeout_add_full(G_PRIORITY_HIGH, interval_msec, onHeaderTimer, this, nullptr);
+        m_header_seconds_timer = g_timeout_add_full(G_PRIORITY_HIGH,
+                                                    interval_msec,
+                                                    on_header_timer,
+                                                    this,
+                                                    nullptr);
     }
 
-    static gboolean onHeaderTimer(gpointer gself)
+    static gboolean on_header_timer(gpointer gself)
     {
-        static_cast<Formatter::Impl*>(gself)->updateHeader();
+        static_cast<Formatter::Impl*>(gself)->update_header();
         return G_SOURCE_REMOVE;
     }
 
@@ -198,7 +186,7 @@ private:
 
     void restartRelativeTimer()
     {
-        clearTimer(m_relative_timer);
+        clear_timer(m_relative_timer);
 
         const auto now = m_clock->localtime();
         const auto seconds = calculate_seconds_until_next_fifteen_minutes(now.get());
@@ -215,7 +203,7 @@ private:
 
 private:
     Formatter* const m_owner;
-    guint m_header_timer = 0;
+    guint m_header_seconds_timer = 0;
     guint m_relative_timer = 0;
 
 public:

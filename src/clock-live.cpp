@@ -24,6 +24,37 @@ namespace unity {
 namespace indicator {
 namespace datetime {
 
+/***
+****
+***/
+
+namespace
+{
+
+void clearTimer(guint& tag)
+{
+    if (tag)
+    {
+        g_source_remove(tag);
+        tag = 0;
+    }
+}
+
+guint calculate_milliseconds_until_next_minute(const DateTime& now)
+{
+    auto next = g_date_time_add_minutes(now.get(), 1);
+    auto start_of_next = g_date_time_add_seconds (next, -g_date_time_get_seconds(next));
+    const auto interval_usec = g_date_time_difference(start_of_next, now.get());
+    const guint interval_msec = (interval_usec + 999) / 1000;
+    g_date_time_unref(start_of_next);
+    g_date_time_unref(next);
+    g_assert (interval_msec <= 60000);
+    return interval_msec;
+}
+
+} // unnamed namespace
+
+
 class LiveClock::Impl
 {
 public:
@@ -38,13 +69,12 @@ public:
             setTimezone(m_timezones->timezone.get());
         }
 
-        m_owner.skewTestIntervalSec.changed().connect([this](unsigned int intervalSec) {setInterval(intervalSec);});
-        setInterval(m_owner.skewTestIntervalSec.get());
+        restart_minute_timer();
     }
 
     ~Impl()
     {
-        clearTimer();
+        clearTimer(m_timer);
 
         g_clear_pointer(&m_timezone, g_time_zone_unref);
     }
@@ -64,70 +94,55 @@ private:
     void setTimezone(const std::string& str)
     {
         g_clear_pointer(&m_timezone, g_time_zone_unref);
-        m_timezone= g_time_zone_new(str.c_str());
-        m_owner.skewDetected();
+        m_timezone = g_time_zone_new(str.c_str());
+        m_owner.minuteChanged();
     }
 
-private:
+    /***
+    ****
+    ***/
 
-    void clearTimer()
+    void restart_minute_timer()
     {
-        if (m_skew_timeout_id)
-        {
-            g_source_remove(m_skew_timeout_id);
-            m_skew_timeout_id = 0;
-        }
+        clearTimer(m_timer);
 
-        m_prev_datetime.reset();
-    }
-
-    void setInterval(unsigned int seconds)
-    {
-        clearTimer();
-
-        if (seconds > 0)
-        {
-            m_prev_datetime = localtime();
-            m_skew_timeout_id = g_timeout_add_seconds(seconds, onTimerPulse, this);
-        }
-    }
-
-    static gboolean onTimerPulse(gpointer gself)
-    {
-        static_cast<Impl*>(gself)->onTimerPulse();
-        return G_SOURCE_CONTINUE;
-    }
-
-    void onTimerPulse()
-    {
-        // check to see if too much time passed since the last check */
+        // maybe emit change signals
         const auto now = localtime();
-        const auto diff = now.difference (m_prev_datetime);
-        const GTimeSpan fuzz = 5;
-        const GTimeSpan max = (m_owner.skewTestIntervalSec.get() + fuzz) * G_USEC_PER_SEC;
-        if (abs(diff) > max)
-            m_owner.skewDetected();
-
-        // check to see if the day has changed
-        if (now.day_of_year() != m_prev_datetime.day_of_year())
+        if (!DateTime::is_same_minute(m_prev_datetime, now))
+            m_owner.minuteChanged();
+        if (!DateTime::is_same_day(m_prev_datetime, now))
             m_owner.dateChanged();
 
-        // update m_prev_datetime
+        // queue up a timer to fire at the next minute
         m_prev_datetime = now;
+        auto interval_msec = calculate_milliseconds_until_next_minute(now);
+        interval_msec += 50; // add a small margin to ensure the callback
+                             // fires /after/ next is reached
+        m_timer = g_timeout_add_full(G_PRIORITY_HIGH,
+                                     interval_msec,
+                                     on_minute_timer_reached,
+                                     this,
+                                     nullptr);
+    }
+
+    static gboolean on_minute_timer_reached(gpointer gself)
+    {
+        static_cast<LiveClock::Impl*>(gself)->restart_minute_timer();
+        return G_SOURCE_REMOVE;
     }
 
 protected:
 
     LiveClock& m_owner;
-    GTimeZone * m_timezone = nullptr;
+    GTimeZone* m_timezone = nullptr;
     std::shared_ptr<Timezones> m_timezones;
 
     DateTime m_prev_datetime;
-    unsigned int m_skew_timeout_id = 0;
+    unsigned int m_timer = 0;
 };
 
 LiveClock::LiveClock(const std::shared_ptr<Timezones>& tzd):
-  p(new Impl(*this, tzd))
+    p(new Impl(*this, tzd))
 {
 }
 
@@ -137,6 +152,10 @@ DateTime LiveClock::localtime() const
 {
     return p->localtime();
 }
+
+/***
+****
+***/
 
 } // namespace datetime
 } // namespace indicator

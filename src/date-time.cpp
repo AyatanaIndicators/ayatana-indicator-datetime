@@ -76,11 +76,6 @@ int64_t DateTime::to_unix() const
     return g_date_time_to_unix(get());
 }
 
-int DateTime::day_of_year() const
-{
-    return m_dt ? g_date_time_get_day_of_year(get()) : -1;
-}
-
 void DateTime::reset(GDateTime* in)
 {
     if (in)
@@ -93,39 +88,6 @@ void DateTime::reset(GDateTime* in)
     {
         m_dt.reset();
     }
-}
-
-#if 0
-DateTime& DateTime::operator=(GDateTime* in)
-{
-    reset(in);
-    return *this;
-}
-
-DateTime& DateTime::operator=(const DateTime& in)
-{
-    m_dt = in.m_dt;
-    return *this;
-}
-#endif
-
-gint64 DateTime::difference(const DateTime& that) const
-{
-    const auto dt = get();
-    const auto tdt = that.get();
-
-    gint64 ret;
-
-    if (dt && tdt)
-        ret = g_date_time_difference(dt, tdt);
-    else if (dt)
-        ret = to_unix();
-    else if (tdt)
-        ret = that.to_unix();
-    else
-        ret = 0;
-
-    return ret;
 }
 
 bool DateTime::operator<(const DateTime& that) const
@@ -141,11 +103,34 @@ bool DateTime::operator!=(const DateTime& that) const
 
 bool DateTime::operator==(const DateTime& that) const
 {
-    GDateTime * dt = get();
-    GDateTime * tdt = that.get();
+    auto dt = get();
+    auto tdt = that.get();
     if (!dt && !tdt) return true;
     if (!dt || !tdt) return false;
     return g_date_time_compare(get(), that.get()) == 0;
+}
+
+bool DateTime::is_same_day(const DateTime& a, const DateTime& b)
+{
+    // it's meaningless to compare uninitialized dates
+    if (!a.m_dt || !b.m_dt)
+        return false;
+
+    const auto adt = a.get();
+    const auto bdt = b.get();
+    return (g_date_time_get_year(adt) == g_date_time_get_year(bdt))
+        && (g_date_time_get_day_of_year(adt) == g_date_time_get_day_of_year(bdt));
+}
+
+bool DateTime::is_same_minute(const DateTime& a, const DateTime& b)
+{
+    if (!is_same_day(a,b))
+        return false;
+
+    const auto adt = a.get();
+    const auto bdt = b.get();
+    return (g_date_time_get_hour(adt) == g_date_time_get_hour(bdt))
+        && (g_date_time_get_minute(adt) == g_date_time_get_minute(bdt));
 }
 
 /***

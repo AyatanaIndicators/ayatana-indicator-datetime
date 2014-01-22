@@ -46,28 +46,24 @@ class ClockFixture: public TestDBusFixture
     }
 };
 
-/**
- * Confirm that normal time passing doesn't trigger a skew event.
- * that idling changing the clock's time triggers a skew event
- */
-TEST_F(ClockFixture, IdleDoesNotTriggerSkew)
+TEST_F(ClockFixture, MinuteChangedSignalShouldTriggerOncePerMinute)
 {
+    // start up a live clock
     std::shared_ptr<Timezones> zones(new Timezones);
     zones->timezone.set("America/New_York");
     LiveClock clock(zones);
     wait_msec(500); // wait for the bus to set up
 
-    bool skewed = false;
-    clock.skewDetected.connect([&skewed](){
-                    skewed = true;
-                    g_warn_if_reached();
-                    return G_SOURCE_REMOVE;
-                });
-
-    const unsigned int intervalSec = 3;
-    clock.skewTestIntervalSec.set(intervalSec);
-    wait_msec(intervalSec * 2.5 * 1000);
-    EXPECT_FALSE(skewed);
+    // count how many times clock.minuteChanged() is emitted over the next minute
+    const DateTime now = clock.localtime();
+    const auto gnow = now.get();
+    auto gthen = g_date_time_add_minutes(gnow, 1);
+    int count = 0;
+    clock.minuteChanged.connect([&count](){count++;});
+    const auto msec = g_date_time_difference(gthen,gnow) / 1000;
+    wait_msec(msec);
+    EXPECT_EQ(1, count);
+    g_date_time_unref(gthen);
 }
 
 /***
@@ -99,7 +95,7 @@ TEST_F(ClockFixture, TimezoneChangeTriggersSkew)
     g_time_zone_unref(tz_nyc);
 
     /// change the timezones!
-    clock.skewDetected.connect([this](){
+    clock.minuteChanged.connect([this](){
                    g_main_loop_quit(loop);
                });
     g_idle_add([](gpointer gs){
@@ -128,7 +124,7 @@ TEST_F(ClockFixture, SleepTriggersSkew)
     wait_msec(500); // wait for the bus to set up
 
     bool skewed = false;
-    clock.skewDetected.connect([&skewed, this](){
+    clock.minuteChanged.connect([&skewed, this](){
                     skewed = true;
                     g_main_loop_quit(loop);
                     return G_SOURCE_REMOVE;

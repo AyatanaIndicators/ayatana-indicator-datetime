@@ -49,12 +49,13 @@ public:
     std::string format(const std::string& fmt) const;
     int day_of_month() const;
     int64_t to_unix() const;
-    int day_of_year() const;
-    gint64 difference(const DateTime& that) const;
 
     bool operator<(const DateTime& that) const;
     bool operator!=(const DateTime& that) const;
     bool operator==(const DateTime& that) const;
+
+    static bool is_same_day(const DateTime& a, const DateTime& b);
+    static bool is_same_minute(const DateTime& a, const DateTime& b);
 
 private:
     std::shared_ptr<GDateTime> m_dt;

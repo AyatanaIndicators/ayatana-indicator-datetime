@@ -81,7 +81,7 @@ Clock::onPrepareForSleep(GDBusConnection* /*connection*/,
                          GVariant*        /*parameters*/,
                          gpointer           gself)
 {
-    static_cast<Clock*>(gself)->skewDetected();
+    static_cast<Clock*>(gself)->minuteChanged();
 }
 
 /***

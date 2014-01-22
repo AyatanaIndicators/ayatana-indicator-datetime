@@ -35,20 +35,24 @@ namespace datetime {
 
 /**
  * \brief A clock.
- *
- * Provides a signal to notify when clock skew is detected, such as
- * when the timezone changes or when the system resumes from sleep.
  */
 class Clock
 {
 public:
     virtual ~Clock();
     virtual DateTime localtime() const =0;
-    core::Signal<> skewDetected;
+
+    /** \brief A signal which fires when the clock's minute changes */
+    core::Signal<> minuteChanged;
+
+    /** \brief A signal which fires when the clock's date changes */
     core::Signal<> dateChanged;
 
 protected:
     Clock();
+
+    /** \brief Compares old and new times, emits minuteChanged() or dateChanged() signals if appropriate */
+    void maybe_emit (const DateTime& a, const DateTime& b);
 
 private:
     static void onSystemBusReady(GObject*, GAsyncResult*, gpointer);
@@ -70,12 +74,7 @@ private:
 class Timezones;
 
 /**
- * \brief A live clock that provides the actual system time.
- *
- * This subclass also adds another clock skew detection test:
- * it wakes up every skewTestIntervalSec seconds to see how
- * much time has passed since the last wakeup. If the answer
- * isn't what it expected, the skewDetected signal is triggered.
+ * \brief A live #Clock that provides the actual system time.
  */
 class LiveClock: public Clock
 {
@@ -83,7 +82,6 @@ public:
     LiveClock (const std::shared_ptr<Timezones>& zones);
     virtual ~LiveClock();
     virtual DateTime localtime() const;
-    core::Property<unsigned int> skewTestIntervalSec;
 
 private:
     class Impl;
