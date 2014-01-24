@@ -1,3 +1,16 @@
+indicator-datetime (13.10.0+14.04.20140124-0ubuntu1) trusty; urgency=low
+
+  [ Robert Ancell ]
+  * Support both gnome-control-center and unity-control-center. (LP:
+    #1257505)
+  * Run the unity-control-center panel under Unity. Rename the unity
+    panel to just "datetime".
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 294
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 24 Jan 2014 11:00:08 +0000
+
 indicator-datetime (13.10.0+14.04.20131217-0ubuntu1) trusty; urgency=low
 
   [ Charles Kerr ]
