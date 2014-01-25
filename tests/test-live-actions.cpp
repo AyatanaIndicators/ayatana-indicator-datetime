@@ -287,3 +287,117 @@ TEST_F(LiveActionsFixture, OpenPlannerAt)
     const std::string expected = now.format("evolution \"calendar:///?startdate=%Y%m%d\"");
     EXPECT_EQ(expected, m_live_actions->last_cmd);
 }
+
+TEST_F(LiveActionsFixture, CalendarState)
+{
+    // init the clock
+    auto tmp = g_date_time_new_local (2014, 1, 1, 0, 0, 0);
+    const DateTime now (tmp);
+    g_date_time_unref (tmp);
+    m_mock_state->mock_clock->set_localtime (now);
+    m_state->planner->time.set(now);
+
+    ///
+    ///  Test the default calendar state.
+    ///
+
+    auto action_group = m_actions->action_group();
+    auto calendar_state = g_action_group_get_action_state (action_group, "calendar");
+    EXPECT_TRUE (calendar_state != nullptr);
+    EXPECT_TRUE (g_variant_is_of_type (calendar_state, G_VARIANT_TYPE_DICTIONARY));
+
+    // there's nothing in the planner yet, so appointment-days should be an empty array
+    auto v = g_variant_lookup_value (calendar_state, "appointment-days", G_VARIANT_TYPE_ARRAY);
+    EXPECT_TRUE (v != nullptr);
+    EXPECT_EQ (0, g_variant_n_children (v));
+    g_clear_pointer (&v, g_variant_unref);
+
+    // calendar-day should be in sync with m_state->calendar_day
+    v = g_variant_lookup_value (calendar_state, "calendar-day", G_VARIANT_TYPE_INT64);
+    EXPECT_TRUE (v != nullptr);
+    EXPECT_EQ (m_state->planner->time.get().to_unix(), g_variant_get_int64(v));
+    g_clear_pointer (&v, g_variant_unref);
+
+    // show-week-numbers should be false because MockSettings defaults everything to 0
+    v = g_variant_lookup_value (calendar_state, "show-week-numbers", G_VARIANT_TYPE_BOOLEAN);
+    EXPECT_TRUE (v != nullptr);
+    EXPECT_FALSE (g_variant_get_boolean (v));
+    g_clear_pointer (&v, g_variant_unref);
+
+    // cleanup this step
+    g_clear_pointer (&calendar_state, g_variant_unref);
+
+
+    ///
+    ///  Now add appointments to the planner and confirm that the state keeps in sync
+    ///
+
+    auto tomorrow = g_date_time_add_days (now.get(), 1);
+    auto tomorrow_begin = g_date_time_add_full (tomorrow, 0, 0, 0,
+                                                -g_date_time_get_hour(tomorrow),
+                                                -g_date_time_get_minute(tomorrow),
+                                                -g_date_time_get_seconds(tomorrow));
+    auto tomorrow_end = g_date_time_add_full (tomorrow_begin, 0, 0, 1, 0, 0, -1);
+    Appointment a1;
+    a1.color = "green";
+    a1.summary = "write unit tests";
+    a1.url = "http://www.ubuntu.com/";
+    a1.uid = "D4B57D50247291478ED31DED17FF0A9838DED402";
+    a1.begin = tomorrow_begin;
+    a1.end = tomorrow_end;
+
+    auto next_begin = g_date_time_add_days (tomorrow_begin, 1);
+    auto next_end = g_date_time_add_full (next_begin, 0, 0, 1, 0, 0, -1);
+    Appointment a2;
+    a2.color = "orange";
+    a2.summary = "code review";
+    a2.url = "http://www.ubuntu.com/";
+    a2.uid = "2756ff7de3745bbffd65d2e4779c37c7ca60d843";
+    a2.begin = next_begin;
+    a2.end = next_end;
+
+    m_state->planner->thisMonth.set(std::vector<Appointment>({a1, a2}));
+
+    ///
+    ///  Now test the calendar state again.
+    ///  The thisMonth field should now contain the appointments we just added.
+    ///
+
+    calendar_state = g_action_group_get_action_state (action_group, "calendar");
+    v = g_variant_lookup_value (calendar_state, "appointment-days", G_VARIANT_TYPE_ARRAY);
+    EXPECT_TRUE (v != nullptr);
+    int i;
+    g_variant_get_child (v, 0, "i", &i);
+    EXPECT_EQ (g_date_time_get_day_of_month(a1.begin.get()), i);
+    g_variant_get_child (v, 1, "i", &i);
+    EXPECT_EQ (g_date_time_get_day_of_month(a2.begin.get()), i);
+    g_clear_pointer(&v, g_variant_unref);
+    g_clear_pointer(&calendar_state, g_variant_unref);
+
+    // cleanup this step
+    g_date_time_unref (next_end);
+    g_date_time_unref (next_begin);
+    g_date_time_unref (tomorrow_end);
+    g_date_time_unref (tomorrow_begin);
+    g_date_time_unref (tomorrow);
+
+    ///
+    ///  Confirm that the action state's dictionary
+    ///  keeps in sync with settings.show_week_numbers
+    ///
+
+    auto b = m_state->settings->show_week_numbers.get();
+    for (i=0; i<2; i++)
+    {
+        b = !b;
+        m_state->settings->show_week_numbers.set(b);
+
+        calendar_state = g_action_group_get_action_state (action_group, "calendar");
+        v = g_variant_lookup_value (calendar_state, "show-week-numbers", G_VARIANT_TYPE_BOOLEAN);
+        EXPECT_TRUE(v != nullptr);
+        EXPECT_EQ(b, g_variant_get_boolean(v));
+
+        g_clear_pointer(&v, g_variant_unref);
+        g_clear_pointer(&calendar_state, g_variant_unref);
+    }
+}

@@ -45,7 +45,6 @@ LiveState::LiveState()
     locations.reset(new SettingsLocations(live_settings, live_timezones));
     planner.reset(new PlannerEds);
     planner->time = clock->localtime();
-    calendar_day = clock->localtime();
 }
 
 /***

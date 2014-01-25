@@ -66,8 +66,6 @@ struct State
 
     /** \brief Configuration options that modify the view */
     std::shared_ptr<Settings> settings;
-
-    core::Property<DateTime> calendar_day;
 };
 
 } // namespace datetime

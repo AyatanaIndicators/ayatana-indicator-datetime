@@ -49,8 +49,7 @@ public:
     virtual void open_planner_at(const DateTime&) =0;
     virtual void open_appointment(const std::string& uid) =0;
     virtual void set_location(const std::string& zone, const std::string& name)=0;
-    virtual void set_calendar_date(const DateTime&) =0;
-
+    void set_calendar_date(const DateTime&);
     GActionGroup* action_group() { return G_ACTION_GROUP(m_actions); }
     std::shared_ptr<State> state() { return m_state; }
 
@@ -61,6 +60,7 @@ protected:
 private:
     std::shared_ptr<State> m_state;
     GSimpleActionGroup* m_actions = nullptr;
+    void update_calendar_state();
 
     // we've got raw pointers in here, so disable copying
     Actions(const Actions&) =delete;

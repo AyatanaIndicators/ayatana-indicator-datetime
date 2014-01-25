@@ -137,18 +137,23 @@ TEST_F(ActionsFixture, SetLocation)
 
 TEST_F(ActionsFixture, SetCalendarDate)
 {
+    // confirm that such an action exists
     const auto action_name = "calendar";
     auto action_group = m_actions->action_group();
     EXPECT_TRUE(m_mock_actions->history().empty());
     EXPECT_TRUE(g_action_group_has_action(action_group, action_name));
 
-    auto unix = m_state->clock->localtime().to_unix();
-    auto v = g_variant_new_int64(unix);
-    g_action_group_activate_action(action_group, action_name, v);
-    const auto expected_action = MockActions::SetCalendarDate;
-    ASSERT_EQ(1, m_mock_actions->history().size());
-    EXPECT_EQ(expected_action, m_mock_actions->history()[0]);
-    EXPECT_EQ(unix, m_mock_actions->date_time().to_unix());
+    // pick an arbitrary DateTime...
+    auto tmp = g_date_time_new_local(2010, 1, 2, 3, 4, 5);
+    const auto now = DateTime(tmp);
+    g_date_time_unref(tmp);
+
+    // confirm that Planner.time gets changed to that date when we
+    // activate the 'calendar' action with that date's time_t as the arg
+    EXPECT_NE (now, m_state->planner->time.get());
+    auto v = g_variant_new_int64(now.to_unix());
+    g_action_group_activate_action (action_group, action_name, v);
+    EXPECT_EQ (now, m_state->planner->time.get());
 }
 
 TEST_F(ActionsFixture, OpenAppointment)

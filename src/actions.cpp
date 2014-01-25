@@ -150,7 +150,7 @@ GVariant* create_calendar_state(const std::shared_ptr<State>& state)
     g_variant_builder_add(&dict_builder, "{sv}", key, v);
 
     key = "calendar-day";
-    v = g_variant_new_int64(state->calendar_day.get().to_unix());
+    v = g_variant_new_int64(state->planner->time.get().to_unix());
     g_variant_builder_add(&dict_builder, "{sv}", key, v);
 
     key = "show-week-numbers";
@@ -200,7 +200,20 @@ Actions::Actions(const std::shared_ptr<State>& state):
     a = g_simple_action_new_stateful("calendar", G_VARIANT_TYPE_INT64, v);
     g_action_map_add_action(gam, G_ACTION(a));
     g_signal_connect(a, "activate", G_CALLBACK(on_calendar_activated), this);
-    //m_calendar_action = a;
+
+    ///
+    ///  Keep our GActionGroup's action's states in sync with m_state
+    ///
+
+    m_state->planner->time.changed().connect([this](const DateTime&){
+        update_calendar_state();
+    });
+    m_state->planner->thisMonth.changed().connect([this](const std::vector<Appointment>&){
+        update_calendar_state();
+    });
+    m_state->settings->show_week_numbers.changed().connect([this](bool){
+        update_calendar_state();
+    });
 
     // FIXME: rebuild the calendar state when show-week-number changes
 }
@@ -209,6 +222,19 @@ Actions::~Actions()
 {
     g_clear_object(&m_actions);
 }
+
+void Actions::update_calendar_state()
+{
+    g_action_group_change_action_state(action_group(),
+                                       "calendar",
+                                       create_calendar_state(m_state));
+}
+
+void Actions::set_calendar_date(const DateTime& date)
+{
+    m_state->planner->time.set(date);
+}
+
 
 } // namespace datetime
 } // namespace indicator

@@ -38,7 +38,6 @@ public:
         planner.reset(new MockPlanner);
         planner->time = now;
         locations.reset(new Locations);
-        calendar_day = now;
     }
 };
 

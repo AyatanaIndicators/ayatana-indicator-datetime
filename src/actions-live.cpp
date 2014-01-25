@@ -96,11 +96,6 @@ void LiveActions::open_appointment(const std::string& uid)
     }
 }
 
-void LiveActions::set_calendar_date(const DateTime& dt)
-{
-    state()->calendar_day.set(dt);
-}
-
 /***
 ****
 ***/

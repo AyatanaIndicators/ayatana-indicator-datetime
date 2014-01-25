@@ -35,8 +35,7 @@ public:
     ~MockActions() =default;
 
     enum Action { OpenDesktopSettings, OpenPhoneSettings, OpenPhoneClockApp,
-                  OpenPlanner, OpenPlannerAt, OpenAppointment,
-                  SetLocation, SetCalendarDate };
+                  OpenPlanner, OpenPlannerAt, OpenAppointment, SetLocation };
     const std::vector<Action>& history() const { return m_history; }
     const DateTime& date_time() const { return m_date_time; }
     const std::string& zone() const { return m_zone; }
@@ -66,11 +65,6 @@ public:
     void open_appointment(const std::string& url_) {
         m_history.push_back(OpenAppointment);
         m_url = url_;
-    }
-
-    void set_calendar_date(const DateTime& date_time_) {
-        m_history.push_back(SetCalendarDate);
-        m_date_time = date_time_;
     }
 
 private:
