@@ -29,7 +29,8 @@ if (CMAKE_BUILD_TYPE MATCHES coverage)
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMAND "${CMAKE_CTEST_COMMAND}" --force-new-ctest-process --verbose
         COMMAND "${LCOV_EXECUTABLE}" --directory ${CMAKE_BINARY_DIR} --capture | ${CMAKE_SOURCE_DIR}/trim-lcov.py > dconf-lcov.info
-        COMMAND LANG=C "${GENHTML_EXECUTABLE}" --prefix ${CMAKE_BINARY_DIR} --output-directory lcov-html --legend --show-details dconf-lcov.info
+        COMMAND "${LCOV_EXECUTABLE}" -r dconf-lcov.info /usr/include/\\*  -o nosys-lcov.info
+        COMMAND LANG=C "${GENHTML_EXECUTABLE}" --prefix ${CMAKE_BINARY_DIR} --output-directory lcov-html --legend --show-details nosys-lcov.info
         COMMAND ${CMAKE_COMMAND} -E echo ""
         COMMAND ${CMAKE_COMMAND} -E echo "file://${CMAKE_BINARY_DIR}/lcov-html/index.html"
         COMMAND ${CMAKE_COMMAND} -E echo "")
