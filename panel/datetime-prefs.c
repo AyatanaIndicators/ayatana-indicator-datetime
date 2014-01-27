@@ -32,7 +32,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <datetime/utils.h>
 
 #include <polkit/polkit.h>
-#include <libgnome-control-center/cc-panel.h>
 #include <timezonemap/cc-timezone-map.h>
 #include <timezonemap/timezone-completion.h>
 
@@ -40,12 +39,22 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 
+#ifdef USE_UNITY
+ #include <libunity-control-center/cc-panel.h>
+#else
+ #include <libgnome-control-center/cc-panel.h>
+#endif
+
 #include <stdlib.h>
 #include <libintl.h>
 #include <locale.h>
 #include <langinfo.h>
 
-#define DATETIME_DIALOG_UI_FILE PKGDATADIR "/datetime-dialog.ui"
+#if USE_UNITY
+#define DATETIME_DIALOG_UI_FILE PKGDATADIR "/unity-control-center/datetime-dialog.ui"
+#else
+#define DATETIME_DIALOG_UI_FILE PKGDATADIR "/gnome-control-center/datetime-dialog.ui"
+#endif
 
 #define INDICATOR_DATETIME_TYPE_PANEL indicator_datetime_panel_get_type()
 
