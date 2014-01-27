@@ -55,11 +55,22 @@ void LiveActions::dispatch_url(const std::string& url)
 
 void LiveActions::open_desktop_settings()
 {
+    auto path = g_find_program_in_path("unity-control-center");
+
+    if ((path != nullptr) && (g_strcmp0 (g_getenv ("XDG_CURRENT_DESKTOP"), "Unity") == 0))
+    {
+        execute_command("unity-control-center datetime");       
+    }
+    else
+    {
 #ifdef HAVE_CCPANEL
-    execute_command("gnome-control-center indicator-datetime");
+        execute_command("gnome-control-center indicator-datetime");
 #else
-    execute_command("gnome-control-center datetime");
+        execute_command("gnome-control-center datetime");
 #endif
+    }
+
+    g_free (path);
 }
 
 void LiveActions::open_planner()
