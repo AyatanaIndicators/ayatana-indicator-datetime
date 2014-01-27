@@ -38,11 +38,11 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 gboolean
 is_locale_12h()
 {
-    const char *t_fmt = nl_langinfo(T_FMT);
-
     static const char *formats_24h[] = {"%H", "%R", "%T", "%OH", "%k"};
-    for(const auto& format : formats_24h)
-        if(strstr(t_fmt, format) != nullptr)
+    const auto t_fmt = nl_langinfo(T_FMT);
+
+    for (const auto& needle : formats_24h)
+        if (strstr(t_fmt, needle) != nullptr)
             return false;
 
     return true;

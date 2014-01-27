@@ -20,6 +20,7 @@
 #include <datetime/formatter.h>
 
 #include <datetime/clock.h>
+#include <datetime/utils.h>
 
 #include <glib.h>
 #include <glib/gi18n.h>
@@ -226,14 +227,7 @@ Formatter::~Formatter()
 bool
 Formatter::is_locale_12h()
 {
-    static const char *formats_24h[] = {"%H", "%R", "%T", "%OH", "%k"};
-    const auto t_fmt = nl_langinfo(T_FMT);
-
-    for (const auto& needle : formats_24h)
-        if (strstr(t_fmt, needle))
-            return false;
-
-    return true;
+    return ::is_locale_12h();
 }
 
 const char*
