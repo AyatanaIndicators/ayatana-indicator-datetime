@@ -17,6 +17,7 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
+#include <datetime/settings-shared.h>
 #include <datetime/utils.h>
 
 #include <gtest/gtest.h>
@@ -51,24 +52,47 @@ TEST(UtilsTest, SplitSettingsLocation)
     }
 }
 
-TEST(UtilsTest, BeautifulTimezoneName)
+namespace
 {
     struct {
         const char* timezone;
         const char* location;
         const char* expected_name;
-    } test_cases[] = {
+    } beautify_timezone_test_cases[] = {
         { "America/Chicago", NULL, "Chicago" },
         { "America/Chicago", "America/Chicago", "Chicago" },
         { "America/Chicago", "America/Chigago Chicago", "Chicago" },
         { "America/Chicago", "America/Chicago Oklahoma City", "Oklahoma City" },
         { "America/Chicago", "Europe/London London", "Chicago" }
     };
-
-    for(const auto& test_case : test_cases)
+}
+  
+TEST(UtilsTest, BeautifulTimezoneName)
+{
+    for(const auto& test_case : beautify_timezone_test_cases)
     {
         auto name = get_beautified_timezone_name(test_case.timezone, test_case.location);
         EXPECT_STREQ(test_case.expected_name, name);
         g_free(name);
     }
+}
+
+
+TEST(UtilsTest, GetTimezonename)
+{
+    // set up a local GSettings
+    g_assert(g_setenv("GSETTINGS_SCHEMA_DIR", SCHEMA_DIR, true));
+    g_assert(g_setenv("GSETTINGS_BACKEND", "memory", true));
+    g_debug("SCHEMA_DIR is %s", SCHEMA_DIR);
+    auto settings = g_settings_new(SETTINGS_INTERFACE);
+
+    for(const auto& test_case : beautify_timezone_test_cases)
+    {
+        g_settings_set_string(settings, SETTINGS_TIMEZONE_NAME_S, test_case.location);
+        auto name = get_timezone_name (test_case.timezone, settings);
+        EXPECT_STREQ(test_case.expected_name, name);
+        g_free(name);
+    }
+
+    g_clear_object(&settings);
 }
