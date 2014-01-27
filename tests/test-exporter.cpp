@@ -36,17 +36,6 @@ private:
 
     typedef GlibFixture super;
 
-    static void on_bus_closed(GObject      * object,
-                              GAsyncResult * res,
-                              gpointer       gself)
-    {
-        auto self = static_cast<ExporterFixture*>(gself);
-        GError* err = nullptr;
-        g_dbus_connection_close_finish(G_DBUS_CONNECTION(object), res, &err);
-        g_assert_no_error(err);
-        g_main_loop_quit(self->loop);
-    }
-
 protected:
 
     GTestDBus* bus = nullptr;
@@ -65,9 +54,11 @@ protected:
 
     void TearDown()
     {
-        GDBusConnection* connection = g_bus_get_sync (G_BUS_TYPE_SESSION, nullptr, nullptr);
-        g_dbus_connection_close(connection, nullptr, on_bus_closed, this);
-        g_main_loop_run(loop);
+        GError * error = nullptr;
+        GDBusConnection* connection = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, &error);
+        if(!g_dbus_connection_is_closed(connection))
+            g_dbus_connection_close_sync(connection, nullptr, &error);
+        g_assert_no_error(error);
         g_clear_object(&connection);
         g_test_dbus_down(bus);
         g_clear_object(&bus);
@@ -86,6 +77,10 @@ TEST_F(ExporterFixture, Publish)
     std::shared_ptr<State> state(new MockState);
     std::shared_ptr<Actions> actions(new MockActions(state));
     std::vector<std::shared_ptr<Menu>> menus;
+
+    MenuFactory menu_factory (actions, state);
+    for(int i=0; i<Menu::NUM_PROFILES; i++)
+      menus.push_back(menu_factory.buildMenu(Menu::Profile(i)));
 
     Exporter exporter;
     exporter.publish(actions, menus);
@@ -120,6 +115,17 @@ TEST_F(ExporterFixture, Publish)
     EXPECT_EQ(1, names.count("phone_greeter-header"));
     EXPECT_EQ(1, names.count("phone-header"));
     EXPECT_EQ(1, names.count("set-location"));
+
+    // try closing the connection prematurely
+    // to test Exporter's name-lost signal
+    bool name_lost = false;
+    exporter.name_lost.connect([this,&name_lost](){
+        name_lost = true;
+        g_main_loop_quit(loop);
+    });
+    g_dbus_connection_close_sync(connection, nullptr, nullptr);
+    g_main_loop_run(loop);
+    EXPECT_TRUE(name_lost);
 
     // cleanup
     g_strfreev(names_strv);
