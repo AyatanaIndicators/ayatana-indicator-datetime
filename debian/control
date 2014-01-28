@@ -29,6 +29,7 @@ Build-Depends: cmake,
                libtimezonemap1-dev,
                liburl-dispatcher1-dev,
                libproperties-cpp-dev,
+               libdbustest1-dev,
                locales,
 Standards-Version: 3.9.3
 Homepage: https://launchpad.net/indicator-datetime
