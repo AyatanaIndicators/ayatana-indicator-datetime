@@ -381,7 +381,7 @@ private:
             case Appointments: model = create_appointments_section(p); break;
             case Locations: model = create_locations_section(p); break;
             case Settings: model = create_settings_section(p); break;
-            default: g_warn_if_reached();
+            default: model = nullptr; g_warn_if_reached();
         }
 
         if (model)
