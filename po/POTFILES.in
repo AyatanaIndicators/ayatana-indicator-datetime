@@ -1,6 +1,6 @@
-src/service.c
-src/settings-shared.h
-src/utils.c
+src/formatter.cpp
+src/formatter-desktop.cpp
+src/menu.cpp
 panel/datetime-prefs.c
 panel/datetime-prefs-locations.c
 [type: gettext/glade]data/datetime-dialog.ui
