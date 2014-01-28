@@ -25,6 +25,7 @@
 
 #include <datetime/clock.h>
 #include <datetime/settings.h>
+#include <datetime/utils.h> // is_locale_12h()
 
 #include <glib.h>
 
@@ -88,15 +89,7 @@ protected:
     Formatter(const std::shared_ptr<Clock>&);
     virtual ~Formatter();
 
-    /** \brief Returns true if the current locale prefers 12h display instead of 24h */
-    static bool is_locale_12h();
-
     static const char* getDefaultHeaderTimeFormat(bool twelvehour, bool show_seconds);
-
-    /** \brief Translate the string based on LC_TIME instead of LC_MESSAGES.
-               The intent of this is to let users set LC_TIME to override
-               their other locale settings when generating time format string */
-    static const char* T_(const char * fmt);
 
 private:
 

@@ -18,6 +18,7 @@
  */
 
 #include <datetime/formatter.h>
+#include <datetime/utils.h> // T_()
 
 namespace unity {
 namespace indicator {

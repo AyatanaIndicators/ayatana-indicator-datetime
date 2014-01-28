@@ -20,7 +20,7 @@
 #include <datetime/formatter.h>
 
 #include <datetime/clock.h>
-#include <datetime/utils.h>
+#include <datetime/utils.h> // T_()
 
 #include <glib.h>
 #include <glib/gi18n.h>
@@ -224,49 +224,6 @@ Formatter::~Formatter()
 {
 }
 
-bool
-Formatter::is_locale_12h()
-{
-    return ::is_locale_12h();
-}
-
-const char*
-Formatter::T_(const char *msg)
-{
-    /* General strategy here is to make sure LANGUAGE is empty (since that
-       trumps all LC_* vars) and then to temporarily swap LC_TIME and
-       LC_MESSAGES.  Then have gettext translate msg.
-
-       We strdup the strings because the setlocale & *env functions do not
-       guarantee anything about the storage used for the string, and thus
-       the string may not be portably safe after multiple calls.
-
-       Note that while you might think g_dcgettext would do the trick here,
-       that actually looks in /usr/share/locale/XX/LC_TIME, not the
-       LC_MESSAGES directory, so we won't find any translation there.
-     */
-
-    auto message_locale = g_strdup(setlocale(LC_MESSAGES, nullptr));
-    const auto time_locale = setlocale(LC_TIME, nullptr);
-    auto language = g_strdup(g_getenv("LANGUAGE"));
-
-    if (language)
-        g_unsetenv("LANGUAGE");
-    setlocale(LC_MESSAGES, time_locale);
-
-    /* Get the LC_TIME version */
-    const auto rv = _(msg);
-
-    /* Put everything back the way it was */
-    setlocale(LC_MESSAGES, message_locale);
-    if (language)
-        g_setenv("LANGUAGE", language, TRUE);
-
-    g_free(message_locale);
-    g_free(language);
-    return rv;
-}
-
 const char*
 Formatter::getDefaultHeaderTimeFormat(bool twelvehour, bool show_seconds)
 {
@@ -292,131 +249,12 @@ Formatter::getDefaultHeaderTimeFormat(bool twelvehour, bool show_seconds)
 ****
 ***/
 
-namespace
-{
-typedef enum
-{
-    DATE_PROXIMITY_TODAY,
-    DATE_PROXIMITY_TOMORROW,
-    DATE_PROXIMITY_WEEK,
-    DATE_PROXIMITY_FAR
-}
-date_proximity_t;
-
-date_proximity_t getDateProximity(GDateTime* now, GDateTime* time)
-{
-    auto prox = DATE_PROXIMITY_FAR;
-    gint now_year, now_month, now_day;
-    gint time_year, time_month, time_day;
-
-    // does it happen today?
-    g_date_time_get_ymd(now, &now_year, &now_month, &now_day);
-    g_date_time_get_ymd(time, &time_year, &time_month, &time_day);
-    if ((now_year == time_year) && (now_month == time_month) && (now_day == time_day))
-        prox = DATE_PROXIMITY_TODAY;
-
-    // does it happen tomorrow?
-    if (prox == DATE_PROXIMITY_FAR)
-    {
-        auto tomorrow = g_date_time_add_days(now, 1);
-
-        gint tom_year, tom_month, tom_day;
-        g_date_time_get_ymd(tomorrow, &tom_year, &tom_month, &tom_day);
-        if ((tom_year == time_year) && (tom_month == time_month) && (tom_day == time_day))
-            prox = DATE_PROXIMITY_TOMORROW;
-
-        g_date_time_unref(tomorrow);
-    }
-
-    // does it happen this week?
-    if (prox == DATE_PROXIMITY_FAR)
-    {
-        auto week = g_date_time_add_days(now, 6);
-        auto week_bound = g_date_time_new_local(g_date_time_get_year(week),
-                                                g_date_time_get_month(week),
-                                                g_date_time_get_day_of_month(week),
-                                                23, 59, 59.9);
-
-        if (g_date_time_compare(time, week_bound) <= 0)
-            prox = DATE_PROXIMITY_WEEK;
-
-        g_date_time_unref(week_bound);
-        g_date_time_unref(week);
-    }
-
-    return prox;
-}
-} // unnamed namespace
-
-/**
- * _ a time today should be shown as just the time (e.g. “3:55 PM”)
- * _ a full-day event today should be shown as “Today”
- * _ a time any other day this week should be shown as the short version of the
- *   day and time (e.g. “Wed 3:55 PM”)
- * _ a full-day event tomorrow should be shown as “Tomorrow”
- * _ a full-day event another day this week should be shown as the
- *   weekday (e.g. “Friday”)
- * _ a time after this week should be shown as the short version of the day,
- *   date, and time (e.g. “Wed 21 Apr 3:55 PM”)
- * _ a full-day event after this week should be shown as the short version of
- *   the day and date (e.g. “Wed 21 Apr”). 
- * _ in addition, when presenting the times of upcoming events, the time should
- *   be followed by the timezone if it is different from the one the computer
- *   is currently set to. For example, “Wed 3:55 PM UTC−5”. 
- */
 std::string
-Formatter::getRelativeFormat(GDateTime* then, GDateTime* then_end) const
+Formatter::getRelativeFormat(GDateTime* then_begin, GDateTime* then_end) const
 {
-    std::string ret;
-    const auto now = p->m_clock->localtime().get();
-
-    if (then != nullptr)
-    {
-        const bool full_day = then_end && (g_date_time_difference(then_end, then) >= G_TIME_SPAN_DAY);
-        const auto prox = getDateProximity(now, then);
-
-        if (full_day)
-        {
-            switch (prox)
-            {
-                case DATE_PROXIMITY_TODAY:    ret = _("Today"); break;
-                case DATE_PROXIMITY_TOMORROW: ret = _("Tomorrow"); break;
-                case DATE_PROXIMITY_WEEK:     ret = T_("%A"); break;
-                case DATE_PROXIMITY_FAR:      ret = T_("%a %d %b"); break;
-            }
-        }
-        else if (is_locale_12h())
-        {
-            switch (prox)
-            {
-                case DATE_PROXIMITY_TODAY:    ret = T_("%l:%M %p"); break;
-                case DATE_PROXIMITY_TOMORROW: ret = T_("Tomorrow\u2003%l:%M %p"); break;
-                case DATE_PROXIMITY_WEEK:     ret = T_("%a\u2003%l:%M %p"); break;
-                case DATE_PROXIMITY_FAR:      ret = T_("%a %d %b\u2003%l:%M %p"); break;
-            }
-        }
-        else
-        {
-            switch (prox)
-            {
-                case DATE_PROXIMITY_TODAY:    ret = T_("%H:%M"); break;
-                case DATE_PROXIMITY_TOMORROW: ret = T_("Tomorrow\u2003%H:%M"); break;
-                case DATE_PROXIMITY_WEEK:     ret = T_("%a\u2003%H:%M"); break;
-                case DATE_PROXIMITY_FAR:      ret = T_("%a %d %b\u2003%H:%M"); break;
-            }
-        }
-
-        /* if it's an appointment in a different timezone (and doesn't run for a full day)
-           then the time should be followed by its timezone. */
-        if ((then_end != nullptr) &&
-            (!full_day) &&
-            ((g_date_time_get_utc_offset(now) != g_date_time_get_utc_offset(then))))
-        {
-            ret += ' ';
-            ret += g_date_time_get_timezone_abbreviation(then);
-        }
-    }
-
+    auto cstr = generate_full_format_string_at_time (p->m_clock->localtime().get(), then_begin, then_end);
+    const std::string ret = cstr;
+    g_free (cstr);
     return ret;
 }
 
