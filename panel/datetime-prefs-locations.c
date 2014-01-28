@@ -439,7 +439,7 @@ update_times (GtkWidget * dlg)
       if (strzone && *strzone) {
         GTimeZone * tz = g_time_zone_new (strzone);
         GDateTime * now_tz = g_date_time_to_timezone (now, tz);
-        gchar * format = generate_full_format_string_at_time (now, now_tz);
+        gchar * format = generate_full_format_string_at_time (now, now_tz, NULL);
         gchar * time_str = g_date_time_format (now_tz, format);
         gchar * old_time_str;
 

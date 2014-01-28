@@ -1,6 +1,7 @@
 set (SERVICE_LIB "indicatordatetimeservice")
 set (SERVICE_EXEC "indicator-datetime-service")
 
+SET (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -std=c99   -g ${CXX_WARNING_ARGS} ${GCOV_FLAGS}")
 SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g ${CXX_WARNING_ARGS} ${GCOV_FLAGS}")
 
 add_definitions (-DTIMEZONE_FILE="/etc/timezone"
@@ -29,7 +30,7 @@ add_library (${SERVICE_LIB} STATIC
              timezone-file.cpp
              timezone-geoclue.cpp
              timezones-live.cpp
-             utils.cpp)
+             utils.c)
 include_directories (${CMAKE_SOURCE_DIR})
 link_directories (${SERVICE_DEPS_LIBRARY_DIRS})
 
