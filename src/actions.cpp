@@ -108,9 +108,22 @@ void on_set_location(GSimpleAction * /*action*/,
     g_free(zone);
 }
 
-static void on_calendar_activated(GSimpleAction * /*action*/,
-                                  GVariant      * state,
-                                  gpointer        gself)
+void on_calendar_active_changed(GSimpleAction * /*action*/,
+                                GVariant      * state,
+                                gpointer        gself)
+{
+    // reset the date when the menu is shown
+    if (g_variant_get_boolean(state))
+    {
+        auto self = static_cast<Actions*>(gself);
+
+        self->set_calendar_date(self->state()->clock->localtime());
+    }
+}
+
+void on_calendar_activated(GSimpleAction * /*action*/,
+                           GVariant      * state,
+                           gpointer        gself)
 {
     const time_t t = g_variant_get_int64(state);
 
@@ -175,6 +188,7 @@ Actions::Actions(const std::shared_ptr<State>& state):
         { "activate-phone-clock-app", on_phone_clock_activated },
         { "activate-appointment", on_activate_appointment, "s", nullptr },
         { "activate-planner", on_activate_planner, "x", nullptr },
+        { "calendar-active", nullptr, nullptr, "false", on_calendar_active_changed },
         { "set-location", on_set_location, "s" }
     };
 

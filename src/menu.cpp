@@ -204,6 +204,8 @@ private:
         auto header = g_menu_item_new(nullptr, detailed_action.c_str());
         g_menu_item_set_attribute(header, "x-canonical-type", "s",
                                   "com.canonical.indicator.root");
+        g_menu_item_set_attribute(header, "submenu-action", "s",
+                                  "indicator.calendar-active");
         g_menu_item_set_submenu(header, G_MENU_MODEL(m_submenu));
         g_object_unref(m_submenu);
 

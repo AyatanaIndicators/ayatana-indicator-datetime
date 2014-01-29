@@ -156,6 +156,60 @@ TEST_F(ActionsFixture, SetCalendarDate)
     EXPECT_EQ (now, m_state->planner->time.get());
 }
 
+TEST_F(ActionsFixture, ActivatingTheCalendarResetsItsDate)
+{
+    // Confirm that the GActions exist
+    auto action_group = m_actions->action_group();
+    EXPECT_TRUE(g_action_group_has_action(action_group, "calendar"));
+    EXPECT_TRUE(g_action_group_has_action(action_group, "calendar-active"));
+
+    ///
+    /// Prerequisite for the test: move calendar-date away from today
+    ///
+
+    // move calendar-date a week into the future...
+    const auto now = m_state->clock->localtime();
+    auto next_week = g_date_time_add_weeks(now.get(), 1);
+    const auto next_week_unix = g_date_time_to_unix(next_week);
+    g_action_group_activate_action (action_group, "calendar", g_variant_new_int64(next_week_unix));
+
+    // confirm the planner and calendar action state moved a week into the future
+    // but that m_state->clock is unchanged
+    EXPECT_EQ(next_week_unix, m_state->planner->time.get().to_unix());
+    EXPECT_EQ(now, m_state->clock->localtime());
+    auto calendar_state = g_action_group_get_action_state(action_group, "calendar");
+    EXPECT_TRUE(calendar_state != nullptr);
+    EXPECT_TRUE(g_variant_is_of_type(calendar_state, G_VARIANT_TYPE_DICTIONARY));
+    auto v = g_variant_lookup_value(calendar_state, "calendar-day", G_VARIANT_TYPE_INT64);
+    EXPECT_TRUE(v != nullptr);
+    EXPECT_EQ(next_week_unix, g_variant_get_int64(v));
+    g_clear_pointer(&v, g_variant_unref);
+    g_clear_pointer(&calendar_state, g_variant_unref);
+
+    ///
+    /// Now the actual test.
+    /// We set the state of 'calendar-active' to true, which should reset the calendar date.
+    /// This is so the calendar always starts on today's date when the indicator's menu is pulled down.
+    ///
+
+    // change the state...
+    g_action_group_change_action_state(action_group, "calendar-active", g_variant_new_boolean(true));
+
+    // confirm the planner and calendar action state were reset back to m_state->clock's time
+    EXPECT_EQ(now.to_unix(), m_state->planner->time.get().to_unix());
+    EXPECT_EQ(now, m_state->clock->localtime());
+    calendar_state = g_action_group_get_action_state(action_group, "calendar");
+    EXPECT_TRUE(calendar_state != nullptr);
+    EXPECT_TRUE(g_variant_is_of_type(calendar_state, G_VARIANT_TYPE_DICTIONARY));
+    v = g_variant_lookup_value(calendar_state, "calendar-day", G_VARIANT_TYPE_INT64);
+    EXPECT_TRUE(v != nullptr);
+    EXPECT_EQ(now.to_unix(), g_variant_get_int64(v));
+    g_clear_pointer(&v, g_variant_unref);
+    g_clear_pointer(&calendar_state, g_variant_unref);
+
+}
+
+
 TEST_F(ActionsFixture, OpenAppointment)
 {
     Appointment appt;
