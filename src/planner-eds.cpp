@@ -214,7 +214,7 @@ private:
 
     void rebuildNow()
     {
-        auto calendar_date = m_owner.time.get().get();
+        const auto calendar_date = m_owner.time.get().get();
         GDateTime* begin;
         GDateTime* end;
         int y, m, d;
@@ -245,7 +245,6 @@ private:
         }
         g_clear_pointer(&begin, g_date_time_unref);
         g_clear_pointer(&end, g_date_time_unref);
-        g_clear_pointer(&calendar_date, g_date_time_unref);
     }
 
     void getAppointments(GDateTime* begin_dt, GDateTime* end_dt, appointment_func func)
