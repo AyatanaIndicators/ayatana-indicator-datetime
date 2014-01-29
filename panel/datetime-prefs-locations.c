@@ -37,7 +37,11 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <time.h> /* time_t */
 
-#define DATETIME_DIALOG_UI_FILE PKGDATADIR "/datetime-dialog.ui"
+#if USE_UNITY
+ #define DATETIME_DIALOG_UI_FILE PKGDATADIR "/unity-control-center/datetime-dialog.ui"
+#else
+ #define DATETIME_DIALOG_UI_FILE PKGDATADIR "/gnome-control-center/datetime-dialog.ui"
+#endif
 
 #define COL_NAME         0
 #define COL_TIME         1
