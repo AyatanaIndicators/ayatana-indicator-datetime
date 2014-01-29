@@ -321,7 +321,7 @@ private:
 
             // add the 'Add Event…' menuitem
             auto menu_item = g_menu_item_new(_("Add Event…"), nullptr);
-            const gchar* action_name = "indicator.activate_planner";
+            const gchar* action_name = "indicator.activate-planner";
             auto v = g_variant_new_int64(0);
             g_menu_item_set_action_and_target_value(menu_item, action_name, v);
             g_menu_append_item(menu, menu_item);

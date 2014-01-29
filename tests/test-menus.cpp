@@ -182,6 +182,14 @@ protected:
         section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
         int expected_n = appointments_expected ? 1 : 0;
         EXPECT_EQ(expected_n, g_menu_model_get_n_items(section));
+        if (appointments_expected)
+        {
+            gchar* action = nullptr;
+            EXPECT_TRUE(g_menu_model_get_item_attribute(section, 0, G_MENU_ATTRIBUTE_ACTION, "s", &action));
+            EXPECT_STREQ("indicator.activate-planner", action);
+            EXPECT_TRUE(g_action_group_has_action(m_actions->action_group(), "activate-planner"));
+            g_free(action);
+        }
         g_clear_object(&section);
 
         // try adding a few appointments and see if the menu updates itself
