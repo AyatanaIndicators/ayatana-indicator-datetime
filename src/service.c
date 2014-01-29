@@ -1359,6 +1359,21 @@ on_set_location (GSimpleAction * a G_GNUC_UNUSED,
   g_free (zone);
 }
 
+static void
+on_calendar_active_changed (GSimpleAction *action G_GNUC_UNUSED,
+                            GVariant      *state,
+                            gpointer       user_data)
+{
+  IndicatorDatetimeService *self = user_data;
+
+  /* reset the date when the menu is shown */
+  if (g_variant_get_boolean (state) && self->priv->calendar_date)
+    {
+      g_clear_pointer (&self->priv->calendar_date, g_date_time_unref);
+      update_calendar_action_state (self);
+    }
+}
+
 /***
 ****
 ***/
@@ -1431,6 +1446,7 @@ create_menu (IndicatorDatetimeService * self, int profile)
   g_menu_item_set_attribute (header, "x-canonical-type",
                              "s", "com.canonical.indicator.root");
   g_menu_item_set_submenu (header, G_MENU_MODEL (submenu));
+  g_menu_item_set_attribute (header, "submenu-action", "s", "indicator.calendar-active");
   g_object_unref (submenu);
 
   /* add header to the menu */
@@ -1586,7 +1602,8 @@ init_gactions (IndicatorDatetimeService * self)
     { "activate-phone-clock-app", on_phone_clock_activated },
     { "activate-planner", on_activate_planner, "x", NULL },
     { "activate-appointment", on_activate_appointment, "s", NULL },
-    { "set-location", on_set_location, "s" }
+    { "set-location", on_set_location, "s" },
+    { "calendar-active", NULL, NULL, "false", on_calendar_active_changed }
   };
 
   p->actions = g_simple_action_group_new ();
