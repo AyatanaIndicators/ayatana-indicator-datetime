@@ -61,7 +61,7 @@ class GlibFixture : public ::testing::Test
 
     virtual void SetUp()
     {
-      setlocale(LC_ALL, "");
+      setlocale(LC_ALL, "C.UTF-8");
 
       loop = g_main_loop_new(nullptr, false);
 
