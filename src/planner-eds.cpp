@@ -353,9 +353,9 @@ private:
               ECalComponentText text;
               text.value = "";
               e_cal_component_get_summary(component, &text);
- 
-              appointment.begin = g_date_time_new_from_unix_local(begin);
-              appointment.end = g_date_time_new_from_unix_local(end);
+
+              appointment.begin = DateTime(begin);
+              appointment.end = DateTime(end);
               appointment.color = subtask->color;
               appointment.is_event = vtype == E_CAL_COMPONENT_EVENT;
               appointment.summary = text.value;
