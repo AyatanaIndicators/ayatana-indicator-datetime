@@ -51,9 +51,6 @@ protected:
         m_actions(actions),
         m_formatter(formatter)
     {
-        // preload the alarm icon from click
-        m_serialized_alarm_icon = create_alarm_icon();
-
         // initialize the menu
         create_gmenu();
         for (int i=0; i<NUM_SECTIONS; i++)
@@ -114,7 +111,13 @@ protected:
     std::shared_ptr<Formatter> m_formatter;
     GMenu* m_submenu = nullptr;
 
-    GVariant* get_serialized_alarm_icon() { return m_serialized_alarm_icon; }
+    GVariant* get_serialized_alarm_icon()
+    {
+        if (G_UNLIKELY(m_serialized_alarm_icon == nullptr))
+            m_serialized_alarm_icon = create_alarm_icon();
+
+        return m_serialized_alarm_icon;
+    }
 
 private:
 
