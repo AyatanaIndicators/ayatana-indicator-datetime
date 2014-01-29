@@ -251,8 +251,12 @@ private:
     {
         const auto begin = g_date_time_to_unix(begin_dt);
         const auto end = g_date_time_to_unix(end_dt);
-        g_debug("getting all appointments from [%s ... %s]", g_date_time_format(begin_dt, "%F %T"),
-                                                                g_date_time_format(end_dt, "%F %T"));
+
+        auto begin_str = g_date_time_format(begin_dt, "%F %T");
+        auto end_str = g_date_time_format(end_dt, "%F %T");
+        g_debug("getting all appointments from [%s ... %s]", begin_str, end_str);
+        g_free(begin_str);
+        g_free(end_str);
 
         /**
         ***  init the default timezone
