@@ -279,6 +279,7 @@ private:
         std::shared_ptr<Task> main_task(new Task(this, func), [](Task* task){
             g_debug("time to delete task %p", (void*)task);
             task->func(task->appointments);
+            delete task;
         });
 
         for (auto& source : m_sources)
