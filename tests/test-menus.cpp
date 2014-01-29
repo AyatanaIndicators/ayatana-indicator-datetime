@@ -93,7 +93,8 @@ protected:
     {
         gchar* str = nullptr;
         const auto actions_expected = (profile == Menu::Desktop) || (profile == Menu::Phone);
-        const auto calendar_expected = (profile == Menu::Desktop) || (profile == Menu::DesktopGreeter);
+        const auto calendar_expected = ((profile == Menu::Desktop) || (profile == Menu::DesktopGreeter))
+                                    && (m_state->settings->show_calendar.get());
 
         // get the calendar section
         auto submenu = g_menu_model_get_item_link(menu_model, 0, G_MENU_LINK_SUBMENU);
@@ -377,6 +378,11 @@ TEST_F(MenuFixture, Sections)
 
 TEST_F(MenuFixture, Calendar)
 {
+    m_state->settings->show_calendar.set(true);
+    for(auto& menu : m_menus)
+      InspectCalendar(menu->menu_model(), menu->profile());
+
+    m_state->settings->show_calendar.set(false);
     for(auto& menu : m_menus)
       InspectCalendar(menu->menu_model(), menu->profile());
 }

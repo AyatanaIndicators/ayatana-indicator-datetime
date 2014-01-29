@@ -74,6 +74,9 @@ protected:
             update_header(); // update header's label
             update_section(Locations); // locations' relative time may have changed
         });
+        m_state->settings->show_calendar.changed().connect([this](bool){
+            update_section(Calendar);
+        });
         m_state->settings->show_events.changed().connect([this](bool){
             update_section(Appointments); // showing events got toggled
         });
@@ -219,8 +222,8 @@ private:
     {
         const bool allow_activation = (profile == Desktop)
                                    || (profile == Phone);
-        const bool show_calendar = (profile == Desktop)
-                                || (profile == DesktopGreeter);
+        const bool show_calendar = m_state->settings->show_calendar.get() &&
+                                   ((profile == Desktop) || (profile == DesktopGreeter));
         auto menu = g_menu_new();
 
         // add a menuitem that shows the current date
