@@ -64,8 +64,8 @@ std::string joinDateAndTimeFormatStrings(const char* date_string,
 ****
 ***/
 
-DesktopFormatter::DesktopFormatter(const std::shared_ptr<Clock>&    clock_in,
-                                   const std::shared_ptr<Settings>& settings_in):
+DesktopFormatter::DesktopFormatter(const std::shared_ptr<const Clock>&    clock_in,
+                                   const std::shared_ptr<const Settings>& settings_in):
     Formatter(clock_in),
     m_settings(settings_in)
 {

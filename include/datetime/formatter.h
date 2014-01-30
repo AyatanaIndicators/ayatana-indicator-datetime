@@ -86,7 +86,7 @@ public:
     std::string getRelativeFormat(GDateTime* then, GDateTime* then_end=nullptr) const;
 
 protected:
-    Formatter(const std::shared_ptr<Clock>&);
+    Formatter(const std::shared_ptr<const Clock>&);
     virtual ~Formatter();
 
     static const char* getDefaultHeaderTimeFormat(bool twelvehour, bool show_seconds);
@@ -107,10 +107,10 @@ private:
 class DesktopFormatter: public Formatter
 {
 public:
-    DesktopFormatter(const std::shared_ptr<Clock>&, const std::shared_ptr<Settings>&);
+    DesktopFormatter(const std::shared_ptr<const Clock>&, const std::shared_ptr<const Settings>&);
 
 private:
-    std::shared_ptr<Settings> m_settings;
+    std::shared_ptr<const Settings> m_settings;
 
     void rebuildHeaderFormat();
     const gchar* getFullTimeFormatString() const;
@@ -126,7 +126,7 @@ private:
 class PhoneFormatter: public Formatter
 {
 public:
-    PhoneFormatter(const std::shared_ptr<Clock>& clock): Formatter(clock) {
+    PhoneFormatter(const std::shared_ptr<const Clock>& clock): Formatter(clock) {
         headerFormat.set(getDefaultHeaderTimeFormat(is_locale_12h(), false));
     }
 };

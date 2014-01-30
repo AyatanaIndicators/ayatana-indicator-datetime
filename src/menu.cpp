@@ -70,9 +70,9 @@ class MenuImpl: public Menu
 protected:
     MenuImpl(const Menu::Profile profile_in,
              const std::string& name_in,
-             std::shared_ptr<State>& state,
+             std::shared_ptr<const State>& state,
              std::shared_ptr<Actions>& actions,
-             std::shared_ptr<Formatter> formatter):
+             std::shared_ptr<const Formatter> formatter):
         Menu(profile_in, name_in),
         m_state(state),
         m_actions(actions),
@@ -136,9 +136,9 @@ protected:
         g_action_group_change_action_state(action_group, action_name.c_str(), state);
     }
 
-    std::shared_ptr<State> m_state;
+    std::shared_ptr<const State> m_state;
     std::shared_ptr<Actions> m_actions;
-    std::shared_ptr<Formatter> m_formatter;
+    std::shared_ptr<const Formatter> m_formatter;
     GMenu* m_submenu = nullptr;
 
     GVariant* get_serialized_alarm_icon() { return m_serialized_alarm_icon; }
@@ -450,10 +450,10 @@ class DesktopBaseMenu: public MenuImpl
 protected:
     DesktopBaseMenu(Menu::Profile profile_,
                     const std::string& name_,
-                    std::shared_ptr<State>& state_,
+                    std::shared_ptr<const State>& state_,
                     std::shared_ptr<Actions>& actions_):
         MenuImpl(profile_, name_, state_, actions_,
-                 std::shared_ptr<Formatter>(new DesktopFormatter(state_->clock, state_->settings)))
+                 std::shared_ptr<const Formatter>(new DesktopFormatter(state_->clock, state_->settings)))
     {
         update_header();
     }
@@ -477,14 +477,14 @@ protected:
 class DesktopMenu: public DesktopBaseMenu
 {
 public:
-    DesktopMenu(std::shared_ptr<State>& state_, std::shared_ptr<Actions>& actions_):
+    DesktopMenu(std::shared_ptr<const State>& state_, std::shared_ptr<Actions>& actions_):
         DesktopBaseMenu(Desktop,"desktop", state_, actions_) {}
 };
 
 class DesktopGreeterMenu: public DesktopBaseMenu
 {
 public:
-    DesktopGreeterMenu(std::shared_ptr<State>& state_, std::shared_ptr<Actions>& actions_):
+    DesktopGreeterMenu(std::shared_ptr<const State>& state_, std::shared_ptr<Actions>& actions_):
         DesktopBaseMenu(DesktopGreeter,"desktop_greeter", state_, actions_) {}
 };
 
@@ -493,7 +493,7 @@ class PhoneBaseMenu: public MenuImpl
 protected:
     PhoneBaseMenu(Menu::Profile profile_,
                   const std::string& name_,
-                  std::shared_ptr<State>& state_,
+                  std::shared_ptr<const State>& state_,
                   std::shared_ptr<Actions>& actions_):
         MenuImpl(profile_, name_, state_, actions_,
                  std::shared_ptr<Formatter>(new PhoneFormatter(state_->clock)))
@@ -534,7 +534,7 @@ protected:
 class PhoneMenu: public PhoneBaseMenu
 {
 public:
-    PhoneMenu(std::shared_ptr<State>& state_,
+    PhoneMenu(std::shared_ptr<const State>& state_,
               std::shared_ptr<Actions>& actions_):
         PhoneBaseMenu(Phone, "phone", state_, actions_) {}
 };
@@ -542,7 +542,7 @@ public:
 class PhoneGreeterMenu: public PhoneBaseMenu
 {
 public:
-    PhoneGreeterMenu(std::shared_ptr<State>& state_,
+    PhoneGreeterMenu(std::shared_ptr<const State>& state_,
                      std::shared_ptr<Actions>& actions_):
         PhoneBaseMenu(PhoneGreeter, "phone_greeter", state_, actions_) {}
 };
@@ -552,7 +552,7 @@ public:
 ****/
 
 MenuFactory::MenuFactory(const std::shared_ptr<Actions>& actions_,
-                         const std::shared_ptr<State>& state_):
+                         const std::shared_ptr<const State>& state_):
     m_actions(actions_),
     m_state(state_)
 {

@@ -118,7 +118,7 @@ class Formatter::Impl
 {
 public:
 
-    Impl(Formatter* owner, const std::shared_ptr<Clock>& clock):
+    Impl(Formatter* owner, const std::shared_ptr<const Clock>& clock):
         m_owner(owner),
         m_clock(clock)
     {
@@ -208,14 +208,14 @@ private:
     guint m_relative_timer = 0;
 
 public:
-    std::shared_ptr<Clock> m_clock;
+    std::shared_ptr<const Clock> m_clock;
 };
 
 /***
 ****
 ***/
 
-Formatter::Formatter(const std::shared_ptr<Clock>& clock):
+Formatter::Formatter(const std::shared_ptr<const Clock>& clock):
     p(new Formatter::Impl(this, clock))
 {
 }

@@ -29,8 +29,8 @@ namespace unity {
 namespace indicator {
 namespace datetime {
 
-SettingsLocations::SettingsLocations(const std::shared_ptr<Settings>& settings,
-                                     const std::shared_ptr<Timezones>& timezones):
+SettingsLocations::SettingsLocations(const std::shared_ptr<const Settings>& settings,
+                                     const std::shared_ptr<const Timezones>& timezones):
     m_settings(settings),
     m_timezones(timezones)
 {

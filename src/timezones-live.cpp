@@ -25,7 +25,8 @@ namespace unity {
 namespace indicator {
 namespace datetime {
 
-LiveTimezones::LiveTimezones(std::shared_ptr<Settings>& settings, const std::string& filename):
+LiveTimezones::LiveTimezones(const std::shared_ptr<const Settings>& settings,
+                             const std::string& filename):
     m_file(filename),
     m_settings(settings)
 {

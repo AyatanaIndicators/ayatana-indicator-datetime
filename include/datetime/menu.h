@@ -70,12 +70,12 @@ private:
 class MenuFactory
 {
 public:
-    MenuFactory (const std::shared_ptr<Actions>& actions, const std::shared_ptr<State>& state);
+    MenuFactory (const std::shared_ptr<Actions>& actions, const std::shared_ptr<const State>& state);
     std::shared_ptr<Menu> buildMenu(Menu::Profile profile);
 
 private:
     std::shared_ptr<Actions> m_actions;
-    std::shared_ptr<State> m_state;
+    std::shared_ptr<const State> m_state;
 };
 
 } // namespace datetime

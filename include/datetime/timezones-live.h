@@ -38,14 +38,14 @@ namespace datetime {
 class LiveTimezones: public Timezones
 {
 public:
-    LiveTimezones(std::shared_ptr<Settings>& settings, const std::string& filename);
+    LiveTimezones(const std::shared_ptr<const Settings>& settings, const std::string& filename);
 
 private:
     void update_geolocation();
     void update_timezones();
 
     FileTimezone m_file;
-    std::shared_ptr<Settings> m_settings;
+    std::shared_ptr<const Settings> m_settings;
     std::shared_ptr<GeoclueTimezone> m_geo;
 };
 

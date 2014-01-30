@@ -59,7 +59,7 @@ class LiveClock::Impl
 {
 public:
 
-    Impl(LiveClock& owner, const std::shared_ptr<Timezones>& tzd):
+    Impl(LiveClock& owner, const std::shared_ptr<const Timezones>& tzd):
         m_owner(owner),
         m_timezones(tzd)
     {
@@ -135,13 +135,13 @@ protected:
 
     LiveClock& m_owner;
     GTimeZone* m_timezone = nullptr;
-    std::shared_ptr<Timezones> m_timezones;
+    std::shared_ptr<const Timezones> m_timezones;
 
     DateTime m_prev_datetime;
     unsigned int m_timer = 0;
 };
 
-LiveClock::LiveClock(const std::shared_ptr<Timezones>& tzd):
+LiveClock::LiveClock(const std::shared_ptr<const Timezones>& tzd):
     p(new Impl(*this, tzd))
 {
 }

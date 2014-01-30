@@ -39,12 +39,12 @@ public:
      * @param[in] settings the #Settings whose locations property is to be used
      * @param[in] timezones the #Timezones to always show first in the list
      */
-    SettingsLocations (const std::shared_ptr<Settings>& settings,
-                       const std::shared_ptr<Timezones>& timezones);
+    SettingsLocations (const std::shared_ptr<const Settings>& settings,
+                       const std::shared_ptr<const Timezones>& timezones);
 
 private:
-    std::shared_ptr<Settings> m_settings;
-    std::shared_ptr<Timezones> m_timezones;
+    std::shared_ptr<const Settings> m_settings;
+    std::shared_ptr<const Timezones> m_timezones;
     void reload();
 };
 
