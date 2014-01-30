@@ -551,8 +551,8 @@ public:
 *****
 ****/
 
-MenuFactory::MenuFactory(std::shared_ptr<Actions>& actions_,
-                         std::shared_ptr<State>& state_):
+MenuFactory::MenuFactory(const std::shared_ptr<Actions>& actions_,
+                         const std::shared_ptr<State>& state_):
     m_actions(actions_),
     m_state(state_)
 {

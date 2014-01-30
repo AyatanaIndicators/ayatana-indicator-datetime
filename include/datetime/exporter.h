@@ -45,8 +45,8 @@ public:
 
     core::Signal<> name_lost;
 
-    void publish(std::shared_ptr<Actions>& actions,
-                 std::vector<std::shared_ptr<Menu>>& menus);
+    void publish(const std::shared_ptr<Actions>& actions,
+                 const std::vector<std::shared_ptr<Menu>>& menus);
 
 private:
     static void on_bus_acquired(GDBusConnection*, const gchar *name, gpointer gthis);

@@ -70,7 +70,7 @@ private:
 class MenuFactory
 {
 public:
-    MenuFactory (std::shared_ptr<Actions>& actions, std::shared_ptr<State>& state);
+    MenuFactory (const std::shared_ptr<Actions>& actions, const std::shared_ptr<State>& state);
     std::shared_ptr<Menu> buildMenu(Menu::Profile profile);
 
 private:

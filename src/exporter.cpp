@@ -120,8 +120,8 @@ Exporter::on_name_lost(GDBusConnection* /*connection*/, const gchar* /*name*/)
 ***/
 
 void
-Exporter::publish(std::shared_ptr<Actions>& actions,
-                  std::vector<std::shared_ptr<Menu>>& menus)
+Exporter::publish(const std::shared_ptr<Actions>& actions,
+                  const std::vector<std::shared_ptr<Menu>>& menus)
 {
     m_actions = actions;
     m_menus = menus;
