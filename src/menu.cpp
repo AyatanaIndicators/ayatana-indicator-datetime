@@ -293,10 +293,10 @@ private:
             else
             {
                 g_menu_item_set_attribute (menu_item, "x-canonical-type", "s", "com.canonical.indicator.appointment");
-
-                if (!appt.color.empty())
-                    g_menu_item_set_attribute (menu_item, "x-canonical-color", "s", appt.color.c_str());
             }
+
+            if (!appt.color.empty())
+                g_menu_item_set_attribute (menu_item, "x-canonical-color", "s", appt.color.c_str());
      
             if (profile == Phone)
                 g_menu_item_set_action_and_target_value (menu_item,
@@ -315,7 +315,7 @@ private:
     {
         auto menu = g_menu_new();
 
-        if (((profile==Phone) || (profile==Desktop)) && m_state->settings->show_events.get())
+        if ((profile==Desktop) && m_state->settings->show_events.get())
         {
             add_appointments (menu, profile);
 
@@ -326,6 +326,15 @@ private:
             g_menu_item_set_action_and_target_value(menu_item, action_name, v);
             g_menu_append_item(menu, menu_item);
             g_object_unref(menu_item);
+        }
+        else if (profile==Phone)
+        {
+            auto menu_item = g_menu_item_new (_("Clock"), "indicator.activate-phone-clock-app");
+            g_menu_item_set_attribute_value (menu_item, G_MENU_ATTRIBUTE_ICON, get_serialized_alarm_icon());
+            g_menu_append_item (menu, menu_item);
+            g_object_unref (menu_item);
+
+            add_appointments (menu, profile);
         }
 
         return G_MENU_MODEL(menu);

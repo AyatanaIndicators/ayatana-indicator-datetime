@@ -158,11 +158,119 @@ protected:
         g_object_unref(submenu);
     }
 
-    void InspectAppointments(GMenuModel* menu_model, Menu::Profile profile)
-    {
-        const bool appointments_expected = (profile == Menu::Desktop)
-                                        || (profile == Menu::Phone);
+private:
 
+    void InspectEmptySection(GMenuModel* menu_model, Menu::Section section)
+    {
+        // get the Appointments section
+        auto submenu = g_menu_model_get_item_link(menu_model, 0, G_MENU_LINK_SUBMENU);
+        auto menu_section = g_menu_model_get_item_link(submenu, section, G_MENU_LINK_SECTION);
+        EXPECT_EQ(0, g_menu_model_get_n_items(menu_section));
+        g_clear_object(&menu_section);
+        g_clear_object(&submenu);
+    }
+
+    std::vector<Appointment> build_some_appointments()
+    {
+        const auto now = m_state->clock->localtime();
+        auto gdt_tomorrow = g_date_time_add_days(now.get(), 1);
+        const auto tomorrow = DateTime(gdt_tomorrow);
+        g_date_time_unref(gdt_tomorrow);
+
+        Appointment a1; // an alarm clock appointment
+        a1.color = "red";
+        a1.summary = "Alarm";
+        a1.summary = "http://www.example.com/";
+        a1.uid = "example";
+        a1.has_alarms = true;
+        a1.begin = a1.end = tomorrow;
+
+        Appointment a2; // a non-alarm appointment
+        a2.color = "green";
+        a2.summary = "Other Text";
+        a2.summary = "http://www.monkey.com/";
+        a2.uid = "monkey";
+        a2.has_alarms = false;
+        a2.begin = a2.end = tomorrow;
+
+        return std::vector<Appointment>({a1, a2});
+    }
+
+    void InspectAppointmentMenuItem(GMenuModel*         section,
+                                    int                 index,
+                                    const Appointment&  appt)
+    {
+        //  confirm it has the right x-canonical-type
+        gchar * str = nullptr;
+        g_menu_model_get_item_attribute(section, index, "x-canonical-type", "s", &str);
+        if (appt.has_alarms)
+            EXPECT_STREQ("com.canonical.indicator.alarm", str);
+        else
+            EXPECT_STREQ("com.canonical.indicator.appointment", str);
+        g_clear_pointer(&str, g_free);
+
+        // confirm it has a nonempty x-canonical-time-format
+        g_menu_model_get_item_attribute(section, index, "x-canonical-time-format", "s", &str);
+        EXPECT_TRUE(str && *str);
+        g_clear_pointer(&str, g_free);
+
+        // confirm the color hint, if it exists,
+        // is in the x-canonical-color attribute
+        if (appt.color.empty())
+        {
+            EXPECT_FALSE(g_menu_model_get_item_attribute(section,
+                                                         index,
+                                                         "x-canonical-color",
+                                                         "s",
+                                                         &str));
+        }
+        else
+        {
+            EXPECT_TRUE(g_menu_model_get_item_attribute(section,
+                                                        index,
+                                                        "x-canonical-color",
+                                                        "s",
+                                                        &str));
+            EXPECT_EQ(appt.color, str);
+        }
+        g_clear_pointer(&str, g_free);
+
+        // confirm that alarms have an icon
+        if (appt.has_alarms)
+        {
+            auto v = g_menu_model_get_item_attribute_value(section,
+                                                           index,
+                                                           G_MENU_ATTRIBUTE_ICON,
+                                                           nullptr);
+            EXPECT_TRUE(v != nullptr);
+            auto icon = g_icon_deserialize(v);
+            EXPECT_TRUE(icon != nullptr);
+            g_clear_object(&icon);
+            g_clear_pointer(&v, g_variant_unref);
+        }
+    }
+
+    void InspectAppointmentMenuItems(GMenuModel* section,
+                                     int first_appt_index,
+                                     const std::vector<Appointment>& appointments)
+    {
+        // try adding a few appointments and see if the menu updates itself
+        m_state->planner->upcoming.set(appointments);
+        wait_msec(); // wait a moment for the menu to update
+
+        //auto submenu = g_menu_model_get_item_link(menu_model, 0, G_MENU_LINK_SUBMENU);
+        //auto section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
+        EXPECT_EQ(appointments.size()+1, g_menu_model_get_n_items(section));
+
+        for (int i=0, n=appointments.size(); i<n; i++)
+            InspectAppointmentMenuItem(section, first_appt_index+i, appointments[i]);
+
+        //g_clear_object(&section);
+        //g_clear_object(&submenu);
+    }
+
+    void InspectDesktopAppointments(GMenuModel* menu_model)
+    {
         // get the Appointments section
         auto submenu = g_menu_model_get_item_link(menu_model, 0, G_MENU_LINK_SUBMENU);
 
@@ -180,87 +288,87 @@ protected:
         m_state->planner->upcoming.set(appointments);
         wait_msec();
         section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
-        int expected_n = appointments_expected ? 1 : 0;
-        EXPECT_EQ(expected_n, g_menu_model_get_n_items(section));
-        if (appointments_expected)
-        {
-            gchar* action = nullptr;
-            EXPECT_TRUE(g_menu_model_get_item_attribute(section, 0, G_MENU_ATTRIBUTE_ACTION, "s", &action));
-            EXPECT_STREQ("indicator.activate-planner", action);
-            EXPECT_TRUE(g_action_group_has_action(m_actions->action_group(), "activate-planner"));
-            g_free(action);
-        }
+        EXPECT_EQ(1, g_menu_model_get_n_items(section));
+        gchar* action = nullptr;
+        EXPECT_TRUE(g_menu_model_get_item_attribute(section, 0, G_MENU_ATTRIBUTE_ACTION, "s", &action));
+        const char* expected_action = "activate-planner";
+        EXPECT_EQ(std::string("indicator.")+expected_action, action);
+        EXPECT_TRUE(g_action_group_has_action(m_actions->action_group(), expected_action));
+        g_free(action);
         g_clear_object(&section);
 
         // try adding a few appointments and see if the menu updates itself
+        appointments = build_some_appointments();
+        m_state->planner->upcoming.set(appointments);
+        wait_msec(); // wait a moment for the menu to update
+        section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
+        EXPECT_EQ(3, g_menu_model_get_n_items(section));
+        InspectAppointmentMenuItems(section, 0, appointments);
+        g_clear_object(&section);
 
-        const auto now = m_state->clock->localtime();
-        auto gdt_tomorrow = g_date_time_add_days(now.get(), 1);
-        const auto tomorrow = DateTime(gdt_tomorrow);
-        g_date_time_unref(gdt_tomorrow);
+        // cleanup
+        g_clear_object(&submenu);
+    }
 
-        Appointment a1; // an alarm clock appointment
-        a1.color = "red";
-        a1.summary = "Alarm";
-        a1.summary = "http://www.example.com/";
-        a1.uid = "example";
-        a1.has_alarms = true;
-        a1.begin = a1.end = tomorrow;
-        appointments.push_back(a1);
+    void InspectPhoneAppointments(GMenuModel* menu_model)
+    {
+        auto submenu = g_menu_model_get_item_link(menu_model, 0, G_MENU_LINK_SUBMENU);
 
-        Appointment a2; // a non-alarm appointment
-        a2.color = "green";
-        a2.summary = "Other Text";
-        a2.summary = "http://www.monkey.com/";
-        a2.uid = "monkey";
-        a2.has_alarms = false;
-        a2.begin = a2.end = tomorrow;
-        appointments.push_back(a2);
-
+        // clear all the appointments
+        std::vector<Appointment> appointments;
         m_state->planner->upcoming.set(appointments);
         wait_msec(); // wait a moment for the menu to update
 
-        section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
-        expected_n = appointments_expected ? 3 : 0;
-        EXPECT_EQ(expected_n, g_menu_model_get_n_items(section));
-        if (appointments_expected)
-        {
-            gchar * str = nullptr;
-
-            // test the alarm
-            //  - confirm it has an x-canonical-type of "alarm"
-            g_menu_model_get_item_attribute(section, 0, "x-canonical-type", "s", &str);
-            EXPECT_STREQ("com.canonical.indicator.alarm", str);
-            g_clear_pointer(&str, g_free);
-            //  - confirm it has a nonempty x-canonical-time-format
-            g_menu_model_get_item_attribute(section, 0, "x-canonical-time-format", "s", &str);
-            EXPECT_TRUE(str && *str);
-            g_clear_pointer(&str, g_free);
-            //  - confirm it has a serialized icon attribute
-            auto v = g_menu_model_get_item_attribute_value(section, 0, G_MENU_ATTRIBUTE_ICON, nullptr);
-            EXPECT_TRUE(v != nullptr);
-            auto icon = g_icon_deserialize(v);
-            EXPECT_TRUE(icon != nullptr);
-            g_clear_object(&icon);
-            g_clear_pointer(&v, g_variant_unref);
-
-            // test the appointment
-            //  - confirm it has an x-canonical-type of "appointment"
-            g_menu_model_get_item_attribute(section, 1, "x-canonical-type", "s", &str);
-            EXPECT_STREQ("com.canonical.indicator.appointment", str);
-            g_clear_pointer(&str, g_free);
-            //  - confirm it has a nonempty x-canonical-time-format
-            g_menu_model_get_item_attribute(section, 0, "x-canonical-time-format", "s", &str);
-            EXPECT_TRUE(str && *str);
-            g_clear_pointer(&str, g_free);
-            //  - confirm its color matches the one we fed the appointments vector
-            g_menu_model_get_item_attribute(section, 1, "x-canonical-color", "s", &str);
-            EXPECT_EQ(a2.color, str);
-            g_clear_pointer(&str, g_free);
-        }
+        // check that there's a "clock app" menuitem even when there are no appointments
+        auto section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
+        const char* expected_action = "activate-phone-clock-app";
+        EXPECT_EQ(1, g_menu_model_get_n_items(section));
+        gchar* action = nullptr;
+        EXPECT_TRUE(g_menu_model_get_item_attribute(section, 0, G_MENU_ATTRIBUTE_ACTION, "s", &action));
+        EXPECT_EQ(std::string("indicator.")+expected_action, action);
+        EXPECT_TRUE(g_action_group_has_action(m_actions->action_group(), expected_action));
+        g_free(action);
         g_clear_object(&section);
 
-        g_object_unref(submenu);
+        // add some appointments and test them
+        appointments = build_some_appointments();
+        m_state->planner->upcoming.set(appointments);
+        wait_msec(); // wait a moment for the menu to update
+        section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
+        EXPECT_EQ(3, g_menu_model_get_n_items(section));
+        InspectAppointmentMenuItems(section, 1, appointments);
+        g_clear_object(&section);
+
+        // cleanup
+        g_clear_object(&submenu);
+    }
+
+protected:
+
+    void InspectAppointments(GMenuModel* menu_model, Menu::Profile profile)
+    {
+        switch (profile)
+        {
+            case Menu::Desktop:
+                InspectDesktopAppointments(menu_model);
+                break;
+
+            case Menu::DesktopGreeter:
+                InspectEmptySection(menu_model, Menu::Appointments);
+                break;
+
+            case Menu::Phone:
+                InspectPhoneAppointments(menu_model);
+                break;
+
+            case Menu::PhoneGreeter:
+                InspectEmptySection(menu_model, Menu::Appointments);
+                break;
+
+            default:
+                g_warn_if_reached();
+                break;
+        }
     }
 
     void CompareLocationsTo(GMenuModel* menu_model, const std::vector<Location>& locations)
