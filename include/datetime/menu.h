@@ -72,7 +72,6 @@ class MenuFactory
 public:
     MenuFactory (std::shared_ptr<Actions>& actions, std::shared_ptr<State>& state);
     std::shared_ptr<Menu> buildMenu(Menu::Profile profile);
-    std::shared_ptr<State> state();
 
 private:
     std::shared_ptr<Actions> m_actions;

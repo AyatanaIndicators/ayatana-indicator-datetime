@@ -558,11 +558,6 @@ MenuFactory::MenuFactory(std::shared_ptr<Actions>& actions_,
 {
 }
 
-std::shared_ptr<State> MenuFactory::state()
-{
-    return m_state;
-}
-
 std::shared_ptr<Menu>
 MenuFactory::buildMenu(Menu::Profile profile)
 {

@@ -51,7 +51,7 @@ public:
     virtual void set_location(const std::string& zone, const std::string& name)=0;
     void set_calendar_date(const DateTime&);
     GActionGroup* action_group();
-    std::shared_ptr<State> state();
+    const std::shared_ptr<State> state() const;
 
 protected:
     Actions(const std::shared_ptr<State>& state);

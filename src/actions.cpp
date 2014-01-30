@@ -65,7 +65,7 @@ void on_activate_appointment(GSimpleAction * /*action*/,
     g_return_if_fail(uid && *uid);
 
     // find url of the upcoming appointment with this uid
-    for (auto& appt : self->state()->planner->upcoming.get())
+    for (const auto& appt : self->state()->planner->upcoming.get())
     {
         if (appt.uid == uid)
         {
@@ -146,7 +146,7 @@ GVariant* create_default_header_state()
 GVariant* create_calendar_state(const std::shared_ptr<State>& state)
 {
     gboolean days[32] = { 0 };
-    for(const auto& appt : state->planner->thisMonth.get())
+    for (const auto& appt : state->planner->thisMonth.get())
         days[appt.begin.day_of_month()] = true;
 
     GVariantBuilder day_builder;
@@ -254,7 +254,7 @@ GActionGroup* Actions::action_group()
     return G_ACTION_GROUP(m_actions);
 }
 
-std::shared_ptr<State> Actions::state()
+const std::shared_ptr<State> Actions::state() const
 {
     return m_state;
 }
