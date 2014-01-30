@@ -35,6 +35,14 @@ const std::string& Location::name() const
     return m_name;
 }
 
+bool Location::operator== (const Location& that) const
+{
+    return (m_name == that.m_name)
+        && (m_zone == that.m_zone)
+        && (m_offset == that.m_offset);
+}
+
+
 Location::Location(const std::string& zone_, const std::string& name_):
     m_zone(zone_),
     m_name(name_)

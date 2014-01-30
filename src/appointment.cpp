@@ -17,29 +17,32 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_TIMEZONE_H
-#define INDICATOR_DATETIME_TIMEZONE_H
-
-#include <core/property.h>
-
-#include <string>
+#include <datetime/appointment.h>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
-/** \brief Base a timezone, such as "America/Chicago". */
-class Timezone
-{
-protected:
-    Timezone() =default;
+/****
+*****
+****/
 
-public:
-    core::Property<std::string> timezone;
-};
+bool Appointment::operator==(const Appointment& that) const
+{
+    return (color==that.color)
+        && (summary==that.summary)
+        && (url==that.url)
+        && (uid==that.uid)
+        && (is_event==that.is_event)
+        && (has_alarms==that.has_alarms)
+        && (begin==that.begin)
+        && (end==that.end);
+}
+
+/****
+*****
+****/
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
-
-#endif // INDICATOR_DATETIME_TIMEZONE_H

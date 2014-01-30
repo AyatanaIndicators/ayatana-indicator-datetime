@@ -31,6 +31,11 @@ namespace datetime {
 ****
 ***/
 
+LiveActions::LiveActions(const std::shared_ptr<State>& state_in):
+    Actions(state_in)
+{
+}
+
 void LiveActions::execute_command(const std::string& cmdstr)
 {
     const auto cmd = cmdstr.c_str();

@@ -48,7 +48,7 @@ public:
     GMenuModel* menu_model();
 
 protected:
-    Menu (Profile profile_in, const std::string& name_in): m_profile(profile_in), m_name(name_in) {}
+    Menu (Profile profile_in, const std::string& name_in);
     virtual ~Menu() =default;
     GMenu* m_menu = nullptr;
 

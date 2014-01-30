@@ -23,6 +23,20 @@ namespace unity {
 namespace indicator {
 namespace datetime {
 
+FileTimezone::FileTimezone()
+{
+}
+
+FileTimezone::FileTimezone(const std::string& filename)
+{
+    setFilename(filename);
+}
+
+FileTimezone::~FileTimezone()
+{
+    clear();
+}
+
 void
 FileTimezone::clear()
 {

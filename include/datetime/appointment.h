@@ -45,17 +45,7 @@ public:
     DateTime begin;
     DateTime end;
 
-    bool operator== (const Appointment& that) const
-    {
-      return (color==that.color) &&
-             (summary==that.summary) &&
-             (url==that.url) &&
-             (uid==that.uid) &&
-             (is_event==that.is_event) &&
-             (has_alarms==that.has_alarms) &&
-             (begin==that.begin) &&
-             (end==that.end);
-    }
+    bool operator== (const Appointment& that) const;
 };
 
 } // namespace datetime

@@ -36,7 +36,7 @@ namespace datetime {
 class LiveActions: public Actions
 {
 public:
-    LiveActions(const std::shared_ptr<State>& state_in): Actions(state_in) {}
+    LiveActions(const std::shared_ptr<State>& state_in);
     ~LiveActions() =default;
 
     void open_desktop_settings();

@@ -37,9 +37,9 @@ namespace datetime {
 class FileTimezone: public Timezone
 {
 public:
-    FileTimezone() {}
-    FileTimezone(const std::string& filename) { setFilename(filename); }
-    ~FileTimezone() {clear();}
+    FileTimezone();
+    FileTimezone(const std::string& filename);
+    ~FileTimezone();
 
 private:
     void setFilename(const std::string& filename);

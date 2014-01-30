@@ -35,6 +35,12 @@ namespace datetime {
 *****
 ****/
 
+Menu::Menu (Profile profile_in, const std::string& name_in):
+    m_profile(profile_in),
+    m_name(name_in)
+{
+}
+
 const std::string& Menu::name() const
 {
     return m_name;

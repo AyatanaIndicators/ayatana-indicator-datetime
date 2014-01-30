@@ -39,18 +39,10 @@ namespace datetime {
 class Location
 {
 public:
-    const std::string& zone() const;
-
-    const std::string& name() const;
-
-    bool operator== (const Location& that) const
-    {
-        return (name() == that.name()) &&
-               (zone() == that.zone()) &&
-               (m_offset == that.m_offset);
-    }
-
     Location (const std::string& zone, const std::string& name);
+    const std::string& zone() const;
+    const std::string& name() const;
+    bool operator== (const Location& that) const;
 
 private:
 

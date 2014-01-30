@@ -15,6 +15,7 @@ endif ()
 add_library (${SERVICE_LIB} STATIC
              actions.cpp
              actions-live.cpp
+             appointment.cpp
              clock.cpp
              clock-live.cpp
              date-time.cpp

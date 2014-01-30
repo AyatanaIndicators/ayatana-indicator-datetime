@@ -27,6 +27,23 @@ namespace datetime {
 ****
 ***/
 
+DateTime::DateTime(GDateTime* gdt)
+{
+    reset(gdt);
+}
+
+DateTime& DateTime::operator=(GDateTime* gdt)
+{
+    reset(gdt);
+    return *this;
+}
+
+DateTime& DateTime::operator=(const DateTime& that)
+{
+    m_dt = that.m_dt;
+    return *this;
+}
+
 DateTime::DateTime(time_t t)
 {
     GDateTime * gdt = g_date_time_new_from_unix_local(t);

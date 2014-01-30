@@ -37,9 +37,9 @@ class DateTime
 public:
     static DateTime NowLocal();
     explicit DateTime(time_t t);
-    explicit DateTime(GDateTime* in=nullptr) {reset(in);}
-    DateTime& operator=(GDateTime* in) {reset(in); return *this;}
-    DateTime& operator=(const DateTime& in) {m_dt=in.m_dt; return *this; }
+    explicit DateTime(GDateTime* in=nullptr);
+    DateTime& operator=(GDateTime* in);
+    DateTime& operator=(const DateTime& in);
     DateTime to_timezone(const std::string& zone) const;
     void reset(GDateTime* in=nullptr);
 
