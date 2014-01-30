@@ -50,8 +50,8 @@ public:
     virtual void open_appointment(const std::string& uid) =0;
     virtual void set_location(const std::string& zone, const std::string& name)=0;
     void set_calendar_date(const DateTime&);
-    GActionGroup* action_group() { return G_ACTION_GROUP(m_actions); }
-    std::shared_ptr<State> state() { return m_state; }
+    GActionGroup* action_group();
+    std::shared_ptr<State> state();
 
 protected:
     Actions(const std::shared_ptr<State>& state);

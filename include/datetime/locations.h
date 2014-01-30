@@ -39,9 +39,9 @@ namespace datetime {
 class Location
 {
 public:
-    const std::string& zone() const { return m_zone; }
+    const std::string& zone() const;
 
-    const std::string& name() const { return m_name; }
+    const std::string& name() const;
 
     bool operator== (const Location& that) const
     {

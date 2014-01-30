@@ -35,6 +35,27 @@ namespace datetime {
 *****
 ****/
 
+const std::string& Menu::name() const
+{
+    return m_name;
+}
+
+Menu::Profile Menu::profile() const
+{
+    return m_profile;
+}
+
+GMenuModel* Menu::menu_model()
+{
+    return G_MENU_MODEL(m_menu);
+}
+
+
+/****
+*****
+****/
+
+
 #define FALLBACK_ALARM_CLOCK_ICON_NAME "clock"
 #define CALENDAR_ICON_NAME "calendar"
 
@@ -529,6 +550,11 @@ MenuFactory::MenuFactory(std::shared_ptr<Actions>& actions_,
     m_actions(actions_),
     m_state(state_)
 {
+}
+
+std::shared_ptr<State> MenuFactory::state()
+{
+    return m_state;
 }
 
 std::shared_ptr<Menu>

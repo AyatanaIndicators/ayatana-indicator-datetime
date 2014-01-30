@@ -249,6 +249,17 @@ void Actions::set_calendar_date(const DateTime& date)
     m_state->planner->time.set(date);
 }
 
+GActionGroup* Actions::action_group()
+{
+    return G_ACTION_GROUP(m_actions);
+}
+
+std::shared_ptr<State> Actions::state()
+{
+    return m_state;
+}
+
+
 
 } // namespace datetime
 } // namespace indicator

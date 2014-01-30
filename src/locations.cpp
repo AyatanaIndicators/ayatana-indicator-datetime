@@ -25,6 +25,16 @@ namespace unity {
 namespace indicator {
 namespace datetime {
 
+const std::string& Location::zone() const
+{
+    return m_zone;
+}
+
+const std::string& Location::name() const
+{
+    return m_name;
+}
+
 Location::Location(const std::string& zone_, const std::string& name_):
     m_zone(zone_),
     m_name(name_)

@@ -43,9 +43,9 @@ class Menu
 public:
     enum Profile { Desktop, DesktopGreeter, Phone, PhoneGreeter, NUM_PROFILES };
     enum Section { Calendar, Appointments, Locations, Settings, NUM_SECTIONS };
-    const std::string& name() const { return m_name; }
-    Profile profile() const { return m_profile; }
-    GMenuModel* menu_model() { return G_MENU_MODEL(m_menu); }
+    const std::string& name() const;
+    Profile profile() const;
+    GMenuModel* menu_model();
 
 protected:
     Menu (Profile profile_in, const std::string& name_in): m_profile(profile_in), m_name(name_in) {}
@@ -72,7 +72,7 @@ class MenuFactory
 public:
     MenuFactory (std::shared_ptr<Actions>& actions, std::shared_ptr<State>& state);
     std::shared_ptr<Menu> buildMenu(Menu::Profile profile);
-    std::shared_ptr<State> state() { return m_state; }
+    std::shared_ptr<State> state();
 
 private:
     std::shared_ptr<Actions> m_actions;
