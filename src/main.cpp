@@ -17,10 +17,17 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+
 #include <datetime/actions-live.h>
+#include <datetime/clock.h>
 #include <datetime/exporter.h>
+#include <datetime/locations-settings.h>
 #include <datetime/menu.h>
-#include <datetime/state-live.h>
+#include <datetime/planner-eds.h>
+#include <datetime/settings-live.h>
+#include <datetime/state.h>
+#include <datetime/timezones-live.h>
 
 #include <glib/gi18n.h> // bindtextdomain()
 #include <gio/gio.h>
@@ -47,8 +54,16 @@ main(int /*argc*/, char** /*argv*/)
     if(!notify_init("indicator-datetime-service"))
         g_critical("libnotify initialization failed");
 
-    // build the state and actions for the MenuFactory to use
-    std::shared_ptr<State> state(new LiveState);
+    // build the state, actions, and menufactory
+    std::shared_ptr<State> state(new State);
+    std::shared_ptr<Settings> live_settings(new LiveSettings);
+    std::shared_ptr<Timezones> live_timezones(new LiveTimezones(live_settings, TIMEZONE_FILE));
+    std::shared_ptr<Clock> live_clock(new LiveClock(live_timezones));
+    state->settings = live_settings;
+    state->clock = live_clock;
+    state->locations.reset(new SettingsLocations(live_settings, live_timezones));
+    state->planner.reset(new PlannerEds);
+    state->planner->time = live_clock->localtime();
     std::shared_ptr<Actions> actions(new LiveActions(state));
     MenuFactory factory(actions, state);
 
