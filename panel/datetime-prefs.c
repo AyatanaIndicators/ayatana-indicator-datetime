@@ -862,7 +862,11 @@ g_io_module_load (GIOModule *module)
   indicator_datetime_panel_register_type (G_TYPE_MODULE (module));
   g_io_extension_point_implement (CC_SHELL_PANEL_EXTENSION_POINT,
                                   INDICATOR_DATETIME_TYPE_PANEL,
+#if USE_UNITY
+                                  "datetime", 0);
+#else
                                   "indicator-datetime", 0);
+#endif
 }
 
 void
