@@ -17,28 +17,45 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_MOCK_H
-#define INDICATOR_DATETIME_PLANNER_MOCK_H
+#ifndef INDICATOR_DATETIME_CLOCK_MOCK_H
+#define INDICATOR_DATETIME_CLOCK_MOCK_H
 
-#include <datetime/planner.h>
+#include <datetime/clock.h>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
+/***
+****
+***/
+
 /**
- * \brief Planner which does nothing on its own.
- *        It requires its client must set its appointments property.
+ * \brief A clock that uses a client-provided time instead of the system time.
  */
-class MockPlanner: public Planner
+class MockClock: public Clock
 {
 public:
-    MockPlanner() =default;
-    virtual ~MockPlanner() =default;
+    MockClock(const DateTime& dt): m_localtime(dt) {}
+    ~MockClock() =default;
+
+    DateTime localtime() const { return m_localtime; }
+
+    void set_localtime(const DateTime& dt) {
+        const auto old = m_localtime;
+        m_localtime = dt;
+        if (!DateTime::is_same_minute(old, m_localtime))
+            minute_changed();
+        if (!DateTime::is_same_day(old, m_localtime))
+            date_changed();
+    }
+
+private:
+    DateTime m_localtime;
 };
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_PLANNER_MOCK_H
+#endif // INDICATOR_DATETIME_CLOCK_MOCK_H

@@ -28,12 +28,40 @@ add_custom_command (OUTPUT gschemas.compiled
 # look for headers in our src dir, and also in the directories where we autogenerate files...
 include_directories (${CMAKE_SOURCE_DIR}/src)
 include_directories (${CMAKE_CURRENT_BINARY_DIR})
-include_directories (${SERVICE_DEPS_INCLUDE_DIRS})
+include_directories (${DBUSTEST_INCLUDE_DIRS})
 
-# test-formatter
-set (TEST_NAME test-formatter)
-add_executable (${TEST_NAME} test-formatter.cc)
-add_test (${TEST_NAME} ${TEST_NAME})
-add_dependencies (${TEST_NAME} libindicatordatetimeservice)
-target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
+add_definitions (-DSANDBOX="${CMAKE_CURRENT_BINARY_DIR}")
 
+
+function(add_test_by_name name)
+  set (TEST_NAME ${name})
+  add_executable (${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
+  add_test (${TEST_NAME} ${TEST_NAME})
+  add_dependencies (${TEST_NAME} libindicatordatetimeservice)
+  target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
+endfunction()
+add_test_by_name(test-actions)
+add_test_by_name(test-clock)
+add_test_by_name(test-exporter)
+add_test_by_name(test-formatter)
+add_test_by_name(test-live-actions)
+add_test_by_name(test-locations)
+add_test_by_name(test-menus)
+add_test_by_name(test-planner)
+add_test_by_name(test-settings)
+add_test_by_name(test-timezone-file)
+add_test_by_name(test-utils)
+
+
+# disabling the timezone unit tests because they require
+# https://code.launchpad.net/~ted/dbus-test-runner/multi-interface-test/+merge/199724
+# which hasn't landed yet. These can be re-enabled as soon as that lands.
+#function(add_dbusmock_test_by_name name)
+#  set (TEST_NAME ${name})
+#  add_executable (${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
+#  add_test (${TEST_NAME} ${TEST_NAME})
+#  add_dependencies (${TEST_NAME} libindicatordatetimeservice)
+#  target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${DBUSTEST_LIBRARIES} ${GTEST_LIBS})
+#endfunction()
+#add_dbusmock_test_by_name(test-timezone-geoclue)
+#add_dbusmock_test_by_name(test-timezones)

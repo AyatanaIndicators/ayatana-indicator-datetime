@@ -14,31 +14,12 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Authors:
+ *   Ted Gould <ted@canonical.com>
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_MOCK_H
-#define INDICATOR_DATETIME_PLANNER_MOCK_H
 
-#include <datetime/planner.h>
+#define BUS_NAME "com.canonical.indicator.datetime"
 
-namespace unity {
-namespace indicator {
-namespace datetime {
+#define BUS_PATH "/com/canonical/indicator/datetime"
 
-/**
- * \brief Planner which does nothing on its own.
- *        It requires its client must set its appointments property.
- */
-class MockPlanner: public Planner
-{
-public:
-    MockPlanner() =default;
-    virtual ~MockPlanner() =default;
-};
-
-} // namespace datetime
-} // namespace indicator
-} // namespace unity
-
-#endif // INDICATOR_DATETIME_PLANNER_MOCK_H

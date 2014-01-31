@@ -17,28 +17,27 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_MOCK_H
-#define INDICATOR_DATETIME_PLANNER_MOCK_H
+#include "planner-mock.h"
 
-#include <datetime/planner.h>
+#include <datetime/clock-mock.h>
+#include <datetime/state.h>
 
-namespace unity {
-namespace indicator {
-namespace datetime {
+using namespace unity::indicator::datetime;
 
-/**
- * \brief Planner which does nothing on its own.
- *        It requires its client must set its appointments property.
- */
-class MockPlanner: public Planner
+class MockState: public State
 {
 public:
-    MockPlanner() =default;
-    virtual ~MockPlanner() =default;
+    std::shared_ptr<MockClock> mock_clock;
+
+    MockState()
+    {
+        const DateTime now = DateTime::NowLocal();
+        mock_clock.reset(new MockClock(now));
+        settings.reset(new Settings);
+        clock = std::dynamic_pointer_cast<Clock>(mock_clock);
+        planner.reset(new MockPlanner);
+        planner->time = now;
+        locations.reset(new Locations);
+    }
 };
 
-} // namespace datetime
-} // namespace indicator
-} // namespace unity
-
-#endif // INDICATOR_DATETIME_PLANNER_MOCK_H

@@ -17,28 +17,43 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_MOCK_H
-#define INDICATOR_DATETIME_PLANNER_MOCK_H
+#include <datetime/locations.h>
 
-#include <datetime/planner.h>
+#include <glib.h>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
-/**
- * \brief Planner which does nothing on its own.
- *        It requires its client must set its appointments property.
- */
-class MockPlanner: public Planner
+const std::string& Location::zone() const
 {
-public:
-    MockPlanner() =default;
-    virtual ~MockPlanner() =default;
-};
+    return m_zone;
+}
+
+const std::string& Location::name() const
+{
+    return m_name;
+}
+
+bool Location::operator== (const Location& that) const
+{
+    return (m_name == that.m_name)
+        && (m_zone == that.m_zone)
+        && (m_offset == that.m_offset);
+}
+
+
+Location::Location(const std::string& zone_, const std::string& name_):
+    m_zone(zone_),
+    m_name(name_)
+{
+    auto gzone = g_time_zone_new (zone().c_str());
+    auto gtime = g_date_time_new_now (gzone);
+    m_offset = g_date_time_get_utc_offset (gtime);
+    g_date_time_unref (gtime);
+    g_time_zone_unref (gzone);
+}
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
-
-#endif // INDICATOR_DATETIME_PLANNER_MOCK_H

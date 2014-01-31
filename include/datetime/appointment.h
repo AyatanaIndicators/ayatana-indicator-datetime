@@ -17,28 +17,39 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_MOCK_H
-#define INDICATOR_DATETIME_PLANNER_MOCK_H
+#ifndef INDICATOR_DATETIME_APPOINTMENT_H
+#define INDICATOR_DATETIME_APPOINTMENT_H
 
-#include <datetime/planner.h>
+#include <datetime/date-time.h>
+#include <string>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
 /**
- * \brief Planner which does nothing on its own.
- *        It requires its client must set its appointments property.
+ * \brief Plain Old Data Structure that represents a calendar appointment.
+ *
+ * @see Planner
  */
-class MockPlanner: public Planner
+struct Appointment
 {
 public:
-    MockPlanner() =default;
-    virtual ~MockPlanner() =default;
+    std::string color; 
+    std::string summary;
+    std::string url;
+    std::string uid;
+    bool is_event = false;
+    bool is_daily = false;
+    bool has_alarms = false;
+    DateTime begin;
+    DateTime end;
+
+    bool operator== (const Appointment& that) const;
 };
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_PLANNER_MOCK_H
+#endif // INDICATOR_DATETIME_APPOINTMENT_H

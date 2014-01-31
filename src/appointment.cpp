@@ -17,28 +17,32 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_MOCK_H
-#define INDICATOR_DATETIME_PLANNER_MOCK_H
-
-#include <datetime/planner.h>
+#include <datetime/appointment.h>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
-/**
- * \brief Planner which does nothing on its own.
- *        It requires its client must set its appointments property.
- */
-class MockPlanner: public Planner
+/****
+*****
+****/
+
+bool Appointment::operator==(const Appointment& that) const
 {
-public:
-    MockPlanner() =default;
-    virtual ~MockPlanner() =default;
-};
+    return (color==that.color)
+        && (summary==that.summary)
+        && (url==that.url)
+        && (uid==that.uid)
+        && (is_event==that.is_event)
+        && (has_alarms==that.has_alarms)
+        && (begin==that.begin)
+        && (end==that.end);
+}
+
+/****
+*****
+****/
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
-
-#endif // INDICATOR_DATETIME_PLANNER_MOCK_H

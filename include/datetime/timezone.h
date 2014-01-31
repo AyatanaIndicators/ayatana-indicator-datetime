@@ -17,28 +17,29 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_MOCK_H
-#define INDICATOR_DATETIME_PLANNER_MOCK_H
+#ifndef INDICATOR_DATETIME_TIMEZONE_H
+#define INDICATOR_DATETIME_TIMEZONE_H
 
-#include <datetime/planner.h>
+#include <core/property.h>
+
+#include <string>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
-/**
- * \brief Planner which does nothing on its own.
- *        It requires its client must set its appointments property.
- */
-class MockPlanner: public Planner
+/** \brief Base a timezone, such as "America/Chicago". */
+class Timezone
 {
+protected:
+    Timezone() =default;
+
 public:
-    MockPlanner() =default;
-    virtual ~MockPlanner() =default;
+    core::Property<std::string> timezone;
 };
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_PLANNER_MOCK_H
+#endif // INDICATOR_DATETIME_TIMEZONE_H

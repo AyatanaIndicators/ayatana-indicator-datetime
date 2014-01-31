@@ -17,28 +17,39 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_MOCK_H
-#define INDICATOR_DATETIME_PLANNER_MOCK_H
+#ifndef INDICATOR_DATETIME_SETTINGS_LOCATIONS_H
+#define INDICATOR_DATETIME_SETTINGS_LOCATIONS_H
 
-#include <datetime/planner.h>
+#include <datetime/locations.h> // base class
+
+#include <datetime/settings.h>
+#include <datetime/timezones.h>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
 /**
- * \brief Planner which does nothing on its own.
- *        It requires its client must set its appointments property.
+ * \brief #Locations implementation which builds its list from the #Settings.
  */
-class MockPlanner: public Planner
+class SettingsLocations: public Locations
 {
 public:
-    MockPlanner() =default;
-    virtual ~MockPlanner() =default;
+    /**
+     * @param[in] settings the #Settings whose locations property is to be used
+     * @param[in] timezones the #Timezones to always show first in the list
+     */
+    SettingsLocations (const std::shared_ptr<const Settings>& settings,
+                       const std::shared_ptr<const Timezones>& timezones);
+
+private:
+    std::shared_ptr<const Settings> m_settings;
+    std::shared_ptr<const Timezones> m_timezones;
+    void reload();
 };
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_PLANNER_MOCK_H
+#endif // INDICATOR_DATETIME_SETTINGS_LOCATIONS_H

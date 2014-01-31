@@ -17,28 +17,33 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_MOCK_H
-#define INDICATOR_DATETIME_PLANNER_MOCK_H
+#ifndef INDICATOR_DATETIME_PLANNER_EDS_H
+#define INDICATOR_DATETIME_PLANNER_EDS_H
 
 #include <datetime/planner.h>
+
+#include <memory> // unique_ptr
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
 /**
- * \brief Planner which does nothing on its own.
- *        It requires its client must set its appointments property.
+ * \brief Planner which uses EDS as its backend
  */
-class MockPlanner: public Planner
+class PlannerEds: public Planner
 {
 public:
-    MockPlanner() =default;
-    virtual ~MockPlanner() =default;
+    PlannerEds();
+    virtual ~PlannerEds();
+
+private:
+    class Impl;
+    std::unique_ptr<Impl> p;
 };
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_PLANNER_MOCK_H
+#endif // INDICATOR_DATETIME_PLANNER_EDS_H

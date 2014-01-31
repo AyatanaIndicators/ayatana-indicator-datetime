@@ -17,28 +17,40 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_MOCK_H
-#define INDICATOR_DATETIME_PLANNER_MOCK_H
+#ifndef INDICATOR_DATETIME_LIVE_TIMEZONES_H
+#define INDICATOR_DATETIME_LIVE_TIMEZONES_H
 
-#include <datetime/planner.h>
+#include <datetime/settings.h>
+#include <datetime/timezones.h>
+#include <datetime/timezone-file.h>
+#include <datetime/timezone-geoclue.h>
+
+#include <memory> // shared_ptr<>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
 /**
- * \brief Planner which does nothing on its own.
- *        It requires its client must set its appointments property.
+ * \brief #Timezones object that uses a #FileTimezone and #GeoclueTimezone
+ *        to detect what timezone we're in
  */
-class MockPlanner: public Planner
+class LiveTimezones: public Timezones
 {
 public:
-    MockPlanner() =default;
-    virtual ~MockPlanner() =default;
+    LiveTimezones(const std::shared_ptr<const Settings>& settings, const std::string& filename);
+
+private:
+    void update_geolocation();
+    void update_timezones();
+
+    FileTimezone m_file;
+    std::shared_ptr<const Settings> m_settings;
+    std::shared_ptr<GeoclueTimezone> m_geo;
 };
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_PLANNER_MOCK_H
+#endif // INDICATOR_DATETIME_LIVE_TIMEZONES_H

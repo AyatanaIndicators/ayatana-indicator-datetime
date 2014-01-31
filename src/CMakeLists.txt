@@ -1,6 +1,9 @@
 set (SERVICE_LIB "indicatordatetimeservice")
 set (SERVICE_EXEC "indicator-datetime-service")
 
+SET (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -std=c99   -g ${CXX_WARNING_ARGS} ${GCOV_FLAGS}")
+SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g ${CXX_WARNING_ARGS} ${GCOV_FLAGS}")
+
 add_definitions (-DTIMEZONE_FILE="/etc/timezone"
                  -DG_LOG_DOMAIN="Indicator-Datetime")
 
@@ -10,36 +13,28 @@ if (BUILD_PANEL)
 endif ()
 
 add_library (${SERVICE_LIB} STATIC
-             clock.c
-             clock.h
-             clock-live.c
-             clock-live.h
-             planner.c
-             planner.h
-             planner-eds.c
-             planner-eds.h
-             service.c
-             service.h
-             timezone.c
-             timezone.h
-             timezone-file.c
-             timezone-file.h
-             timezone-geoclue.c
-             timezone-geoclue.h
-             utils.c
-             utils.h
-             dbus-shared.h
-             settings-shared.h)
-include_directories (${SERVICE_DEPS_INCLUDE_DIRS})
+             actions.cpp
+             actions-live.cpp
+             appointment.cpp
+             clock.cpp
+             clock-live.cpp
+             date-time.cpp
+             exporter.cpp
+             formatter.cpp
+             formatter-desktop.cpp
+             locations.cpp
+             locations-settings.cpp
+             menu.cpp
+             planner-eds.cpp
+             settings-live.cpp
+             timezone-file.cpp
+             timezone-geoclue.cpp
+             timezones-live.cpp
+             utils.c)
+include_directories (${CMAKE_SOURCE_DIR})
 link_directories (${SERVICE_DEPS_LIBRARY_DIRS})
 
-add_executable (${SERVICE_EXEC} main.c)
+add_executable (${SERVICE_EXEC} main.cpp)
 target_link_libraries (${SERVICE_EXEC} ${SERVICE_LIB} ${SERVICE_DEPS_LIBRARIES} ${GCOV_LIBS})
 install (TARGETS ${SERVICE_EXEC} RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_PKGLIBEXECDIR})
-
-# common properties
-set_property (TARGET ${SERVICE_LIB} ${SERVICE_EXEC}
-              APPEND_STRING PROPERTY COMPILE_FLAGS
-              " -g ${CC_WARNING_ARGS} ${GCOV_FLAGS}")
-
 

@@ -17,28 +17,43 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_MOCK_H
-#define INDICATOR_DATETIME_PLANNER_MOCK_H
+#ifndef INDICATOR_DATETIME_TIMEZONES_H
+#define INDICATOR_DATETIME_TIMEZONES_H
 
-#include <datetime/planner.h>
+#include <datetime/timezone.h>
+
+#include <core/property.h>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
 /**
- * \brief Planner which does nothing on its own.
- *        It requires its client must set its appointments property.
+ * \brief Helper class which aggregates one or more timezones
+ *
+ * @see LiveClock
+ * @see SettingsLocations
  */
-class MockPlanner: public Planner
+class Timezones
 {
 public:
-    MockPlanner() =default;
-    virtual ~MockPlanner() =default;
+    Timezones() =default;
+    virtual ~Timezones() =default;
+
+    /**
+     * \brief the current timezone
+     */
+    core::Property<std::string> timezone;
+
+    /**
+     * \brief all the detected timezones.
+     * The count is >1 iff the detection mechamisms disagree.
+     */
+    core::Property<std::set<std::string> > timezones;
 };
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_PLANNER_MOCK_H
+#endif // INDICATOR_DATETIME_TIMEZONES_H
