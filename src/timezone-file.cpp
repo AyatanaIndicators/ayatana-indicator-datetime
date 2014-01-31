@@ -19,6 +19,9 @@
 
 #include <datetime/timezone-file.h>
 
+#include <cerrno>
+#include <cstdlib>
+
 namespace unity {
 namespace indicator {
 namespace datetime {
@@ -53,9 +56,19 @@ FileTimezone::setFilename(const std::string& filename)
 {
     clear();
 
-    m_filename = filename;
+    auto tmp = realpath(filename.c_str(), nullptr);
+    if(tmp != nullptr)
+      {
+        m_filename = tmp;
+        free(tmp);
+      }
+    else
+      {
+        g_warning("Unable to resolve path '%s': %s", filename.c_str(), g_strerror(errno));
+        m_filename = filename; // better than nothing?
+      }
 
-    auto file = g_file_new_for_path(filename.c_str());
+    auto file = g_file_new_for_path(m_filename.c_str());
     GError * err = nullptr;
     m_monitor = g_file_monitor_file(file, G_FILE_MONITOR_NONE, nullptr, &err);
     g_object_unref(file);
@@ -67,7 +80,7 @@ FileTimezone::setFilename(const std::string& filename)
     else
       {
         m_monitor_handler_id = g_signal_connect_swapped(m_monitor, "changed", G_CALLBACK(onFileChanged), this);
-        g_debug("%s Monitoring timezone file '%s'", G_STRLOC, filename.c_str());
+        g_debug("%s Monitoring timezone file '%s'", G_STRLOC, m_filename.c_str());
       }
 
     reload();
