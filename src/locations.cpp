@@ -54,29 +54,6 @@ Location::Location(const std::string& zone_, const std::string& name_):
     g_time_zone_unref (gzone);
 }
 
-#if 0
-DateTime Location::localtime(const DateTime& reference_point) const
-{
-GDateTime *         g_date_time_to_timezone             (GDateTime *datetime,
-                                                         GTimeZone *tz);
-    auto gzone = g_time_zone_new(zone().c_str());
-    const auto gtime = reference_point.get();
-    auto glocal = g_date_time_new (gzone,
-                                   g_date_time_get_year(gtime),
-                                   g_date_time_get_month(gtime),
-                                   g_date_time_get_day_of_month(gtime),
-                                   g_date_time_get_hour(gtime),
-                                   g_date_time_get_minute(gtime),
-                                   g_date_time_get_seconds(gtime));
-    DateTime local(glocal);
-    g_date_time_unref(glocal);
-    g_message("reference: %zu", (size_t)reference_point.to_unix(), (size_t)local.to_unix());
-    //g_date_time_unref(gtime);
-    g_time_zone_unref(gzone);
-    return local;
-}
-#endif
-
 } // namespace datetime
 } // namespace indicator
 } // namespace unity

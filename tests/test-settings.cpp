@@ -189,9 +189,3 @@ TEST_F(SettingsFixture, Locations)
     g_strfreev(tmp);
     EXPECT_EQ(bv, vtmp);
 }
-
-#if 0
-    core::Property<std::vector<std::string>> locations;
-    core::Property<TimeFormatMode> time_format_mode;
-
-#endif
