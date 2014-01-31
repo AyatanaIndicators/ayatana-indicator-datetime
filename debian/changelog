@@ -1,3 +1,21 @@
+indicator-datetime (13.10.0+14.04.20140131-0ubuntu1) trusty; urgency=low
+
+  [ Charles Kerr ]
+  * Finally land this. Other, still open bugs will be fixed in
+    subsequent commits. (LP: #793450)
+
+  [ Sebastien Bacher ]
+  * Use the correct location for datetime-dialog.ui. (LP: #1274046)
+
+  [ Lars Uebernickel ]
+  * Set calendar to the current date when the menu is popped up This
+    makes use of the "submenu-action" attribute to get notified when the
+    menu is popped up. Charles, if your big refactoring-branch should
+    land before this, do you mind adapting this patch for that? Thanks .
+    (LP: #793450)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 31 Jan 2014 11:46:16 +0000
+
 indicator-datetime (13.10.0+14.04.20140124-0ubuntu1) trusty; urgency=low
 
   [ Robert Ancell ]
