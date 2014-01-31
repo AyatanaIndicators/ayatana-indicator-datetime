@@ -146,7 +146,7 @@ GVariant* create_default_header_state()
 GVariant* create_calendar_state(const std::shared_ptr<State>& state)
 {
     gboolean days[32] = { 0 };
-    for (const auto& appt : state->planner->thisMonth.get())
+    for (const auto& appt : state->planner->this_month.get())
         days[appt.begin.day_of_month()] = true;
 
     GVariantBuilder day_builder;
@@ -222,7 +222,7 @@ Actions::Actions(const std::shared_ptr<State>& state):
     m_state->planner->time.changed().connect([this](const DateTime&){
         update_calendar_state();
     });
-    m_state->planner->thisMonth.changed().connect([this](const std::vector<Appointment>&){
+    m_state->planner->this_month.changed().connect([this](const std::vector<Appointment>&){
         update_calendar_state();
     });
     m_state->settings->show_week_numbers.changed().connect([this](bool){

@@ -69,27 +69,27 @@ class Formatter
 public:
 
     /** \brief The time format string for the menu header */
-    core::Property<std::string> headerFormat;
+    core::Property<std::string> header_format;
 
-    /** \brief The time string for the menu header. (eg, the headerFormat + the clock's time */
+    /** \brief The time string for the menu header. (eg, the header_format + the clock's time */
     core::Property<std::string> header;
 
     /** \brief Signal to denote when the relativeFormat has changed.
                When this is emitted, clients will want to rebuild their
                menuitems that contain relative time strings
                (ie, the Appointments and Locations menuitems) */
-    core::Signal<> relativeFormatChanged;
+    core::Signal<> relative_format_changed;
 
     /** \brief Generate a relative time format for some time (or time range)
                from the current clock's value. For example, a full-day interval
                starting at the end of the current clock's day yields "Tomorrow" */
-    std::string getRelativeFormat(GDateTime* then, GDateTime* then_end=nullptr) const;
+    std::string relative_format(GDateTime* then, GDateTime* then_end=nullptr) const;
 
 protected:
     Formatter(const std::shared_ptr<const Clock>&);
     virtual ~Formatter();
 
-    static const char* getDefaultHeaderTimeFormat(bool twelvehour, bool show_seconds);
+    static const char* default_header_time_format(bool twelvehour, bool show_seconds);
 
 private:
 
@@ -127,7 +127,7 @@ class PhoneFormatter: public Formatter
 {
 public:
     PhoneFormatter(const std::shared_ptr<const Clock>& clock): Formatter(clock) {
-        headerFormat.set(getDefaultHeaderTimeFormat(is_locale_12h(), false));
+        header_format.set(default_header_time_format(is_locale_12h(), false));
     }
 };
 

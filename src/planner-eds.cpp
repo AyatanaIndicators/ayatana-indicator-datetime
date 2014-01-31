@@ -227,7 +227,7 @@ private:
         {
             getAppointments(begin, end, [this](const std::vector<Appointment>& appointments) {
                 g_debug("got %d appointments in this calendar month", (int)appointments.size());
-                m_owner.thisMonth.set(appointments);
+                m_owner.this_month.set(appointments);
             });
         }
         g_clear_pointer(&begin, g_date_time_unref);

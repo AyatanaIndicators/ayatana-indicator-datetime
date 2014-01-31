@@ -45,9 +45,9 @@ public:
         const auto old = m_localtime;
         m_localtime = dt;
         if (!DateTime::is_same_minute(old, m_localtime))
-            minuteChanged();
+            minute_changed();
         if (!DateTime::is_same_day(old, m_localtime))
-            dateChanged();
+            date_changed();
     }
 
 private:

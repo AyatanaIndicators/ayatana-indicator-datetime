@@ -90,12 +90,12 @@ protected:
         m_formatter->header.changed().connect([this](const std::string&){
             update_header();
         });
-        m_formatter->headerFormat.changed().connect([this](const std::string&){
+        m_formatter->header_format.changed().connect([this](const std::string&){
             update_section(Locations); // need to update x-canonical-time-format
         });
-        m_formatter->relativeFormatChanged.connect([this](){
-            update_section(Appointments); // uses formatter.getRelativeFormat()
-            update_section(Locations); // uses formatter.getRelativeFormat()
+        m_formatter->relative_format_changed.connect([this](){
+            update_section(Appointments); // uses formatter.relative_format()
+            update_section(Locations); // uses formatter.relative_format()
         });
         m_state->settings->show_clock.changed().connect([this](bool){
             update_header(); // update header's label
@@ -110,7 +110,7 @@ protected:
         m_state->planner->upcoming.changed().connect([this](const std::vector<Appointment>&){
             update_section(Appointments); // "upcoming" is the list of Appointments we show
         });
-        m_state->clock->dateChanged.connect([this](){
+        m_state->clock->date_changed.connect([this](){
             update_section(Calendar); // need to update the Date menuitem
             update_section(Locations); // locations' relative time may have changed
         });
@@ -305,7 +305,7 @@ private:
 
             GDateTime* begin = appt.begin();
             GDateTime* end = appt.end();
-            auto fmt = m_formatter->getRelativeFormat(begin, end);
+            auto fmt = m_formatter->relative_format(begin, end);
             auto unix_time = g_date_time_to_unix(begin);
 
             auto menu_item = g_menu_item_new (appt.summary.c_str(), nullptr);
@@ -380,7 +380,7 @@ private:
                 const auto& zone = location.zone();
                 const auto& name = location.name();
                 const auto zone_now = now.to_timezone(zone);
-                const auto fmt = m_formatter->getRelativeFormat(zone_now.get());
+                const auto fmt = m_formatter->relative_format(zone_now.get());
                 auto detailed_action = g_strdup_printf("indicator.set-location::%s %s", zone.c_str(), name.c_str());
                 auto i = g_menu_item_new (name.c_str(), detailed_action);
                 g_menu_item_set_attribute(i, "x-canonical-type", "s", "com.canonical.indicator.location");

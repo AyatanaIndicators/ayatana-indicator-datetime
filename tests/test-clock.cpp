@@ -54,12 +54,12 @@ TEST_F(ClockFixture, MinuteChangedSignalShouldTriggerOncePerMinute)
     LiveClock clock(zones);
     wait_msec(500); // wait for the bus to set up
 
-    // count how many times clock.minuteChanged() is emitted over the next minute
+    // count how many times clock.minute_changed() is emitted over the next minute
     const DateTime now = clock.localtime();
     const auto gnow = now.get();
     auto gthen = g_date_time_add_minutes(gnow, 1);
     int count = 0;
-    clock.minuteChanged.connect([&count](){count++;});
+    clock.minute_changed.connect([&count](){count++;});
     const auto msec = g_date_time_difference(gthen,gnow) / 1000;
     wait_msec(msec);
     EXPECT_EQ(1, count);
@@ -95,7 +95,7 @@ TEST_F(ClockFixture, TimezoneChangeTriggersSkew)
     g_time_zone_unref(tz_nyc);
 
     /// change the timezones!
-    clock.minuteChanged.connect([this](){
+    clock.minute_changed.connect([this](){
                    g_main_loop_quit(loop);
                });
     g_idle_add([](gpointer gs){
@@ -124,7 +124,7 @@ TEST_F(ClockFixture, SleepTriggersSkew)
     wait_msec(500); // wait for the bus to set up
 
     bool skewed = false;
-    clock.minuteChanged.connect([&skewed, this](){
+    clock.minute_changed.connect([&skewed, this](){
                     skewed = true;
                     g_main_loop_quit(loop);
                     return G_SOURCE_REMOVE;

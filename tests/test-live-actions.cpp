@@ -356,11 +356,11 @@ TEST_F(LiveActionsFixture, CalendarState)
     a2.begin = next_begin;
     a2.end = next_end;
 
-    m_state->planner->thisMonth.set(std::vector<Appointment>({a1, a2}));
+    m_state->planner->this_month.set(std::vector<Appointment>({a1, a2}));
 
     ///
     ///  Now test the calendar state again.
-    ///  The thisMonth field should now contain the appointments we just added.
+    ///  The this_month field should now contain the appointments we just added.
     ///
 
     calendar_state = g_action_group_get_action_state (action_group, "calendar");

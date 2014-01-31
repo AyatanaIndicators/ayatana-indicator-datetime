@@ -97,7 +97,7 @@ TEST_F(FormatterFixture, TestPhoneHeader)
     if(Set24hLocale())
     {
         PhoneFormatter formatter(clock);
-        EXPECT_EQ(std::string("%H:%M"), formatter.headerFormat.get());
+        EXPECT_EQ(std::string("%H:%M"), formatter.header_format.get());
         EXPECT_EQ(std::string("18:30"), formatter.header.get());
     }
 
@@ -105,7 +105,7 @@ TEST_F(FormatterFixture, TestPhoneHeader)
     if(Set12hLocale())
     {
         PhoneFormatter formatter(clock);
-        EXPECT_EQ(std::string("%l:%M %p"), formatter.headerFormat.get());
+        EXPECT_EQ(std::string("%l:%M %p"), formatter.header_format.get());
         EXPECT_EQ(std::string(" 6:30 PM"), formatter.header.get());
     }
 }
@@ -156,7 +156,7 @@ TEST_F(FormatterFixture, TestDesktopHeader)
           m_settings->show_date.set(test_case.show_date);
           m_settings->show_year.set(test_case.show_year);
 
-          ASSERT_STREQ(test_case.expected_format_string, f.headerFormat.get().c_str());
+          ASSERT_STREQ(test_case.expected_format_string, f.header_format.get().c_str());
         }
     }
 }
@@ -196,7 +196,7 @@ TEST_F(FormatterFixture, TestUpcomingTimes)
             std::shared_ptr<Clock> clock (new MockClock(DateTime(test_case.now)));
             DesktopFormatter f(clock, m_settings);
         
-            const auto fmt = f.getRelativeFormat(test_case.then);
+            const auto fmt = f.relative_format(test_case.then);
             ASSERT_EQ(test_case.expected_format_string, fmt);
 
             g_clear_pointer(&test_case.now, g_date_time_unref);
@@ -239,7 +239,7 @@ TEST_F(FormatterFixture, TestEventTimes)
             std::shared_ptr<Clock> clock(new MockClock(DateTime(test_case.now)));
             DesktopFormatter f(clock, m_settings);
           
-            const auto fmt = f.getRelativeFormat(test_case.then, test_case.then_end);
+            const auto fmt = f.relative_format(test_case.then, test_case.then_end);
             ASSERT_STREQ(test_case.expected_format_string, fmt.c_str());
 
             g_clear_pointer(&test_case.now, g_date_time_unref);

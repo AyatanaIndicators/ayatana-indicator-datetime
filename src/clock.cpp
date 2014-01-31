@@ -33,7 +33,7 @@ namespace datetime {
 Clock::Clock():
     m_cancellable(g_cancellable_new())
 {
-    g_bus_get(G_BUS_TYPE_SYSTEM, m_cancellable, onSystemBusReady, this);
+    g_bus_get(G_BUS_TYPE_SYSTEM, m_cancellable, on_system_bus_ready, this);
 }
 
 Clock::~Clock()
@@ -48,7 +48,7 @@ Clock::~Clock()
 }
 
 void
-Clock::onSystemBusReady(GObject*, GAsyncResult * res, gpointer gself)
+Clock::on_system_bus_ready(GObject*, GAsyncResult * res, gpointer gself)
 {
     GDBusConnection * system_bus;
 
@@ -66,22 +66,22 @@ Clock::onSystemBusReady(GObject*, GAsyncResult * res, gpointer gself)
                         "/org/freedesktop/login1", // object path
                         nullptr, // arg0
                         G_DBUS_SIGNAL_FLAGS_NONE,
-                        onPrepareForSleep,
+                        on_prepare_for_sleep,
                         self,
                         nullptr);
     }
 }
 
 void
-Clock::onPrepareForSleep(GDBusConnection* /*connection*/,
-                         const gchar*     /*sender_name*/,
-                         const gchar*     /*object_path*/,
-                         const gchar*     /*interface_name*/,
-                         const gchar*     /*signal_name*/,
-                         GVariant*        /*parameters*/,
-                         gpointer           gself)
+Clock::on_prepare_for_sleep(GDBusConnection* /*connection*/,
+                            const gchar*     /*sender_name*/,
+                            const gchar*     /*object_path*/,
+                            const gchar*     /*interface_name*/,
+                            const gchar*     /*signal_name*/,
+                            GVariant*        /*parameters*/,
+                            gpointer           gself)
 {
-    static_cast<Clock*>(gself)->minuteChanged();
+    static_cast<Clock*>(gself)->minute_changed();
 }
 
 /***

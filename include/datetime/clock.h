@@ -43,20 +43,20 @@ public:
     virtual DateTime localtime() const =0;
 
     /** \brief A signal which fires when the clock's minute changes */
-    core::Signal<> minuteChanged;
+    core::Signal<> minute_changed;
 
     /** \brief A signal which fires when the clock's date changes */
-    core::Signal<> dateChanged;
+    core::Signal<> date_changed;
 
 protected:
     Clock();
 
-    /** \brief Compares old and new times, emits minuteChanged() or dateChanged() signals if appropriate */
+    /** \brief Compares old and new times, emits minute_changed() or date_changed() signals if appropriate */
     void maybe_emit (const DateTime& a, const DateTime& b);
 
 private:
-    static void onSystemBusReady(GObject*, GAsyncResult*, gpointer);
-    static void onPrepareForSleep(GDBusConnection*, const gchar*, const gchar*, const gchar*, const gchar*, GVariant*, gpointer);
+    static void on_system_bus_ready(GObject*, GAsyncResult*, gpointer);
+    static void on_prepare_for_sleep(GDBusConnection*, const gchar*, const gchar*, const gchar*, const gchar*, GVariant*, gpointer);
 
     GCancellable * m_cancellable = nullptr;
     GDBusConnection * m_system_bus = nullptr;

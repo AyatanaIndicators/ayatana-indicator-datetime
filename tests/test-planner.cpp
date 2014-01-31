@@ -47,9 +47,9 @@ TEST_F(PlannerFixture, EDS)
     planner.time.set(DateTime(now));
     wait_msec(2500);
 
-    std::vector<Appointment> thisMonth = planner.thisMonth.get();
-    std::cerr << thisMonth.size() << " appointments this month" << std::endl;
-    for(const auto& a : thisMonth)
+    std::vector<Appointment> this_month = planner.this_month.get();
+    std::cerr << this_month.size() << " appointments this month" << std::endl;
+    for(const auto& a : this_month)
       std::cerr << a.summary << std::endl;
 }
 

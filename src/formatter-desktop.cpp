@@ -81,7 +81,7 @@ DesktopFormatter::DesktopFormatter(const std::shared_ptr<const Clock>&    clock_
 
 void DesktopFormatter::rebuildHeaderFormat()
 {
-    headerFormat.set(getHeaderLabelFormatString());
+    header_format.set(getHeaderLabelFormatString());
 }
 
 std::string DesktopFormatter::getHeaderLabelFormatString() const
@@ -126,7 +126,7 @@ const gchar* DesktopFormatter::getFullTimeFormatString() const
         break;
     }
 
-    return getDefaultHeaderTimeFormat(twelvehour, show_seconds);
+    return default_header_time_format(twelvehour, show_seconds);
 }
 
 const gchar* DesktopFormatter::getDateFormat(bool show_day, bool show_date, bool show_year) const

@@ -95,7 +95,7 @@ private:
     {
         g_clear_pointer(&m_timezone, g_time_zone_unref);
         m_timezone = g_time_zone_new(str.c_str());
-        m_owner.minuteChanged();
+        m_owner.minute_changed();
     }
 
     /***
@@ -109,9 +109,9 @@ private:
         // maybe emit change signals
         const auto now = localtime();
         if (!DateTime::is_same_minute(m_prev_datetime, now))
-            m_owner.minuteChanged();
+            m_owner.minute_changed();
         if (!DateTime::is_same_day(m_prev_datetime, now))
-            m_owner.dateChanged();
+            m_owner.date_changed();
 
         // queue up a timer to fire at the next minute
         m_prev_datetime = now;

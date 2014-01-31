@@ -43,9 +43,9 @@ public:
     virtual ~Planner() =default;
 
     /**
-     * \brief Timestamp used to determine the appointments in the `upcoming' and `thisMonth' properties.
+     * \brief Timestamp used to determine the appointments in the `upcoming' and `this_month' properties.
      * Setting this value will cause the planner to re-query its backend and
-     * update the `upcoming' and `thisMonth' properties.
+     * update the `upcoming' and `this_month' properties.
      */
     core::Property<DateTime> time;
 
@@ -57,7 +57,7 @@ public:
     /**
      * \brief The appointments that occur in the same month as the time property
      */
-    core::Property<std::vector<Appointment>> thisMonth;
+    core::Property<std::vector<Appointment>> this_month;
 
 protected:
     Planner() =default;

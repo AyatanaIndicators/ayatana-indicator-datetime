@@ -122,8 +122,8 @@ public:
         m_owner(owner),
         m_clock(clock)
     {
-        m_owner->headerFormat.changed().connect([this](const std::string& /*fmt*/){update_header();});
-        m_clock->minuteChanged.connect([this](){update_header();});
+        m_owner->header_format.changed().connect([this](const std::string& /*fmt*/){update_header();});
+        m_clock->minute_changed.connect([this](){update_header();});
         update_header();
 
         restartRelativeTimer();
@@ -149,7 +149,7 @@ private:
     void update_header()
     {
         // update the header property
-        const auto fmt = m_owner->headerFormat.get();
+        const auto fmt = m_owner->header_format.get();
         const auto str = m_clock->localtime().format(fmt);
         m_owner->header.set(str);
 
@@ -197,7 +197,7 @@ private:
     static gboolean onRelativeTimer(gpointer gself)
     {
         auto self = static_cast<Formatter::Impl*>(gself);
-        self->m_owner->relativeFormatChanged();
+        self->m_owner->relative_format_changed();
         self->restartRelativeTimer();
         return G_SOURCE_REMOVE;
     }
@@ -225,7 +225,7 @@ Formatter::~Formatter()
 }
 
 const char*
-Formatter::getDefaultHeaderTimeFormat(bool twelvehour, bool show_seconds)
+Formatter::default_header_time_format(bool twelvehour, bool show_seconds)
 {
   const char* fmt;
 
@@ -250,7 +250,7 @@ Formatter::getDefaultHeaderTimeFormat(bool twelvehour, bool show_seconds)
 ***/
 
 std::string
-Formatter::getRelativeFormat(GDateTime* then_begin, GDateTime* then_end) const
+Formatter::relative_format(GDateTime* then_begin, GDateTime* then_end) const
 {
     auto cstr = generate_full_format_string_at_time (p->m_clock->localtime().get(), then_begin, then_end);
     const std::string ret = cstr;
