@@ -26,6 +26,9 @@
 #include <libecal/libecal.h>
 #include <libedataserver/libedataserver.h>
 
+#include <map>
+#include <set>
+
 namespace unity {
 namespace indicator {
 namespace datetime {
@@ -33,9 +36,6 @@ namespace datetime {
 /****
 *****
 ****/
-
-G_DEFINE_QUARK("source-client", source_client)
-
 
 class PlannerEds::Impl
 {
@@ -48,17 +48,20 @@ public:
         e_source_registry_new(m_cancellable, on_source_registry_ready, this);
 
         m_owner.time.changed().connect([this](const DateTime& dt) {
-            g_debug("planner's datetime property changed to %s; calling rebuildSoon()", dt.format("%F %T").c_str());
-            rebuildSoon();
+            g_debug("planner's datetime property changed to %s; calling rebuild_soon()", dt.format("%F %T").c_str());
+            rebuild_soon();
         });
 
-        rebuildSoon();
+        rebuild_soon();
     }
 
     ~Impl()
     {
         g_cancellable_cancel(m_cancellable);
         g_clear_object(&m_cancellable);
+
+        while(!m_sources.empty())
+            remove_source(*m_sources.begin());
 
         if (m_rebuild_tag)
             g_source_remove(m_rebuild_tag);
@@ -102,7 +105,7 @@ private:
 
     static void on_source_added(ESourceRegistry* registry, ESource* source, gpointer gself)
     {
-        auto self = static_cast<PlannerEds::Impl*>(gself);
+        auto self = static_cast<Impl*>(gself);
 
         self->m_sources.insert(E_SOURCE(g_object_ref(source)));
 
@@ -112,8 +115,9 @@ private:
 
     static void on_source_enabled(ESourceRegistry* /*registry*/, ESource* source, gpointer gself)
     {
-        auto self = static_cast<PlannerEds::Impl*>(gself);
+        auto self = static_cast<Impl*>(gself);
 
+        g_debug("connecting a client to source %s", e_source_get_uid(source));
         e_cal_client_connect(source,
                              E_CAL_CLIENT_SOURCE_TYPE_EVENTS,
                              self->m_cancellable,
@@ -134,45 +138,118 @@ private:
         }
         else
         {
-            // we've got a new connected ECalClient, so store it & notify clients
-            g_object_set_qdata_full(G_OBJECT(e_client_get_source(client)),
-                                    source_client_quark(),
-                                    client,
-                                    g_object_unref);
+            // add the client to our collection
+            auto self = static_cast<Impl*>(gself);
+            g_debug("got a client for %s", e_cal_client_get_local_attachment_store(E_CAL_CLIENT(client)));
+            self->m_clients[e_client_get_source(client)] = E_CAL_CLIENT(client);
 
-            g_debug("client connected; calling rebuildSoon()");
-            static_cast<Impl*>(gself)->rebuildSoon();
+            // now create a view for it so that we can listen for changes
+            e_cal_client_get_view (E_CAL_CLIENT(client),
+                                   "#t", // match all
+                                   self->m_cancellable,
+                                   on_client_view_ready,
+                                   self);
+
+            g_debug("client connected; calling rebuild_soon()");
+            self->rebuild_soon();
         }
+    }
+
+    static void on_client_view_ready (GObject* client, GAsyncResult* res, gpointer gself)
+    {
+        GError* error = nullptr;
+        ECalClientView* view = nullptr;
+
+        if (e_cal_client_get_view_finish (E_CAL_CLIENT(client), res, &view, &error))
+        {
+            // add the view to our collection
+            e_cal_client_view_start(view, &error);
+            g_debug("got a view for %s", e_cal_client_get_local_attachment_store(E_CAL_CLIENT(client)));
+            auto self = static_cast<Impl*>(gself);
+            self->m_views[e_client_get_source(E_CLIENT(client))] = view;//G_CAL_CLIENT(client)] = view;//.insert(view);
+
+            g_signal_connect(view, "objects-added", G_CALLBACK(on_view_objects_added), self);
+            g_signal_connect(view, "objects-modified", G_CALLBACK(on_view_objects_modified), self);
+            g_signal_connect(view, "objects-removed", G_CALLBACK(on_view_objects_removed), self);
+            g_debug("view connected; calling rebuild_soon()");
+            self->rebuild_soon();
+        }
+        else if(error != nullptr)
+        {
+            if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+                g_warning("indicator-datetime cannot get View to EDS client: %s", error->message);
+
+            g_error_free(error);
+        }
+    }
+
+    static void on_view_objects_added(ECalClientView* /*view*/, gpointer /*objects*/, gpointer gself)
+    {
+        g_debug("%s", G_STRFUNC);
+        static_cast<Impl*>(gself)->rebuild_soon();
+    }
+    static void on_view_objects_modified(ECalClientView* /*view*/, gpointer /*objects*/, gpointer gself)
+    {
+        g_debug("%s", G_STRFUNC);
+        static_cast<Impl*>(gself)->rebuild_soon();
+    }
+    static void on_view_objects_removed(ECalClientView* /*view*/, gpointer /*objects*/, gpointer gself)
+    {
+        g_debug("%s", G_STRFUNC);
+        static_cast<Impl*>(gself)->rebuild_soon();
     }
 
     static void on_source_disabled(ESourceRegistry* /*registry*/, ESource* source, gpointer gself)
     {
-        gpointer e_cal_client;
-
-        // if this source has a connected ECalClient, remove it & notify clients
-        if ((e_cal_client = g_object_steal_qdata(G_OBJECT(source), source_client_quark())))
+        static_cast<Impl*>(gself)->disable_source(source);
+    }
+    void disable_source(ESource* source)
+    {
+        // if an ECalClientView is associated with this source, remove it
+        auto vit = m_views.find(source);
+        if (vit != m_views.end())
         {
-            g_object_unref(e_cal_client);
+            auto& view = vit->second;
+            e_cal_client_view_stop(view, nullptr);
+            const auto n_disconnected = g_signal_handlers_disconnect_by_data(view, this);
+            g_warn_if_fail(n_disconnected == 3);
+            g_object_unref(view);
+            m_views.erase(vit);
+            rebuild_soon();
+        }
 
-            g_debug("source disabled; calling rebuildSoon()");
-            static_cast<Impl*>(gself)->rebuildSoon();
+        // if an ECalClient is associated with this source, remove it
+        auto cit = m_clients.find(source);
+        if (cit != m_clients.end())
+        {
+            auto& client = cit->second;
+            g_object_unref(client);
+            m_clients.erase(cit);
+            rebuild_soon();
         }
     }
 
-    static void on_source_removed(ESourceRegistry* registry, ESource* source, gpointer gself)
+    static void on_source_removed(ESourceRegistry* /*registry*/, ESource* source, gpointer gself)
     {
-        auto self = static_cast<PlannerEds::Impl*>(gself);
+        static_cast<Impl*>(gself)->remove_source(source);
+    }
+    void remove_source(ESource* source)
+    {
+        disable_source(source);
 
-        on_source_disabled(registry, source, gself);
-
-        self->m_sources.erase(source);
-        g_object_unref(source);
+        auto sit = m_sources.find(source);
+        if (sit != m_sources.end())
+        {
+            g_object_unref(*sit);
+            m_sources.erase(sit);
+            rebuild_soon();
+        }
     }
 
     static void on_source_changed(ESourceRegistry* /*registry*/, ESource* /*source*/, gpointer gself)
     {
-        g_debug("source changed; calling rebuildSoon()");
-        static_cast<Impl*>(gself)->rebuildSoon();
+        g_debug("source changed; calling rebuild_soon()");
+        static_cast<Impl*>(gself)->rebuild_soon();
     }
 
 private:
@@ -196,23 +273,23 @@ private:
             task(task_in), client(client_in), color(color_in) {}
     };
 
-    void rebuildSoon()
+    void rebuild_soon()
     {
         const static guint ARBITRARY_INTERVAL_SECS = 2;
 
         if (m_rebuild_tag == 0)
-            m_rebuild_tag = g_timeout_add_seconds(ARBITRARY_INTERVAL_SECS, rebuildNowStatic, this);
+            m_rebuild_tag = g_timeout_add_seconds(ARBITRARY_INTERVAL_SECS, rebuild_now_static, this);
     }
 
-    static gboolean rebuildNowStatic(gpointer gself)
+    static gboolean rebuild_now_static(gpointer gself)
     {
         auto self = static_cast<Impl*>(gself);
         self->m_rebuild_tag = 0;
-        self->rebuildNow();
+        self->rebuild_now();
         return G_SOURCE_REMOVE;
     }
 
-    void rebuildNow()
+    void rebuild_now()
     {
         const auto calendar_date = m_owner.time.get().get();
         GDateTime* begin;
@@ -225,7 +302,7 @@ private:
         end = g_date_time_new_local(y, m, g_date_get_days_in_month(GDateMonth(m),GDateYear(y)), 23, 59, 59.9);
         if (begin && end)
         {
-            getAppointments(begin, end, [this](const std::vector<Appointment>& appointments) {
+            get_appointments(begin, end, [this](const std::vector<Appointment>& appointments) {
                 g_debug("got %d appointments in this calendar month", (int)appointments.size());
                 m_owner.this_month.set(appointments);
             });
@@ -238,7 +315,7 @@ private:
         end = g_date_time_add_months(begin, 1);
         if (begin && end)
         {
-            getAppointments(begin, end, [this](const std::vector<Appointment>& appointments) {
+            get_appointments(begin, end, [this](const std::vector<Appointment>& appointments) {
                 g_debug("got %d upcoming appointments", (int)appointments.size());
                 m_owner.upcoming.set(appointments);
             });
@@ -247,7 +324,7 @@ private:
         g_clear_pointer(&end, g_date_time_unref);
     }
 
-    void getAppointments(GDateTime* begin_dt, GDateTime* end_dt, appointment_func func)
+    void get_appointments(GDateTime* begin_dt, GDateTime* end_dt, appointment_func func)
     {
         const auto begin = g_date_time_to_unix(begin_dt);
         const auto end = g_date_time_to_unix(end_dt);
@@ -286,16 +363,14 @@ private:
             delete task;
         });
 
-        for (auto& source : m_sources)
+        for (auto& kv : m_clients)
         {
-            auto client = E_CAL_CLIENT(g_object_get_qdata(G_OBJECT(source), source_client_quark()));
-            if (client == nullptr)
-                continue;
-
+            auto& client = kv.second;
             if (default_timezone != nullptr)
                 e_cal_client_set_default_timezone(client, default_timezone);
 
             // start a new subtask to enumerate all the components in this client.
+            auto& source = kv.first;
             auto extension = e_source_get_extension(source, E_SOURCE_EXTENSION_CALENDAR);
             const auto color = e_source_selectable_get_color(E_SOURCE_SELECTABLE(extension));
             g_debug("calling e_cal_client_generate_instances for %p", (void*)client);
@@ -407,12 +482,12 @@ private:
         delete subtask;
     }
 
-private:
-
     PlannerEds& m_owner;
     std::set<ESource*> m_sources;
-    GCancellable * m_cancellable = nullptr;
-    ESourceRegistry * m_source_registry = nullptr;
+    std::map<ESource*,ECalClient*> m_clients;
+    std::map<ESource*,ECalClientView*> m_views;
+    GCancellable* m_cancellable = nullptr;
+    ESourceRegistry* m_source_registry = nullptr;
     guint m_rebuild_tag = 0;
 };
 
