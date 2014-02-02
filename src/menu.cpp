@@ -270,7 +270,7 @@ private:
         // add calendar
         if (show_calendar)
         {
-            item = g_menu_item_new ("[calendar]", NULL);
+            item = g_menu_item_new ("[calendar]", nullptr);
             v = g_variant_new_int64(0);
             g_menu_item_set_action_and_target_value (item, "indicator.calendar", v);
             g_menu_item_set_attribute (item, "x-canonical-type",
