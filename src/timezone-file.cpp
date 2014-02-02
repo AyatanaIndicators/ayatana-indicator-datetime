@@ -32,7 +32,7 @@ FileTimezone::FileTimezone()
 
 FileTimezone::FileTimezone(const std::string& filename)
 {
-    setFilename(filename);
+    set_filename(filename);
 }
 
 FileTimezone::~FileTimezone()
@@ -52,7 +52,7 @@ FileTimezone::clear()
 }
 
 void
-FileTimezone::setFilename(const std::string& filename)
+FileTimezone::set_filename(const std::string& filename)
 {
     clear();
 
@@ -79,7 +79,7 @@ FileTimezone::setFilename(const std::string& filename)
       }
     else
       {
-        m_monitor_handler_id = g_signal_connect_swapped(m_monitor, "changed", G_CALLBACK(onFileChanged), this);
+        m_monitor_handler_id = g_signal_connect_swapped(m_monitor, "changed", G_CALLBACK(on_file_changed), this);
         g_debug("%s Monitoring timezone file '%s'", G_STRLOC, m_filename.c_str());
       }
 
@@ -87,7 +87,7 @@ FileTimezone::setFilename(const std::string& filename)
 }
 
 void
-FileTimezone::onFileChanged(gpointer gself)
+FileTimezone::on_file_changed(gpointer gself)
 {
     static_cast<FileTimezone*>(gself)->reload();
 }

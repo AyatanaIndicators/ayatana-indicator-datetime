@@ -42,8 +42,8 @@ public:
     ~FileTimezone();
 
 private:
-    void setFilename(const std::string& filename);
-    static void onFileChanged(gpointer gself);
+    void set_filename(const std::string& filename);
+    static void on_file_changed(gpointer gself);
     void clear();
     void reload();
 
