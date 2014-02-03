@@ -21,11 +21,13 @@
 
 #include <datetime/actions-live.h>
 #include <datetime/clock.h>
+#include <datetime/clock-watcher.h>
 #include <datetime/exporter.h>
 #include <datetime/locations-settings.h>
 #include <datetime/menu.h>
 #include <datetime/planner-eds.h>
 #include <datetime/settings-live.h>
+#include <datetime/snap.h>
 #include <datetime/state.h>
 #include <datetime/timezones-live.h>
 
@@ -66,6 +68,13 @@ main(int /*argc*/, char** /*argv*/)
     state->planner->time = live_clock->localtime();
     std::shared_ptr<Actions> actions(new LiveActions(state));
     MenuFactory factory(actions, state);
+
+    // snap decisions
+    ClockWatcherImpl clock_watcher(state);
+    Snap snap(state->clock);
+    clock_watcher.alarm_reached().connect([&snap](const Appointment& appt){
+        snap(appt);
+    });
 
     // create the menus
     std::vector<std::shared_ptr<Menu>> menus;

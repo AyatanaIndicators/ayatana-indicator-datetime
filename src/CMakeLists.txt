@@ -28,6 +28,7 @@ add_library (${SERVICE_LIB} STATIC
              menu.cpp
              planner-eds.cpp
              settings-live.cpp
+             snap.cpp
              timezone-file.cpp
              timezone-geoclue.cpp
              timezones-live.cpp
