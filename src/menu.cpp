@@ -108,6 +108,7 @@ protected:
             update_section(Appointments); // showing events got toggled
         });
         m_state->planner->upcoming.changed().connect([this](const std::vector<Appointment>&){
+            update_header(); // show an 'alarm' icon if there are upcoming alarms
             update_section(Appointments); // "upcoming" is the list of Appointments we show
         });
         m_state->clock->date_changed.connect([this](){
