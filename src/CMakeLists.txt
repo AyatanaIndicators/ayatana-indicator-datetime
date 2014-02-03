@@ -18,6 +18,7 @@ add_library (${SERVICE_LIB} STATIC
              appointment.cpp
              clock.cpp
              clock-live.cpp
+             clock-watcher.cpp
              date-time.cpp
              exporter.cpp
              formatter.cpp
