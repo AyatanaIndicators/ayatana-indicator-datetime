@@ -179,7 +179,7 @@ private:
             e_cal_client_view_start(view, &error);
             g_debug("got a view for %s", e_cal_client_get_local_attachment_store(E_CAL_CLIENT(client)));
             auto self = static_cast<Impl*>(gself);
-            self->m_views[e_client_get_source(E_CLIENT(client))] = view;//G_CAL_CLIENT(client)] = view;//.insert(view);
+            self->m_views[e_client_get_source(E_CLIENT(client))] = view;
 
             g_signal_connect(view, "objects-added", G_CALLBACK(on_view_objects_added), self);
             g_signal_connect(view, "objects-modified", G_CALLBACK(on_view_objects_modified), self);
