@@ -121,10 +121,18 @@ private:
     static void on_source_enabled(ESourceRegistry* /*registry*/, ESource* source, gpointer gself)
     {
         auto self = static_cast<Impl*>(gself);
+        ECalClientSourceType source_type;
+
+        if (e_source_has_extension(source, E_SOURCE_EXTENSION_CALENDAR))
+            source_type = E_CAL_CLIENT_SOURCE_TYPE_EVENTS;
+        else if (e_source_has_extension(source, E_SOURCE_EXTENSION_TASK_LIST))
+            source_type = E_CAL_CLIENT_SOURCE_TYPE_TASKS;
+        else
+            g_assert_not_reached();
 
         g_debug("connecting a client to source %s", e_source_get_uid(source));
         e_cal_client_connect(source,
-                             E_CAL_CLIENT_SOURCE_TYPE_EVENTS,
+                             source_type,
                              self->m_cancellable,
                              on_client_connected,
                              gself);
