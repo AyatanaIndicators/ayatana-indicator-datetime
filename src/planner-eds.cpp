@@ -86,21 +86,26 @@ private:
         }
         else
         {
+            g_signal_connect(r, "source-added",    G_CALLBACK(on_source_added),    gself);
+            g_signal_connect(r, "source-removed",  G_CALLBACK(on_source_removed),  gself);
+            g_signal_connect(r, "source-changed",  G_CALLBACK(on_source_changed),  gself);
+            g_signal_connect(r, "source-disabled", G_CALLBACK(on_source_disabled), gself);
+            g_signal_connect(r, "source-enabled",  G_CALLBACK(on_source_enabled),  gself);
+
             auto self = static_cast<Impl*>(gself);
-
-            g_signal_connect(r, "source-added",    G_CALLBACK(on_source_added), self);
-            g_signal_connect(r, "source-removed",  G_CALLBACK(on_source_removed), self);
-            g_signal_connect(r, "source-changed",  G_CALLBACK(on_source_changed), self);
-            g_signal_connect(r, "source-disabled", G_CALLBACK(on_source_disabled), self);
-            g_signal_connect(r, "source-enabled",  G_CALLBACK(on_source_enabled), self);
-
             self->m_source_registry = r;
-
-            GList* sources = e_source_registry_list_sources(r, E_SOURCE_EXTENSION_CALENDAR);
-            for (auto l=sources; l!=nullptr; l=l->next)
-                on_source_added(r, E_SOURCE(l->data), gself);
-            g_list_free_full(sources, g_object_unref);
+            self->add_sources_by_extension(E_SOURCE_EXTENSION_CALENDAR);
+            self->add_sources_by_extension(E_SOURCE_EXTENSION_TASK_LIST);
         }
+    }
+
+    void add_sources_by_extension(const char* extension)
+    {
+        auto& r = m_source_registry;
+        auto sources = e_source_registry_list_sources(r, extension);
+        for (auto l=sources; l!=nullptr; l=l->next)
+            on_source_added(r, E_SOURCE(l->data), this);
+        g_list_free_full(sources, g_object_unref);
     }
 
     static void on_source_added(ESourceRegistry* registry, ESource* source, gpointer gself)
