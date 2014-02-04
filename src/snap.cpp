@@ -20,7 +20,6 @@
 #include <datetime/appointment.h>
 #include <datetime/formatter.h>
 #include <datetime/snap.h>
-#include <datetime/utils.h> // generate_full_format_string_at_time()
 
 #include <canberra.h>
 #include <libnotify/notify.h>
@@ -122,8 +121,8 @@ void show_snap_decision(SnapData* data)
 {
     const Appointment& appointment = data->appointment;
 
-    auto timestr = generate_full_format_string_at_time(appointment.begin.get(), nullptr, nullptr);
-    auto title = g_strdup_printf(_("Alarm %s"), timestr);
+    const auto timestr = appointment.begin.format("%a, %X");
+    auto title = g_strdup_printf(_("Alarm %s"), timestr.c_str());
     const auto body = appointment.summary;
     const gchar* icon_name = "alarm-clock";
 
@@ -144,7 +143,6 @@ void show_snap_decision(SnapData* data)
     }
 
     g_free(title);
-    g_free(timestr);
 }
 
 /** 
