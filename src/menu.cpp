@@ -22,8 +22,6 @@
 #include <datetime/formatter.h>
 #include <datetime/state.h>
 
-#include <json-glib/json-glib.h>
-
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 
@@ -62,7 +60,7 @@ GMenuModel* Menu::menu_model()
 ****/
 
 
-#define FALLBACK_ALARM_CLOCK_ICON_NAME "clock"
+#define ALARM_ICON_NAME "alarm-clock"
 #define CALENDAR_ICON_NAME "calendar"
 
 class MenuImpl: public Menu
@@ -78,9 +76,6 @@ protected:
         m_actions(actions),
         m_formatter(formatter)
     {
-        // preload the alarm icon from click
-        m_serialized_alarm_icon = create_alarm_icon();
-
         // initialize the menu
         create_gmenu();
         for (int i=0; i<NUM_SECTIONS; i++)
@@ -142,67 +137,19 @@ protected:
     std::shared_ptr<const Formatter> m_formatter;
     GMenu* m_submenu = nullptr;
 
-    GVariant* get_serialized_alarm_icon() { return m_serialized_alarm_icon; }
-
-private:
-
-    /* try to get the clock app's filename from click. (/$pkgdir/$icon) */
-    static GVariant* create_alarm_icon()
+    GVariant* get_serialized_alarm_icon()
     {
-        GVariant* serialized = nullptr;
-        gchar* icon_filename = nullptr;
-        gchar* standard_error = nullptr;
-        gchar* pkgdir = nullptr;
-
-        g_spawn_command_line_sync("click pkgdir com.ubuntu.clock", &pkgdir, &standard_error, nullptr, nullptr);
-        g_clear_pointer(&standard_error, g_free);
-        if (pkgdir != nullptr)
+        if (G_UNLIKELY(m_serialized_alarm_icon == nullptr))
         {
-            gchar* manifest = nullptr;
-            g_strstrip(pkgdir);
-            g_spawn_command_line_sync("click info com.ubuntu.clock", &manifest, &standard_error, nullptr, nullptr);
-            g_clear_pointer(&standard_error, g_free);
-            if (manifest != nullptr)
-            {
-                JsonParser* parser = json_parser_new();
-                if (json_parser_load_from_data(parser, manifest, -1, nullptr))
-                {
-                    JsonNode* root = json_parser_get_root(parser); /* transfer-none */
-                    if ((root != nullptr) && (JSON_NODE_TYPE(root) == JSON_NODE_OBJECT))
-                    {
-                        JsonObject* o = json_node_get_object(root); /* transfer-none */
-                        const gchar* icon_name = json_object_get_string_member(o, "icon");
-                        if (icon_name != nullptr)
-                            icon_filename = g_build_filename(pkgdir, icon_name, nullptr);
-                    }
-                }
-                g_object_unref(parser);
-                g_free(manifest);
-            }
-            g_free(pkgdir);
-        }
-
-        if (icon_filename != nullptr)
-        {
-            GFile* file = g_file_new_for_path(icon_filename);
-            GIcon* icon = g_file_icon_new(file);
-
-            serialized = g_icon_serialize(icon);
-
-            g_object_unref(icon);
-            g_object_unref(file);
-            g_free(icon_filename);
-        }
-
-        if (serialized == nullptr)
-        {
-            auto i = g_themed_icon_new_with_default_fallbacks(FALLBACK_ALARM_CLOCK_ICON_NAME);
-            serialized = g_icon_serialize(i);
+            auto i = g_themed_icon_new_with_default_fallbacks(ALARM_ICON_NAME);
+            m_serialized_alarm_icon = g_icon_serialize(i);
             g_object_unref(i);
         }
 
-        return serialized;
+        return m_serialized_alarm_icon;
     }
+
+private:
 
     GVariant* get_serialized_calendar_icon()
     {

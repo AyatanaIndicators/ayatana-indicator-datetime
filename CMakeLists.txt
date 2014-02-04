@@ -40,8 +40,7 @@ pkg_check_modules (SERVICE_DEPS REQUIRED
                    libedataserver-1.2>=3.5
                    libnotify>=0.7.6
                    url-dispatcher-1>=1
-                   properties-cpp>=0.0.1
-                   json-glib-1.0>=0.16.2)
+                   properties-cpp>=0.0.1)
 include_directories (SYSTEM ${SERVICE_DEPS_INCLUDE_DIRS})
 
 pkg_check_modules (PANEL_DEPS
