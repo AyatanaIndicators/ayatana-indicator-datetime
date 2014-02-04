@@ -71,7 +71,7 @@ main(int /*argc*/, char** /*argv*/)
 
     // snap decisions
     ClockWatcherImpl clock_watcher(state);
-    Snap snap(state->clock);
+    Snap snap;
     clock_watcher.alarm_reached().connect([&snap](const Appointment& appt){
         snap(appt);
     });

@@ -21,8 +21,6 @@
 #define INDICATOR_DATETIME_SNAP_H
 
 #include <datetime/appointment.h>
-#include <datetime/clock.h>
-#include <datetime/formatter.h>
 
 #include <memory>
 
@@ -36,12 +34,9 @@ namespace datetime {
 class Snap
 {
 public:
-    Snap(const std::shared_ptr<Clock>&);
-    virtual ~Snap() =default;
+    Snap();
+    virtual ~Snap();
     void operator()(const Appointment&);
-
-private:
-    PhoneFormatter m_formatter;
 };
 
 } // namespace datetime

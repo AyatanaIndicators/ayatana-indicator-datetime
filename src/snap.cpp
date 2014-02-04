@@ -20,6 +20,7 @@
 #include <datetime/appointment.h>
 #include <datetime/formatter.h>
 #include <datetime/snap.h>
+#include <datetime/utils.h> // generate_full_format_string_at_time()
 
 #include <url-dispatcher.h>
 
@@ -72,8 +73,11 @@ void on_snap_decided(NotifyNotification  * /*notification*/,
 ****
 ***/
 
-Snap::Snap(const std::shared_ptr<Clock>& clock):
-    m_formatter(clock)
+Snap::Snap()
+{
+}
+
+Snap::~Snap()
 {
 }
 
@@ -82,10 +86,10 @@ void Snap::operator()(const Appointment& appointment)
     if (!appointment.has_alarms)
         return;
 
-    const auto timestr = m_formatter.header.get();
+    auto timestr = generate_full_format_string_at_time (appointment.begin.get(), nullptr, nullptr);
+    auto title = g_strdup_printf(_("Alarm %s"), timestr);
     const auto body = appointment.summary;
-    gchar* title = g_strdup_printf(_("Alarm %s"), timestr.c_str());
-    const gchar* icon_name = "clock";
+    const gchar* icon_name = "alarm-clock";
     g_debug("creating a snap decision with title '%s', body '%s', icon '%s'", title, body.c_str(), icon_name);
 
     auto nn = notify_notification_new(title, body.c_str(), icon_name);
@@ -104,6 +108,7 @@ void Snap::operator()(const Appointment& appointment)
     }
 
     g_free(title);
+    g_free(timestr);
 }
 
 /***
