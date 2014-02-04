@@ -20,9 +20,10 @@
 #ifndef INDICATOR_DATETIME_PLANNER_EDS_H
 #define INDICATOR_DATETIME_PLANNER_EDS_H
 
+#include <datetime/clock.h>
 #include <datetime/planner.h>
 
-#include <memory> // unique_ptr
+#include <memory> // shared_ptr, unique_ptr
 
 namespace unity {
 namespace indicator {
@@ -34,7 +35,7 @@ namespace datetime {
 class PlannerEds: public Planner
 {
 public:
-    PlannerEds();
+    PlannerEds(const std::shared_ptr<Clock>& clock);
     virtual ~PlannerEds();
 
 private:

@@ -41,18 +41,24 @@ class PlannerEds::Impl
 {
 public:
 
-    Impl(PlannerEds& owner):
+    Impl(PlannerEds& owner, const std::shared_ptr<Clock>& clock):
         m_owner(owner),
+        m_clock(clock),
         m_cancellable(g_cancellable_new())
     {
         e_source_registry_new(m_cancellable, on_source_registry_ready, this);
 
-        m_owner.time.changed().connect([this](const DateTime& dt) {
-            g_debug("planner's datetime property changed to %s; calling rebuild_soon()", dt.format("%F %T").c_str());
-            rebuild_soon();
+        m_clock->minute_changed.connect([this](){
+            g_debug("rebuilding upcoming because the clock's minute_changed");
+            rebuild_soon(UPCOMING);
         });
 
-        rebuild_soon();
+        m_owner.time.changed().connect([this](const DateTime& dt) {
+            g_debug("planner's datetime property changed to %s; calling rebuild_soon()", dt.format("%F %T").c_str());
+            rebuild_soon(MONTH);
+        });
+
+        rebuild_soon(ALL);
     }
 
     ~Impl()
@@ -164,7 +170,7 @@ private:
                                    self);
 
             g_debug("client connected; calling rebuild_soon()");
-            self->rebuild_soon();
+            self->rebuild_soon(ALL);
         }
     }
 
@@ -185,7 +191,7 @@ private:
             g_signal_connect(view, "objects-modified", G_CALLBACK(on_view_objects_modified), self);
             g_signal_connect(view, "objects-removed", G_CALLBACK(on_view_objects_removed), self);
             g_debug("view connected; calling rebuild_soon()");
-            self->rebuild_soon();
+            self->rebuild_soon(ALL);
         }
         else if(error != nullptr)
         {
@@ -199,17 +205,17 @@ private:
     static void on_view_objects_added(ECalClientView* /*view*/, gpointer /*objects*/, gpointer gself)
     {
         g_debug("%s", G_STRFUNC);
-        static_cast<Impl*>(gself)->rebuild_soon();
+        static_cast<Impl*>(gself)->rebuild_soon(ALL);
     }
     static void on_view_objects_modified(ECalClientView* /*view*/, gpointer /*objects*/, gpointer gself)
     {
         g_debug("%s", G_STRFUNC);
-        static_cast<Impl*>(gself)->rebuild_soon();
+        static_cast<Impl*>(gself)->rebuild_soon(ALL);
     }
     static void on_view_objects_removed(ECalClientView* /*view*/, gpointer /*objects*/, gpointer gself)
     {
         g_debug("%s", G_STRFUNC);
-        static_cast<Impl*>(gself)->rebuild_soon();
+        static_cast<Impl*>(gself)->rebuild_soon(ALL);
     }
 
     static void on_source_disabled(ESourceRegistry* /*registry*/, ESource* source, gpointer gself)
@@ -228,7 +234,7 @@ private:
             g_warn_if_fail(n_disconnected == 3);
             g_object_unref(view);
             m_views.erase(vit);
-            rebuild_soon();
+            rebuild_soon(ALL);
         }
 
         // if an ECalClient is associated with this source, remove it
@@ -238,7 +244,7 @@ private:
             auto& client = cit->second;
             g_object_unref(client);
             m_clients.erase(cit);
-            rebuild_soon();
+            rebuild_soon(ALL);
         }
     }
 
@@ -255,14 +261,14 @@ private:
         {
             g_object_unref(*sit);
             m_sources.erase(sit);
-            rebuild_soon();
+            rebuild_soon(ALL);
         }
     }
 
     static void on_source_changed(ESourceRegistry* /*registry*/, ESource* /*source*/, gpointer gself)
     {
         g_debug("source changed; calling rebuild_soon()");
-        static_cast<Impl*>(gself)->rebuild_soon();
+        static_cast<Impl*>(gself)->rebuild_soon(ALL);
     }
 
 private:
@@ -286,9 +292,11 @@ private:
             task(task_in), client(client_in), color(color_in) {}
     };
 
-    void rebuild_soon()
+    void rebuild_soon(int rebuild_flags)
     {
-        const static guint ARBITRARY_INTERVAL_SECS = 2;
+        static const guint ARBITRARY_INTERVAL_SECS = 2;
+
+        m_rebuild_flags |= rebuild_flags;
 
         if (m_rebuild_tag == 0)
             m_rebuild_tag = g_timeout_add_seconds(ARBITRARY_INTERVAL_SECS, rebuild_now_static, this);
@@ -297,44 +305,56 @@ private:
     static gboolean rebuild_now_static(gpointer gself)
     {
         auto self = static_cast<Impl*>(gself);
+        const auto flags = self->m_rebuild_flags;
         self->m_rebuild_tag = 0;
-        self->rebuild_now();
+        self->m_rebuild_flags = 0;
+        self->rebuild_now(flags);
         return G_SOURCE_REMOVE;
     }
 
-    void rebuild_now()
+    void rebuild_now(int rebuild_flags)
     {
-        const auto calendar_date = m_owner.time.get().get();
-        GDateTime* begin;
-        GDateTime* end;
-        int y, m, d;
+        if (rebuild_flags & UPCOMING)
+            rebuild_upcoming();
 
-        // get all the appointments in the calendar month
-        g_date_time_get_ymd(calendar_date, &y, &m, &d);
-        begin = g_date_time_new_local(y, m, 1, 0, 0, 0.1);
-        end = g_date_time_new_local(y, m, g_date_get_days_in_month(GDateMonth(m),GDateYear(y)), 23, 59, 59.9);
-        if (begin && end)
-        {
-            get_appointments(begin, end, [this](const std::vector<Appointment>& appointments) {
-                g_debug("got %d appointments in this calendar month", (int)appointments.size());
-                m_owner.this_month.set(appointments);
-            });
-        }
-        g_clear_pointer(&begin, g_date_time_unref);
-        g_clear_pointer(&end, g_date_time_unref);
+        if (rebuild_flags & MONTH)
+            rebuild_month();
+    }
 
-        // get the upcoming appointments
-        begin = g_date_time_ref(calendar_date);
-        end = g_date_time_add_months(begin, 1);
-        if (begin && end)
-        {
-            get_appointments(begin, end, [this](const std::vector<Appointment>& appointments) {
-                g_debug("got %d upcoming appointments", (int)appointments.size());
-                m_owner.upcoming.set(appointments);
-            });
-        }
-        g_clear_pointer(&begin, g_date_time_unref);
-        g_clear_pointer(&end, g_date_time_unref);
+    void rebuild_month()
+    {
+        const auto ref = m_owner.time.get().get();
+        auto month_begin = g_date_time_add_full(ref,
+                                                0, // subtract no years
+                                                0, // subtract no months
+                                                -(g_date_time_get_day_of_month(ref)-1),
+                                                -g_date_time_get_hour(ref),
+                                                -g_date_time_get_minute(ref),
+                                                -g_date_time_get_seconds(ref));
+        auto month_end = g_date_time_add_full(month_begin, 0, 1, 0, 0, 0, -0.1);
+
+        get_appointments(month_begin, month_end, [this](const std::vector<Appointment>& appointments) {
+            g_debug("got %d appointments in this calendar month", (int)appointments.size());
+            m_owner.this_month.set(appointments);
+        });
+    
+        g_date_time_unref(month_end);
+        g_date_time_unref(month_begin);
+    }
+
+    void rebuild_upcoming()
+    {
+        const auto ref = m_clock->localtime();
+        const auto begin = g_date_time_add_minutes(ref.get(),-10);
+        const auto end = g_date_time_add_months(begin,1);
+
+        get_appointments(begin, end, [this](const std::vector<Appointment>& appointments) {
+            g_debug("got %d upcoming appointments", (int)appointments.size());
+            m_owner.upcoming.set(appointments);
+        });
+
+        g_date_time_unref(end);
+        g_date_time_unref(begin);
     }
 
     void get_appointments(GDateTime* begin_dt, GDateTime* end_dt, appointment_func func)
@@ -496,15 +516,18 @@ private:
     }
 
     PlannerEds& m_owner;
+    std::shared_ptr<Clock> m_clock;
     std::set<ESource*> m_sources;
     std::map<ESource*,ECalClient*> m_clients;
     std::map<ESource*,ECalClientView*> m_views;
     GCancellable* m_cancellable = nullptr;
     ESourceRegistry* m_source_registry = nullptr;
     guint m_rebuild_tag = 0;
+    guint m_rebuild_flags = 0;
+    enum { UPCOMING=(1<<0), MONTH=(1<<1), ALL=UPCOMING|MONTH };
 };
 
-PlannerEds::PlannerEds(): p(new Impl(*this)) {}
+PlannerEds::PlannerEds(const std::shared_ptr<Clock>& clock): p(new Impl(*this, clock)) {}
 
 PlannerEds::~PlannerEds() =default;
 

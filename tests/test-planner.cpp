@@ -28,9 +28,7 @@
 #include <langinfo.h>
 #include <locale.h>
 
-using unity::indicator::datetime::Appointment;
-using unity::indicator::datetime::DateTime;
-using unity::indicator::datetime::PlannerEds;
+using namespace unity::indicator::datetime;
 
 /***
 ****
@@ -40,11 +38,15 @@ typedef GlibFixture PlannerFixture;
 
 TEST_F(PlannerFixture, EDS)
 {
-    PlannerEds planner;
+    auto tmp = g_date_time_new_now_local();
+    const auto now = DateTime(tmp);
+    g_date_time_unref(tmp);
+
+    std::shared_ptr<Clock> clock(new MockClock(now));
+    PlannerEds planner(clock);
     wait_msec(100);
 
-    auto now = g_date_time_new_now_local();
-    planner.time.set(DateTime(now));
+    planner.time.set(now);
     wait_msec(2500);
 
     std::vector<Appointment> this_month = planner.this_month.get();
