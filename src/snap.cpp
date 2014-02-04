@@ -44,6 +44,9 @@ namespace
 ***  libcanberra -- play sounds
 **/
 
+// arbitrary number, but we need a consistent id for play/cancel
+const int32_t alarm_ca_id = 1;
+
 ca_context *c_context = nullptr;
 
 ca_context* get_ca_context()
@@ -61,19 +64,50 @@ ca_context* get_ca_context()
     return c_context;
 }
 
+void play_alarm_sound();
+
+gboolean play_alarm_sound_idle (gpointer)
+{
+    play_alarm_sound();
+    return G_SOURCE_REMOVE;
+}
+
+void on_alarm_play_done (ca_context* /*context*/, uint32_t /*id*/, int /*rv*/, void* /*user_data*/)
+{
+    // wait one second, then play it again
+    g_timeout_add_seconds (1, play_alarm_sound_idle, nullptr);
+}
+
 void play_soundfile(const char* filename)
 {
     auto context = get_ca_context();
     g_return_if_fail(context != nullptr);
 
-    const auto rv = ca_context_play(context, 0, CA_PROP_MEDIA_FILENAME, filename, NULL);
+    ca_proplist* props = nullptr;
+    ca_proplist_create(&props);
+    ca_proplist_sets(props, CA_PROP_MEDIA_FILENAME, filename);
+
+    const auto rv = ca_context_play_full(context, alarm_ca_id, props, on_alarm_play_done, nullptr);
     if (rv != CA_SUCCESS)
-        g_warning("Failed to play file '%s': %s\n", filename, ca_strerror(rv));
+        g_warning("Failed to play file '%s': %s", filename, ca_strerror(rv));
+
+    g_clear_pointer(&props, ca_proplist_destroy);
 }
 
 void play_alarm_sound()
 {
     play_soundfile(ALARM_SOUND_FILENAME);
+}
+
+void stop_alarm_sound()
+{
+    auto context = get_ca_context();
+    if (context != nullptr)
+    {
+        const auto rv = ca_context_cancel(context, alarm_ca_id);
+        if (rv != CA_SUCCESS)
+            g_warning("Failed to cancel alarm sound: %s", ca_strerror(rv));
+    }
 }
 
 /** 
@@ -102,12 +136,14 @@ struct SnapData
 
 void on_snap_show(NotifyNotification*, gchar* /*action*/, gpointer gdata)
 {
+    stop_alarm_sound();
     auto data = static_cast<SnapData*>(gdata);
     data->show(data->appointment);
 }
 
 void on_snap_dismiss(NotifyNotification*, gchar* /*action*/, gpointer gdata)
 {
+    stop_alarm_sound();
     auto data = static_cast<SnapData*>(gdata);
     data->dismiss(data->appointment);
 }
