@@ -17,8 +17,6 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #include <datetime/actions-live.h>
 #include <datetime/clock.h>
 #include <datetime/clock-watcher.h>
@@ -33,10 +31,11 @@
 
 #include <glib/gi18n.h> // bindtextdomain()
 #include <gio/gio.h>
-#include <libnotify/notify.h> 
+
+#include <url-dispatcher.h>
 
 #include <locale.h>
-#include <stdlib.h> // exit()
+#include <cstdlib> // exit()
 
 using namespace unity::indicator::datetime;
 
@@ -51,10 +50,6 @@ main(int /*argc*/, char** /*argv*/)
     setlocale(LC_ALL, "");
     bindtextdomain(GETTEXT_PACKAGE, GNOMELOCALEDIR);
     textdomain(GETTEXT_PACKAGE);
-
-    // init libnotify
-    if(!notify_init("indicator-datetime-service"))
-        g_critical("libnotify initialization failed");
 
     // build the state, actions, and menufactory
     std::shared_ptr<State> state(new State);
@@ -73,7 +68,9 @@ main(int /*argc*/, char** /*argv*/)
     ClockWatcherImpl clock_watcher(state);
     Snap snap;
     clock_watcher.alarm_reached().connect([&snap](const Appointment& appt){
-        snap(appt);
+        snap(appt,
+             [](const Appointment& a){url_dispatch_send(a.url.c_str(), nullptr, nullptr);},
+             [](const Appointment&){});
     });
 
     // create the menus

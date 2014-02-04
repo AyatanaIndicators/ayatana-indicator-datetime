@@ -23,6 +23,7 @@
 #include <datetime/appointment.h>
 
 #include <memory>
+#include <functional>
 
 namespace unity {
 namespace indicator {
@@ -36,7 +37,11 @@ class Snap
 public:
     Snap();
     virtual ~Snap();
-    void operator()(const Appointment&);
+
+    typedef std::function<void(const Appointment&)> appointment_func;
+    void operator()(const Appointment& appointment,
+                    appointment_func show,
+                    appointment_func dismiss);
 };
 
 } // namespace datetime

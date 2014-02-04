@@ -22,12 +22,13 @@
 #include <datetime/snap.h>
 #include <datetime/utils.h> // generate_full_format_string_at_time()
 
-#include <url-dispatcher.h>
-
+#include <canberra.h>
 #include <libnotify/notify.h>
 
 #include <glib/gi18n.h>
 #include <glib.h>
+
+#define ALARM_SOUND_FILENAME "/usr/share/sounds/ubuntu/stereo/phone-incoming-call.ogg"
 
 namespace unity {
 namespace indicator {
@@ -40,34 +41,131 @@ namespace datetime {
 namespace
 {
 
-void dispatch_alarm_url(const Appointment& appointment)
+/** 
+***  libcanberra -- play sounds
+**/
+
+ca_context *c_context = nullptr;
+
+ca_context* get_ca_context()
 {
-  g_return_if_fail(!appointment.has_alarms);
+    if (G_UNLIKELY(c_context == nullptr))
+    {
+        int rv;
+        if ((rv = ca_context_create(&c_context)) != CA_SUCCESS)
+        {
+            g_warning("Failed to create canberra context: %s\n", ca_strerror(rv));
+            c_context = nullptr;
+        }
+    }
 
-  const auto fmt = appointment.begin.format("%F %T");
-  g_debug("dispatching url \"%s\" for appointment \"%s\", which begins at %s",
-          appointment.url.c_str(),
-          appointment.summary.c_str(),
-          fmt.c_str());
-
-  url_dispatch_send(appointment.url.c_str(), nullptr, nullptr);
+    return c_context;
 }
 
-void on_snap_decided(NotifyNotification  * /*notification*/,
-                     char                *   action,
-                     gpointer                gurl)
+void play_soundfile(const char* filename)
 {
-    g_debug("%s: %s", G_STRFUNC, action);
+    auto context = get_ca_context();
+    g_return_if_fail(context != nullptr);
 
-    if (!g_strcmp0(action, "show"))
+    const auto rv = ca_context_play(context, 0, CA_PROP_MEDIA_FILENAME, filename, NULL);
+    if (rv != CA_SUCCESS)
+        g_warning("Failed to play file '%s': %s\n", filename, ca_strerror(rv));
+}
+
+void play_alarm_sound()
+{
+    play_soundfile(ALARM_SOUND_FILENAME);
+}
+
+/** 
+***  libnotify -- snap decisions
+**/
+
+void first_time_init()
+{
+    static bool inited = false;
+
+    if (G_UNLIKELY(!inited))
     {
-        const auto url = static_cast<const gchar*>(gurl);
-        g_debug("dispatching url '%s'", url);
-        url_dispatch_send(url, nullptr, nullptr);
+        inited = true;
+
+        if(!notify_init("indicator-datetime-service"))
+            g_critical("libnotify initialization failed");
     }
 }
 
+struct SnapData
+{
+    Snap::appointment_func show;
+    Snap::appointment_func dismiss;
+    Appointment appointment;
+};
+
+void on_snap_show(NotifyNotification*, gchar* /*action*/, gpointer gdata)
+{
+    auto data = static_cast<SnapData*>(gdata);
+    data->show(data->appointment);
+}
+
+void on_snap_dismiss(NotifyNotification*, gchar* /*action*/, gpointer gdata)
+{
+    auto data = static_cast<SnapData*>(gdata);
+    data->dismiss(data->appointment);
+}
+
+void snap_data_destroy_notify(gpointer gdata)
+{
+     delete static_cast<SnapData*>(gdata);
+}
+
+void show_snap_decision(SnapData* data)
+{
+    const Appointment& appointment = data->appointment;
+
+    auto timestr = generate_full_format_string_at_time(appointment.begin.get(), nullptr, nullptr);
+    auto title = g_strdup_printf(_("Alarm %s"), timestr);
+    const auto body = appointment.summary;
+    const gchar* icon_name = "alarm-clock";
+
+    auto nn = notify_notification_new(title, body.c_str(), icon_name);
+    notify_notification_set_hint_string(nn, "x-canonical-snap-decisions", "true");
+    notify_notification_set_hint_string(nn, "x-canonical-private-button-tint", "true");
+    notify_notification_add_action(nn, "show", _("Show"), on_snap_show, data, nullptr);
+    notify_notification_add_action(nn, "dismiss", _("Dismiss"), on_snap_dismiss, data, nullptr);
+    g_object_set_data_full(G_OBJECT(nn), "snap-data", data, snap_data_destroy_notify);
+
+    GError * error = nullptr;
+    notify_notification_show(nn, &error);
+    if (error != NULL)
+    {
+        g_warning("Unable to show snap decision for '%s': %s", body.c_str(), error->message);
+        g_error_free(error);
+        data->show(data->appointment);
+    }
+
+    g_free(title);
+    g_free(timestr);
+}
+
+/** 
+***
+**/
+
+void notify(const Appointment& appointment,
+            Snap::appointment_func show,
+            Snap::appointment_func dismiss)
+{
+    auto data = new SnapData;
+    data->appointment = appointment;
+    data->show = show;
+    data->dismiss = dismiss;
+
+    play_alarm_sound();
+    show_snap_decision(data);
+}
+
 } // unnamed namespace
+
 
 /***
 ****
@@ -75,40 +173,22 @@ void on_snap_decided(NotifyNotification  * /*notification*/,
 
 Snap::Snap()
 {
+    first_time_init();
 }
 
 Snap::~Snap()
 {
+    g_clear_pointer(&c_context, ca_context_destroy);
 }
 
-void Snap::operator()(const Appointment& appointment)
+void Snap::operator()(const Appointment& appointment,
+                      appointment_func show,
+                      appointment_func dismiss)
 {
-    if (!appointment.has_alarms)
-        return;
-
-    auto timestr = generate_full_format_string_at_time (appointment.begin.get(), nullptr, nullptr);
-    auto title = g_strdup_printf(_("Alarm %s"), timestr);
-    const auto body = appointment.summary;
-    const gchar* icon_name = "alarm-clock";
-    g_debug("creating a snap decision with title '%s', body '%s', icon '%s'", title, body.c_str(), icon_name);
-
-    auto nn = notify_notification_new(title, body.c_str(), icon_name);
-    notify_notification_set_hint_string(nn, "x-canonical-snap-decisions", "true");
-    notify_notification_set_hint_string(nn, "x-canonical-private-button-tint", "true");
-    notify_notification_add_action(nn, "show", _("Show"), on_snap_decided, g_strdup(appointment.url.c_str()), g_free);
-    notify_notification_add_action(nn, "dismiss", _("Dismiss"), on_snap_decided, nullptr, nullptr);
-
-    GError * error = nullptr;
-    notify_notification_show(nn, &error);
-    if (error != NULL)
-    {
-        g_warning("Unable to show alarm '%s' popup: %s", body.c_str(), error->message);
-        g_error_free(error);
-        dispatch_alarm_url(appointment);
-    }
-
-    g_free(title);
-    g_free(timestr);
+    if (appointment.has_alarms)
+        notify(appointment, show, dismiss);
+    else
+        dismiss(appointment);
 }
 
 /***
