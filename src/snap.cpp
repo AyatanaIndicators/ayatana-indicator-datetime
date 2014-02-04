@@ -54,10 +54,22 @@ ca_context* get_ca_context()
     if (G_UNLIKELY(c_context == nullptr))
     {
         int rv;
+
         if ((rv = ca_context_create(&c_context)) != CA_SUCCESS)
         {
             g_warning("Failed to create canberra context: %s\n", ca_strerror(rv));
             c_context = nullptr;
+        }
+        else
+        {
+            const char* filename = ALARM_SOUND_FILENAME;
+            rv = ca_context_cache(c_context,
+                                  CA_PROP_EVENT_ID, "alarm",
+                                  CA_PROP_MEDIA_FILENAME, filename,
+                                  CA_PROP_CANBERRA_CACHE_CONTROL, "permanent",
+                                  NULL);
+            if (rv != CA_SUCCESS)
+                g_warning("Couldn't add '%s' to canberra cache: %s", filename, ca_strerror(rv));
         }
     }
 
@@ -72,19 +84,22 @@ gboolean play_alarm_sound_idle (gpointer)
     return G_SOURCE_REMOVE;
 }
 
-void on_alarm_play_done (ca_context* /*context*/, uint32_t /*id*/, int /*rv*/, void* /*user_data*/)
+void on_alarm_play_done (ca_context* /*context*/, uint32_t /*id*/, int rv, void* /*user_data*/)
 {
     // wait one second, then play it again
-    g_timeout_add_seconds (1, play_alarm_sound_idle, nullptr);
+    if (rv == CA_SUCCESS)
+        g_timeout_add_seconds (1, play_alarm_sound_idle, nullptr);
 }
 
-void play_soundfile(const char* filename)
+void play_alarm_sound()
 {
+    const gchar* filename = ALARM_SOUND_FILENAME;
     auto context = get_ca_context();
     g_return_if_fail(context != nullptr);
 
     ca_proplist* props = nullptr;
     ca_proplist_create(&props);
+    ca_proplist_sets(props, CA_PROP_EVENT_ID, "alarm");
     ca_proplist_sets(props, CA_PROP_MEDIA_FILENAME, filename);
 
     const auto rv = ca_context_play_full(context, alarm_ca_id, props, on_alarm_play_done, nullptr);
@@ -92,11 +107,6 @@ void play_soundfile(const char* filename)
         g_warning("Failed to play file '%s': %s", filename, ca_strerror(rv));
 
     g_clear_pointer(&props, ca_proplist_destroy);
-}
-
-void play_alarm_sound()
-{
-    play_soundfile(ALARM_SOUND_FILENAME);
 }
 
 void stop_alarm_sound()
