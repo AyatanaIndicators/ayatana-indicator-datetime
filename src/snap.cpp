@@ -79,6 +79,9 @@ Snap::Snap(const std::shared_ptr<Clock>& clock):
 
 void Snap::operator()(const Appointment& appointment)
 {
+    if (!appointment.has_alarms)
+        return;
+
     const auto timestr = m_formatter.header.get();
     const auto body = appointment.summary;
     gchar* title = g_strdup_printf(_("Alarm %s"), timestr.c_str());
