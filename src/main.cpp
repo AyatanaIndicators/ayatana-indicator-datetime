@@ -70,7 +70,14 @@ main(int /*argc*/, char** /*argv*/)
     Snap snap;
     clock_watcher.alarm_reached().connect([&snap,&eds_planner](const Appointment& appt){
         eds_planner->block_appointment(appt); // when we show a snap decision, take it out of the menu
-        auto snap_show = [](const Appointment& a){url_dispatch_send(a.url.c_str(), nullptr, nullptr);};
+        auto snap_show = [](const Appointment& a){
+            const char* url;
+            if(!a.url.empty())
+                url = a.url.c_str();
+            else // alarm doesn't have a URl associated with it; use a fallback
+                url = "appid://com.ubuntu.clock/clock/current-user-version";
+            url_dispatch_send(url, nullptr, nullptr);
+        };
         auto snap_dismiss = [](const Appointment&){};
         snap(appt, snap_show, snap_dismiss);
     });
