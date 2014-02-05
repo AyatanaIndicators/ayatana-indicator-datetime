@@ -239,14 +239,21 @@ private:
     {
         int n = 0;
         const int MAX_APPTS = 5;
+        const auto now = m_state->clock->localtime();
         std::set<std::string> added;
 
         for (const auto& appt : m_state->planner->upcoming.get())
         {
+            // don't show too many
             if (n++ >= MAX_APPTS)
                 break;
 
+            // don't show duplicates
             if (added.count(appt.uid))
+                continue;
+
+            // don't show appointments that have already started
+            if ((appt.begin<now) || DateTime::is_same_minute(now,appt.begin))
                 continue;
 
             added.insert(appt.uid);
