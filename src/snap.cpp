@@ -48,6 +48,7 @@ namespace
 const int32_t alarm_ca_id = 1;
 
 ca_context *c_context = nullptr;
+guint timeout_tag = 0;
 
 ca_context* get_ca_context()
 {
@@ -80,6 +81,7 @@ void play_alarm_sound();
 
 gboolean play_alarm_sound_idle (gpointer)
 {
+    timeout_tag = 0;
     play_alarm_sound();
     return G_SOURCE_REMOVE;
 }
@@ -87,8 +89,8 @@ gboolean play_alarm_sound_idle (gpointer)
 void on_alarm_play_done (ca_context* /*context*/, uint32_t /*id*/, int rv, void* /*user_data*/)
 {
     // wait one second, then play it again
-    if (rv == CA_SUCCESS)
-        g_timeout_add_seconds (1, play_alarm_sound_idle, nullptr);
+    if ((rv == CA_SUCCESS) && (timeout_tag == 0))
+        timeout_tag = g_timeout_add_seconds (1, play_alarm_sound_idle, nullptr);
 }
 
 void play_alarm_sound()
@@ -117,6 +119,12 @@ void stop_alarm_sound()
         const auto rv = ca_context_cancel(context, alarm_ca_id);
         if (rv != CA_SUCCESS)
             g_warning("Failed to cancel alarm sound: %s", ca_strerror(rv));
+    }
+
+    if (timeout_tag != 0)
+    {
+        g_source_remove(timeout_tag);
+        timeout_tag = 0;
     }
 }
 
