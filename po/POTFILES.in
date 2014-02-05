@@ -2,6 +2,7 @@ src/formatter.cpp
 src/formatter-desktop.cpp
 src/menu.cpp
 src/snap.cpp
+src/utils.c
 panel/datetime-prefs.c
 panel/datetime-prefs-locations.c
 [type: gettext/glade]data/datetime-dialog.ui
