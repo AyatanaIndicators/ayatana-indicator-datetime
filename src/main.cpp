@@ -59,15 +59,17 @@ main(int /*argc*/, char** /*argv*/)
     state->settings = live_settings;
     state->clock = live_clock;
     state->locations.reset(new SettingsLocations(live_settings, live_timezones));
-    state->planner.reset(new PlannerEds(live_clock));
-    state->planner->time = live_clock->localtime();
+    std::shared_ptr<PlannerEds> eds_planner(new PlannerEds(live_clock));
+    eds_planner->time = live_clock->localtime();
+    state->planner = eds_planner;
     std::shared_ptr<Actions> actions(new LiveActions(state));
     MenuFactory factory(actions, state);
 
     // snap decisions
     ClockWatcherImpl clock_watcher(state);
     Snap snap;
-    clock_watcher.alarm_reached().connect([&snap](const Appointment& appt){
+    clock_watcher.alarm_reached().connect([&snap,&eds_planner](const Appointment& appt){
+        eds_planner->block_appointment(appt); // when we show a snap decision, take it out of the menu
         auto snap_show = [](const Appointment& a){url_dispatch_send(a.url.c_str(), nullptr, nullptr);};
         auto snap_dismiss = [](const Appointment&){};
         snap(appt, snap_show, snap_dismiss);

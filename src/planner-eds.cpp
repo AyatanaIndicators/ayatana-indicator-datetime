@@ -77,6 +77,12 @@ public:
         g_clear_object(&m_source_registry);
     }
 
+    void block_appointment(const Appointment& appointment)
+    {
+        m_blocked.insert(appointment.uid);
+        rebuild_soon(UPCOMING);
+    }
+
 private:
 
     static void on_source_registry_ready(GObject* /*source*/, GAsyncResult* res, gpointer gself)
@@ -348,9 +354,13 @@ private:
         const auto begin = g_date_time_add_minutes(ref.get(),-10);
         const auto end = g_date_time_add_months(begin,1);
 
-        get_appointments(begin, end, [this](const std::vector<Appointment>& appointments) {
-            g_debug("got %d upcoming appointments", (int)appointments.size());
-            m_owner.upcoming.set(appointments);
+        get_appointments(begin, end, [this](const std::vector<Appointment>& all) {
+            std::vector<Appointment> unblocked;
+            for(const auto& a : all)
+                if (m_blocked.count(a.uid) == 0)
+                    unblocked.push_back(a);
+            g_debug("got %d upcoming appointments, %d of which are unblocked", (int)all.size(), (int)unblocked.size());
+            m_owner.upcoming.set(unblocked);
         });
 
         g_date_time_unref(end);
@@ -520,6 +530,7 @@ private:
     std::set<ESource*> m_sources;
     std::map<ESource*,ECalClient*> m_clients;
     std::map<ESource*,ECalClientView*> m_views;
+    std::set<std::string> m_blocked;
     GCancellable* m_cancellable = nullptr;
     ESourceRegistry* m_source_registry = nullptr;
     guint m_rebuild_tag = 0;
@@ -530,6 +541,11 @@ private:
 PlannerEds::PlannerEds(const std::shared_ptr<Clock>& clock): p(new Impl(*this, clock)) {}
 
 PlannerEds::~PlannerEds() =default;
+
+void PlannerEds::block_appointment(const Appointment& appointment)
+{
+    p->block_appointment(appointment);
+}
 
 } // namespace datetime
 } // namespace indicator
