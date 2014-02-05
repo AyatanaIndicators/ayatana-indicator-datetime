@@ -68,9 +68,9 @@ main(int /*argc*/, char** /*argv*/)
     ClockWatcherImpl clock_watcher(state);
     Snap snap;
     clock_watcher.alarm_reached().connect([&snap](const Appointment& appt){
-        snap(appt,
-             [](const Appointment& a){url_dispatch_send(a.url.c_str(), nullptr, nullptr);},
-             [](const Appointment&){});
+        auto snap_show = [](const Appointment& a){url_dispatch_send(a.url.c_str(), nullptr, nullptr);};
+        auto snap_dismiss = [](const Appointment&){};
+        snap(appt, snap_show, snap_dismiss);
     });
 
     // create the menus
