@@ -47,6 +47,7 @@ namespace
 // arbitrary number, but we need a consistent id for play/cancel
 const int32_t alarm_ca_id = 1;
 
+gboolean media_cached = FALSE;
 ca_context *c_context = nullptr;
 guint timeout_tag = 0;
 
@@ -69,6 +70,7 @@ ca_context* get_ca_context()
                                   CA_PROP_MEDIA_FILENAME, filename,
                                   CA_PROP_CANBERRA_CACHE_CONTROL, "permanent",
                                   NULL);
+            media_cached = rv == CA_SUCCESS;
             if (rv != CA_SUCCESS)
                 g_warning("Couldn't add '%s' to canberra cache: %s", filename, ca_strerror(rv));
         }
@@ -101,7 +103,8 @@ void play_alarm_sound()
 
     ca_proplist* props = nullptr;
     ca_proplist_create(&props);
-    ca_proplist_sets(props, CA_PROP_EVENT_ID, "alarm");
+    if (media_cached)
+        ca_proplist_sets(props, CA_PROP_EVENT_ID, "alarm");
     ca_proplist_sets(props, CA_PROP_MEDIA_FILENAME, filename);
 
     const auto rv = ca_context_play_full(context, alarm_ca_id, props, on_alarm_play_done, nullptr);
@@ -230,6 +233,7 @@ Snap::Snap()
 
 Snap::~Snap()
 {
+    media_cached = false;
     g_clear_pointer(&c_context, ca_context_destroy);
 }
 
