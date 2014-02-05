@@ -20,7 +20,6 @@
 #ifndef INDICATOR_DATETIME_PLANNER_EDS_H
 #define INDICATOR_DATETIME_PLANNER_EDS_H
 
-#include <datetime/appointment.h>
 #include <datetime/clock.h>
 #include <datetime/planner.h>
 
@@ -38,7 +37,6 @@ class PlannerEds: public Planner
 public:
     PlannerEds(const std::shared_ptr<Clock>& clock);
     virtual ~PlannerEds();
-    void block_appointment(const Appointment& appointment);
 
 private:
     class Impl;
