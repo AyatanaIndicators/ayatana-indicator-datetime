@@ -69,6 +69,14 @@ DateTime DateTime::to_timezone(const std::string& zone) const
     return dt;
 }
 
+DateTime DateTime::add_full(int years, int months, int days, int hours, int minutes, double seconds) const
+{
+    auto gdt = g_date_time_add_full(get(), years, months, days, hours, minutes, seconds);
+    DateTime dt(gdt);
+    g_date_time_unref(gdt);
+    return dt;
+}
+
 GDateTime* DateTime::get() const
 {
     g_assert(m_dt);
@@ -86,6 +94,11 @@ std::string DateTime::format(const std::string& fmt) const
 int DateTime::day_of_month() const
 {
     return g_date_time_get_day_of_month(get());
+}
+
+double DateTime::seconds() const
+{
+    return g_date_time_get_seconds(get());
 }
 
 int64_t DateTime::to_unix() const
@@ -110,6 +123,11 @@ void DateTime::reset(GDateTime* in)
 bool DateTime::operator<(const DateTime& that) const
 {
     return g_date_time_compare(get(), that.get()) < 0;
+}
+
+bool DateTime::operator<=(const DateTime& that) const
+{
+    return g_date_time_compare(get(), that.get()) <= 0;
 }
 
 bool DateTime::operator!=(const DateTime& that) const

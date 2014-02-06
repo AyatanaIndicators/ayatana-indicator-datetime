@@ -25,6 +25,8 @@
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 
+#include <vector>
+
 namespace unity {
 namespace indicator {
 namespace datetime {
@@ -103,12 +105,14 @@ protected:
             update_section(Appointments); // showing events got toggled
         });
         m_state->planner->upcoming.changed().connect([this](const std::vector<Appointment>&){
-            update_header(); // show an 'alarm' icon if there are upcoming alarms
-            update_section(Appointments); // "upcoming" is the list of Appointments we show
+            update_upcoming(); // our m_upcoming is planner->upcoming() filtered by time
         });
         m_state->clock->date_changed.connect([this](){
             update_section(Calendar); // need to update the Date menuitem
             update_section(Locations); // locations' relative time may have changed
+        });
+        m_state->clock->minute_changed.connect([this](){
+            update_upcoming(); // our m_upcoming is planner->upcoming() filtered by time
         });
         m_state->locations->locations.changed().connect([this](const std::vector<Location>&) {
             update_section(Locations); // "locations" is the list of Locations we show
@@ -132,6 +136,24 @@ protected:
         g_action_group_change_action_state(action_group, action_name.c_str(), state);
     }
 
+    void update_upcoming()
+    {
+        const auto now = m_state->clock->localtime();
+        const auto next_minute = now.add_full(0,0,0,0,1,-now.seconds());
+
+        std::vector<Appointment> upcoming;
+        for(const auto& a : m_state->planner->upcoming.get())
+            if (next_minute <= a.begin)
+                upcoming.push_back(a);
+ 
+        if (m_upcoming != upcoming)
+        {
+            m_upcoming.swap(upcoming);
+            update_header(); // show an 'alarm' icon if there are upcoming alarms
+            update_section(Appointments); // "upcoming" is the list of Appointments we show
+        }
+    }
+
     std::shared_ptr<const State> m_state;
     std::shared_ptr<Actions> m_actions;
     std::shared_ptr<const Formatter> m_formatter;
@@ -148,6 +170,8 @@ protected:
 
         return m_serialized_alarm_icon;
     }
+
+    std::vector<Appointment> m_upcoming;
 
 private:
 
@@ -239,10 +263,9 @@ private:
     {
         int n = 0;
         const int MAX_APPTS = 5;
-        const auto now = m_state->clock->localtime();
         std::set<std::string> added;
 
-        for (const auto& appt : m_state->planner->upcoming.get())
+        for (const auto& appt : m_upcoming)
         {
             // don't show too many
             if (n++ >= MAX_APPTS)
@@ -250,10 +273,6 @@ private:
 
             // don't show duplicates
             if (added.count(appt.uid))
-                continue;
-
-            // don't show appointments that have already started
-            if ((appt.begin<now) || DateTime::is_same_minute(now,appt.begin))
                 continue;
 
             added.insert(appt.uid);
@@ -460,7 +479,7 @@ protected:
     {
         // are there alarms?
         bool has_alarms = false;
-        for(const auto& appointment : m_state->planner->upcoming.get())
+        for(const auto& appointment : m_upcoming)
             if((has_alarms = appointment.has_alarms))
                 break;
 
