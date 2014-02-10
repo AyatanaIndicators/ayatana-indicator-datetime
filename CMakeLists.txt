@@ -44,28 +44,6 @@ pkg_check_modules (SERVICE_DEPS REQUIRED
                    json-glib-1.0>=0.16.2)
 include_directories (SYSTEM ${SERVICE_DEPS_INCLUDE_DIRS})
 
-pkg_check_modules (PANEL_DEPS
-                   glib-2.0>=2.36
-                   gio-unix-2.0>=2.36
-                   gtk+-3.0>=3.1.4
-                   timezonemap
-                   libgnome-control-center
-                   polkit-gobject-1)
-if (PANEL_DEPS_FOUND)
-  set (BUILD_PANEL 1)
-endif ()
-
-pkg_check_modules (UNITY_PANEL_DEPS
-                   glib-2.0>=2.36
-                   gio-unix-2.0>=2.36
-                   gtk+-3.0>=3.1.4
-                   timezonemap
-                   libunity-control-center
-                   polkit-gobject-1)
-if (UNITY_PANEL_DEPS_FOUND)
-  set (BUILD_UNITY_PANEL 1)
-endif ()
-
 ##
 ##  custom targets
 ##
@@ -107,12 +85,6 @@ endif ()
 # actually build things
 add_subdirectory(include)
 add_subdirectory(src)
-if (BUILD_PANEL)
-  add_subdirectory (panel-gnome)
-endif ()
-if (BUILD_UNITY_PANEL)
-  add_subdirectory (panel-unity)
-endif ()
 add_subdirectory(data)
 add_subdirectory(po)
 if (${enable_tests})

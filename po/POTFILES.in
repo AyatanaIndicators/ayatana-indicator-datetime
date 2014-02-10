@@ -1,8 +1,3 @@
 src/formatter.cpp
 src/formatter-desktop.cpp
 src/menu.cpp
-panel/datetime-prefs.c
-panel/datetime-prefs-locations.c
-[type: gettext/glade]data/datetime-dialog.ui
-data/gnome-indicator-datetime-panel.desktop.in
-data/unity-datetime-panel.desktop.in
