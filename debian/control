@@ -47,25 +47,9 @@ Depends: ${shlibs:Depends},
          systemd-shim,
 Recommends: indicator-applet | indicator-renderer,
             evolution-data-server,
-            unity-control-center (>= 14.04.3) | gnome-control-center-datetime | ubuntu-system-settings,
+            unity-control-center (>= 14.04.3) | ubuntu-system-settings,
 Suggests: click,
 Conflicts: indicator-datetime (<< 13.10.0)
 Replaces: indicator-datetime (<< 13.10.0)
 Description: Simple clock
  A simple clock appearing in the indicator bar
-
-Package: gnome-control-center-datetime
-Architecture: any
-Depends: ${shlibs:Depends}, 
-         ${misc:Depends},
-Description: transitional dummy package
- This is a transitional dummy package. It can safely be removed.
-
-Package: unity-control-center-datetime
-Architecture: any
-Depends: ${shlibs:Depends},
-         ${misc:Depends},
-         unity-control-center (>= 14.04.3)
-Description: transitional dummy package
- This is a transitional dummy package. It can safely be removed.
-
