@@ -1,3 +1,10 @@
+indicator-datetime (13.10.0+14.04.20140217-0ubuntu1) trusty; urgency=low
+
+  [ Robert Ancell ]
+  * Move date/time panel into unity-control-center
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 17 Feb 2014 12:53:26 +0000
+
 indicator-datetime (13.10.0+14.04.20140205-0ubuntu1) trusty; urgency=low
 
   [ Charles Kerr ]
