@@ -1,6 +1,0 @@
-usr/share/glib-2.0/schemas/*
-usr/share/upstart/sessions/*
-usr/share/unity/indicators/*
-usr/lib/*/indicator-datetime/indicator-datetime-service
-usr/share/locale/*
-etc/xdg/autostart/*
