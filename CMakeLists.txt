@@ -38,10 +38,10 @@ pkg_check_modules (SERVICE_DEPS REQUIRED
                    libical>=0.48
                    libecal-1.2>=3.5
                    libedataserver-1.2>=3.5
+                   libcanberra>=0.12
                    libnotify>=0.7.6
                    url-dispatcher-1>=1
-                   properties-cpp>=0.0.1
-                   json-glib-1.0>=0.16.2)
+                   properties-cpp>=0.0.1)
 include_directories (SYSTEM ${SERVICE_DEPS_INCLUDE_DIRS})
 
 ##

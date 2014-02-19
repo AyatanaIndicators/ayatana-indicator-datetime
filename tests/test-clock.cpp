@@ -37,12 +37,12 @@ class ClockFixture: public TestDBusFixture
     void emitPrepareForSleep()
     {
       g_dbus_connection_emit_signal(g_bus_get_sync(G_BUS_TYPE_SYSTEM, nullptr, nullptr),
-                                    NULL,
+                                    nullptr,
                                     "/org/freedesktop/login1", // object path
                                     "org.freedesktop.login1.Manager", // interface
                                     "PrepareForSleep", // signal name
                                     g_variant_new("(b)", FALSE),
-                                    NULL);
+                                    nullptr);
     }
 };
 

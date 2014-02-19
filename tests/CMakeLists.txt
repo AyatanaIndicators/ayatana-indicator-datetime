@@ -42,6 +42,7 @@ function(add_test_by_name name)
 endfunction()
 add_test_by_name(test-actions)
 add_test_by_name(test-clock)
+add_test_by_name(test-clock-watcher)
 add_test_by_name(test-exporter)
 add_test_by_name(test-formatter)
 add_test_by_name(test-live-actions)
@@ -52,6 +53,10 @@ add_test_by_name(test-settings)
 add_test_by_name(test-timezone-file)
 add_test_by_name(test-utils)
 
+set (TEST_NAME manual-test-snap)
+add_executable (${TEST_NAME} ${TEST_NAME}.cpp)
+add_dependencies (${TEST_NAME} libindicatordatetimeservice)
+target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
 
 # disabling the timezone unit tests because they require
 # https://code.launchpad.net/~ted/dbus-test-runner/multi-interface-test/+merge/199724

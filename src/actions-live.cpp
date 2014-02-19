@@ -156,7 +156,7 @@ on_datetime1_proxy_ready (GObject      * object G_GNUC_UNUSED,
 
   GError * err = nullptr;
   auto proxy = g_dbus_proxy_new_for_bus_finish(res, &err);
-  if (err != NULL)
+  if (err != nullptr)
     {
       if (!g_error_matches(err, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         g_warning("Could not grab DBus proxy for timedated: %s", err->message);

@@ -22,10 +22,10 @@
 #include <datetime/formatter.h>
 #include <datetime/state.h>
 
-#include <json-glib/json-glib.h>
-
 #include <glib/gi18n.h>
 #include <gio/gio.h>
+
+#include <vector>
 
 namespace unity {
 namespace indicator {
@@ -62,7 +62,7 @@ GMenuModel* Menu::menu_model()
 ****/
 
 
-#define FALLBACK_ALARM_CLOCK_ICON_NAME "clock"
+#define ALARM_ICON_NAME "alarm-clock"
 #define CALENDAR_ICON_NAME "calendar"
 
 class MenuImpl: public Menu
@@ -105,11 +105,14 @@ protected:
             update_section(Appointments); // showing events got toggled
         });
         m_state->planner->upcoming.changed().connect([this](const std::vector<Appointment>&){
-            update_section(Appointments); // "upcoming" is the list of Appointments we show
+            update_upcoming(); // our m_upcoming is planner->upcoming() filtered by time
         });
         m_state->clock->date_changed.connect([this](){
             update_section(Calendar); // need to update the Date menuitem
             update_section(Locations); // locations' relative time may have changed
+        });
+        m_state->clock->minute_changed.connect([this](){
+            update_upcoming(); // our m_upcoming is planner->upcoming() filtered by time
         });
         m_state->locations->locations.changed().connect([this](const std::vector<Location>&) {
             update_section(Locations); // "locations" is the list of Locations we show
@@ -133,6 +136,24 @@ protected:
         g_action_group_change_action_state(action_group, action_name.c_str(), state);
     }
 
+    void update_upcoming()
+    {
+        const auto now = m_state->clock->localtime();
+        const auto next_minute = now.add_full(0,0,0,0,1,-now.seconds());
+
+        std::vector<Appointment> upcoming;
+        for(const auto& a : m_state->planner->upcoming.get())
+            if (next_minute <= a.begin)
+                upcoming.push_back(a);
+ 
+        if (m_upcoming != upcoming)
+        {
+            m_upcoming.swap(upcoming);
+            update_header(); // show an 'alarm' icon if there are upcoming alarms
+            update_section(Appointments); // "upcoming" is the list of Appointments we show
+        }
+    }
+
     std::shared_ptr<const State> m_state;
     std::shared_ptr<Actions> m_actions;
     std::shared_ptr<const Formatter> m_formatter;
@@ -141,70 +162,18 @@ protected:
     GVariant* get_serialized_alarm_icon()
     {
         if (G_UNLIKELY(m_serialized_alarm_icon == nullptr))
-            m_serialized_alarm_icon = create_alarm_icon();
+        {
+            auto i = g_themed_icon_new_with_default_fallbacks(ALARM_ICON_NAME);
+            m_serialized_alarm_icon = g_icon_serialize(i);
+            g_object_unref(i);
+        }
 
         return m_serialized_alarm_icon;
     }
 
+    std::vector<Appointment> m_upcoming;
+
 private:
-
-    /* try to get the clock app's filename from click. (/$pkgdir/$icon) */
-    static GVariant* create_alarm_icon()
-    {
-        GVariant* serialized = nullptr;
-        gchar* icon_filename = nullptr;
-        gchar* standard_error = nullptr;
-        gchar* pkgdir = nullptr;
-
-        g_spawn_command_line_sync("click pkgdir com.ubuntu.clock", &pkgdir, &standard_error, nullptr, nullptr);
-        g_clear_pointer(&standard_error, g_free);
-        if (pkgdir != nullptr)
-        {
-            gchar* manifest = nullptr;
-            g_strstrip(pkgdir);
-            g_spawn_command_line_sync("click info com.ubuntu.clock", &manifest, &standard_error, nullptr, nullptr);
-            g_clear_pointer(&standard_error, g_free);
-            if (manifest != nullptr)
-            {
-                JsonParser* parser = json_parser_new();
-                if (json_parser_load_from_data(parser, manifest, -1, nullptr))
-                {
-                    JsonNode* root = json_parser_get_root(parser); /* transfer-none */
-                    if ((root != nullptr) && (JSON_NODE_TYPE(root) == JSON_NODE_OBJECT))
-                    {
-                        JsonObject* o = json_node_get_object(root); /* transfer-none */
-                        const gchar* icon_name = json_object_get_string_member(o, "icon");
-                        if (icon_name != nullptr)
-                            icon_filename = g_build_filename(pkgdir, icon_name, nullptr);
-                    }
-                }
-                g_object_unref(parser);
-                g_free(manifest);
-            }
-            g_free(pkgdir);
-        }
-
-        if (icon_filename != nullptr)
-        {
-            GFile* file = g_file_new_for_path(icon_filename);
-            GIcon* icon = g_file_icon_new(file);
-
-            serialized = g_icon_serialize(icon);
-
-            g_object_unref(icon);
-            g_object_unref(file);
-            g_free(icon_filename);
-        }
-
-        if (serialized == nullptr)
-        {
-            auto i = g_themed_icon_new_with_default_fallbacks(FALLBACK_ALARM_CLOCK_ICON_NAME);
-            serialized = g_icon_serialize(i);
-            g_object_unref(i);
-        }
-
-        return serialized;
-    }
 
     GVariant* get_serialized_calendar_icon()
     {
@@ -273,7 +242,7 @@ private:
         // add calendar
         if (show_calendar)
         {
-            item = g_menu_item_new ("[calendar]", NULL);
+            item = g_menu_item_new ("[calendar]", nullptr);
             v = g_variant_new_int64(0);
             g_menu_item_set_action_and_target_value (item, "indicator.calendar", v);
             g_menu_item_set_attribute (item, "x-canonical-type",
@@ -296,11 +265,13 @@ private:
         const int MAX_APPTS = 5;
         std::set<std::string> added;
 
-        for (const auto& appt : m_state->planner->upcoming.get())
+        for (const auto& appt : m_upcoming)
         {
+            // don't show too many
             if (n++ >= MAX_APPTS)
                 break;
 
+            // don't show duplicates
             if (added.count(appt.uid))
                 continue;
 
@@ -508,7 +479,7 @@ protected:
     {
         // are there alarms?
         bool has_alarms = false;
-        for(const auto& appointment : m_state->planner->upcoming.get())
+        for(const auto& appointment : m_upcoming)
             if((has_alarms = appointment.has_alarms))
                 break;
 

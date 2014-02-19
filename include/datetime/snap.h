@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2014 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -17,34 +17,35 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_EDS_H
-#define INDICATOR_DATETIME_PLANNER_EDS_H
+#ifndef INDICATOR_DATETIME_SNAP_H
+#define INDICATOR_DATETIME_SNAP_H
 
-#include <datetime/clock.h>
-#include <datetime/planner.h>
+#include <datetime/appointment.h>
 
-#include <memory> // shared_ptr, unique_ptr
+#include <memory>
+#include <functional>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
 /**
- * \brief Planner which uses EDS as its backend
+ * \brief Pops up Snap Decisions for appointments
  */
-class PlannerEds: public Planner
+class Snap
 {
 public:
-    PlannerEds(const std::shared_ptr<Clock>& clock);
-    virtual ~PlannerEds();
+    Snap();
+    virtual ~Snap();
 
-private:
-    class Impl;
-    std::unique_ptr<Impl> p;
+    typedef std::function<void(const Appointment&)> appointment_func;
+    void operator()(const Appointment& appointment,
+                    appointment_func show,
+                    appointment_func dismiss);
 };
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_PLANNER_EDS_H
+#endif // INDICATOR_DATETIME_SNAP_H

@@ -41,6 +41,7 @@ public:
     DateTime& operator=(GDateTime* in);
     DateTime& operator=(const DateTime& in);
     DateTime to_timezone(const std::string& zone) const;
+    DateTime add_full(int years, int months, int days, int hours, int minutes, double seconds) const;
     void reset(GDateTime* in=nullptr);
 
     GDateTime* get() const;
@@ -48,9 +49,11 @@ public:
 
     std::string format(const std::string& fmt) const;
     int day_of_month() const;
+    double seconds() const;
     int64_t to_unix() const;
 
     bool operator<(const DateTime& that) const;
+    bool operator<=(const DateTime& that) const;
     bool operator!=(const DateTime& that) const;
     bool operator==(const DateTime& that) const;
 

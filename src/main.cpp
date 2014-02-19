@@ -17,24 +17,25 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #include <datetime/actions-live.h>
 #include <datetime/clock.h>
+#include <datetime/clock-watcher.h>
 #include <datetime/exporter.h>
 #include <datetime/locations-settings.h>
 #include <datetime/menu.h>
 #include <datetime/planner-eds.h>
 #include <datetime/settings-live.h>
+#include <datetime/snap.h>
 #include <datetime/state.h>
 #include <datetime/timezones-live.h>
 
 #include <glib/gi18n.h> // bindtextdomain()
 #include <gio/gio.h>
-#include <libnotify/notify.h> 
+
+#include <url-dispatcher.h>
 
 #include <locale.h>
-#include <stdlib.h> // exit()
+#include <cstdlib> // exit()
 
 using namespace unity::indicator::datetime;
 
@@ -50,10 +51,6 @@ main(int /*argc*/, char** /*argv*/)
     bindtextdomain(GETTEXT_PACKAGE, GNOMELOCALEDIR);
     textdomain(GETTEXT_PACKAGE);
 
-    // init libnotify
-    if(!notify_init("indicator-datetime-service"))
-        g_critical("libnotify initialization failed");
-
     // build the state, actions, and menufactory
     std::shared_ptr<State> state(new State);
     std::shared_ptr<Settings> live_settings(new LiveSettings);
@@ -62,10 +59,26 @@ main(int /*argc*/, char** /*argv*/)
     state->settings = live_settings;
     state->clock = live_clock;
     state->locations.reset(new SettingsLocations(live_settings, live_timezones));
-    state->planner.reset(new PlannerEds);
+    state->planner.reset(new PlannerEds(live_clock));
     state->planner->time = live_clock->localtime();
     std::shared_ptr<Actions> actions(new LiveActions(state));
     MenuFactory factory(actions, state);
+
+    // snap decisions
+    ClockWatcherImpl clock_watcher(state);
+    Snap snap;
+    clock_watcher.alarm_reached().connect([&snap](const Appointment& appt){
+        auto snap_show = [](const Appointment& a){
+            const char* url;
+            if(!a.url.empty())
+                url = a.url.c_str();
+            else // alarm doesn't have a URl associated with it; use a fallback
+                url = "appid://com.ubuntu.clock/clock/current-user-version";
+            url_dispatch_send(url, nullptr, nullptr);
+        };
+        auto snap_dismiss = [](const Appointment&){};
+        snap(appt, snap_show, snap_dismiss);
+    });
 
     // create the menus
     std::vector<std::shared_ptr<Menu>> menus;

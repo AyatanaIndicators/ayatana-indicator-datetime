@@ -167,8 +167,8 @@ TEST_F(SettingsFixture, Locations)
 {
     const auto key = SETTINGS_LOCATIONS_S;
 
-    const gchar* astrv[] = {"America/Los_Angeles Oakland", "America/Chicago Oklahoma City", "Europe/London London", NULL};
-    const gchar* bstrv[] = {"America/Denver", "Europe/London London", "Europe/Berlin Berlin", NULL};
+    const gchar* astrv[] = {"America/Los_Angeles Oakland", "America/Chicago Oklahoma City", "Europe/London London", nullptr};
+    const gchar* bstrv[] = {"America/Denver", "Europe/London London", "Europe/Berlin Berlin", nullptr};
     const std::vector<std::string> av = strv_to_vector(astrv);
     const std::vector<std::string> bv = strv_to_vector(bstrv);
     

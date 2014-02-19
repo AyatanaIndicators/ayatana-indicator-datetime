@@ -95,7 +95,7 @@ class GeoclueFixture : public GlibFixture
 
       // I've looked and can't find where this extra ref is coming from.
       // is there an unbalanced ref to the bus in the test harness?!
-      while (bus != NULL)
+      while (bus != nullptr)
         {
           g_object_unref (bus);
           wait_msec (1000);

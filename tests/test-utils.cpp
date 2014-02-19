@@ -59,7 +59,7 @@ namespace
         const char* location;
         const char* expected_name;
     } beautify_timezone_test_cases[] = {
-        { "America/Chicago", NULL, "Chicago" },
+        { "America/Chicago", nullptr, "Chicago" },
         { "America/Chicago", "America/Chicago", "Chicago" },
         { "America/Chicago", "America/Chigago Chicago", "Chicago" },
         { "America/Chicago", "America/Chicago Oklahoma City", "Oklahoma City" },
