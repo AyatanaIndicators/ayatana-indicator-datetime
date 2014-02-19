@@ -1,3 +1,13 @@
+indicator-datetime (13.10.0+14.04.20140219.1-0ubuntu1) trusty; urgency=low
+
+  [ Charles Kerr ]
+  * support for ubuntu-clock-app's alarms (LP: #1233176)
+
+  [ Ted Gould ]
+  * Adding acceptance tests and merge review policies
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 19 Feb 2014 18:02:43 +0000
+
 indicator-datetime (13.10.0+14.04.20140217-0ubuntu1) trusty; urgency=low
 
   [ Robert Ancell ]
