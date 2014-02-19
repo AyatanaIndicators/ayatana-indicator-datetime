@@ -26,9 +26,6 @@ Build-Depends: cmake,
                libpolkit-gobject-1-dev,
                libedataserver1.2-dev (>= 3.5),
                libgconf2-dev (>= 2.31),
-               libgnome-control-center-dev,
-               libunity-control-center-dev,
-               libtimezonemap1-dev,
                liburl-dispatcher1-dev,
                libproperties-cpp-dev,
                libdbustest1-dev,
@@ -50,34 +47,9 @@ Depends: ${shlibs:Depends},
          systemd-shim,
 Recommends: indicator-applet | indicator-renderer,
             evolution-data-server,
-            unity-control-center-datetime | gnome-control-center-datetime | ubuntu-system-settings,
+            unity-control-center (>= 14.04.3) | ubuntu-system-settings,
 Suggests: click,
 Conflicts: indicator-datetime (<< 13.10.0)
 Replaces: indicator-datetime (<< 13.10.0)
 Description: Simple clock
  A simple clock appearing in the indicator bar
-
-Package: gnome-control-center-datetime
-Architecture: any
-Depends: ${shlibs:Depends}, 
-         ${misc:Depends},
-         indicator-datetime (=${binary:Version}),
-         gnome-control-center,
-Conflicts: indicator-datetime (<< 13.10.0)
-Replaces: indicator-datetime (<< 13.10.0)
-Description: Clock settings in the GNOME Control Center
- A module to get date time and clock settings in the GNOME control
- center.
-
-Package: unity-control-center-datetime
-Architecture: any
-Depends: ${shlibs:Depends}, 
-         ${misc:Depends},
-         indicator-datetime (=${binary:Version}),
-         unity-control-center,
-Conflicts: indicator-datetime (<< 13.10.0)
-Replaces: indicator-datetime (<< 13.10.0)
-Description: Clock settings in the Unity Control Center
- A module to get date time and clock settings in the Unity control
- center.
-

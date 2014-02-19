@@ -68,11 +68,7 @@ void LiveActions::open_desktop_settings()
     }
     else
     {
-#ifdef HAVE_CCPANEL
-        execute_command("gnome-control-center indicator-datetime");
-#else
         execute_command("gnome-control-center datetime");
-#endif
     }
 
     g_free (path);

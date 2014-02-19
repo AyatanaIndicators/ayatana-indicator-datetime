@@ -7,11 +7,6 @@ SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g ${CXX_WARNING_ARGS} ${GCO
 add_definitions (-DTIMEZONE_FILE="/etc/timezone"
                  -DG_LOG_DOMAIN="Indicator-Datetime")
 
-# let service know how to launch gnome-control-center on the desktop
-if (BUILD_PANEL)
-  add_definitions (-DHAVE_CCPANEL)
-endif ()
-
 add_library (${SERVICE_LIB} STATIC
              actions.cpp
              actions-live.cpp
