@@ -2,8 +2,7 @@
 Type=Application
 Name=Indicator Date & Time
 Exec=@pkglibexecdir@/indicator-datetime-service
-NotShowIn=Unity;
+OnlyShowIn=Unity;
 NoDisplay=true
 StartupNotify=false
 Terminal=false
-
