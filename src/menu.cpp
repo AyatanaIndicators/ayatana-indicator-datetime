@@ -261,7 +261,6 @@ private:
 
     void add_appointments(GMenu* menu, Profile profile)
     {
-        int n = 0;
         const int MAX_APPTS = 5;
         std::set<std::string> added;
 
@@ -272,7 +271,7 @@ private:
                 continue;
 
             // don't show too many
-            if (n++ >= MAX_APPTS)
+            if (g_menu_model_get_n_items (G_MENU_MODEL(menu) >= MAX_APPTS))
                 break;
 
             added.insert(appt.uid);
