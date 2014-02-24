@@ -271,7 +271,7 @@ private:
                 continue;
 
             // don't show too many
-            if (g_menu_model_get_n_items (G_MENU_MODEL(menu) >= MAX_APPTS))
+            if (g_menu_model_get_n_items (G_MENU_MODEL(menu)) >= MAX_APPTS)
                 break;
 
             added.insert(appt.uid);
