@@ -463,14 +463,15 @@ private:
               e_cal_component_free_recur_list(recur_list);
 
               ECalComponentText text;
-              text.value = "";
+              text.value = nullptr;
               e_cal_component_get_summary(component, &text);
+              if (text.value)
+                  appointment.summary = text.value;
 
               appointment.begin = DateTime(begin);
               appointment.end = DateTime(end);
               appointment.color = subtask->color;
               appointment.is_event = vtype == E_CAL_COMPONENT_EVENT;
-              appointment.summary = text.value;
               appointment.uid = uid;
 
               GList * alarm_uids = e_cal_component_get_alarm_uids(component);
