@@ -267,13 +267,13 @@ private:
 
         for (const auto& appt : m_upcoming)
         {
-            // don't show too many
-            if (n++ >= MAX_APPTS)
-                break;
-
             // don't show duplicates
             if (added.count(appt.uid))
                 continue;
+
+            // don't show too many
+            if (n++ >= MAX_APPTS)
+                break;
 
             added.insert(appt.uid);
 
