@@ -1,3 +1,17 @@
+indicator-datetime (13.10.0+14.04.20140225-0ubuntu1) trusty; urgency=low
+
+  [ Charles Kerr ]
+  * Test the EClient's color hint string for NULL before passing it to a
+    std::string constructor. (LP: #1283834)
+  * Test the EDS component summary for NULL before using it in a
+    std::string. (LP: #1280341)
+  * In the alarms menu, don't let iterations of recurring events drown
+    out everything else.
+  * Fix g_assert_if_reached() in EdsPlanner::on_source_enabled(). (LP:
+    #1283610)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 25 Feb 2014 16:58:43 +0000
+
 indicator-datetime (13.10.0+14.04.20140219.1-0ubuntu1) trusty; urgency=low
 
   [ Charles Kerr ]
