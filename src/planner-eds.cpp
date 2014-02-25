@@ -128,20 +128,33 @@ private:
     {
         auto self = static_cast<Impl*>(gself);
         ECalClientSourceType source_type;
+        bool client_wanted = false;
 
         if (e_source_has_extension(source, E_SOURCE_EXTENSION_CALENDAR))
+        {
             source_type = E_CAL_CLIENT_SOURCE_TYPE_EVENTS;
+            client_wanted = true;
+        }
         else if (e_source_has_extension(source, E_SOURCE_EXTENSION_TASK_LIST))
+        {
             source_type = E_CAL_CLIENT_SOURCE_TYPE_TASKS;
-        else
-            g_assert_not_reached();
+            client_wanted = true;
+        }
 
-        g_debug("connecting a client to source %s", e_source_get_uid(source));
-        e_cal_client_connect(source,
-                             source_type,
-                             self->m_cancellable,
-                             on_client_connected,
-                             gself);
+        const auto source_uid = e_source_get_uid(source);
+        if (client_wanted)
+        {
+            g_debug("%s connecting a client to source %s", G_STRFUNC, source_uid);
+            e_cal_client_connect(source,
+                                 source_type,
+                                 self->m_cancellable,
+                                 on_client_connected,
+                                 gself);
+        }
+        else
+        {
+            g_debug("%s not using source %s -- no tasks/calendar", G_STRFUNC, source_uid);
+        }
     }
 
     static void on_client_connected(GObject* /*source*/, GAsyncResult * res, gpointer gself)
