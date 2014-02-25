@@ -289,7 +289,11 @@ private:
         ECalClient* client;
         std::string color;
         AppointmentSubtask(const std::shared_ptr<Task>& task_in, ECalClient* client_in, const char* color_in):
-            task(task_in), client(client_in), color(color_in) {}
+            task(task_in), client(client_in)
+        {
+            if (color_in)
+                color = color_in;
+        }
     };
 
     void rebuild_soon(int rebuild_flags)
