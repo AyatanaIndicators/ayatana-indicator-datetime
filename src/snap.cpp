@@ -157,16 +157,19 @@ struct SnapData
 
 void on_snap_show(NotifyNotification*, gchar* /*action*/, gpointer gdata)
 {
-    stop_alarm_sound();
     auto data = static_cast<SnapData*>(gdata);
     data->show(data->appointment);
 }
 
 void on_snap_dismiss(NotifyNotification*, gchar* /*action*/, gpointer gdata)
 {
-    stop_alarm_sound();
     auto data = static_cast<SnapData*>(gdata);
     data->dismiss(data->appointment);
+}
+
+void on_snap_closed(NotifyNotification*, gpointer)
+{
+    stop_alarm_sound();
 }
 
 void snap_data_destroy_notify(gpointer gdata)
@@ -188,6 +191,7 @@ void show_snap_decision(SnapData* data)
     notify_notification_set_hint_string(nn, "x-canonical-private-button-tint", "true");
     notify_notification_add_action(nn, "show", _("Show"), on_snap_show, data, nullptr);
     notify_notification_add_action(nn, "dismiss", _("Dismiss"), on_snap_dismiss, data, nullptr);
+    g_signal_connect(G_OBJECT(nn), "closed", G_CALLBACK(on_snap_closed), data);
     g_object_set_data_full(G_OBJECT(nn), "snap-data", data, snap_data_destroy_notify);
 
     GError * error = nullptr;
