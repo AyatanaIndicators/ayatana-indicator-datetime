@@ -22,6 +22,7 @@
 
 #include <datetime/clock.h>
 #include <datetime/planner.h>
+#include <datetime/timezones.h>
 
 #include <memory> // shared_ptr, unique_ptr
 
@@ -35,7 +36,8 @@ namespace datetime {
 class PlannerEds: public Planner
 {
 public:
-    PlannerEds(const std::shared_ptr<Clock>& clock);
+    PlannerEds(const std::shared_ptr<Clock>& clock,
+               const std::shared_ptr<Timezones>& timezones);
     virtual ~PlannerEds();
 
 private:

@@ -41,9 +41,12 @@ class PlannerEds::Impl
 {
 public:
 
-    Impl(PlannerEds& owner, const std::shared_ptr<Clock>& clock):
+    Impl(PlannerEds& owner,
+         const std::shared_ptr<Clock>& clock,
+         const std::shared_ptr<Timezones>& timezones):
         m_owner(owner),
         m_clock(clock),
+        m_timezones(timezones),
         m_cancellable(g_cancellable_new())
     {
         e_source_registry_new(m_cancellable, on_source_registry_ready, this);
@@ -362,7 +365,7 @@ private:
     void rebuild_upcoming()
     {
         const auto ref = m_clock->localtime();
-        const auto begin = g_date_time_add_minutes(ref.get(),-10);
+        const auto begin = g_date_time_add_days(ref.get(),-1);
         const auto end = g_date_time_add_months(begin,1);
 
         get_appointments(begin, end, [this](const std::vector<Appointment>& appointments) {
@@ -390,9 +393,7 @@ private:
         **/
 
         icaltimezone * default_timezone = nullptr;
-
-        const auto tz = g_date_time_get_timezone_abbreviation(m_owner.time.get().get());
-        g_debug("%s tz is %s", G_STRLOC, tz);
+        const auto tz = m_timezones->timezone.get().c_str();
         if (tz && *tz)
         {
             default_timezone = icaltimezone_get_builtin_timezone(tz);
@@ -535,6 +536,7 @@ private:
 
     PlannerEds& m_owner;
     std::shared_ptr<Clock> m_clock;
+    std::shared_ptr<Timezones> m_timezones;
     std::set<ESource*> m_sources;
     std::map<ESource*,ECalClient*> m_clients;
     std::map<ESource*,ECalClientView*> m_views;
@@ -545,7 +547,9 @@ private:
     enum { UPCOMING=(1<<0), MONTH=(1<<1), ALL=UPCOMING|MONTH };
 };
 
-PlannerEds::PlannerEds(const std::shared_ptr<Clock>& clock): p(new Impl(*this, clock)) {}
+PlannerEds::PlannerEds(const std::shared_ptr<Clock>& clock,
+                       const std::shared_ptr<Timezones>& timezones):
+    p(new Impl(*this, clock, timezones)) {}
 
 PlannerEds::~PlannerEds() =default;
 

@@ -59,7 +59,7 @@ main(int /*argc*/, char** /*argv*/)
     state->settings = live_settings;
     state->clock = live_clock;
     state->locations.reset(new SettingsLocations(live_settings, live_timezones));
-    state->planner.reset(new PlannerEds(live_clock));
+    state->planner.reset(new PlannerEds(live_clock, live_timezones));
     state->planner->time = live_clock->localtime();
     std::shared_ptr<Actions> actions(new LiveActions(state));
     MenuFactory factory(actions, state);

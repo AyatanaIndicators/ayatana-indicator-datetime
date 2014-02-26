@@ -24,6 +24,7 @@
 #include <datetime/date-time.h>
 #include <datetime/planner.h>
 #include <datetime/planner-eds.h>
+#include <datetime/timezones.h>
 
 #include <langinfo.h>
 #include <locale.h>
@@ -43,7 +44,8 @@ TEST_F(PlannerFixture, EDS)
     g_date_time_unref(tmp);
 
     std::shared_ptr<Clock> clock(new MockClock(now));
-    PlannerEds planner(clock);
+    std::shared_ptr<Timezones> timezones(new Timezones);
+    PlannerEds planner(clock, timezones);
     wait_msec(100);
 
     planner.time.set(now);
