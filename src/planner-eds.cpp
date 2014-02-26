@@ -26,6 +26,7 @@
 #include <libecal/libecal.h>
 #include <libedataserver/libedataserver.h>
 
+#include <algorithm> // std::sort()
 #include <map>
 #include <set>
 
@@ -407,11 +408,17 @@ private:
         ***  walk through the sources to build the appointment list
         **/
 
-        std::shared_ptr<Task> main_task(new Task(this, func), [](Task* task){
+        auto task_deleter = [](Task* task){
+            // give the caller the (sorted) finished product
+            auto& a = task->appointments;
+            std::sort(a.begin(), a.end(), [](const Appointment& a, const Appointment& b){return a.begin < b.begin;});
+            task->func(a);
+            // we're done; delete the task
             g_debug("time to delete task %p", (void*)task);
-            task->func(task->appointments);
             delete task;
-        });
+        };
+
+        std::shared_ptr<Task> main_task(new Task(this, func), task_deleter);
 
         for (auto& kv : m_clients)
         {
