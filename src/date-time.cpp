@@ -85,9 +85,15 @@ GDateTime* DateTime::get() const
 
 std::string DateTime::format(const std::string& fmt) const
 {
-    const auto str = g_date_time_format(get(), fmt.c_str());
-    std::string ret = str;
-    g_free(str);
+    std::string ret;
+
+    gchar* str = g_date_time_format(get(), fmt.c_str());
+    if (str)
+    {
+        ret = str;
+        g_free(str);
+    }
+
     return ret;
 }
 
