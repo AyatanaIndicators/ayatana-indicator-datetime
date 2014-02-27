@@ -160,12 +160,14 @@ struct SnapData
 
 void on_snap_show(NotifyNotification*, gchar* /*action*/, gpointer gdata)
 {
+    stop_alarm_sound();
     auto data = static_cast<SnapData*>(gdata);
     data->show(data->appointment);
 }
 
 void on_snap_dismiss(NotifyNotification*, gchar* /*action*/, gpointer gdata)
 {
+    stop_alarm_sound();
     auto data = static_cast<SnapData*>(gdata);
     data->dismiss(data->appointment);
 }
