@@ -27,6 +27,9 @@
 #include <glib/gi18n.h>
 #include <glib.h>
 
+#include <set>
+#include <string>
+
 #define ALARM_SOUND_FILENAME "/usr/share/sounds/ubuntu/stereo/phone-incoming-call.ogg"
 
 namespace unity {
@@ -177,22 +180,14 @@ void snap_data_destroy_notify(gpointer gdata)
      delete static_cast<SnapData*>(gdata);
 }
 
-bool server_is_notify_osd(void)
+std::set<std::string> get_server_caps()
 {
-    static bool tested = false;
-    static bool is_notify_osd = false;
-
-    if (G_UNLIKELY(!tested))
-    {
-        gchar* name=nullptr;
-        notify_get_server_info(&name, nullptr, nullptr, nullptr);
-        is_notify_osd = !g_strcmp0(name, "notify-osd");
-        g_free(name);
-
-        tested = true;
-    }
-
-    return is_notify_osd;
+    std::set<std::string> caps_set;
+    auto caps_gl = notify_get_server_caps();
+    for(auto l=caps_gl; l!=nullptr; l=l->next)
+        caps_set.insert((const char*)l->data);
+    g_list_free_full(caps_gl, g_free);
+    return caps_set;
 }
 
 typedef enum
@@ -207,11 +202,22 @@ NotifyMode;
 
 NotifyMode get_notify_mode()
 {
-    // no real point in showing snap decisions on the desktop...
-    if (server_is_notify_osd())
-        return NOTIFY_MODE_BUBBLE;
+    static NotifyMode mode;
+    static bool mode_inited = false;
 
-    return NOTIFY_MODE_SNAP;
+    if (G_UNLIKELY(!mode_inited))
+    {
+        const auto caps = get_server_caps();
+
+        if (caps.count("actions"))
+            mode = NOTIFY_MODE_SNAP;
+        else
+            mode = NOTIFY_MODE_BUBBLE;
+
+        mode_inited = true;
+    }
+
+    return mode;
 }
 
 void show_notification (SnapData* data, NotifyMode mode)
