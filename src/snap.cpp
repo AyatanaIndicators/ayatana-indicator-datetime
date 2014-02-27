@@ -27,6 +27,9 @@
 #include <glib/gi18n.h>
 #include <glib.h>
 
+#include <set>
+#include <string>
+
 #define ALARM_SOUND_FILENAME "/usr/share/sounds/ubuntu/stereo/phone-incoming-call.ogg"
 
 namespace unity {
@@ -169,12 +172,57 @@ void on_snap_dismiss(NotifyNotification*, gchar* /*action*/, gpointer gdata)
     data->dismiss(data->appointment);
 }
 
+void on_snap_closed(NotifyNotification*, gpointer)
+{
+    stop_alarm_sound();
+}
+
 void snap_data_destroy_notify(gpointer gdata)
 {
      delete static_cast<SnapData*>(gdata);
 }
 
-void show_snap_decision(SnapData* data)
+std::set<std::string> get_server_caps()
+{
+    std::set<std::string> caps_set;
+    auto caps_gl = notify_get_server_caps();
+    for(auto l=caps_gl; l!=nullptr; l=l->next)
+        caps_set.insert((const char*)l->data);
+    g_list_free_full(caps_gl, g_free);
+    return caps_set;
+}
+
+typedef enum
+{
+    // just a bubble... no actions, no audio
+    NOTIFY_MODE_BUBBLE,
+
+    // a snap decision popup dialog + audio
+    NOTIFY_MODE_SNAP
+}
+NotifyMode;
+
+NotifyMode get_notify_mode()
+{
+    static NotifyMode mode;
+    static bool mode_inited = false;
+
+    if (G_UNLIKELY(!mode_inited))
+    {
+        const auto caps = get_server_caps();
+
+        if (caps.count("actions"))
+            mode = NOTIFY_MODE_SNAP;
+        else
+            mode = NOTIFY_MODE_BUBBLE;
+
+        mode_inited = true;
+    }
+
+    return mode;
+}
+
+void show_notification (SnapData* data, NotifyMode mode)
 {
     const Appointment& appointment = data->appointment;
 
@@ -184,10 +232,14 @@ void show_snap_decision(SnapData* data)
     const gchar* icon_name = "alarm-clock";
 
     auto nn = notify_notification_new(title, body.c_str(), icon_name);
-    notify_notification_set_hint_string(nn, "x-canonical-snap-decisions", "true");
-    notify_notification_set_hint_string(nn, "x-canonical-private-button-tint", "true");
-    notify_notification_add_action(nn, "show", _("Show"), on_snap_show, data, nullptr);
-    notify_notification_add_action(nn, "dismiss", _("Dismiss"), on_snap_dismiss, data, nullptr);
+    if (mode == NOTIFY_MODE_SNAP)
+    {
+        notify_notification_set_hint_string(nn, "x-canonical-snap-decisions", "true");
+        notify_notification_set_hint_string(nn, "x-canonical-private-button-tint", "true");
+        notify_notification_add_action(nn, "show", _("Show"), on_snap_show, data, nullptr);
+        notify_notification_add_action(nn, "dismiss", _("Dismiss"), on_snap_dismiss, data, nullptr);
+        g_signal_connect(G_OBJECT(nn), "closed", G_CALLBACK(on_snap_closed), data);
+    }
     g_object_set_data_full(G_OBJECT(nn), "snap-data", data, snap_data_destroy_notify);
 
     GError * error = nullptr;
@@ -215,8 +267,17 @@ void notify(const Appointment& appointment,
     data->show = show;
     data->dismiss = dismiss;
 
-    play_alarm_sound();
-    show_snap_decision(data);
+    switch (get_notify_mode())
+    {
+        case NOTIFY_MODE_BUBBLE:
+            show_notification(data, NOTIFY_MODE_BUBBLE);
+            break;
+
+        default:
+            show_notification(data, NOTIFY_MODE_SNAP);
+            play_alarm_sound();
+            break;
+     }
 }
 
 } // unnamed namespace
