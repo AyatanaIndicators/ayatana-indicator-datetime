@@ -1,3 +1,11 @@
+indicator-datetime (13.10.0+14.04.20140227.1-0ubuntu1) trusty; urgency=low
+
+  [ Charles Kerr ]
+  * When the notification engine is notify-osd, use bubble notifications
+    instead of the phone's snap decisions. (LP: #1283142)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 27 Feb 2014 18:44:10 +0000
+
 indicator-datetime (13.10.0+14.04.20140227-0ubuntu1) trusty; urgency=low
 
   [ Charles Kerr ]
