@@ -1,3 +1,16 @@
+indicator-datetime (13.10.0+14.04.20140227-0ubuntu1) trusty; urgency=low
+
+  [ Charles Kerr ]
+  * Don't log E_CLIENT_ERROR_NOT_SUPPORTED errors returned by
+    e_cal_client_get_attachment_uris() -- we can silently interpret that
+    as 'no attachments' (LP: #1285212)
+  * DateTime::format(), don't pass NULL to a std::string's assignment
+    operator (LP: #1285243)
+  * In EdsPlanner's get_appointments(), sort 'em before returning them
+    to the caller. (LP: #1285249)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 27 Feb 2014 10:59:26 +0000
+
 indicator-datetime (13.10.0+14.04.20140225-0ubuntu1) trusty; urgency=low
 
   [ Charles Kerr ]
