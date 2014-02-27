@@ -516,8 +516,11 @@ private:
         e_cal_client_get_attachment_uris_finish(E_CAL_CLIENT(client), res, &uris, &error);
         if (error != nullptr)
         {
-            if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+            if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED) &&
+                !g_error_matches(error, E_CLIENT_ERROR, E_CLIENT_ERROR_NOT_SUPPORTED))
+            {
                 g_warning("Error getting appointment uris: %s", error->message);
+            }
 
             g_error_free(error);
         }
