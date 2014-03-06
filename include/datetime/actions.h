@@ -45,6 +45,7 @@ public:
     virtual void open_desktop_settings() =0;
     virtual void open_phone_settings() =0;
     virtual void open_phone_clock_app() =0;
+    virtual bool can_open_planner() const = 0;
     virtual void open_planner() =0;
     virtual void open_planner_at(const DateTime&) =0;
     virtual void open_appointment(const std::string& uid) =0;
