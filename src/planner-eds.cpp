@@ -44,10 +44,10 @@ public:
 
     Impl(PlannerEds& owner,
          const std::shared_ptr<Clock>& clock,
-         const std::shared_ptr<Timezones>& timezones):
+         const std::shared_ptr<Timezone>& timezone):
         m_owner(owner),
         m_clock(clock),
-        m_timezones(timezones),
+        m_timezone(timezone),
         m_cancellable(g_cancellable_new())
     {
         e_source_registry_new(m_cancellable, on_source_registry_ready, this);
@@ -394,7 +394,7 @@ private:
         **/
 
         icaltimezone * default_timezone = nullptr;
-        const auto tz = m_timezones->timezone.get().c_str();
+        const auto tz = m_timezone->timezone.get().c_str();
         if (tz && *tz)
         {
             default_timezone = icaltimezone_get_builtin_timezone(tz);
@@ -546,7 +546,7 @@ private:
 
     PlannerEds& m_owner;
     std::shared_ptr<Clock> m_clock;
-    std::shared_ptr<Timezones> m_timezones;
+    std::shared_ptr<Timezone> m_timezone;
     std::set<ESource*> m_sources;
     std::map<ESource*,ECalClient*> m_clients;
     std::map<ESource*,ECalClientView*> m_views;
@@ -558,8 +558,8 @@ private:
 };
 
 PlannerEds::PlannerEds(const std::shared_ptr<Clock>& clock,
-                       const std::shared_ptr<Timezones>& timezones):
-    p(new Impl(*this, clock, timezones)) {}
+                       const std::shared_ptr<Timezone>& timezone):
+    p(new Impl(*this, clock, timezone)) {}
 
 PlannerEds::~PlannerEds() =default;
 

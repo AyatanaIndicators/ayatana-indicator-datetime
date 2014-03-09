@@ -22,7 +22,7 @@
 
 #include <datetime/clock.h>
 #include <datetime/planner.h>
-#include <datetime/timezones.h>
+#include <datetime/timezone.h>
 
 #include <memory> // shared_ptr, unique_ptr
 
@@ -37,7 +37,7 @@ class PlannerEds: public Planner
 {
 public:
     PlannerEds(const std::shared_ptr<Clock>& clock,
-               const std::shared_ptr<Timezones>& timezones);
+               const std::shared_ptr<Timezone>& timezone);
     virtual ~PlannerEds();
 
 private:

@@ -27,6 +27,7 @@
 #include <datetime/settings-live.h>
 #include <datetime/snap.h>
 #include <datetime/state.h>
+#include <datetime/timezone-file.h>
 #include <datetime/timezones-live.h>
 
 #include <glib/gi18n.h> // bindtextdomain()
@@ -56,10 +57,11 @@ main(int /*argc*/, char** /*argv*/)
     std::shared_ptr<Settings> live_settings(new LiveSettings);
     std::shared_ptr<Timezones> live_timezones(new LiveTimezones(live_settings, TIMEZONE_FILE));
     std::shared_ptr<Clock> live_clock(new LiveClock(live_timezones));
+    std::shared_ptr<Timezone> file_timezone(new FileTimezone(TIMEZONE_FILE));
     state->settings = live_settings;
     state->clock = live_clock;
     state->locations.reset(new SettingsLocations(live_settings, live_timezones));
-    state->planner.reset(new PlannerEds(live_clock, live_timezones));
+    state->planner.reset(new PlannerEds(live_clock, file_timezone));
     state->planner->time = live_clock->localtime();
     std::shared_ptr<Actions> actions(new LiveActions(state));
     MenuFactory factory(actions, state);
