@@ -18,13 +18,13 @@
  */
 
 #include "glib-fixture.h"
+#include "timezone-mock.h"
 
 #include <datetime/appointment.h>
 #include <datetime/clock-mock.h>
 #include <datetime/date-time.h>
 #include <datetime/planner.h>
 #include <datetime/planner-eds.h>
-#include <datetime/timezones.h>
 
 #include <langinfo.h>
 #include <locale.h>
@@ -44,8 +44,8 @@ TEST_F(PlannerFixture, EDS)
     g_date_time_unref(tmp);
 
     std::shared_ptr<Clock> clock(new MockClock(now));
-    std::shared_ptr<Timezones> timezones(new Timezones);
-    PlannerEds planner(clock, timezones);
+    std::shared_ptr<Timezone> tz(new MockTimezone);
+    PlannerEds planner(clock, tz);
     wait_msec(100);
 
     planner.time.set(now);
