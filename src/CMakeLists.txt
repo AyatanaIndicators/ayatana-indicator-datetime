@@ -22,7 +22,6 @@ add_library (${SERVICE_LIB} STATIC
              locations.cpp
              locations-settings.cpp
              menu.cpp
-             planner-eds.cpp
              planner-month.cpp
              planner-range.cpp
              planner-upcoming.cpp

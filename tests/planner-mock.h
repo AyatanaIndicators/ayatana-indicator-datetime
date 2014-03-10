@@ -26,23 +26,6 @@ namespace unity {
 namespace indicator {
 namespace datetime {
 
-#if 0
-/**
- * \brief Planner which does nothing on its own.
- *        It requires its client must set its appointments property.
- */
-class MockPlanner: public Planner
-{
-public:
-    MockPlanner() =default;
-    virtual ~MockPlanner() =default;
-    core::Property<std::vector<Appointment>>& appointments() { return m_appointments; }
-
-private:
-    core::Property<std::vector<Appointment>> m_appointments;
-};
-#endif
-
 /**
  * \brief #RangePlanner which does nothing on its own.
  *        Its controller must set its appointments property.
@@ -50,15 +33,19 @@ private:
 class MockRangePlanner: public RangePlanner
 {
 public:
-    MockRangePlanner() =default;
-    ~MockRangePlanner() =default;
-    core::Property<std::vector<Appointment>>& appointments() { return m_appointments; }
+    MockRangePlanner():
+        m_range(std::pair<DateTime,DateTime>(DateTime::NowLocal(), DateTime::NowLocal()))
+    {
+    }
 
-protected:
-    void rebuild_now(){}
+    ~MockRangePlanner() =default;
+
+    core::Property<std::vector<Appointment>>& appointments() { return m_appointments; }
+    core::Property<std::pair<DateTime,DateTime>>& range() { return m_range; }
 
 private:
     core::Property<std::vector<Appointment>> m_appointments;
+    core::Property<std::pair<DateTime,DateTime>> m_range;
 };
  
 

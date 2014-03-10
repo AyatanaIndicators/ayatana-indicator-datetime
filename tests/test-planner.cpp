@@ -24,7 +24,7 @@
 #include <datetime/clock-mock.h>
 #include <datetime/date-time.h>
 #include <datetime/planner.h>
-#include <datetime/planner-eds.h>
+#include <datetime/planner-range.h>
 
 #include <langinfo.h>
 #include <locale.h>

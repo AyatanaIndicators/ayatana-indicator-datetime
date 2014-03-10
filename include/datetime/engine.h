@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2014 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -17,43 +17,52 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_EDS_H
-#define INDICATOR_DATETIME_PLANNER_EDS_H
+#ifndef INDICATOR_DATETIME_ENGINE__H
+#define INDICATOR_DATETIME_ENGINE__H
 
-#include <datetime/planner-range.h>
-
-#include <datetime/engine-eds.h>
+#include <datetime/appointment.h>
+#include <datetime/date-time.h>
 #include <datetime/timezone.h>
 
-#include <memory> // shared_ptr, unique_ptr
+#include <functional>
+#include <vector>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
+/****
+*****
+****/
+
 /**
- * \brief An EDS-based #RangePlanner
+ * Class wrapper around the backend that generates appointments
+ * 
+ * @see EdsEngine
+ * @see EdsPlanner
  */
-class EdsPlanner: public RangePlanner
+class Engine
 {
 public:
-    EdsPlanner(const std::shared_ptr<EdsEngine>& eds_engine,
-               const std::shared_ptr<Timezone>& timezone);
-    virtual ~EdsPlanner();
+    virtual ~Engine() =default;
 
-    core::Property<std::vector<Appointment>>& appointments();
+    virtual void get_appointments(const DateTime& begin,
+                                  const DateTime& end,
+                                  const Timezone& default_timezone,
+                                  std::function<void(const std::vector<Appointment>&)> appointment_func) =0;
+
+    virtual core::Signal<>& changed() =0;
 
 protected:
-    void rebuild_now();
-
-private:
-    std::shared_ptr<EdsEngine> m_engine;
-    std::shared_ptr<Timezone> m_timezone;
-    core::Property<std::vector<Appointment>> m_appointments;
+    Engine() =default;
 };
+
+/***
+****
+***/
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_PLANNER_EDS_H
+#endif // INDICATOR_DATETIME_ENGINE__H

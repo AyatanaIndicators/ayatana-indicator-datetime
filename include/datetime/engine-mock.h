@@ -17,17 +17,10 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_ENGINE_EDS__H
-#define INDICATOR_DATETIME_ENGINE_EDS__H
+#ifndef INDICATOR_DATETIME_ENGINE_MOCK__H
+#define INDICATOR_DATETIME_ENGINE_MOCK__H
 
 #include <datetime/engine.h>
-
-#include <datetime/appointment.h>
-#include <datetime/date-time.h>
-#include <datetime/timezone.h>
-
-#include <functional>
-#include <vector>
 
 namespace unity {
 namespace indicator {
@@ -38,30 +31,30 @@ namespace datetime {
 ****/
 
 /**
- * Class wrapper around EDS so multiple #EdsPlanners can share resources
+ * A no-op #Engine
  * 
- * @see EdsPlanner
+ * @see Engine
  */
-class EdsEngine: public Engine
+class MockEngine: public Engine
 {
 public:
-    EdsEngine();
-    ~EdsEngine();
+    MockEngine() =default;
+    ~MockEngine() =default;
 
-    void get_appointments(const DateTime& begin,
-                          const DateTime& end,
-                          const Timezone& default_timezone,
-                          std::function<void(const std::vector<Appointment>&)> appointment_func);
+    void get_appointments(const DateTime& /*begin*/,
+                          const DateTime& /*end*/,
+                          const Timezone& /*default_timezone*/,
+                          std::function<void(const std::vector<Appointment>&)> appointment_func) {
+        appointment_func(m_appointments);
+    }
 
-    core::Signal<>& changed();
+    core::Signal<>& changed() {
+        return m_changed;
+    }
 
 private:
-    class Impl;
-    std::unique_ptr<Impl> p;
-
-    // we've got a unique_ptr here, disable copying...
-    EdsEngine(const EdsEngine&) =delete;
-    EdsEngine& operator=(const EdsEngine&) =delete;
+    core::Signal<> m_changed;
+    std::vector<Appointment> m_appointments;
 };
 
 /***
@@ -72,4 +65,4 @@ private:
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_ENGINE_EDS__H
+#endif // INDICATOR_DATETIME_ENGINE_NOOP__H

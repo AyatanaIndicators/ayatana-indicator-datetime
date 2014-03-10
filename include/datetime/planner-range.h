@@ -23,6 +23,7 @@
 #include <datetime/planner.h>
 
 #include <datetime/date-time.h>
+#include <datetime/engine.h>
 
 namespace unity {
 namespace indicator {
@@ -36,24 +37,45 @@ namespace datetime {
 class RangePlanner: public Planner
 {
 public:
-    virtual ~RangePlanner();
-    core::Property<std::pair<DateTime,DateTime>>& range();
+    virtual ~RangePlanner() =default;
+    virtual core::Property<std::pair<DateTime,DateTime>>& range() =0;
 
 protected:
-    RangePlanner();
+    RangePlanner() =default;
+};
 
-    void rebuild_soon();
-    virtual void rebuild_now() =0;
+/**
+ * \brief A #RangePlanner that uses an #Engine to generate appointments
+ *
+ * @see Planner
+ */
+class SimpleRangePlanner: public RangePlanner
+{
+public:
+    SimpleRangePlanner(const std::shared_ptr<Engine>& engine,
+                     const std::shared_ptr<Timezone>& timezone);
+    virtual ~SimpleRangePlanner();
+
+    core::Property<std::vector<Appointment>>& appointments();
+    core::Property<std::pair<DateTime,DateTime>>& range();
 
 private:
+    // rebuild scaffolding
+    void rebuild_soon();
+    virtual void rebuild_now();
     static gboolean rebuild_now_static(gpointer);
     guint m_rebuild_tag = 0;
+
+    std::shared_ptr<Engine> m_engine;
+    std::shared_ptr<Timezone> m_timezone;
     core::Property<std::pair<DateTime,DateTime>> m_range;
+    core::Property<std::vector<Appointment>> m_appointments;
 
     // we've got a GSignal tag here, so disable copying
-    RangePlanner(const RangePlanner&) =delete;
-    RangePlanner& operator=(const RangePlanner&) =delete;
+    SimpleRangePlanner(const RangePlanner&) =delete;
+    SimpleRangePlanner& operator=(const RangePlanner&) =delete;
 };
+
 
 } // namespace datetime
 } // namespace indicator
