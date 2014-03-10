@@ -97,7 +97,7 @@ void LiveActions::open_planner_at(const DateTime& dt)
 
 void LiveActions::open_appointment(const std::string& uid)
 {
-    for(const auto& appt : state()->planner->upcoming.get())
+    for(const auto& appt : state()->calendar_upcoming->appointments().get())
     {
         if(appt.uid != uid)
             continue;

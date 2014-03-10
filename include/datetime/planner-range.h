@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2014 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -17,43 +17,46 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_EDS_H
-#define INDICATOR_DATETIME_PLANNER_EDS_H
+#ifndef INDICATOR_DATETIME_PLANNER_RANGE_H
+#define INDICATOR_DATETIME_PLANNER_RANGE_H
 
-#include <datetime/planner-range.h>
+#include <datetime/planner.h>
 
-#include <datetime/engine-eds.h>
-#include <datetime/timezone.h>
-
-#include <memory> // shared_ptr, unique_ptr
+#include <datetime/date-time.h>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
 /**
- * \brief An EDS-based #RangePlanner
+ * \brief A #Planner that contains appointments in a specified date range
+ *
+ * @see Planner
  */
-class EdsPlanner: public RangePlanner
+class RangePlanner: public Planner
 {
 public:
-    EdsPlanner(const std::shared_ptr<EdsEngine>& eds_engine,
-               const std::shared_ptr<Timezone>& timezone);
-    virtual ~EdsPlanner();
-
-    core::Property<std::vector<Appointment>>& appointments();
+    virtual ~RangePlanner();
+    core::Property<std::pair<DateTime,DateTime>>& range();
 
 protected:
-    void rebuild_now();
+    RangePlanner();
+
+    void rebuild_soon();
+    virtual void rebuild_now() =0;
 
 private:
-    std::shared_ptr<EdsEngine> m_engine;
-    std::shared_ptr<Timezone> m_timezone;
-    core::Property<std::vector<Appointment>> m_appointments;
+    static gboolean rebuild_now_static(gpointer);
+    guint m_rebuild_tag = 0;
+    core::Property<std::pair<DateTime,DateTime>> m_range;
+
+    // we've got a GSignal tag here, so disable copying
+    RangePlanner(const RangePlanner&) =delete;
+    RangePlanner& operator=(const RangePlanner&) =delete;
 };
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_PLANNER_EDS_H
+#endif // INDICATOR_DATETIME_PLANNER_RANGE_H

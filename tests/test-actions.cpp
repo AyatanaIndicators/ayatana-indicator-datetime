@@ -150,10 +150,10 @@ TEST_F(ActionsFixture, SetCalendarDate)
 
     // confirm that Planner.time gets changed to that date when we
     // activate the 'calendar' action with that date's time_t as the arg
-    EXPECT_NE (now, m_state->planner->time.get());
+    EXPECT_NE (now, m_state->calendar_month->month().get());
     auto v = g_variant_new_int64(now.to_unix());
     g_action_group_activate_action (action_group, action_name, v);
-    EXPECT_EQ (now, m_state->planner->time.get());
+    EXPECT_EQ (now, m_state->calendar_month->month().get());
 }
 
 TEST_F(ActionsFixture, ActivatingTheCalendarResetsItsDate)
@@ -171,11 +171,12 @@ TEST_F(ActionsFixture, ActivatingTheCalendarResetsItsDate)
     const auto now = m_state->clock->localtime();
     auto next_week = g_date_time_add_weeks(now.get(), 1);
     const auto next_week_unix = g_date_time_to_unix(next_week);
+    g_date_time_unref(next_week);
     g_action_group_activate_action (action_group, "calendar", g_variant_new_int64(next_week_unix));
 
     // confirm the planner and calendar action state moved a week into the future
     // but that m_state->clock is unchanged
-    EXPECT_EQ(next_week_unix, m_state->planner->time.get().to_unix());
+    EXPECT_EQ(next_week_unix, m_state->calendar_month->month().get().to_unix());
     EXPECT_EQ(now, m_state->clock->localtime());
     auto calendar_state = g_action_group_get_action_state(action_group, "calendar");
     EXPECT_TRUE(calendar_state != nullptr);
@@ -196,7 +197,7 @@ TEST_F(ActionsFixture, ActivatingTheCalendarResetsItsDate)
     g_action_group_change_action_state(action_group, "calendar-active", g_variant_new_boolean(true));
 
     // confirm the planner and calendar action state were reset back to m_state->clock's time
-    EXPECT_EQ(now.to_unix(), m_state->planner->time.get().to_unix());
+    EXPECT_EQ(now.to_unix(), m_state->calendar_month->month().get().to_unix());
     EXPECT_EQ(now, m_state->clock->localtime());
     calendar_state = g_action_group_get_action_state(action_group, "calendar");
     EXPECT_TRUE(calendar_state != nullptr);
@@ -215,7 +216,8 @@ TEST_F(ActionsFixture, OpenAppointment)
     Appointment appt;
     appt.uid = "some arbitrary uid";
     appt.url = "http://www.canonical.com/";
-    m_state->planner->upcoming.set(std::vector<Appointment>({appt}));
+    appt.begin = m_state->clock->localtime();
+    m_state->calendar_upcoming->appointments().set(std::vector<Appointment>({appt}));
 
     const auto action_name = "activate-appointment";
     auto action_group = m_actions->action_group();

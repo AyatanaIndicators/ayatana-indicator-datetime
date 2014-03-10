@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2014 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -17,43 +17,40 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_EDS_H
-#define INDICATOR_DATETIME_PLANNER_EDS_H
+#ifndef INDICATOR_DATETIME_PLANNER_UPCOMING_H
+#define INDICATOR_DATETIME_PLANNER_UPCOMING_H
 
+#include <datetime/planner.h>
+
+#include <datetime/date-time.h>
 #include <datetime/planner-range.h>
 
-#include <datetime/engine-eds.h>
-#include <datetime/timezone.h>
-
-#include <memory> // shared_ptr, unique_ptr
+#include <memory> // std::shared_ptr
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
 /**
- * \brief An EDS-based #RangePlanner
+ * \brief A collection of upcoming appointments starting from the specified date
  */
-class EdsPlanner: public RangePlanner
+class UpcomingPlanner: public Planner
 {
 public:
-    EdsPlanner(const std::shared_ptr<EdsEngine>& eds_engine,
-               const std::shared_ptr<Timezone>& timezone);
-    virtual ~EdsPlanner();
+    UpcomingPlanner(const std::shared_ptr<RangePlanner>& range_planner,
+                    const DateTime& date);
+    ~UpcomingPlanner() =default;
 
     core::Property<std::vector<Appointment>>& appointments();
-
-protected:
-    void rebuild_now();
+    core::Property<DateTime>& date();
 
 private:
-    std::shared_ptr<EdsEngine> m_engine;
-    std::shared_ptr<Timezone> m_timezone;
-    core::Property<std::vector<Appointment>> m_appointments;
+    std::shared_ptr<RangePlanner> m_range_planner;
+    core::Property<DateTime> m_date;
 };
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_PLANNER_EDS_H
+#endif // INDICATOR_DATETIME_PLANNER_UPCOMING_H

@@ -27,17 +27,27 @@ namespace datetime {
 ****
 ***/
 
-ClockWatcherImpl::ClockWatcherImpl(const std::shared_ptr<const State>& state):
-    m_state(state)
+ClockWatcherImpl::ClockWatcherImpl(const std::shared_ptr<Clock>& clock,
+                                   const std::shared_ptr<UpcomingPlanner>& upcoming_planner):
+    m_clock(clock),
+    m_upcoming_planner(upcoming_planner)
 {
-    m_state->planner->upcoming.changed().connect([this](const std::vector<Appointment>&){
-        g_debug("ClockWatcher pulse because upcoming appointments changed");
+    m_clock->date_changed.connect([this](){
+        const auto now = m_clock->localtime();
+        g_debug("ClockWatcher %p refretching appointments due to date change: %s", this, now.format("%F %T").c_str());
+        m_upcoming_planner->date().set(now);
+    });
+
+    m_clock->minute_changed.connect([this](){
+        g_debug("ClockWatcher %p calling pulse() due to clock minute_changed", this);
         pulse();
     });
-    m_state->clock->minute_changed.connect([this](){
-        g_debug("ClockWatcher pulse because clock minute_changed");
+
+    m_upcoming_planner->appointments().changed().connect([this](const std::vector<Appointment>&){
+        g_debug("ClockWatcher %p calling pulse() due to appointments changed", this);
         pulse();
     });
+
     pulse();
 }
 
@@ -48,9 +58,9 @@ core::Signal<const Appointment&>& ClockWatcherImpl::alarm_reached()
 
 void ClockWatcherImpl::pulse()
 {
-    const auto now = m_state->clock->localtime();
+    const auto now = m_clock->localtime();
 
-    for(const auto& appointment : m_state->planner->upcoming.get())
+    for(const auto& appointment : m_upcoming_planner->appointments().get())
     {
         if (m_triggered.count(appointment.uid))
             continue;

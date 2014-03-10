@@ -295,7 +295,8 @@ TEST_F(LiveActionsFixture, CalendarState)
     const DateTime now (tmp);
     g_date_time_unref (tmp);
     m_mock_state->mock_clock->set_localtime (now);
-    m_state->planner->time.set(now);
+    m_state->calendar_month->month().set(now);
+    //m_state->planner->time.set(now);
 
     ///
     ///  Test the default calendar state.
@@ -315,7 +316,7 @@ TEST_F(LiveActionsFixture, CalendarState)
     // calendar-day should be in sync with m_state->calendar_day
     v = g_variant_lookup_value (calendar_state, "calendar-day", G_VARIANT_TYPE_INT64);
     EXPECT_TRUE (v != nullptr);
-    EXPECT_EQ (m_state->planner->time.get().to_unix(), g_variant_get_int64(v));
+    EXPECT_EQ (m_state->calendar_month->month().get().to_unix(), g_variant_get_int64(v));
     g_clear_pointer (&v, g_variant_unref);
 
     // show-week-numbers should be false because MockSettings defaults everything to 0
@@ -356,7 +357,7 @@ TEST_F(LiveActionsFixture, CalendarState)
     a2.begin = next_begin;
     a2.end = next_end;
 
-    m_state->planner->this_month.set(std::vector<Appointment>({a1, a2}));
+    m_state->calendar_month->appointments().set(std::vector<Appointment>({a1, a2}));
 
     ///
     ///  Now test the calendar state again.

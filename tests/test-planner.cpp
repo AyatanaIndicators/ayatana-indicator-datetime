@@ -37,27 +37,6 @@ using namespace unity::indicator::datetime;
 
 typedef GlibFixture PlannerFixture;
 
-TEST_F(PlannerFixture, EDS)
-{
-    auto tmp = g_date_time_new_now_local();
-    const auto now = DateTime(tmp);
-    g_date_time_unref(tmp);
-
-    std::shared_ptr<Clock> clock(new MockClock(now));
-    std::shared_ptr<Timezone> tz(new MockTimezone);
-    PlannerEds planner(clock, tz);
-    wait_msec(100);
-
-    planner.time.set(now);
-    wait_msec(2500);
-
-    std::vector<Appointment> this_month = planner.this_month.get();
-    std::cerr << this_month.size() << " appointments this month" << std::endl;
-    for(const auto& a : this_month)
-      std::cerr << a.summary << std::endl;
-}
-
-
 TEST_F(PlannerFixture, HelloWorld)
 {
     auto halloween = g_date_time_new_local(2020, 10, 31, 18, 30, 59);

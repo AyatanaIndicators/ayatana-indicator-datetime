@@ -35,12 +35,16 @@ protected:
 
     std::vector<std::string> m_triggered;
     std::unique_ptr<ClockWatcher> m_watcher;
+    std::shared_ptr<RangePlanner> m_range_planner;
+    std::shared_ptr<UpcomingPlanner> m_upcoming;
 
     void SetUp()
     {
         super::SetUp();
 
-        m_watcher.reset(new ClockWatcherImpl(m_state));
+        m_range_planner.reset(new MockRangePlanner);
+        m_upcoming.reset(new UpcomingPlanner(m_range_planner, m_state->clock->localtime()));
+        m_watcher.reset(new ClockWatcherImpl(m_state->clock, m_upcoming));
         m_watcher->alarm_reached().connect([this](const Appointment& appt){
             m_triggered.push_back(appt.uid);
         });
@@ -52,6 +56,8 @@ protected:
     {
         m_triggered.clear();
         m_watcher.reset();
+        m_upcoming.reset();
+        m_range_planner.reset();
 
         super::TearDown();
     }
@@ -108,7 +114,7 @@ TEST_F(ClockWatcherFixture, AppointmentsChanged)
     // One of these matches our state's localtime, so that should get triggered.
     std::vector<Appointment> a = build_some_appointments();
     a[0].begin = m_state->clock->localtime();
-    m_state->planner->upcoming.set(a);
+    m_range_planner->appointments().set(a);
 
     // Confirm that it got fired
     EXPECT_EQ(1, m_triggered.size());
@@ -121,10 +127,10 @@ TEST_F(ClockWatcherFixture, TimeChanged)
     // Add some appointments to the planner.
     // Neither of these match the state's localtime, so nothing should be triggered.
     std::vector<Appointment> a = build_some_appointments();
-    m_state->planner->upcoming.set(a);
+    m_range_planner->appointments().set(a);
     EXPECT_TRUE(m_triggered.empty());
 
-    // Set the state's clock to a time that matches one of the appointments.
+    // Set the state's clock to a time that matches one of the appointments().
     // That appointment should get triggered.
     m_mock_state->mock_clock->set_localtime(a[1].begin);
     EXPECT_EQ(1, m_triggered.size());
@@ -137,7 +143,7 @@ TEST_F(ClockWatcherFixture, MoreThanOne)
     const auto now = m_state->clock->localtime();
     std::vector<Appointment> a = build_some_appointments();
     a[0].begin = a[1].begin = now;
-    m_state->planner->upcoming.set(a);
+    m_range_planner->appointments().set(a);
 
     EXPECT_EQ(2, m_triggered.size());
     EXPECT_EQ(a[0].uid, m_triggered[0]);
@@ -153,14 +159,14 @@ TEST_F(ClockWatcherFixture, NoDuplicates)
     std::vector<Appointment> a;
     a.push_back(appointments[0]);
     a[0].begin = now;
-    m_state->planner->upcoming.set(a);
+    m_range_planner->appointments().set(a);
     EXPECT_EQ(1, m_triggered.size());
     EXPECT_EQ(a[0].uid, m_triggered[0]);
 
     // Now change the appointment vector by adding one to it.
     // Confirm that the ClockWatcher doesn't re-trigger a[0]
     a.push_back(appointments[1]);
-    m_state->planner->upcoming.set(a);
+    m_range_planner->appointments().set(a);
     EXPECT_EQ(1, m_triggered.size());
     EXPECT_EQ(a[0].uid, m_triggered[0]);
 }

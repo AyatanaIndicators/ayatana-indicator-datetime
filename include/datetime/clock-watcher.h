@@ -20,8 +20,9 @@
 #ifndef INDICATOR_DATETIME_CLOCK_WATCHER_H
 #define INDICATOR_DATETIME_CLOCK_WATCHER_H
 
-#include <datetime/state.h>
 #include <datetime/appointment.h>
+#include <datetime/clock.h>
+#include <datetime/planner-upcoming.h>
 
 #include <core/signal.h>
 
@@ -53,14 +54,16 @@ public:
 class ClockWatcherImpl: public ClockWatcher
 {
 public:
-    ClockWatcherImpl(const std::shared_ptr<const State>& state);
+    ClockWatcherImpl(const std::shared_ptr<Clock>& clock,
+                     const std::shared_ptr<UpcomingPlanner>& upcoming_planner);
     ~ClockWatcherImpl() =default;
     core::Signal<const Appointment&>& alarm_reached();
 
 private:
     void pulse();
     std::set<std::string> m_triggered;
-    std::shared_ptr<const State> m_state;
+    const std::shared_ptr<Clock> m_clock;
+    const std::shared_ptr<UpcomingPlanner> m_upcoming_planner;
     core::Signal<const Appointment&> m_alarm_reached;
 };
 

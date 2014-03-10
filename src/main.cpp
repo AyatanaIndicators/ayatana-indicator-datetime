@@ -20,6 +20,7 @@
 #include <datetime/actions-live.h>
 #include <datetime/clock.h>
 #include <datetime/clock-watcher.h>
+#include <datetime/engine-eds.h>
 #include <datetime/exporter.h>
 #include <datetime/locations-settings.h>
 #include <datetime/menu.h>
@@ -58,16 +59,20 @@ main(int /*argc*/, char** /*argv*/)
     std::shared_ptr<Timezones> live_timezones(new LiveTimezones(live_settings, TIMEZONE_FILE));
     std::shared_ptr<Clock> live_clock(new LiveClock(live_timezones));
     std::shared_ptr<Timezone> file_timezone(new FileTimezone(TIMEZONE_FILE));
+    std::shared_ptr<EdsEngine> eds_engine (new EdsEngine);
+    const auto now = live_clock->localtime();
     state->settings = live_settings;
     state->clock = live_clock;
     state->locations.reset(new SettingsLocations(live_settings, live_timezones));
-    state->planner.reset(new PlannerEds(live_clock, file_timezone));
-    state->planner->time = live_clock->localtime();
+    auto calendar_month = new MonthPlanner(std::shared_ptr<RangePlanner>(new EdsPlanner(eds_engine, file_timezone)), now);
+    state->calendar_month.reset(calendar_month);
+    state->calendar_upcoming.reset(new UpcomingPlanner(std::shared_ptr<RangePlanner>(new EdsPlanner(eds_engine, file_timezone)), now));
     std::shared_ptr<Actions> actions(new LiveActions(state));
     MenuFactory factory(actions, state);
 
     // snap decisions
-    ClockWatcherImpl clock_watcher(state);
+    std::shared_ptr<UpcomingPlanner> upcoming_planner(new UpcomingPlanner(std::shared_ptr<RangePlanner>(new EdsPlanner (eds_engine, file_timezone)), now));
+    ClockWatcherImpl clock_watcher(live_clock, upcoming_planner);
     Snap snap;
     clock_watcher.alarm_reached().connect([&snap](const Appointment& appt){
         auto snap_show = [](const Appointment& a){
