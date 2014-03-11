@@ -1,3 +1,10 @@
+indicator-datetime (13.10.0+14.04.20140311.1-0ubuntu1) trusty; urgency=low
+
+  [ Lars Uebernickel ]
+  * add desktop_lockscreen profile
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 11 Mar 2014 18:16:48 +0000
+
 indicator-datetime (13.10.0+14.04.20140227.1-0ubuntu1) trusty; urgency=low
 
   [ Charles Kerr ]
