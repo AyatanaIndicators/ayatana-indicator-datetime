@@ -284,7 +284,9 @@ TEST_F(LiveActionsFixture, OpenPlannerAt)
 {
     const auto now = DateTime::NowLocal();
     m_actions->open_planner_at(now);
-    const std::string expected = now.format("evolution \"calendar:///?startdate=%Y%m%d\"");
+    const auto today_begins = now.add_full(0, 0, 0, -now.hour(), -now.minute(), -now.seconds());
+    const auto gmt = today_begins.to_timezone("UTC");
+    const auto expected = gmt.format("evolution \"calendar:///?startdate=%Y%m%dT%H%M%SZ\"");
     EXPECT_EQ(expected, m_live_actions->last_cmd);
 }
 
