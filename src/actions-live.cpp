@@ -91,7 +91,9 @@ void LiveActions::open_phone_clock_app()
 
 void LiveActions::open_planner_at(const DateTime& dt)
 {
-    auto cmd = dt.format("evolution \"calendar:///?startdate=%Y%m%d\"");
+    const auto day_begins = dt.add_full(0, 0, 0, -dt.hour(), -dt.minute(), -dt.seconds());
+    const auto gmt = day_begins.to_timezone("UTC");
+    auto cmd = gmt.format("evolution \"calendar:///?startdate=%Y%m%dT%H%M%SZ\"");
     execute_command(cmd.c_str());
 }
 
