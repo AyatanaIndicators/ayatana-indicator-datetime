@@ -1,3 +1,14 @@
+indicator-datetime (13.10.0+14.04.20140314.1-0ubuntu1) trusty; urgency=low
+
+  [ Charles Kerr ]
+  * When the user clicks on a date in the calendar, update the "Upcoming
+    Events" section to show events starting at that date. (LP: #1290169)
+  * Don't use EDS if we're in the greeter. (LP: #1256130)
+  * Don't show the "Add Event..." button if the calendar app can't be
+    found. (LP: #1250632)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 14 Mar 2014 17:37:32 +0000
+
 indicator-datetime (13.10.0+14.04.20140311.1-0ubuntu1) trusty; urgency=low
 
   [ Lars Uebernickel ]
