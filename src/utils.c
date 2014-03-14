@@ -160,7 +160,7 @@ getDateProximity(GDateTime* now, GDateTime* time)
     gint time_year, time_month, time_day;
 
     // did it already happen?
-    if (g_date_time_compare (now, time) > 0)
+    if (g_date_time_difference(time, now) < -G_USEC_PER_SEC)
         return DATE_PROXIMITY_FAR;
 
     // does it happen today?
