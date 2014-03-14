@@ -22,7 +22,8 @@
 
 #include <datetime/clock.h>
 #include <datetime/locations.h>
-#include <datetime/planner.h>
+#include <datetime/planner-month.h>
+#include <datetime/planner-upcoming.h>
 #include <datetime/settings.h>
 #include <datetime/timezones.h>
    
@@ -60,9 +61,14 @@ struct State
                section of the #Menu */
     std::shared_ptr<Locations> locations;
 
-    /** \brief The appointments to be displayed in the Calendar and
-               Appointments sections of the #Menu */
-    std::shared_ptr<Planner> planner;
+    /** \brief Appointments in the month that's being displayed
+               in the calendar section of the #Menu */
+    std::shared_ptr<MonthPlanner> calendar_month;
+
+    /** \brief The next appointments that follow highlighed date
+               highlighted in the calendar section of the #Menu
+               (default date = today) */
+    std::shared_ptr<UpcomingPlanner> calendar_upcoming;
 
     /** \brief Configuration options that modify the view */
     std::shared_ptr<Settings> settings;

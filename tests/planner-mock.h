@@ -20,12 +20,13 @@
 #ifndef INDICATOR_DATETIME_PLANNER_MOCK_H
 #define INDICATOR_DATETIME_PLANNER_MOCK_H
 
-#include <datetime/planner.h>
+#include <datetime/planner-range.h>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
+#if 0
 /**
  * \brief Planner which does nothing on its own.
  *        It requires its client must set its appointments property.
@@ -35,7 +36,31 @@ class MockPlanner: public Planner
 public:
     MockPlanner() =default;
     virtual ~MockPlanner() =default;
+    core::Property<std::vector<Appointment>>& appointments() { return m_appointments; }
+
+private:
+    core::Property<std::vector<Appointment>> m_appointments;
 };
+#endif
+
+/**
+ * \brief #RangePlanner which does nothing on its own.
+ *        Its controller must set its appointments property.
+ */
+class MockRangePlanner: public RangePlanner
+{
+public:
+    MockRangePlanner() =default;
+    ~MockRangePlanner() =default;
+    core::Property<std::vector<Appointment>>& appointments() { return m_appointments; }
+
+protected:
+    void rebuild_now(){}
+
+private:
+    core::Property<std::vector<Appointment>> m_appointments;
+};
+ 
 
 } // namespace datetime
 } // namespace indicator

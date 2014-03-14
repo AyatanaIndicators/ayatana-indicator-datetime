@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2014 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -17,43 +17,24 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_EDS_H
-#define INDICATOR_DATETIME_PLANNER_EDS_H
+#ifndef INDICATOR_DATETIME_TIMEZONE_MOCK_H
+#define INDICATOR_DATETIME_TIMEZONE_MOCK_H
 
-#include <datetime/planner-range.h>
-
-#include <datetime/engine-eds.h>
 #include <datetime/timezone.h>
-
-#include <memory> // shared_ptr, unique_ptr
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
-/**
- * \brief An EDS-based #RangePlanner
- */
-class EdsPlanner: public RangePlanner
+class MockTimezone: public Timezone
 {
 public:
-    EdsPlanner(const std::shared_ptr<EdsEngine>& eds_engine,
-               const std::shared_ptr<Timezone>& timezone);
-    virtual ~EdsPlanner();
-
-    core::Property<std::vector<Appointment>>& appointments();
-
-protected:
-    void rebuild_now();
-
-private:
-    std::shared_ptr<EdsEngine> m_engine;
-    std::shared_ptr<Timezone> m_timezone;
-    core::Property<std::vector<Appointment>> m_appointments;
+    MockTimezone() =default;
+    ~MockTimezone() =default;
 };
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_PLANNER_EDS_H
+#endif // INDICATOR_DATETIME_TIMEZONE_MOCK_H

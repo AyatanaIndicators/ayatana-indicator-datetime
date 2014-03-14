@@ -46,14 +46,22 @@ DateTime& DateTime::operator=(const DateTime& that)
 
 DateTime::DateTime(time_t t)
 {
-    GDateTime * gdt = g_date_time_new_from_unix_local(t);
+    auto gdt = g_date_time_new_from_unix_local(t);
     reset(gdt);
     g_date_time_unref(gdt);
 }
 
 DateTime DateTime::NowLocal()
 {
-    GDateTime * gdt = g_date_time_new_now_local();
+    auto gdt = g_date_time_new_now_local();
+    DateTime dt(gdt);
+    g_date_time_unref(gdt);
+    return dt;
+}
+
+DateTime DateTime::Local(int year, int month, int day, int hour, int minute, int seconds)
+{
+    auto gdt = g_date_time_new_local (year, month, day, hour, minute, seconds);
     DateTime dt(gdt);
     g_date_time_unref(gdt);
     return dt;
@@ -97,9 +105,24 @@ std::string DateTime::format(const std::string& fmt) const
     return ret;
 }
 
+void DateTime::ymd(int& year, int& month, int& day) const
+{
+    g_date_time_get_ymd(get(), &year, &month, &day);
+}
+
 int DateTime::day_of_month() const
 {
     return g_date_time_get_day_of_month(get());
+}
+
+int DateTime::hour() const
+{
+    return g_date_time_get_hour(get());
+}
+
+int DateTime::minute() const
+{
+    return g_date_time_get_minute(get());
 }
 
 double DateTime::seconds() const

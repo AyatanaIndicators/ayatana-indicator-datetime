@@ -15,6 +15,7 @@ add_library (${SERVICE_LIB} STATIC
              clock-live.cpp
              clock-watcher.cpp
              date-time.cpp
+             engine-eds.cpp
              exporter.cpp
              formatter.cpp
              formatter-desktop.cpp
@@ -22,6 +23,9 @@ add_library (${SERVICE_LIB} STATIC
              locations-settings.cpp
              menu.cpp
              planner-eds.cpp
+             planner-month.cpp
+             planner-range.cpp
+             planner-upcoming.cpp
              settings-live.cpp
              snap.cpp
              timezone-file.cpp

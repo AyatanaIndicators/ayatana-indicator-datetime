@@ -28,15 +28,21 @@ class MockState: public State
 {
 public:
     std::shared_ptr<MockClock> mock_clock;
+    std::shared_ptr<MockRangePlanner> mock_range_planner;
 
     MockState()
     {
         const DateTime now = DateTime::NowLocal();
         mock_clock.reset(new MockClock(now));
-        settings.reset(new Settings);
         clock = std::dynamic_pointer_cast<Clock>(mock_clock);
-        planner.reset(new MockPlanner);
-        planner->time = now;
+
+        settings.reset(new Settings);
+
+        mock_range_planner.reset(new MockRangePlanner);
+        auto range_planner = std::dynamic_pointer_cast<RangePlanner>(mock_range_planner);
+        calendar_month.reset(new MonthPlanner(range_planner, now));
+        calendar_upcoming.reset(new UpcomingPlanner(range_planner, now));
+
         locations.reset(new Locations);
     }
 };

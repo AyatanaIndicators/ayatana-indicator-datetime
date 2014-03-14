@@ -36,6 +36,8 @@ class DateTime
 {
 public:
     static DateTime NowLocal();
+    static DateTime Local(int years, int months, int days, int hours, int minutes, int seconds);
+
     explicit DateTime(time_t t);
     explicit DateTime(GDateTime* in=nullptr);
     DateTime& operator=(GDateTime* in);
@@ -48,7 +50,10 @@ public:
     GDateTime* operator()() const {return get();}
 
     std::string format(const std::string& fmt) const;
+    void ymd(int& year, int& month, int& day) const;
     int day_of_month() const;
+    int hour() const;
+    int minute() const;
     double seconds() const;
     int64_t to_unix() const;
 

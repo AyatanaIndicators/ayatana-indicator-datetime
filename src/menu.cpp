@@ -104,7 +104,7 @@ protected:
         m_state->settings->show_events.changed().connect([this](bool){
             update_section(Appointments); // showing events got toggled
         });
-        m_state->planner->upcoming.changed().connect([this](const std::vector<Appointment>&){
+        m_state->calendar_upcoming->appointments().changed().connect([this](const std::vector<Appointment>&){
             update_upcoming(); // our m_upcoming is planner->upcoming() filtered by time
         });
         m_state->clock->date_changed.connect([this](){
@@ -138,12 +138,18 @@ protected:
 
     void update_upcoming()
     {
+        // show upcoming appointments that occur after "calendar_next_minute",
+        // where that is the wallclock time on the specified calendar day
+        const auto calendar_day = m_state->calendar_month->month().get();
         const auto now = m_state->clock->localtime();
-        const auto next_minute = now.add_full(0,0,0,0,1,-now.seconds());
+        int y, m, d;
+        calendar_day.ymd(y, m, d);
+        const auto calendar_now = DateTime::Local(y, m, d, now.hour(), now.minute(), now.seconds());
+        const auto calendar_next_minute = calendar_now.add_full(0, 0, 0, 0, 1, -now.seconds());
 
         std::vector<Appointment> upcoming;
-        for(const auto& a : m_state->planner->upcoming.get())
-            if (next_minute <= a.begin)
+        for(const auto& a : m_state->calendar_upcoming->appointments().get())
+            if (calendar_next_minute <= a.begin)
                 upcoming.push_back(a);
  
         if (m_upcoming != upcoming)

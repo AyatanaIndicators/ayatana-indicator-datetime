@@ -65,7 +65,7 @@ void on_activate_appointment(GSimpleAction * /*action*/,
     g_return_if_fail(uid && *uid);
 
     // find url of the upcoming appointment with this uid
-    for (const auto& appt : self->state()->planner->upcoming.get())
+    for (const auto& appt : self->state()->calendar_upcoming->appointments().get())
     {
         if (appt.uid == uid)
         {
@@ -146,7 +146,7 @@ GVariant* create_default_header_state()
 GVariant* create_calendar_state(const std::shared_ptr<State>& state)
 {
     gboolean days[32] = { 0 };
-    for (const auto& appt : state->planner->this_month.get())
+    for (const auto& appt : state->calendar_month->appointments().get())
         days[appt.begin.day_of_month()] = true;
 
     GVariantBuilder day_builder;
@@ -163,7 +163,7 @@ GVariant* create_calendar_state(const std::shared_ptr<State>& state)
     g_variant_builder_add(&dict_builder, "{sv}", key, v);
 
     key = "calendar-day";
-    v = g_variant_new_int64(state->planner->time.get().to_unix());
+    v = g_variant_new_int64(state->calendar_month->month().get().to_unix());
     g_variant_builder_add(&dict_builder, "{sv}", key, v);
 
     key = "show-week-numbers";
@@ -219,10 +219,10 @@ Actions::Actions(const std::shared_ptr<State>& state):
     ///  Keep our GActionGroup's action's states in sync with m_state
     ///
 
-    m_state->planner->time.changed().connect([this](const DateTime&){
+    m_state->calendar_month->month().changed().connect([this](const DateTime&){
         update_calendar_state();
     });
-    m_state->planner->this_month.changed().connect([this](const std::vector<Appointment>&){
+    m_state->calendar_month->appointments().changed().connect([this](const std::vector<Appointment>&){
         update_calendar_state();
     });
     m_state->settings->show_week_numbers.changed().connect([this](bool){
@@ -246,7 +246,8 @@ void Actions::update_calendar_state()
 
 void Actions::set_calendar_date(const DateTime& date)
 {
-    m_state->planner->time.set(date);
+    m_state->calendar_month->month().set(date);
+    m_state->calendar_upcoming->date().set(date);
 }
 
 GActionGroup* Actions::action_group()

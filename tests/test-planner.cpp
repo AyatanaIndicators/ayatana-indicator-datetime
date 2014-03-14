@@ -18,6 +18,7 @@
  */
 
 #include "glib-fixture.h"
+#include "timezone-mock.h"
 
 #include <datetime/appointment.h>
 #include <datetime/clock-mock.h>
@@ -35,26 +36,6 @@ using namespace unity::indicator::datetime;
 ***/
 
 typedef GlibFixture PlannerFixture;
-
-TEST_F(PlannerFixture, EDS)
-{
-    auto tmp = g_date_time_new_now_local();
-    const auto now = DateTime(tmp);
-    g_date_time_unref(tmp);
-
-    std::shared_ptr<Clock> clock(new MockClock(now));
-    PlannerEds planner(clock);
-    wait_msec(100);
-
-    planner.time.set(now);
-    wait_msec(2500);
-
-    std::vector<Appointment> this_month = planner.this_month.get();
-    std::cerr << this_month.size() << " appointments this month" << std::endl;
-    for(const auto& a : this_month)
-      std::cerr << a.summary << std::endl;
-}
-
 
 TEST_F(PlannerFixture, HelloWorld)
 {

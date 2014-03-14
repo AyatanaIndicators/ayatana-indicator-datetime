@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2014 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -17,35 +17,57 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_H
-#define INDICATOR_DATETIME_PLANNER_H
+#ifndef INDICATOR_DATETIME_ENGINE_EDS__H
+#define INDICATOR_DATETIME_ENGINE_EDS__H
 
 #include <datetime/appointment.h>
 #include <datetime/date-time.h>
+#include <datetime/timezone.h>
 
-#include <core/property.h>
-
+#include <functional>
 #include <vector>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
+/****
+*****
+****/
+
 /**
- * \brief Simple collection of appointments
+ * Class wrapper around EDS so multiple #EdsPlanners can share resources
+ * 
+ * @see EdsPlanner
  */
-class Planner
+class EdsEngine
 {
 public:
-    virtual ~Planner() =default;
-    virtual core::Property<std::vector<Appointment>>& appointments() =0;
+    EdsEngine();
+    ~EdsEngine();
 
-protected:
-    Planner() =default;
+    void get_appointments(const DateTime& begin,
+                          const DateTime& end,
+                          const Timezone& default_timezone,
+                          std::function<void(const std::vector<Appointment>&)> appointment_func);
+
+    core::Signal<>& changed();
+
+private:
+    class Impl;
+    std::unique_ptr<Impl> p;
+
+    // we've got a unique_ptr here, disable copying...
+    EdsEngine(const EdsEngine&) =delete;
+    EdsEngine& operator=(const EdsEngine&) =delete;
 };
+
+/***
+****
+***/
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_PLANNER_H
+#endif // INDICATOR_DATETIME_ENGINE_EDS__H
