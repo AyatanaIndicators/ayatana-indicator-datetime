@@ -252,7 +252,8 @@ private:
 
     void InspectAppointmentMenuItems(GMenuModel* section,
                                      int first_appt_index,
-                                     const std::vector<Appointment>& appointments)
+                                     const std::vector<Appointment>& appointments,
+                                     bool can_open_planner)
     {
         // try adding a few appointments and see if the menu updates itself
         m_state->calendar_upcoming->appointments().set(appointments);
@@ -260,7 +261,8 @@ private:
 
         //auto submenu = g_menu_model_get_item_link(menu_model, 0, G_MENU_LINK_SUBMENU);
         //auto section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
-        EXPECT_EQ(appointments.size()+1, g_menu_model_get_n_items(section));
+        const int n_add_event_buttons = can_open_planner ? 1 : 0;
+        EXPECT_EQ(n_add_event_buttons + appointments.size(), g_menu_model_get_n_items(section));
 
         for (int i=0, n=appointments.size(); i<n; i++)
             InspectAppointmentMenuItem(section, first_appt_index+i, appointments[i]);
@@ -269,8 +271,10 @@ private:
         //g_clear_object(&submenu);
     }
 
-    void InspectDesktopAppointments(GMenuModel* menu_model)
+    void InspectDesktopAppointments(GMenuModel* menu_model, bool can_open_planner)
     {
+        const int n_add_event_buttons = can_open_planner ? 1 : 0;
+
         // get the Appointments section
         auto submenu = g_menu_model_get_item_link(menu_model, 0, G_MENU_LINK_SUBMENU);
 
@@ -281,20 +285,23 @@ private:
         EXPECT_EQ(0, g_menu_model_get_n_items(section));
         g_clear_object(&section);
 
-        // when "show_events" is true,
-        // there should be an "add event" button even if there aren't any appointments
         std::vector<Appointment> appointments;
         m_state->settings->show_events.set(true);
         m_state->calendar_upcoming->appointments().set(appointments);
         wait_msec();
         section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
-        EXPECT_EQ(1, g_menu_model_get_n_items(section));
-        gchar* action = nullptr;
-        EXPECT_TRUE(g_menu_model_get_item_attribute(section, 0, G_MENU_ATTRIBUTE_ACTION, "s", &action));
-        const char* expected_action = "activate-planner";
-        EXPECT_EQ(std::string("indicator.")+expected_action, action);
-        EXPECT_TRUE(g_action_group_has_action(m_actions->action_group(), expected_action));
-        g_free(action);
+        EXPECT_EQ(n_add_event_buttons, g_menu_model_get_n_items(section));
+        if (can_open_planner)
+        {
+            // when "show_events" is true,
+            // there should be an "add event" button even if there aren't any appointments
+            gchar* action = nullptr;
+            EXPECT_TRUE(g_menu_model_get_item_attribute(section, 0, G_MENU_ATTRIBUTE_ACTION, "s", &action));
+            const char* expected_action = "activate-planner";
+            EXPECT_EQ(std::string("indicator.")+expected_action, action);
+            EXPECT_TRUE(g_action_group_has_action(m_actions->action_group(), expected_action));
+            g_free(action);
+        }
         g_clear_object(&section);
 
         // try adding a few appointments and see if the menu updates itself
@@ -302,15 +309,15 @@ private:
         m_state->calendar_upcoming->appointments().set(appointments);
         wait_msec(); // wait a moment for the menu to update
         section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
-        EXPECT_EQ(3, g_menu_model_get_n_items(section));
-        InspectAppointmentMenuItems(section, 0, appointments);
+        EXPECT_EQ(n_add_event_buttons + 2, g_menu_model_get_n_items(section));
+        InspectAppointmentMenuItems(section, 0, appointments, can_open_planner);
         g_clear_object(&section);
 
         // cleanup
         g_clear_object(&submenu);
     }
 
-    void InspectPhoneAppointments(GMenuModel* menu_model)
+    void InspectPhoneAppointments(GMenuModel* menu_model, bool can_open_planner)
     {
         auto submenu = g_menu_model_get_item_link(menu_model, 0, G_MENU_LINK_SUBMENU);
 
@@ -336,7 +343,7 @@ private:
         wait_msec(); // wait a moment for the menu to update
         section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
         EXPECT_EQ(3, g_menu_model_get_n_items(section));
-        InspectAppointmentMenuItems(section, 1, appointments);
+        InspectAppointmentMenuItems(section, 1, appointments, can_open_planner);
         g_clear_object(&section);
 
         // cleanup
@@ -347,10 +354,12 @@ protected:
 
     void InspectAppointments(GMenuModel* menu_model, Menu::Profile profile)
     {
+        const auto can_open_planner = m_actions->can_open_planner();
+
         switch (profile)
         {
             case Menu::Desktop:
-                InspectDesktopAppointments(menu_model);
+                InspectDesktopAppointments(menu_model, can_open_planner);
                 break;
 
             case Menu::DesktopGreeter:
@@ -358,7 +367,7 @@ protected:
                 break;
 
             case Menu::Phone:
-                InspectPhoneAppointments(menu_model);
+                InspectPhoneAppointments(menu_model, can_open_planner);
                 break;
 
             case Menu::PhoneGreeter:
@@ -507,6 +516,13 @@ TEST_F(MenuFixture, Appointments)
 {
     for(auto& menu : m_menus)
       InspectAppointments(menu->menu_model(), menu->profile());
+
+    // toggle can_open_planner() and test the desktop again
+    // to confirm that the "Add Event…" menuitem appears iff
+    // there's a calendar available user-agent
+    m_mock_actions->set_can_open_planner (!m_actions->can_open_planner());
+    std::shared_ptr<Menu> menu = m_menu_factory->buildMenu(Menu::Desktop);
+    InspectAppointments(menu->menu_model(), menu->profile());
 }
 
 TEST_F(MenuFixture, Locations)

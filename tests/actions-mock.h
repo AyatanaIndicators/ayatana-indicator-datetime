@@ -49,6 +49,8 @@ public:
 
     void open_phone_clock_app() { m_history.push_back(OpenPhoneClockApp); }
 
+    bool can_open_planner() const { return m_can_open_planner; }
+
     void open_planner() { m_history.push_back(OpenPlanner); }
 
     void open_planner_at(const DateTime& date_time_) {
@@ -67,7 +69,10 @@ public:
         m_url = url_;
     }
 
+    void set_can_open_planner(bool b) { m_can_open_planner = b; }
+
 private:
+    bool m_can_open_planner = true;
     std::string m_url;
     std::string m_zone;
     std::string m_name;

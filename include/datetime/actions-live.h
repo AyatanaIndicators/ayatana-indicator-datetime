@@ -42,6 +42,7 @@ public:
     void open_desktop_settings();
     void open_phone_settings();
     void open_phone_clock_app();
+    bool can_open_planner() const;
     void open_planner();
     void open_planner_at(const DateTime&);
     void open_appointment(const std::string& uid);

@@ -308,7 +308,7 @@ private:
                 g_menu_item_set_action_and_target_value (menu_item,
                                                      "indicator.activate-appointment",
                                                      g_variant_new_string (appt.uid.c_str()));
-            else
+            else if (m_actions->can_open_planner())
                 g_menu_item_set_action_and_target_value (menu_item,
                                                          "indicator.activate-planner",
                                                          g_variant_new_int64 (unix_time));
@@ -325,13 +325,16 @@ private:
         {
             add_appointments (menu, profile);
 
-            // add the 'Add Event…' menuitem
-            auto menu_item = g_menu_item_new(_("Add Event…"), nullptr);
-            const gchar* action_name = "indicator.activate-planner";
-            auto v = g_variant_new_int64(0);
-            g_menu_item_set_action_and_target_value(menu_item, action_name, v);
-            g_menu_append_item(menu, menu_item);
-            g_object_unref(menu_item);
+            if (m_actions->can_open_planner())
+            {
+                // add the 'Add Event…' menuitem
+                auto menu_item = g_menu_item_new(_("Add Event…"), nullptr);
+                const gchar* action_name = "indicator.activate-planner";
+                auto v = g_variant_new_int64(0);
+                g_menu_item_set_action_and_target_value(menu_item, action_name, v);
+                g_menu_append_item(menu, menu_item);
+                g_object_unref(menu_item);
+            }
         }
         else if (profile==Phone)
         {

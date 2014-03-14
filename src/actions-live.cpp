@@ -74,6 +74,30 @@ void LiveActions::open_desktop_settings()
     g_free (path);
 }
 
+bool LiveActions::can_open_planner() const
+{
+    static bool inited = false;
+    static bool have_calendar = false;
+
+    if (G_UNLIKELY(!inited))
+    {
+        inited = true;
+
+        auto all = g_app_info_get_all_for_type ("text/calendar");
+        for(auto l=all; !have_calendar && l!=nullptr; l=l->next)
+        {
+            auto app_info = static_cast<GAppInfo*>(l->data);
+
+            if (!g_strcmp0("evolution.desktop", g_app_info_get_id(app_info)))
+                have_calendar = true;
+        }
+
+        g_list_free_full(all, (GDestroyNotify)g_object_unref);
+    }
+
+    return have_calendar;
+}
+
 void LiveActions::open_planner()
 {
     execute_command("evolution -c calendar");
