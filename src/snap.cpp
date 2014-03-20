@@ -186,8 +186,16 @@ std::set<std::string> get_server_caps()
 {
     std::set<std::string> caps_set;
     auto caps_gl = notify_get_server_caps();
+    std::string caps_str;
     for(auto l=caps_gl; l!=nullptr; l=l->next)
+    {
         caps_set.insert((const char*)l->data);
+
+        caps_str += (const char*) l->data;;
+        if (l->next != nullptr)
+          caps_str += ", ";
+    }
+    g_debug ("%s notify_get_server() returned [%s]", G_STRFUNC, caps_str.c_str());
     g_list_free_full(caps_gl, g_free);
     return caps_set;
 }
