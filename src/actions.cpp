@@ -129,7 +129,10 @@ void on_calendar_activated(GSimpleAction * /*action*/,
 
     g_return_if_fail(t != 0);
 
-    static_cast<Actions*>(gself)->set_calendar_date(DateTime(t));
+    // the client gave us a date; remove the HMS component from the resulting DateTime
+    auto dt = DateTime(t);
+    dt = dt.add_full (0, 0, 0, -dt.hour(), -dt.minute(), -dt.seconds());
+    static_cast<Actions*>(gself)->set_calendar_date(dt);
 }
 
 GVariant* create_default_header_state()
