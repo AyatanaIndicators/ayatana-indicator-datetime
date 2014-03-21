@@ -183,8 +183,8 @@ Actions::Actions(const std::shared_ptr<State>& state):
     m_actions(g_simple_action_group_new())
 {
     GActionEntry entries[] = {
-        { "activate-desktop-settings", on_desktop_settings_activated },
-        { "activate-phone-settings", on_phone_settings_activated },
+        { "desktop.open-settings", on_desktop_settings_activated },
+        { "phone.open-settings", on_phone_settings_activated },
         { "activate-phone-clock-app", on_phone_clock_activated },
         { "activate-appointment", on_activate_appointment, "s", nullptr },
         { "activate-planner", on_activate_planner, "x", nullptr },

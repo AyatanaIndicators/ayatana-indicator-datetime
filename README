@@ -1,7 +1,8 @@
 ACTIONS
 =======
 
- * "activate-settings"
+ * "phone.open-settings"
+ * "desktop.open-settings"
    Description: opens a page for changing indicator-datetime's settings
    State: None
    Parameter: None

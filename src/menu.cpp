@@ -383,11 +383,11 @@ private:
 
         if (profile == Desktop)
         {
-            g_menu_append (menu, _("Date & Time Settings…"), "indicator.activate-desktop-settings");
+            g_menu_append (menu, _("Date & Time Settings…"), "indicator.desktop.open-settings");
         }
         else if (profile == Phone)
         {
-            g_menu_append (menu, _("Time & Date settings…"), "indicator.activate-phone-settings");
+            g_menu_append (menu, _("Time & Date settings…"), "indicator.phone.open-settings");
         }
 
         return G_MENU_MODEL (menu);

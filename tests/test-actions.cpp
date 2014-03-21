@@ -34,18 +34,18 @@ TEST_F(ActionsFixture, ActionsExist)
                             "set-location",
                             "activate-planner",
                             "activate-appointment",
-                            "activate-phone-settings",
                             "activate-phone-clock-app",
-                            "activate-desktop-settings" };
+                            "phone.open-settings",
+                            "desktop.open-settings" };
     for(const auto& name: names)
     {
         EXPECT_TRUE(g_action_group_has_action(m_actions->action_group(), name));
     }
 }
 
-TEST_F(ActionsFixture, ActivateDesktopSettings)
+TEST_F(ActionsFixture, DesktopOpenSettings)
 {
-    const auto action_name = "activate-desktop-settings";
+    const auto action_name = "desktop.open-settings";
     const auto expected_action = MockActions::OpenDesktopSettings;
 
     auto action_group = m_actions->action_group();
@@ -59,9 +59,9 @@ TEST_F(ActionsFixture, ActivateDesktopSettings)
     EXPECT_EQ(expected_action, history[0]);
 }
 
-TEST_F(ActionsFixture, ActivatePhoneSettings)
+TEST_F(ActionsFixture, PhoneOpenSettings)
 {
-    const auto action_name = "activate-phone-settings";
+    const auto action_name = "phone.open-settings";
     const auto expected_action = MockActions::OpenPhoneSettings;
 
     auto action_group = m_actions->action_group();
