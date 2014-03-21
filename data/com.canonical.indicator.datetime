@@ -16,5 +16,5 @@ ObjectPath=/com/canonical/indicator/datetime/desktop_greeter
 ObjectPath=/com/canonical/indicator/datetime/phone
 
 [phone_greeter]
-ObjectPath=/com/canonical/indicator/datetime/desktop_greeter
+ObjectPath=/com/canonical/indicator/datetime/phone_greeter
 
