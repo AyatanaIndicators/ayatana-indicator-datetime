@@ -186,8 +186,16 @@ std::set<std::string> get_server_caps()
 {
     std::set<std::string> caps_set;
     auto caps_gl = notify_get_server_caps();
+    std::string caps_str;
     for(auto l=caps_gl; l!=nullptr; l=l->next)
+    {
         caps_set.insert((const char*)l->data);
+
+        caps_str += (const char*) l->data;;
+        if (l->next != nullptr)
+          caps_str += ", ";
+    }
+    g_debug ("%s notify_get_server() returned [%s]", G_STRFUNC, caps_str.c_str());
     g_list_free_full(caps_gl, g_free);
     return caps_set;
 }
@@ -222,7 +230,7 @@ NotifyMode get_notify_mode()
     return mode;
 }
 
-void show_notification (SnapData* data, NotifyMode mode)
+bool show_notification (SnapData* data, NotifyMode mode)
 {
     const Appointment& appointment = data->appointment;
 
@@ -242,16 +250,19 @@ void show_notification (SnapData* data, NotifyMode mode)
     }
     g_object_set_data_full(G_OBJECT(nn), "snap-data", data, snap_data_destroy_notify);
 
+    bool shown = true;
     GError * error = nullptr;
     notify_notification_show(nn, &error);
     if (error != NULL)
     {
-        g_warning("Unable to show snap decision for '%s': %s", body.c_str(), error->message);
+        g_critical("Unable to show snap decision for '%s': %s", body.c_str(), error->message);
         g_error_free(error);
         data->show(data->appointment);
+        shown = false;
     }
 
     g_free(title);
+    return shown;
 }
 
 /** 
@@ -274,8 +285,8 @@ void notify(const Appointment& appointment,
             break;
 
         default:
-            show_notification(data, NOTIFY_MODE_SNAP);
-            play_alarm_sound();
+            if (show_notification(data, NOTIFY_MODE_SNAP))
+                play_alarm_sound();
             break;
      }
 }
