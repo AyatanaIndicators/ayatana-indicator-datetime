@@ -1,3 +1,16 @@
+indicator-datetime (13.10.0+14.04.20140321-0ubuntu1) trusty; urgency=low
+
+  [ Charles Kerr ]
+  * If we notify_notification_show() fails, we shouldn't play the alarm
+    sound. The alarm sound loops until the user dismisses it, which will
+    never happen if we can't talk to unity-notiifications. So the
+    outcome in this error case is that the alarm plays forever and can't
+    be dismissed by the user. (LP: #1295237)
+  * Add debug logging of what capabilities the notification server said
+    it supports. (LP: #1295271)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 21 Mar 2014 05:23:04 +0000
+
 indicator-datetime (13.10.0+14.04.20140314.1-0ubuntu1) trusty; urgency=low
 
   [ Charles Kerr ]
