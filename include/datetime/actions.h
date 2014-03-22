@@ -42,14 +42,20 @@ namespace datetime {
 class Actions
 {
 public:
-    virtual void open_desktop_settings() =0;
-    virtual void open_phone_settings() =0;
-    virtual void open_phone_clock_app() =0;
-    virtual bool can_open_planner() const = 0;
-    virtual void open_planner() =0;
-    virtual void open_planner_at(const DateTime&) =0;
-    virtual void open_appointment(const std::string& uid) =0;
+
+    virtual bool desktop_has_calendar_app() const =0;
+    virtual void desktop_open_alarm_app() =0;
+    virtual void desktop_open_appointment(const Appointment&) =0;
+    virtual void desktop_open_calendar_app(const DateTime&) =0;
+    virtual void desktop_open_settings_app() =0;
+
+    virtual void phone_open_alarm_app() =0;
+    virtual void phone_open_appointment(const Appointment&) =0;
+    virtual void phone_open_calendar_app(const DateTime&) =0;
+    virtual void phone_open_settings_app() =0;
+
     virtual void set_location(const std::string& zone, const std::string& name)=0;
+
     void set_calendar_date(const DateTime&);
     GActionGroup* action_group();
     const std::shared_ptr<State> state() const;

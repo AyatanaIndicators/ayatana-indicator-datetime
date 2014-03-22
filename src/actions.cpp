@@ -34,67 +34,81 @@ namespace datetime {
 namespace
 {
 
-void on_desktop_settings_activated(GSimpleAction * /*action*/,
-                                   GVariant      * /*param*/,
-                                   gpointer        gself)
+DateTime datetime_from_timet_variant(GVariant* v)
 {
-    static_cast<Actions*>(gself)->open_desktop_settings();
+    int64_t t = 0;
+
+    if (v != nullptr)
+        if (g_variant_type_equal(G_VARIANT_TYPE_INT64,g_variant_get_type(v)))
+            t = g_variant_get_int64(v);
+
+    if (t != 0)
+        return DateTime(t);
+    else
+        return DateTime::NowLocal();
 }
 
-void on_phone_settings_activated(GSimpleAction * /*action*/,
-                                 GVariant      * /*param*/,
-                                 gpointer        gself)
+bool lookup_appointment_by_uid_variant(const std::shared_ptr<State>& state, GVariant* vuid, Appointment& setme)
 {
-    static_cast<Actions*>(gself)->open_phone_settings();
-}
+    g_return_val_if_fail(vuid != nullptr, false);
+    g_return_val_if_fail(g_variant_type_equal(G_VARIANT_TYPE_STRING,g_variant_get_type(vuid)), false);
+    const auto uid = g_variant_get_string(vuid, nullptr);
+    g_return_val_if_fail(uid && *uid, false);
 
-void on_phone_clock_activated(GSimpleAction * /*action*/,
-                              GVariant      * /*param*/,
-                              gpointer        gself)
-{
-    static_cast<Actions*>(gself)->open_phone_clock_app();
-}
-
-void on_activate_appointment(GSimpleAction * /*action*/,
-                             GVariant      * param,
-                             gpointer        gself)
-{
-    const auto uid = g_variant_get_string(param, nullptr);
-    auto self = static_cast<Actions*>(gself);
-
-    g_return_if_fail(uid && *uid);
-
-    // find url of the upcoming appointment with this uid
-    for (const auto& appt : self->state()->calendar_upcoming->appointments().get())
+    for(const auto& appt : state->calendar_upcoming->appointments().get())
     {
         if (appt.uid == uid)
         {
-            const auto url = appt.url;
-            g_debug("%s: uid[%s] -> url[%s]", G_STRFUNC, uid, url.c_str());
-            self->open_appointment(url);
-            break;
+            setme = appt;
+            return true;
         }
     }
+
+    return false;
 }
 
-void on_activate_planner(GSimpleAction * /*action*/,
-                         GVariant      * param,
-                         gpointer        gself)
+void on_desktop_appointment_activated (GSimpleAction*, GVariant *vuid, gpointer gself)
 {
-    const auto at = g_variant_get_int64(param);
     auto self = static_cast<Actions*>(gself);
-
-    if (at)
-    {
-        auto gdt = g_date_time_new_from_unix_local(at);
-        self->open_planner_at(DateTime(gdt));
-        g_date_time_unref(gdt);
-    }
-    else // no time specified...
-    {
-        self->open_planner();
-    }
+    Appointment appt;
+    if (lookup_appointment_by_uid_variant(self->state(), vuid, appt))
+        self->desktop_open_appointment(appt);
 }
+void on_desktop_alarm_activated (GSimpleAction*, GVariant*, gpointer gself)
+{
+    static_cast<Actions*>(gself)->desktop_open_alarm_app();
+}
+void on_desktop_calendar_activated (GSimpleAction*, GVariant* vt, gpointer gself)
+{
+    const auto dt = datetime_from_timet_variant(vt);
+    static_cast<Actions*>(gself)->desktop_open_calendar_app(dt);
+}
+void on_desktop_settings_activated (GSimpleAction*, GVariant*, gpointer gself)
+{
+    static_cast<Actions*>(gself)->desktop_open_settings_app();
+}
+
+void on_phone_appointment_activated (GSimpleAction*, GVariant *vuid, gpointer gself)
+{
+    auto self = static_cast<Actions*>(gself);
+    Appointment appt;
+    if (lookup_appointment_by_uid_variant(self->state(), vuid, appt))
+        self->phone_open_appointment(appt);
+}
+void on_phone_alarm_activated (GSimpleAction*, GVariant*, gpointer gself)
+{
+    static_cast<Actions*>(gself)->phone_open_alarm_app();
+}
+void on_phone_calendar_activated (GSimpleAction*, GVariant* vt, gpointer gself)
+{
+    const auto dt = datetime_from_timet_variant(vt);
+    static_cast<Actions*>(gself)->phone_open_calendar_app(dt);
+}
+void on_phone_settings_activated (GSimpleAction*, GVariant*, gpointer gself)
+{
+    static_cast<Actions*>(gself)->phone_open_settings_app();
+}
+
 
 void on_set_location(GSimpleAction * /*action*/,
                      GVariant      * param,
@@ -183,11 +197,17 @@ Actions::Actions(const std::shared_ptr<State>& state):
     m_actions(g_simple_action_group_new())
 {
     GActionEntry entries[] = {
-        { "desktop.open-settings", on_desktop_settings_activated },
-        { "phone.open-settings", on_phone_settings_activated },
-        { "activate-phone-clock-app", on_phone_clock_activated },
-        { "activate-appointment", on_activate_appointment, "s", nullptr },
-        { "activate-planner", on_activate_planner, "x", nullptr },
+
+        { "desktop.open-appointment",  on_desktop_appointment_activated, "s", nullptr },
+        { "desktop.open-alarm-app",    on_desktop_alarm_activated },
+        { "desktop.open-calendar-app", on_desktop_calendar_activated, "x", nullptr },
+        { "desktop.open-settings-app", on_desktop_settings_activated },
+
+        { "phone.open-appointment",    on_phone_appointment_activated, "s", nullptr },
+        { "phone.open-alarm-app",      on_phone_alarm_activated },
+        { "phone.open-calendar-app",   on_phone_calendar_activated, "x", nullptr },
+        { "phone.open-settings-app",   on_phone_settings_activated },
+
         { "calendar-active", nullptr, nullptr, "false", on_calendar_active_changed },
         { "set-location", on_set_location, "s" }
     };

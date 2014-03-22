@@ -104,11 +104,14 @@ TEST_F(ExporterFixture, Publish)
       names.insert(names_strv[i]);
 
     // confirm the actions that we expect
-    EXPECT_EQ(1, names.count("activate-appointment"));
-    EXPECT_EQ(1, names.count("activate-desktop-settings"));
-    EXPECT_EQ(1, names.count("activate-phone-clock-app"));
-    EXPECT_EQ(1, names.count("activate-phone-settings"));
-    EXPECT_EQ(1, names.count("activate-planner"));
+    EXPECT_EQ(1, names.count("desktop.open-alarm-app"));
+    EXPECT_EQ(1, names.count("desktop.open-appointment"));
+    EXPECT_EQ(1, names.count("desktop.open-calendar-app"));
+    EXPECT_EQ(1, names.count("desktop.open-settings-app"));
+    EXPECT_EQ(1, names.count("phone.open-alarm-app"));
+    EXPECT_EQ(1, names.count("phone.open-appointment"));
+    EXPECT_EQ(1, names.count("phone.open-calendar-app"));
+    EXPECT_EQ(1, names.count("phone.open-settings-app"));
     EXPECT_EQ(1, names.count("calendar"));
     EXPECT_EQ(1, names.count("desktop_greeter-header"));
     EXPECT_EQ(1, names.count("desktop-header"));

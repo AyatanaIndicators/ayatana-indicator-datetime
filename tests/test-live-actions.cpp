@@ -252,43 +252,94 @@ TEST_F(LiveActionsFixture, SetLocation)
     EXPECT_EQ(expected, m_state->settings->timezone_name.get());
 }
 
-TEST_F(LiveActionsFixture, OpenDesktopSettings)
-{
-    m_actions->open_desktop_settings();
-    const std::string expected_substr = "control-center";
-    EXPECT_NE(m_live_actions->last_cmd.find(expected_substr), std::string::npos);
-}
+/***
+****
+***/
 
-TEST_F(LiveActionsFixture, OpenPlanner)
+TEST_F(LiveActionsFixture, DesktopOpenAlarmApp)
 {
-    m_actions->open_planner();
+    m_actions->desktop_open_alarm_app();
     const std::string expected = "evolution -c calendar";
     EXPECT_EQ(expected, m_live_actions->last_cmd);
 }
 
-TEST_F(LiveActionsFixture, OpenPhoneSettings)
+TEST_F(LiveActionsFixture, DesktopOpenAppointment)
 {
-    m_actions->open_phone_settings();
+    Appointment a;
+    a.uid = "some-uid";
+    a.begin = DateTime::NowLocal();
+    m_actions->desktop_open_appointment(a);
+    const std::string expected_substr = "evolution \"calendar:///?startdate=";
+    EXPECT_NE(m_live_actions->last_cmd.find(expected_substr), std::string::npos);
+}
+
+TEST_F(LiveActionsFixture, DesktopOpenCalendarApp)
+{
+    m_actions->desktop_open_calendar_app(DateTime::NowLocal());
+    const std::string expected_substr = "evolution \"calendar:///?startdate=";
+    EXPECT_NE(m_live_actions->last_cmd.find(expected_substr), std::string::npos);
+}
+
+TEST_F(LiveActionsFixture, DesktopOpenSettingsApp)
+{
+    m_actions->desktop_open_settings_app();
+    const std::string expected_substr = "control-center";
+    EXPECT_NE(m_live_actions->last_cmd.find(expected_substr), std::string::npos);
+}
+
+/***
+****
+***/
+
+namespace
+{
+    const std::string clock_app_url = "appid://com.ubuntu.clock/clock/current-user-version";
+
+    const std::string calendar_app_url = "appid://com.ubuntu.calendar/calendar/current-user-version";
+}
+
+TEST_F(LiveActionsFixture, PhoneOpenAlarmApp)
+{
+    m_actions->phone_open_alarm_app();
+    EXPECT_EQ(clock_app_url, m_live_actions->last_url);
+}
+
+TEST_F(LiveActionsFixture, PhoneOpenAppointment)
+{
+    Appointment a;
+
+    a.uid = "some-uid";
+    a.begin = DateTime::NowLocal();
+    a.has_alarms = false;
+    m_actions->phone_open_appointment(a);
+    EXPECT_EQ(calendar_app_url, m_live_actions->last_url);
+
+    a.has_alarms = true;
+    m_actions->phone_open_appointment(a);
+    EXPECT_EQ(clock_app_url, m_live_actions->last_url);
+
+    a.url = "appid://blah";
+    m_actions->phone_open_appointment(a);
+    EXPECT_EQ(a.url, m_live_actions->last_url);
+}
+
+TEST_F(LiveActionsFixture, PhoneOpenCalendarApp)
+{
+    m_actions->phone_open_calendar_app(DateTime::NowLocal());
+    const std::string expected = "appid://com.ubuntu.calendar/calendar/current-user-version";
+    EXPECT_EQ(expected, m_live_actions->last_url);
+}
+
+TEST_F(LiveActionsFixture, PhoneOpenSettingsApp)
+{
+    m_actions->phone_open_settings_app();
     const std::string expected = "settings:///system/time-date";
     EXPECT_EQ(expected, m_live_actions->last_url);
 }
 
-TEST_F(LiveActionsFixture, OpenPhoneClockApp)
-{
-    m_actions->open_phone_clock_app();
-    const std::string expected = "appid://com.ubuntu.clock/clock/current-user-version";
-    EXPECT_EQ(expected, m_live_actions->last_url);
-}
-
-TEST_F(LiveActionsFixture, OpenPlannerAt)
-{
-    const auto now = DateTime::NowLocal();
-    m_actions->open_planner_at(now);
-    const auto today_begins = now.add_full(0, 0, 0, -now.hour(), -now.minute(), -now.seconds());
-    const auto gmt = today_begins.to_timezone("UTC");
-    const auto expected = gmt.format("evolution \"calendar:///?startdate=%Y%m%dT%H%M%SZ\"");
-    EXPECT_EQ(expected, m_live_actions->last_cmd);
-}
+/***
+****
+***/
 
 TEST_F(LiveActionsFixture, CalendarState)
 {

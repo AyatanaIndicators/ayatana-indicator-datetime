@@ -23,7 +23,130 @@
 
 using namespace unity::indicator::datetime;
 
-typedef StateFixture ActionsFixture;
+class ActionsFixture: public StateFixture
+{
+    typedef StateFixture super;
+
+    std::vector<Appointment> build_some_appointments()
+    {
+        const auto now = m_state->clock->localtime();
+        auto gdt_tomorrow = g_date_time_add_days(now.get(), 1);
+        const auto tomorrow = DateTime(gdt_tomorrow);
+        g_date_time_unref(gdt_tomorrow);
+
+        Appointment a1; // an alarm clock appointment
+        a1.color = "red";
+        a1.summary = "Alarm";
+        a1.summary = "http://www.example.com/";
+        a1.uid = "example";
+        a1.has_alarms = true;
+        a1.begin = a1.end = tomorrow;
+
+        Appointment a2; // a non-alarm appointment
+        a2.color = "green";
+        a2.summary = "Other Text";
+        a2.summary = "http://www.monkey.com/";
+        a2.uid = "monkey";
+        a2.has_alarms = false;
+        a2.begin = a2.end = tomorrow;
+
+        return std::vector<Appointment>({a1, a2});
+    }
+
+protected:
+
+    virtual void SetUp()
+    {
+        super::SetUp();
+    }
+
+    virtual void TearDown()
+    {
+        super::TearDown();
+    }
+
+    void test_action_with_no_args(const char * action_name,
+                                  MockActions::Action expected_action)
+    {
+        // preconditions
+        EXPECT_TRUE(m_mock_actions->history().empty());
+        auto action_group = m_actions->action_group();
+        EXPECT_TRUE(g_action_group_has_action(action_group, action_name));
+
+        // run the test
+        g_action_group_activate_action(action_group, action_name, nullptr);
+
+        // test the results
+        EXPECT_EQ(std::vector<MockActions::Action>({expected_action}),
+                  m_mock_actions->history());
+    }
+
+    void test_action_with_time_arg(const char * action_name,
+                                   MockActions::Action expected_action)
+    {
+        // preconditions
+        EXPECT_TRUE(m_mock_actions->history().empty());
+        auto action_group = m_actions->action_group();
+        EXPECT_TRUE(g_action_group_has_action(action_group, action_name));
+
+        // activate the action
+        const auto now = DateTime::NowLocal();
+        auto v = g_variant_new_int64(now.to_unix());
+        g_action_group_activate_action(action_group, action_name, v);
+
+        // test the results
+        EXPECT_EQ(std::vector<MockActions::Action>({expected_action}),
+                  m_mock_actions->history());
+        EXPECT_EQ(now.format("%F %T"),
+                  m_mock_actions->date_time().format("%F %T"));
+    }
+
+    void test_action_with_appt_arg(const char * action_name,
+                                   MockActions::Action expected_action)
+    {
+        ///
+        ///  Test 1: activate an appointment that we know about
+        ///
+
+        // preconditions
+        EXPECT_TRUE(m_mock_actions->history().empty());
+        auto action_group = m_actions->action_group();
+        EXPECT_TRUE(g_action_group_has_action(action_group, action_name));
+
+        // init some appointments to the state
+        const auto appointments = build_some_appointments();
+        m_mock_state->mock_range_planner->appointments().set(appointments);
+
+        // activate the action
+        auto v = g_variant_new_string(appointments[0].uid.c_str());
+        g_action_group_activate_action(action_group, action_name, v);
+
+        // test the results
+        EXPECT_EQ(std::vector<MockActions::Action>({expected_action}),
+                  m_mock_actions->history());
+        EXPECT_EQ(appointments[0],
+                  m_mock_actions->appointment());
+
+        ///
+        ///  Test 2: activate an appointment we *don't* know about
+        ///
+
+        // setup
+        m_mock_actions->clear();
+        EXPECT_TRUE(m_mock_actions->history().empty());
+
+        // activate the action
+        v = g_variant_new_string("this-uid-is-not-one-that-we-have");
+        g_action_group_activate_action(action_group, action_name, v);
+
+        // test the results
+        EXPECT_TRUE(m_mock_actions->history().empty());
+    }
+};
+
+/***
+****
+***/
 
 TEST_F(ActionsFixture, ActionsExist)
 {
@@ -32,92 +155,80 @@ TEST_F(ActionsFixture, ActionsExist)
     const char* names[] = { "desktop-header",
                             "calendar",
                             "set-location",
-                            "activate-planner",
-                            "activate-appointment",
-                            "activate-phone-clock-app",
-                            "phone.open-settings",
-                            "desktop.open-settings" };
+                            "desktop.open-appointment",
+                            "desktop.open-alarm-app",
+                            "desktop.open-calendar-app",
+                            "desktop.open-settings-app",
+                            "phone.open-appointment",
+                            "phone.open-alarm-app",
+                            "phone.open-calendar-app",
+                            "phone.open-settings-app" };
+
     for(const auto& name: names)
     {
         EXPECT_TRUE(g_action_group_has_action(m_actions->action_group(), name));
     }
 }
 
-TEST_F(ActionsFixture, DesktopOpenSettings)
+/***
+****
+***/
+
+TEST_F(ActionsFixture, DesktopOpenAlarmApp)
 {
-    const auto action_name = "desktop.open-settings";
-    const auto expected_action = MockActions::OpenDesktopSettings;
-
-    auto action_group = m_actions->action_group();
-    auto history = m_mock_actions->history();
-    EXPECT_EQ(0, history.size());
-    EXPECT_TRUE(g_action_group_has_action(action_group, action_name));
-
-    g_action_group_activate_action(action_group, action_name, nullptr);
-    history = m_mock_actions->history();
-    EXPECT_EQ(1, history.size());
-    EXPECT_EQ(expected_action, history[0]);
+    test_action_with_no_args("desktop.open-alarm-app",
+                             MockActions::DesktopOpenAlarmApp);
 }
 
-TEST_F(ActionsFixture, PhoneOpenSettings)
+TEST_F(ActionsFixture, DesktopOpenAppointment)
 {
-    const auto action_name = "phone.open-settings";
-    const auto expected_action = MockActions::OpenPhoneSettings;
-
-    auto action_group = m_actions->action_group();
-    EXPECT_TRUE(m_mock_actions->history().empty());
-    EXPECT_TRUE(g_action_group_has_action(action_group, action_name));
-
-    g_action_group_activate_action(action_group, action_name, nullptr);
-    auto history = m_mock_actions->history();
-    EXPECT_EQ(1, history.size());
-    EXPECT_EQ(expected_action, history[0]);
+    test_action_with_appt_arg("desktop.open-appointment",
+                              MockActions::DesktopOpenAppt);
 }
 
-TEST_F(ActionsFixture, ActivatePhoneClockApp)
+TEST_F(ActionsFixture, DesktopOpenCalendarApp)
 {
-    const auto action_name = "activate-phone-clock-app";
-    const auto expected_action = MockActions::OpenPhoneClockApp;
-
-    auto action_group = m_actions->action_group();
-    EXPECT_TRUE(m_mock_actions->history().empty());
-    EXPECT_TRUE(g_action_group_has_action(action_group, action_name));
-
-    g_action_group_activate_action(action_group, action_name, nullptr);
-    auto history = m_mock_actions->history();
-    EXPECT_EQ(1, history.size());
-    EXPECT_EQ(expected_action, history[0]);
+    test_action_with_time_arg("desktop.open-calendar-app",
+                              MockActions::DesktopOpenCalendarApp);
 }
 
-TEST_F(ActionsFixture, ActivatePlanner)
+TEST_F(ActionsFixture, DesktopOpenSettingsApp)
 {
-    const auto action_name = "activate-planner";
-    auto action_group = m_actions->action_group();
-    EXPECT_TRUE(m_mock_actions->history().empty());
-    EXPECT_TRUE(g_action_group_has_action(action_group, action_name));
-
-    const auto expected_action = MockActions::OpenPlanner;
-    auto v = g_variant_new_int64(0);
-    g_action_group_activate_action(action_group, action_name, v);
-    auto history = m_mock_actions->history();
-    EXPECT_EQ(1, history.size());
-    EXPECT_EQ(expected_action, history[0]);
+    test_action_with_no_args("desktop.open-settings-app",
+                             MockActions::DesktopOpenSettingsApp);
 }
 
-TEST_F(ActionsFixture, ActivatePlannerAt)
-{
-    const auto action_name = "activate-planner";
-    auto action_group = m_actions->action_group();
-    EXPECT_TRUE(m_mock_actions->history().empty());
-    EXPECT_TRUE(g_action_group_has_action(action_group, action_name));
+/***
+****
+***/
 
-    const auto now = DateTime::NowLocal();
-    auto v = g_variant_new_int64(now.to_unix());
-    g_action_group_activate_action(action_group, action_name, v);
-    const auto a = MockActions::OpenPlannerAt;
-    EXPECT_EQ(std::vector<MockActions::Action>({a}), m_mock_actions->history());
-    EXPECT_EQ(now.to_unix(), m_mock_actions->date_time().to_unix());
+TEST_F(ActionsFixture, PhoneOpenAlarmApp)
+{
+    test_action_with_no_args("phone.open-alarm-app",
+                             MockActions::PhoneOpenAlarmApp);
 }
+
+TEST_F(ActionsFixture, PhoneOpenAppointment)
+{
+    test_action_with_appt_arg("phone.open-appointment",
+                              MockActions::PhoneOpenAppt);
+}
+
+TEST_F(ActionsFixture, PhoneOpenCalendarApp)
+{
+    test_action_with_time_arg("phone.open-calendar-app",
+                              MockActions::PhoneOpenCalendarApp);
+}
+
+TEST_F(ActionsFixture, PhoneOpenSettingsApp)
+{
+    test_action_with_no_args("phone.open-settings-app",
+                             MockActions::PhoneOpenSettingsApp);
+}
+
+/***
+****
+***/
 
 TEST_F(ActionsFixture, SetLocation)
 {
@@ -209,26 +320,3 @@ TEST_F(ActionsFixture, ActivatingTheCalendarResetsItsDate)
     g_clear_pointer(&calendar_state, g_variant_unref);
 
 }
-
-
-TEST_F(ActionsFixture, OpenAppointment)
-{
-    Appointment appt;
-    appt.uid = "some arbitrary uid";
-    appt.url = "http://www.canonical.com/";
-    appt.begin = m_state->clock->localtime();
-    m_state->calendar_upcoming->appointments().set(std::vector<Appointment>({appt}));
-
-    const auto action_name = "activate-appointment";
-    auto action_group = m_actions->action_group();
-    EXPECT_TRUE(m_mock_actions->history().empty());
-    EXPECT_TRUE(g_action_group_has_action(action_group, action_name));
-
-    auto v = g_variant_new_string(appt.uid.c_str());
-    g_action_group_activate_action(action_group, action_name, v);
-    const auto a = MockActions::OpenAppointment;
-    ASSERT_EQ(1, m_mock_actions->history().size());
-    ASSERT_EQ(a, m_mock_actions->history()[0]);
-    EXPECT_EQ(appt.url, m_mock_actions->url());
-}
-

@@ -51,6 +51,7 @@ void LiveActions::execute_command(const std::string& cmdstr)
 
 void LiveActions::dispatch_url(const std::string& url)
 {
+    g_debug("Dispatching url '%s'", url.c_str());
     url_dispatch_send(url.c_str(), nullptr, nullptr);
 }
 
@@ -58,7 +59,7 @@ void LiveActions::dispatch_url(const std::string& url)
 ****
 ***/
 
-void LiveActions::open_desktop_settings()
+void LiveActions::desktop_open_settings_app()
 {
     auto path = g_find_program_in_path("unity-control-center");
 
@@ -74,7 +75,7 @@ void LiveActions::open_desktop_settings()
     g_free (path);
 }
 
-bool LiveActions::can_open_planner() const
+bool LiveActions::desktop_has_calendar_app() const
 {
     static bool inited = false;
     static bool have_calendar = false;
@@ -98,22 +99,17 @@ bool LiveActions::can_open_planner() const
     return have_calendar;
 }
 
-void LiveActions::open_planner()
+void LiveActions::desktop_open_alarm_app()
 {
     execute_command("evolution -c calendar");
 }
 
-void LiveActions::open_phone_settings()
+void LiveActions::desktop_open_appointment(const Appointment& appt)
 {
-    dispatch_url("settings:///system/time-date");
+    desktop_open_calendar_app(appt.begin);
 }
 
-void LiveActions::open_phone_clock_app()
-{
-    dispatch_url("appid://com.ubuntu.clock/clock/current-user-version");
-}
-
-void LiveActions::open_planner_at(const DateTime& dt)
+void LiveActions::desktop_open_calendar_app(const DateTime& dt)
 {
     const auto day_begins = dt.add_full(0, 0, 0, -dt.hour(), -dt.minute(), -dt.seconds());
     const auto gmt = day_begins.to_timezone("UTC");
@@ -121,17 +117,34 @@ void LiveActions::open_planner_at(const DateTime& dt)
     execute_command(cmd.c_str());
 }
 
-void LiveActions::open_appointment(const std::string& uid)
-{
-    for(const auto& appt : state()->calendar_upcoming->appointments().get())
-    {
-        if(appt.uid != uid)
-            continue;
+/***
+****
+***/
 
-        if (!appt.url.empty())
-            dispatch_url(appt.url);
-        break;
-    }
+void LiveActions::phone_open_alarm_app()
+{
+    dispatch_url("appid://com.ubuntu.clock/clock/current-user-version");
+}
+
+void LiveActions::phone_open_appointment(const Appointment& appt)
+{
+    if (!appt.url.empty())
+        dispatch_url(appt.url);
+    else if (appt.has_alarms)
+        phone_open_alarm_app();
+    else
+        phone_open_calendar_app(DateTime::NowLocal());
+}
+
+void LiveActions::phone_open_calendar_app(const DateTime&)
+{
+    // does calendar app have a mechanism for specifying dates?
+    dispatch_url("appid://com.ubuntu.calendar/calendar/current-user-version");
+}
+
+void LiveActions::phone_open_settings_app()
+{
+    dispatch_url("settings:///system/time-date");
 }
 
 /***

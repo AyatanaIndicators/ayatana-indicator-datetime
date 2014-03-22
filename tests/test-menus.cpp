@@ -92,7 +92,16 @@ protected:
     void InspectCalendar(GMenuModel* menu_model, Menu::Profile profile)
     {
         gchar* str = nullptr;
-        const auto actions_expected = (profile == Menu::Desktop) || (profile == Menu::Phone);
+
+        const char * expected_action;
+
+        if (profile == Menu::Desktop)
+            expected_action = "indicator.desktop.open-calendar-app";
+        else if (profile == Menu::Phone)
+            expected_action = "indicator.phone.open-calendar-app";
+        else
+            expected_action = nullptr;
+
         const auto calendar_expected = ((profile == Menu::Desktop) || (profile == Menu::DesktopGreeter))
                                     && (m_state->settings->show_calendar.get());
 
@@ -113,8 +122,8 @@ protected:
         g_clear_pointer(&str, g_free);
 
         g_menu_model_get_item_attribute(section, 0, G_MENU_ATTRIBUTE_ACTION, "s", &str);
-        if (actions_expected)
-            EXPECT_STREQ("indicator.activate-planner", str);
+        if (expected_action != nullptr)
+            EXPECT_STREQ(expected_action, str);
         else
             EXPECT_TRUE(str == nullptr);
         g_clear_pointer(&str, g_free);
@@ -131,8 +140,8 @@ protected:
             g_clear_pointer(&str, g_free);
 
             g_menu_model_get_item_attribute(section, 1, "activation-action", "s", &str);
-            if (actions_expected)
-                EXPECT_STREQ("indicator.activate-planner", str);
+            if (expected_action != nullptr)
+                EXPECT_STREQ(expected_action, str);
             else
                 EXPECT_TRUE(str == nullptr);
             g_clear_pointer(&str, g_free);
@@ -297,7 +306,7 @@ private:
             // there should be an "add event" button even if there aren't any appointments
             gchar* action = nullptr;
             EXPECT_TRUE(g_menu_model_get_item_attribute(section, 0, G_MENU_ATTRIBUTE_ACTION, "s", &action));
-            const char* expected_action = "activate-planner";
+            const char* expected_action = "desktop.open-calendar-app";
             EXPECT_EQ(std::string("indicator.")+expected_action, action);
             EXPECT_TRUE(g_action_group_has_action(m_actions->action_group(), expected_action));
             g_free(action);
@@ -328,7 +337,7 @@ private:
 
         // check that there's a "clock app" menuitem even when there are no appointments
         auto section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
-        const char* expected_action = "activate-phone-clock-app";
+        const char* expected_action = "phone.open-alarm-app";
         EXPECT_EQ(1, g_menu_model_get_n_items(section));
         gchar* action = nullptr;
         EXPECT_TRUE(g_menu_model_get_item_attribute(section, 0, G_MENU_ATTRIBUTE_ACTION, "s", &action));
@@ -354,7 +363,7 @@ protected:
 
     void InspectAppointments(GMenuModel* menu_model, Menu::Profile profile)
     {
-        const auto can_open_planner = m_actions->can_open_planner();
+        const auto can_open_planner = m_actions->desktop_has_calendar_app();
 
         switch (profile)
         {
@@ -443,9 +452,9 @@ protected:
         std::string expected_action;
 
         if (profile == Menu::Desktop)
-            expected_action = "indicator.activate-desktop-settings";
+            expected_action = "indicator.desktop.open-settings-app";
         else if (profile == Menu::Phone)
-            expected_action = "indicator.activate-phone-settings";
+            expected_action = "indicator.phone.open-settings-app";
 
         // get the Settings section
         auto submenu = g_menu_model_get_item_link(menu_model, 0, G_MENU_LINK_SUBMENU);
@@ -520,7 +529,7 @@ TEST_F(MenuFixture, Appointments)
     // toggle can_open_planner() and test the desktop again
     // to confirm that the "Add Event…" menuitem appears iff
     // there's a calendar available user-agent
-    m_mock_actions->set_can_open_planner (!m_actions->can_open_planner());
+    m_mock_actions->set_desktop_has_calendar_app (!m_actions->desktop_has_calendar_app());
     std::shared_ptr<Menu> menu = m_menu_factory->buildMenu(Menu::Desktop);
     InspectAppointments(menu->menu_model(), menu->profile());
 }

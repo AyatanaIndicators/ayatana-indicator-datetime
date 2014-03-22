@@ -1,19 +1,26 @@
 ACTIONS
 =======
 
- * "phone.open-settings"
- * "desktop.open-settings"
-   Description: opens a page for changing indicator-datetime's settings
+ * "desktop.open-settings-app"
+ * "phone.open-settings-app"
+   Description: open the settings application.
    State: None
    Parameter: None
 
- * "activate-planner"
-   Description: opens an appointment editor.
+ * "desktop.open-alarm-app"
+ * "phone.open-alarm-app"
+   Description: open the application for creating new alarms.
+   State: None
+   Parameter: None
+
+ * "desktop.open-calendar-app"
+ * "phone.open-calendar-app"
    State: None
    Parameter: int64, a time_t hinting which day/time to show in the planner,
                      or 0 for the current day
 
- * "activate-appointment"
+ * "desktop.open-appointment"
+ * "phone.open-appointment"
    Description: opens an appointment editor to the specified appointment.
    State: None
    Parameter: string, an opaque uid to specify which appointment to use.

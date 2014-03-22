@@ -225,22 +225,28 @@ private:
 
     GMenuModel* create_calendar_section(Profile profile)
     {
-        const bool allow_activation = (profile == Desktop)
-                                   || (profile == Phone);
         const bool show_calendar = m_state->settings->show_calendar.get() &&
                                    ((profile == Desktop) || (profile == DesktopGreeter));
         auto menu = g_menu_new();
+
+        const char * action_name;
+
+        if (profile == Phone)
+            action_name = "indicator.phone.open-calendar-app";
+        else if (profile == Desktop)
+            action_name = "indicator.desktop.open-calendar-app";
+        else
+            action_name = nullptr;
 
         // add a menuitem that shows the current date
         auto label = m_state->clock->localtime().format(_("%A, %e %B %Y"));
         auto item = g_menu_item_new (label.c_str(), nullptr);
         auto v = get_serialized_calendar_icon();
         g_menu_item_set_attribute_value (item, G_MENU_ATTRIBUTE_ICON, v);
-        if (allow_activation)
+        if (action_name != nullptr)
         {
             v = g_variant_new_int64(0);
-            const char* action = "indicator.activate-planner";
-            g_menu_item_set_action_and_target_value (item, action, v);
+            g_menu_item_set_action_and_target_value (item, action_name, v);
         }
         g_menu_append_item(menu, item);
         g_object_unref(item);
@@ -253,11 +259,8 @@ private:
             g_menu_item_set_action_and_target_value (item, "indicator.calendar", v);
             g_menu_item_set_attribute (item, "x-canonical-type",
                                        "s", "com.canonical.indicator.calendar");
-            if (allow_activation)
-            {
-                g_menu_item_set_attribute (item, "activation-action",
-                                           "s", "indicator.activate-planner");
-            }
+            if (action_name != nullptr)
+                g_menu_item_set_attribute (item, "activation-action", "s", action_name);
             g_menu_append_item (menu, item);
             g_object_unref (item);
         }
@@ -269,6 +272,15 @@ private:
     {
         const int MAX_APPTS = 5;
         std::set<std::string> added;
+
+        const char * action_name;
+
+        if (profile == Phone)
+            action_name = "indicator.phone.open-appointment";
+        else if ((profile == Desktop) && m_actions->desktop_has_calendar_app())
+            action_name = "indicator.desktop.open-appointment";
+        else
+            action_name = nullptr;
 
         for (const auto& appt : m_upcoming)
         {
@@ -303,15 +315,11 @@ private:
 
             if (!appt.color.empty())
                 g_menu_item_set_attribute (menu_item, "x-canonical-color", "s", appt.color.c_str());
-     
-            if (profile == Phone)
-                g_menu_item_set_action_and_target_value (menu_item,
-                                                     "indicator.activate-appointment",
-                                                     g_variant_new_string (appt.uid.c_str()));
-            else if (m_actions->can_open_planner())
-                g_menu_item_set_action_and_target_value (menu_item,
-                                                         "indicator.activate-planner",
-                                                         g_variant_new_int64 (unix_time));
+
+            if (action_name != nullptr)
+                g_menu_item_set_action_and_target_value (menu_item, action_name,
+                                                         g_variant_new_string (appt.uid.c_str()));
+
             g_menu_append_item (menu, menu_item);
             g_object_unref (menu_item);
         }
@@ -325,11 +333,11 @@ private:
         {
             add_appointments (menu, profile);
 
-            if (m_actions->can_open_planner())
+            if (m_actions->desktop_has_calendar_app())
             {
                 // add the 'Add Event…' menuitem
                 auto menu_item = g_menu_item_new(_("Add Event…"), nullptr);
-                const gchar* action_name = "indicator.activate-planner";
+                const gchar* action_name = "indicator.desktop.open-calendar-app";
                 auto v = g_variant_new_int64(0);
                 g_menu_item_set_action_and_target_value(menu_item, action_name, v);
                 g_menu_append_item(menu, menu_item);
@@ -338,7 +346,7 @@ private:
         }
         else if (profile==Phone)
         {
-            auto menu_item = g_menu_item_new (_("Clock"), "indicator.activate-phone-clock-app");
+            auto menu_item = g_menu_item_new (_("Clock"), "indicator.phone.open-alarm-app");
             g_menu_item_set_attribute_value (menu_item, G_MENU_ATTRIBUTE_ICON, get_serialized_alarm_icon());
             g_menu_append_item (menu, menu_item);
             g_object_unref (menu_item);
@@ -383,11 +391,11 @@ private:
 
         if (profile == Desktop)
         {
-            g_menu_append (menu, _("Date & Time Settings…"), "indicator.desktop.open-settings");
+            g_menu_append (menu, _("Date & Time Settings…"), "indicator.desktop.open-settings-app");
         }
         else if (profile == Phone)
         {
-            g_menu_append (menu, _("Time & Date settings…"), "indicator.phone.open-settings");
+            g_menu_append (menu, _("Time & Date settings…"), "indicator.phone.open-settings-app");
         }
 
         return G_MENU_MODEL (menu);
