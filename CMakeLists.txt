@@ -34,7 +34,6 @@ include (FindPkgConfig)
 pkg_check_modules (SERVICE_DEPS REQUIRED
                    glib-2.0>=2.36
                    gio-unix-2.0>=2.36
-                   geoclue>=0.12
                    libical>=0.48
                    libecal-1.2>=3.5
                    libedataserver-1.2>=3.5
