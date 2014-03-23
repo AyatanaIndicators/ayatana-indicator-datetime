@@ -5,12 +5,3 @@ LDFLAGS += -Wl,-z,defs -Wl,--as-needed
 %:
 	dh $@ --with translations
 
-override_dh_install:
-	cd po; intltool-update --pot --verbose
-	dh_install --fail-missing
-	# Language packs
-	for d in $$(find debian/indicator-datetime -type f \( -name "*.desktop" -o -name "*.directory" \) ); do \
-		sed -ri '/^(Name|GenericName|Comment|X-GNOME-FullName)\[/d' $$d; \
-		echo "X-Ubuntu-Gettext-Domain=indicator-datetime" >> $$d; \
-       	done;
-
