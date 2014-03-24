@@ -39,15 +39,18 @@ public:
     LiveActions(const std::shared_ptr<State>& state_in);
     ~LiveActions() =default;
 
-    void open_desktop_settings();
-    void open_phone_settings();
-    void open_phone_clock_app();
-    bool can_open_planner() const;
-    void open_planner();
-    void open_planner_at(const DateTime&);
-    void open_appointment(const std::string& uid);
+    bool desktop_has_calendar_app() const;
+    void desktop_open_alarm_app();
+    void desktop_open_appointment(const Appointment&);
+    void desktop_open_calendar_app(const DateTime&);
+    void desktop_open_settings_app();
+
+    void phone_open_alarm_app();
+    void phone_open_appointment(const Appointment&);
+    void phone_open_calendar_app(const DateTime&);
+    void phone_open_settings_app();
+
     void set_location(const std::string& zone, const std::string& name);
-    void set_calendar_date(const DateTime&);
 
 protected:
     virtual void execute_command(const std::string& command);

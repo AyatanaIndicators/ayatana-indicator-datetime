@@ -34,28 +34,54 @@ public:
     MockActions(std::shared_ptr<State>& state_in): Actions(state_in) {}
     ~MockActions() =default;
 
-    enum Action { OpenDesktopSettings, OpenPhoneSettings, OpenPhoneClockApp,
-                  OpenPlanner, OpenPlannerAt, OpenAppointment, SetLocation };
+    enum Action { DesktopOpenAlarmApp,
+                  DesktopOpenAppt,
+                  DesktopOpenCalendarApp,
+                  DesktopOpenSettingsApp,
+                  PhoneOpenAlarmApp,
+                  PhoneOpenAppt,
+                  PhoneOpenCalendarApp,
+                  PhoneOpenSettingsApp,
+                  SetLocation };
+
     const std::vector<Action>& history() const { return m_history; }
     const DateTime& date_time() const { return m_date_time; }
     const std::string& zone() const { return m_zone; }
     const std::string& name() const { return m_name; }
-    const std::string& url() const { return m_url; }
+    const Appointment& appointment() const { return m_appt; }
     void clear() { m_history.clear(); m_zone.clear(); m_name.clear(); }
 
-    void open_desktop_settings() { m_history.push_back(OpenDesktopSettings); }
+    bool desktop_has_calendar_app() const {
+        return m_desktop_has_calendar_app;
+    }
+    void desktop_open_alarm_app() {
+        m_history.push_back(DesktopOpenAlarmApp);
+    }
+    void desktop_open_appointment(const Appointment& appt) {
+        m_appt = appt;
+        m_history.push_back(DesktopOpenAppt);
+    }
+    void desktop_open_calendar_app(const DateTime& dt) {
+        m_date_time = dt;
+        m_history.push_back(DesktopOpenCalendarApp);
+    }
+    void desktop_open_settings_app() {
+        m_history.push_back(DesktopOpenSettingsApp);
+    }
 
-    void open_phone_settings() { m_history.push_back(OpenPhoneSettings); }
-
-    void open_phone_clock_app() { m_history.push_back(OpenPhoneClockApp); }
-
-    bool can_open_planner() const { return m_can_open_planner; }
-
-    void open_planner() { m_history.push_back(OpenPlanner); }
-
-    void open_planner_at(const DateTime& date_time_) {
-        m_history.push_back(OpenPlannerAt);
-        m_date_time = date_time_;
+    void phone_open_alarm_app() {
+        m_history.push_back(PhoneOpenAlarmApp);
+    }
+    void phone_open_appointment(const Appointment& appt) {
+        m_appt = appt;
+        m_history.push_back(PhoneOpenAppt);
+    }
+    void phone_open_calendar_app(const DateTime& dt) {
+        m_date_time = dt;
+        m_history.push_back(PhoneOpenCalendarApp);
+    }
+    void phone_open_settings_app() {
+        m_history.push_back(PhoneOpenSettingsApp);
     }
 
     void set_location(const std::string& zone_, const std::string& name_) {
@@ -64,16 +90,13 @@ public:
         m_name = name_;
     }
 
-    void open_appointment(const std::string& url_) {
-        m_history.push_back(OpenAppointment);
-        m_url = url_;
+    void set_desktop_has_calendar_app(bool b) {
+        m_desktop_has_calendar_app = b;
     }
 
-    void set_can_open_planner(bool b) { m_can_open_planner = b; }
-
 private:
-    bool m_can_open_planner = true;
-    std::string m_url;
+    bool m_desktop_has_calendar_app = true;
+    Appointment m_appt;
     std::string m_zone;
     std::string m_name;
     DateTime m_date_time;
