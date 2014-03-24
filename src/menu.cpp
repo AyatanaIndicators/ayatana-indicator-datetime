@@ -104,6 +104,9 @@ protected:
         m_state->settings->show_events.changed().connect([this](bool){
             update_section(Appointments); // showing events got toggled
         });
+        m_state->calendar_upcoming->date().changed().connect([this](const DateTime&){
+            update_upcoming(); // our m_upcoming is planner->upcoming() filtered by time
+        });
         m_state->calendar_upcoming->appointments().changed().connect([this](const std::vector<Appointment>&){
             update_upcoming(); // our m_upcoming is planner->upcoming() filtered by time
         });
@@ -138,18 +141,24 @@ protected:
 
     void update_upcoming()
     {
-        // show upcoming appointments that occur after "calendar_next_minute",
-        // where that is the wallclock time on the specified calendar day
-        const auto calendar_day = m_state->calendar_month->month().get();
+        // The usual case is on desktop (and /only/ case on phone)
+        // is that we're looking at the current date and want to see
+        // "the next five calendar events, if any."
+        //
+        // However on the Desktop when the user clicks onto a different
+        // calendar date, show the next five calendar events starting
+        // from the beginning of that clicked day.
+        DateTime begin;
         const auto now = m_state->clock->localtime();
-        int y, m, d;
-        calendar_day.ymd(y, m, d);
-        const auto calendar_now = DateTime::Local(y, m, d, now.hour(), now.minute(), now.seconds());
-        const auto calendar_next_minute = calendar_now.add_full(0, 0, 0, 0, 1, -now.seconds());
+        const auto calendar_day = m_state->calendar_month->month().get();
+        if ((profile() == Desktop) && !DateTime::is_same_day(now, calendar_day))
+            begin = calendar_day.add_full (0, 0, 0, -calendar_day.hour(), -calendar_day.minute(), -calendar_day.seconds());
+        else
+            begin = now.add_full (0, 0, 0, 0, 0, -now.seconds());
 
         std::vector<Appointment> upcoming;
         for(const auto& a : m_state->calendar_upcoming->appointments().get())
-            if (calendar_next_minute <= a.begin)
+            if (begin <= a.begin)
                 upcoming.push_back(a);
  
         if (m_upcoming != upcoming)

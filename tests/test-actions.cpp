@@ -153,7 +153,7 @@ TEST_F(ActionsFixture, SetCalendarDate)
     EXPECT_NE (now, m_state->calendar_month->month().get());
     auto v = g_variant_new_int64(now.to_unix());
     g_action_group_activate_action (action_group, action_name, v);
-    EXPECT_EQ (now, m_state->calendar_month->month().get());
+    EXPECT_TRUE(DateTime::is_same_day (now, m_state->calendar_month->month().get()));
 }
 
 TEST_F(ActionsFixture, ActivatingTheCalendarResetsItsDate)
@@ -171,21 +171,27 @@ TEST_F(ActionsFixture, ActivatingTheCalendarResetsItsDate)
     const auto now = m_state->clock->localtime();
     auto next_week = g_date_time_add_weeks(now.get(), 1);
     const auto next_week_unix = g_date_time_to_unix(next_week);
-    g_date_time_unref(next_week);
     g_action_group_activate_action (action_group, "calendar", g_variant_new_int64(next_week_unix));
 
     // confirm the planner and calendar action state moved a week into the future
     // but that m_state->clock is unchanged
-    EXPECT_EQ(next_week_unix, m_state->calendar_month->month().get().to_unix());
+    auto expected = g_date_time_add_full (next_week, 0, 0, 0, -g_date_time_get_hour(next_week),
+                                                              -g_date_time_get_minute(next_week),
+                                                              -g_date_time_get_seconds(next_week));
+    const auto expected_unix = g_date_time_to_unix(expected);
+    EXPECT_EQ(expected_unix, m_state->calendar_month->month().get().to_unix());
     EXPECT_EQ(now, m_state->clock->localtime());
     auto calendar_state = g_action_group_get_action_state(action_group, "calendar");
     EXPECT_TRUE(calendar_state != nullptr);
     EXPECT_TRUE(g_variant_is_of_type(calendar_state, G_VARIANT_TYPE_DICTIONARY));
     auto v = g_variant_lookup_value(calendar_state, "calendar-day", G_VARIANT_TYPE_INT64);
     EXPECT_TRUE(v != nullptr);
-    EXPECT_EQ(next_week_unix, g_variant_get_int64(v));
+    EXPECT_EQ(expected_unix, g_variant_get_int64(v));
     g_clear_pointer(&v, g_variant_unref);
     g_clear_pointer(&calendar_state, g_variant_unref);
+
+    g_date_time_unref(expected);
+    g_date_time_unref(next_week);
 
     ///
     /// Now the actual test.
