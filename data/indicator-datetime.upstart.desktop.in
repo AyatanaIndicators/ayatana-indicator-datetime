@@ -2,8 +2,8 @@
 Type=Application
 Name=Indicator Date & Time
 Exec=@pkglibexecdir@/indicator-datetime-service
-OnlyShowIn=Unity;GNOME;
+OnlyShowIn=Unity;
 NoDisplay=true
 StartupNotify=false
 Terminal=false
-AutostartCondition=GNOME3 unless-session gnome
+Hidden=true

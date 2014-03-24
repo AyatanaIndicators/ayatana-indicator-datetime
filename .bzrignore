@@ -17,3 +17,4 @@ data/com.canonical.indicator.datetime.gschema.valid
 src/libdatetime_la-utils.lo
 data/indicator-datetime.conf
 data/indicator-datetime.desktop
+data/indicator-datetime.upstart.desktop
