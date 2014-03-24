@@ -1,3 +1,19 @@
+indicator-datetime (13.10.0+14.04.20140324.1-0ubuntu1) trusty; urgency=low
+
+  [ Charles Kerr ]
+  * When clicking onto a different calendar date on the Desktop, show
+    the events for that calendar day starting at the beginning of the
+    day, rather than the current time of day. (LP: #1293646)
+  * Point to the right object path for the phone greeter. (LP: #1294832)
+  * Remove unused dependencies from packaging. (LP: #1120358)
+  * Change the desktop menu's settings menuitem's label to match the
+    spec. (LP: #1296585)
+
+  [ Ted Gould ]
+  * Synchronize process management across indicators
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 24 Mar 2014 16:18:24 +0000
+
 indicator-datetime (13.10.0+14.04.20140321-0ubuntu1) trusty; urgency=low
 
   [ Charles Kerr ]
