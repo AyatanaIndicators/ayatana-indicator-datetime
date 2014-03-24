@@ -388,15 +388,17 @@ private:
     GMenuModel* create_settings_section(Profile profile)
     {
         auto menu = g_menu_new();
+        const char * action_name;
 
         if (profile == Desktop)
-        {
-            g_menu_append (menu, _("Date & Time Settings…"), "indicator.desktop.open-settings-app");
-        }
+            action_name = "indicator.desktop.open-settings-app";
         else if (profile == Phone)
-        {
-            g_menu_append (menu, _("Time & Date settings…"), "indicator.phone.open-settings-app");
-        }
+            action_name = "indicator.phone.open-settings-app";
+        else
+            action_name = nullptr;
+
+        if (action_name != nullptr)
+            g_menu_append (menu, _("Time & Date settings…"), action_name);
 
         return G_MENU_MODEL (menu);
     }
