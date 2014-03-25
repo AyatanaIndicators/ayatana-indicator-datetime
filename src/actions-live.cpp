@@ -84,6 +84,7 @@ bool LiveActions::desktop_has_calendar_app() const
     {
         inited = true;
 
+#if 0
         auto all = g_app_info_get_all_for_type ("text/calendar");
         for(auto l=all; !have_calendar && l!=nullptr; l=l->next)
         {
@@ -94,6 +95,13 @@ bool LiveActions::desktop_has_calendar_app() const
         }
 
         g_list_free_full(all, (GDestroyNotify)g_object_unref);
+#else
+        /* Work around http://pad.lv/1296233 for Trusty...
+           let's revert this when the GIO bug is fixed. */
+        auto executable = g_find_program_in_path("evolution");
+        have_calendar = executable != nullptr;
+        g_free(executable);
+#endif
     }
 
     return have_calendar;
