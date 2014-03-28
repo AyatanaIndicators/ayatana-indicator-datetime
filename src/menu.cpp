@@ -247,7 +247,11 @@ private:
         else
             action_name = nullptr;
 
-        // add a menuitem that shows the current date
+        /* Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+           Format string for the day on the first menuitem in the datetime indicator.
+           This format string gives the full weekday, date, month, and year.
+           en_US example: "%A, %B %e %Y" --> Saturday, October 31 2020"
+           en_GB example: "%A, %e %B %Y" --> Saturday, 31 October 2020" */
         auto label = m_state->clock->localtime().format(_("%A, %e %B %Y"));
         auto item = g_menu_item_new (label.c_str(), nullptr);
         auto v = get_serialized_calendar_icon();

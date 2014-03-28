@@ -244,7 +244,9 @@ bool show_notification (SnapData* data, NotifyMode mode)
     {
         notify_notification_set_hint_string(nn, "x-canonical-snap-decisions", "true");
         notify_notification_set_hint_string(nn, "x-canonical-private-button-tint", "true");
+        /* text for the alarm popup dialog's button to show the active alarm */
         notify_notification_add_action(nn, "show", _("Show"), on_snap_show, data, nullptr);
+        /* text for the alarm popup dialog's button to shut up the alarm */
         notify_notification_add_action(nn, "dismiss", _("Dismiss"), on_snap_dismiss, data, nullptr);
         g_signal_connect(G_OBJECT(nn), "closed", G_CALLBACK(on_snap_closed), data);
     }
