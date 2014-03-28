@@ -38,11 +38,6 @@ std::string joinDateAndTimeFormatStrings(const char* date_string,
 
     if (date_string && time_string)
     {
-        /* TRANSLATORS: This is a format string passed to strftime to
-         * combine the date and the time.  The value of "%s\u2003%s"
-         * will result in a string like this in US English 12-hour time:
-         * 'Fri Jul 16 11:50 AM'. The space in between date and time is
-         * a Unicode en space (E28082 in UTF-8 hex). */
         str = date_string;
         str += "\u2003";
         str += time_string;
@@ -134,26 +129,52 @@ const gchar* DesktopFormatter::getDateFormat(bool show_day, bool show_date, bool
     const char * fmt;
 
     if (show_day && show_date && show_year)
-        /* TRANSLATORS: a strftime(3) format showing the weekday, date, and year */
+        /* Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+           That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
+           This format string shows the abbreviated weekday, day, abbreviated month, and year.
+           en_US example: "%a %b %e %Y" --> "Sat Oct 31 2020"
+           en_GB example: "%a %e %b %Y" --> "Sat 31 Oct 2020"
+           zh_CN example(?): "%Y年%m月%d日 周%a" --> "2020年10月31日 周六" */
         fmt = T_("%a %b %e %Y");
+
     else if (show_day && show_date)
-        /* TRANSLATORS: a strftime(3) format showing the weekday and date */
+        /* Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+           That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
+           This format string shows the abbreviated weekday, day, and abbreviated month.
+           en_US example: "%a %b %e" --> "Sat Oct 31"
+           en_GB example: "%a %e %b" --> "Sat 31 Oct"
+           zh_CN example(?): "%m月%d日 周%a" --> "03月27日 周六" */
         fmt = T_("%a %b %e");
-    else if (show_day && show_year)
-        /* TRANSLATORS: a strftime(3) format showing the weekday and year. */
-        fmt = T_("%a %Y");
+
     else if (show_day)
-        /* TRANSLATORS: a strftime(3) format showing the weekday. */
+        /* Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+           That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
+           This format string shows the abbreviated weekday.
+           zh_CN example(?): "周%a" --> "周六" */
         fmt = T_("%a");
+
     else if (show_date && show_year)
-        /* TRANSLATORS: a strftime(3) format showing the date and year */
+        /* Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+           That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
+           This format string shows the day, abbreviated month, and year.
+           en_US example: "%b %e %Y" --> "Oct 31 2020"
+           en_GB example: "%e %b %Y" --> "31 Oct 2020"
+           zh_CN example(?): "%Y年%m月%d日" --> "2020年10月31日" */
         fmt = T_("%b %e %Y");
+
     else if (show_date)
-        /* TRANSLATORS: a strftime(3) format showing the date */
+        /* Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+           That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
+           This format string shows the abbreviated month and day. 
+           en_US example: "%b %e" --> "Mar 27"
+           en_GB example: "%e %b" --> "27 Mar"
+           zh_CN example(?): "%m月%d日" --> "03月27日" */
         fmt = T_("%b %e");
+
     else if (show_year)
-        /* TRANSLATORS: a strftime(3) format showing the year */
+        /* This strftime(3) format string shows the year. */
         fmt = T_("%Y");
+
     else
         fmt = nullptr;
 
