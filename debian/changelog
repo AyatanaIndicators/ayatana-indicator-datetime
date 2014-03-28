@@ -1,3 +1,13 @@
+indicator-datetime (13.10.0+14.04.20140328-0ubuntu1) trusty; urgency=low
+
+  [ Charles Kerr ]
+  * Short-term workaround for the GIO GAppInfo wakeup bug discussed in
+    bug 1296233 (LP: #1296233)
+  * Improved translator comments for better time/date localization. (LP:
+    #1001595)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 28 Mar 2014 16:11:23 +0000
+
 indicator-datetime (13.10.0+14.04.20140324.1-0ubuntu1) trusty; urgency=low
 
   [ Charles Kerr ]
