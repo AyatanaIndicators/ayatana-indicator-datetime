@@ -52,7 +52,7 @@ split_settings_location(const gchar* location, gchar** zone, gchar** name)
     if(location_dup != NULL)
         g_strstrip(location_dup);
 
-    gchar* first;
+    gchar* first = NULL;
     if(location_dup && (first = strchr(location_dup, ' ')))
         *first = '\0';
 
