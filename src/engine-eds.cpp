@@ -25,6 +25,7 @@
 #include <libedataserver/libedataserver.h>
 
 #include <algorithm> // std::sort()
+#include <ctime> // time()
 #include <map>
 #include <set>
 
@@ -144,16 +145,29 @@ private:
     {
         auto self = static_cast<Impl*>(gself);
         self->m_rebuild_tag = 0;
+        self->m_rebuild_deadline = 0;
         self->set_dirty_now();
         return G_SOURCE_REMOVE;
     }
 
     void set_dirty_soon()
     {
-        static const int ARBITRARY_BATCH_MSEC = 200;
+        static constexpr int MIN_BATCH_SEC = 1;
+        static constexpr int MAX_BATCH_SEC = 60;
+        static_assert(MIN_BATCH_SEC <= MAX_BATCH_SEC, "bad boundaries");
 
-        if (m_rebuild_tag == 0)
-            m_rebuild_tag = g_timeout_add(ARBITRARY_BATCH_MSEC, set_dirty_now_static, this);
+        const auto now = time(nullptr);
+
+        if (m_rebuild_deadline == 0) // first pass
+        {
+            m_rebuild_deadline = now + MAX_BATCH_SEC;
+            m_rebuild_tag = g_timeout_add_seconds(MIN_BATCH_SEC, set_dirty_now_static, this);
+        }
+        else if (now < m_rebuild_deadline)
+        {
+            g_source_remove (m_rebuild_tag);
+            m_rebuild_tag = g_timeout_add_seconds(MIN_BATCH_SEC, set_dirty_now_static, this);
+        }
     }
 
     static void on_source_registry_ready(GObject* /*source*/, GAsyncResult* res, gpointer gself)
@@ -496,6 +510,7 @@ private:
     GCancellable* m_cancellable = nullptr;
     ESourceRegistry* m_source_registry = nullptr;
     guint m_rebuild_tag = 0;
+    time_t m_rebuild_deadline = 0;
 };
 
 /***
