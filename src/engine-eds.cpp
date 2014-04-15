@@ -412,64 +412,64 @@ private:
 
         if ((vtype == E_CAL_COMPONENT_EVENT) || (vtype == E_CAL_COMPONENT_TODO))
         {
-          const gchar* uid = nullptr;
-          e_cal_component_get_uid(component, &uid);
+            const gchar* uid = nullptr;
+            e_cal_component_get_uid(component, &uid);
 
-          auto status = ICAL_STATUS_NONE;
-          e_cal_component_get_status(component, &status);
+            auto status = ICAL_STATUS_NONE;
+            e_cal_component_get_status(component, &status);
 
-          if ((uid != nullptr) &&
-              (status != ICAL_STATUS_COMPLETED) &&
-              (status != ICAL_STATUS_CANCELLED))
-          {
-              Appointment appointment;
+            if ((uid != nullptr) &&
+                (status != ICAL_STATUS_COMPLETED) &&
+                (status != ICAL_STATUS_CANCELLED))
+            {
+                Appointment appointment;
 
-              ECalComponentText text;
-              text.value = nullptr;
-              e_cal_component_get_summary(component, &text);
-              if (text.value)
-                  appointment.summary = text.value;
+                ECalComponentText text;
+                text.value = nullptr;
+                e_cal_component_get_summary(component, &text);
+                if (text.value)
+                    appointment.summary = text.value;
 
-              appointment.begin = DateTime(begin);
-              appointment.end = DateTime(end);
-              appointment.color = subtask->color;
-              appointment.uid = uid;
+                appointment.begin = DateTime(begin);
+                appointment.end = DateTime(end);
+                appointment.color = subtask->color;
+                appointment.uid = uid;
 
-              // if the component has display alarms that have a url,
-              // snag it for our Appointment.url
-              auto alarm_uids = e_cal_component_get_alarm_uids(component);
-              appointment.has_alarms = alarm_uids != nullptr;
-              for(auto walk=alarm_uids; appointment.url.empty() && walk!=nullptr; walk=walk->next)
-              {
-                  auto alarm = e_cal_component_get_alarm(component, static_cast<const char*>(walk->data));
+                // if the component has display alarms that have a url,
+                // use the first one as our Appointment.url
+                auto alarm_uids = e_cal_component_get_alarm_uids(component);
+                appointment.has_alarms = alarm_uids != nullptr;
+                for(auto walk=alarm_uids; appointment.url.empty() && walk!=nullptr; walk=walk->next)
+                {
+                    auto alarm = e_cal_component_get_alarm(component, static_cast<const char*>(walk->data));
 
-                  ECalComponentAlarmAction action;
-                  e_cal_component_alarm_get_action(alarm, &action);
-                  if (action == E_CAL_COMPONENT_ALARM_DISPLAY)
-                  {
-                      icalattach* attach = nullptr;
-                      e_cal_component_alarm_get_attach(alarm, &attach);
-                      if (attach != nullptr)
-                      {
-                          if (icalattach_get_is_url (attach))
-                          {
-                              const char* url = icalattach_get_url(attach);
-                              if (url != nullptr)
-                                  appointment.url = url;
-                          }
+                    ECalComponentAlarmAction action;
+                    e_cal_component_alarm_get_action(alarm, &action);
+                    if (action == E_CAL_COMPONENT_ALARM_DISPLAY)
+                    {
+                        icalattach* attach = nullptr;
+                        e_cal_component_alarm_get_attach(alarm, &attach);
+                        if (attach != nullptr)
+                        {
+                            if (icalattach_get_is_url (attach))
+                            {
+                                const char* url = icalattach_get_url(attach);
+                                if (url != nullptr)
+                                    appointment.url = url;
+                            }
 
-                          icalattach_unref(attach);
-                      }
-                  }
+                            icalattach_unref(attach);
+                        }
+                    }
 
-                  e_cal_component_alarm_free(alarm);
-              }
-              cal_obj_uid_list_free(alarm_uids);
+                    e_cal_component_alarm_free(alarm);
+                }
+                cal_obj_uid_list_free(alarm_uids);
 
-              g_debug("adding appointment '%s' '%s'", appointment.summary.c_str(), appointment.url.c_str());
-              subtask->task->appointments.push_back(appointment);
-             }
-         }
+                g_debug("adding appointment '%s' '%s'", appointment.summary.c_str(), appointment.url.c_str());
+                subtask->task->appointments.push_back(appointment);
+            }
+        }
  
         return G_SOURCE_CONTINUE;
     }
