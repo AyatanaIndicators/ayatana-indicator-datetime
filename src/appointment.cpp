@@ -33,7 +33,6 @@ bool Appointment::operator==(const Appointment& that) const
         && (summary==that.summary)
         && (url==that.url)
         && (uid==that.uid)
-        && (is_event==that.is_event)
         && (has_alarms==that.has_alarms)
         && (begin==that.begin)
         && (end==that.end);

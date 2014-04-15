@@ -25,6 +25,7 @@
 #include <libedataserver/libedataserver.h>
 
 #include <algorithm> // std::sort()
+#include <ctime> // time()
 #include <map>
 #include <set>
 
@@ -144,16 +145,29 @@ private:
     {
         auto self = static_cast<Impl*>(gself);
         self->m_rebuild_tag = 0;
+        self->m_rebuild_deadline = 0;
         self->set_dirty_now();
         return G_SOURCE_REMOVE;
     }
 
     void set_dirty_soon()
     {
-        static const int ARBITRARY_BATCH_MSEC = 200;
+        static constexpr int MIN_BATCH_SEC = 1;
+        static constexpr int MAX_BATCH_SEC = 60;
+        static_assert(MIN_BATCH_SEC <= MAX_BATCH_SEC, "bad boundaries");
 
-        if (m_rebuild_tag == 0)
-            m_rebuild_tag = g_timeout_add(ARBITRARY_BATCH_MSEC, set_dirty_now_static, this);
+        const auto now = time(nullptr);
+
+        if (m_rebuild_deadline == 0) // first pass
+        {
+            m_rebuild_deadline = now + MAX_BATCH_SEC;
+            m_rebuild_tag = g_timeout_add_seconds(MIN_BATCH_SEC, set_dirty_now_static, this);
+        }
+        else if (now < m_rebuild_deadline)
+        {
+            g_source_remove (m_rebuild_tag);
+            m_rebuild_tag = g_timeout_add_seconds(MIN_BATCH_SEC, set_dirty_now_static, this);
+        }
     }
 
     static void on_source_registry_ready(GObject* /*source*/, GAsyncResult* res, gpointer gself)
@@ -272,6 +286,7 @@ private:
         if (e_cal_client_get_view_finish (E_CAL_CLIENT(client), res, &view, &error))
         {
             // add the view to our collection
+            e_cal_client_view_set_flags(view, E_CAL_CLIENT_VIEW_FLAGS_NONE, NULL);
             e_cal_client_view_start(view, &error);
             g_debug("got a view for %s", e_cal_client_get_local_attachment_store(E_CAL_CLIENT(client)));
             auto self = static_cast<Impl*>(gself);
@@ -386,14 +401,6 @@ private:
         }
     };
 
-    struct UrlSubtask
-    {
-        std::shared_ptr<Task> task;
-        Appointment appointment;
-        UrlSubtask(const std::shared_ptr<Task>& task_in, const Appointment& appointment_in):
-            task(task_in), appointment(appointment_in) {}
-    };
-
     static gboolean
     my_get_appointments_foreach(ECalComponent* component,
                                 time_t         begin,
@@ -405,89 +412,68 @@ private:
 
         if ((vtype == E_CAL_COMPONENT_EVENT) || (vtype == E_CAL_COMPONENT_TODO))
         {
-          const gchar* uid = nullptr;
-          e_cal_component_get_uid(component, &uid);
+            const gchar* uid = nullptr;
+            e_cal_component_get_uid(component, &uid);
 
-          auto status = ICAL_STATUS_NONE;
-          e_cal_component_get_status(component, &status);
+            auto status = ICAL_STATUS_NONE;
+            e_cal_component_get_status(component, &status);
 
-          if ((uid != nullptr) &&
-              (status != ICAL_STATUS_COMPLETED) &&
-              (status != ICAL_STATUS_CANCELLED))
-          {
-              Appointment appointment;
+            if ((uid != nullptr) &&
+                (status != ICAL_STATUS_COMPLETED) &&
+                (status != ICAL_STATUS_CANCELLED))
+            {
+                Appointment appointment;
 
-              /* Determine whether this is a recurring event.
-                 NB: icalrecurrencetype supports complex recurrence patterns;
-                 however, since design only allows daily recurrence,
-                 that's all we support here. */
-              GSList * recur_list;
-              e_cal_component_get_rrule_list(component, &recur_list);
-              for (auto l=recur_list; l!=nullptr; l=l->next)
-              {
-                  const auto recur = static_cast<struct icalrecurrencetype*>(l->data);
-                  appointment.is_daily |= ((recur->freq == ICAL_DAILY_RECURRENCE)
-                                             && (recur->interval == 1));
-              }
-              e_cal_component_free_recur_list(recur_list);
+                ECalComponentText text;
+                text.value = nullptr;
+                e_cal_component_get_summary(component, &text);
+                if (text.value)
+                    appointment.summary = text.value;
 
-              ECalComponentText text;
-              text.value = nullptr;
-              e_cal_component_get_summary(component, &text);
-              if (text.value)
-                  appointment.summary = text.value;
+                appointment.begin = DateTime(begin);
+                appointment.end = DateTime(end);
+                appointment.color = subtask->color;
+                appointment.uid = uid;
 
-              appointment.begin = DateTime(begin);
-              appointment.end = DateTime(end);
-              appointment.color = subtask->color;
-              appointment.is_event = vtype == E_CAL_COMPONENT_EVENT;
-              appointment.uid = uid;
+                // if the component has display alarms that have a url,
+                // use the first one as our Appointment.url
+                auto alarm_uids = e_cal_component_get_alarm_uids(component);
+                appointment.has_alarms = alarm_uids != nullptr;
+                for(auto walk=alarm_uids; appointment.url.empty() && walk!=nullptr; walk=walk->next)
+                {
+                    auto alarm = e_cal_component_get_alarm(component, static_cast<const char*>(walk->data));
 
-              GList * alarm_uids = e_cal_component_get_alarm_uids(component);
-              appointment.has_alarms = alarm_uids != nullptr;
-              cal_obj_uid_list_free(alarm_uids);
+                    ECalComponentAlarmAction action;
+                    e_cal_component_alarm_get_action(alarm, &action);
+                    if (action == E_CAL_COMPONENT_ALARM_DISPLAY)
+                    {
+                        icalattach* attach = nullptr;
+                        e_cal_component_alarm_get_attach(alarm, &attach);
+                        if (attach != nullptr)
+                        {
+                            if (icalattach_get_is_url (attach))
+                            {
+                                const char* url = icalattach_get_url(attach);
+                                if (url != nullptr)
+                                    appointment.url = url;
+                            }
 
-              e_cal_client_get_attachment_uris(subtask->client,
-                                               uid,
-                                               nullptr,
-                                               subtask->task->p->m_cancellable,
-                                               on_appointment_uris_ready,
-                                               new UrlSubtask(subtask->task, appointment));
+                            icalattach_unref(attach);
+                        }
+                    }
+
+                    e_cal_component_alarm_free(alarm);
+                }
+                cal_obj_uid_list_free(alarm_uids);
+
+                g_debug("adding appointment '%s' '%s'", appointment.summary.c_str(), appointment.url.c_str());
+                subtask->task->appointments.push_back(appointment);
             }
         }
-
+ 
         return G_SOURCE_CONTINUE;
     }
-
-    static void on_appointment_uris_ready(GObject* client, GAsyncResult* res, gpointer gsubtask)
-    {
-        auto subtask = static_cast<UrlSubtask*>(gsubtask);
-
-        GSList * uris = nullptr;
-        GError * error = nullptr;
-        e_cal_client_get_attachment_uris_finish(E_CAL_CLIENT(client), res, &uris, &error);
-        if (error != nullptr)
-        {
-            if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED) &&
-                !g_error_matches(error, E_CLIENT_ERROR, E_CLIENT_ERROR_NOT_SUPPORTED))
-            {
-                g_warning("Error getting appointment uris: %s", error->message);
-            }
-
-            g_error_free(error);
-        }
-        else if (uris != nullptr)
-        {
-            subtask->appointment.url = (const char*) uris->data; // copy the first URL
-            g_debug("found url '%s' for appointment '%s'", subtask->appointment.url.c_str(), subtask->appointment.summary.c_str());
-            e_client_util_free_string_slist(uris);
-        }
-
-        g_debug("adding appointment '%s' '%s'", subtask->appointment.summary.c_str(), subtask->appointment.url.c_str());
-        subtask->task->appointments.push_back(subtask->appointment);
-        delete subtask;
-    }
-
+ 
     EdsEngine& m_owner;
     core::Signal<> m_changed;
     std::set<ESource*> m_sources;
@@ -496,6 +482,7 @@ private:
     GCancellable* m_cancellable = nullptr;
     ESourceRegistry* m_source_registry = nullptr;
     guint m_rebuild_tag = 0;
+    time_t m_rebuild_deadline = 0;
 };
 
 /***
