@@ -36,7 +36,6 @@ int main()
     a.summary = "Alarm";
     a.url = "alarm:///hello-world";
     a.uid = "D4B57D50247291478ED31DED17FF0A9838DED402";
-    a.is_event = false;
     a.is_daily = false;
     a.has_alarms = true;
     auto begin = g_date_time_new_local(2014,12,25,0,0,0);
