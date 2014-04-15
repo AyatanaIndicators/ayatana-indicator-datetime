@@ -432,20 +432,6 @@ private:
           {
               Appointment appointment;
 
-              /* Determine whether this is a recurring event.
-                 NB: icalrecurrencetype supports complex recurrence patterns;
-                 however, since design only allows daily recurrence,
-                 that's all we support here. */
-              GSList * recur_list;
-              e_cal_component_get_rrule_list(component, &recur_list);
-              for (auto l=recur_list; l!=nullptr; l=l->next)
-              {
-                  const auto recur = static_cast<struct icalrecurrencetype*>(l->data);
-                  appointment.is_daily |= ((recur->freq == ICAL_DAILY_RECURRENCE)
-                                             && (recur->interval == 1));
-              }
-              e_cal_component_free_recur_list(recur_list);
-
               ECalComponentText text;
               text.value = nullptr;
               e_cal_component_get_summary(component, &text);
