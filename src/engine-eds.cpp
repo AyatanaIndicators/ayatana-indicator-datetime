@@ -401,14 +401,6 @@ private:
         }
     };
 
-    struct UrlSubtask
-    {
-        std::shared_ptr<Task> task;
-        Appointment appointment;
-        UrlSubtask(const std::shared_ptr<Task>& task_in, const Appointment& appointment_in):
-            task(task_in), appointment(appointment_in) {}
-    };
-
     static gboolean
     my_get_appointments_foreach(ECalComponent* component,
                                 time_t         begin,
@@ -443,51 +435,45 @@ private:
               appointment.color = subtask->color;
               appointment.uid = uid;
 
-              GList * alarm_uids = e_cal_component_get_alarm_uids(component);
+              // if the component has display alarms that have a url,
+              // snag it for our Appointment.url
+              auto alarm_uids = e_cal_component_get_alarm_uids(component);
               appointment.has_alarms = alarm_uids != nullptr;
+              for(auto walk=alarm_uids; appointment.url.empty() && walk!=nullptr; walk=walk->next)
+              {
+                  auto alarm = e_cal_component_get_alarm(component, static_cast<const char*>(walk->data));
+
+                  ECalComponentAlarmAction action;
+                  e_cal_component_alarm_get_action(alarm, &action);
+                  if (action == E_CAL_COMPONENT_ALARM_DISPLAY)
+                  {
+                      icalattach* attach = nullptr;
+                      e_cal_component_alarm_get_attach(alarm, &attach);
+                      if (attach != nullptr)
+                      {
+                          if (icalattach_get_is_url (attach))
+                          {
+                              const char* url = icalattach_get_url(attach);
+                              if (url != nullptr)
+                                  appointment.url = url;
+                          }
+
+                          icalattach_unref(attach);
+                      }
+                  }
+
+                  e_cal_component_alarm_free(alarm);
+              }
               cal_obj_uid_list_free(alarm_uids);
 
-              e_cal_client_get_attachment_uris(subtask->client,
-                                               uid,
-                                               nullptr,
-                                               subtask->task->p->m_cancellable,
-                                               on_appointment_uris_ready,
-                                               new UrlSubtask(subtask->task, appointment));
-            }
-        }
-
+              g_debug("adding appointment '%s' '%s'", appointment.summary.c_str(), appointment.url.c_str());
+              subtask->task->appointments.push_back(appointment);
+             }
+         }
+ 
         return G_SOURCE_CONTINUE;
     }
-
-    static void on_appointment_uris_ready(GObject* client, GAsyncResult* res, gpointer gsubtask)
-    {
-        auto subtask = static_cast<UrlSubtask*>(gsubtask);
-
-        GSList * uris = nullptr;
-        GError * error = nullptr;
-        e_cal_client_get_attachment_uris_finish(E_CAL_CLIENT(client), res, &uris, &error);
-        if (error != nullptr)
-        {
-            if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED) &&
-                !g_error_matches(error, E_CLIENT_ERROR, E_CLIENT_ERROR_NOT_SUPPORTED))
-            {
-                g_warning("Error getting appointment uris: %s", error->message);
-            }
-
-            g_error_free(error);
-        }
-        else if (uris != nullptr)
-        {
-            subtask->appointment.url = (const char*) uris->data; // copy the first URL
-            g_debug("found url '%s' for appointment '%s'", subtask->appointment.url.c_str(), subtask->appointment.summary.c_str());
-            e_client_util_free_string_slist(uris);
-        }
-
-        g_debug("adding appointment '%s' '%s'", subtask->appointment.summary.c_str(), subtask->appointment.url.c_str());
-        subtask->task->appointments.push_back(subtask->appointment);
-        delete subtask;
-    }
-
+ 
     EdsEngine& m_owner;
     core::Signal<> m_changed;
     std::set<ESource*> m_sources;
