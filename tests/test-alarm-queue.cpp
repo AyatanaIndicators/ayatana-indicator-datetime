@@ -17,7 +17,7 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#include <datetime/clock-watcher.h>
+#include <datetime/alarm-queue.h>
 
 #include <gtest/gtest.h>
 
@@ -25,7 +25,7 @@
 
 using namespace unity::indicator::datetime;
 
-class ClockWatcherFixture: public StateFixture
+class AlarmQueueFixture: public StateFixture
 {
 private:
 
@@ -34,7 +34,7 @@ private:
 protected:
 
     std::vector<std::string> m_triggered;
-    std::unique_ptr<ClockWatcher> m_watcher;
+    std::unique_ptr<AlarmQueue> m_watcher;
     std::shared_ptr<RangePlanner> m_range_planner;
     std::shared_ptr<UpcomingPlanner> m_upcoming;
 
@@ -44,7 +44,7 @@ protected:
 
         m_range_planner.reset(new MockRangePlanner);
         m_upcoming.reset(new UpcomingPlanner(m_range_planner, m_state->clock->localtime()));
-        m_watcher.reset(new ClockWatcherImpl(m_state->clock, m_upcoming));
+        m_watcher.reset(new AlarmQueueImpl(m_state->clock, m_upcoming));
         m_watcher->alarm_reached().connect([this](const Appointment& appt){
             m_triggered.push_back(appt.uid);
         });
@@ -108,7 +108,7 @@ protected:
 ****
 ***/
 
-TEST_F(ClockWatcherFixture, AppointmentsChanged)
+TEST_F(AlarmQueueFixture, AppointmentsChanged)
 {
     // Add some appointments to the planner.
     // One of these matches our state's localtime, so that should get triggered.
@@ -122,7 +122,7 @@ TEST_F(ClockWatcherFixture, AppointmentsChanged)
 }
 
 
-TEST_F(ClockWatcherFixture, TimeChanged)
+TEST_F(AlarmQueueFixture, TimeChanged)
 {
     // Add some appointments to the planner.
     // Neither of these match the state's localtime, so nothing should be triggered.
@@ -138,7 +138,7 @@ TEST_F(ClockWatcherFixture, TimeChanged)
 }
 
 
-TEST_F(ClockWatcherFixture, MoreThanOne)
+TEST_F(AlarmQueueFixture, MoreThanOne)
 {
     const auto now = m_state->clock->localtime();
     std::vector<Appointment> a = build_some_appointments();
@@ -151,7 +151,7 @@ TEST_F(ClockWatcherFixture, MoreThanOne)
 }
 
 
-TEST_F(ClockWatcherFixture, NoDuplicates)
+TEST_F(AlarmQueueFixture, NoDuplicates)
 {
     // Setup: add an appointment that gets triggered.
     const auto now = m_state->clock->localtime();
@@ -164,7 +164,7 @@ TEST_F(ClockWatcherFixture, NoDuplicates)
     EXPECT_EQ(a[0].uid, m_triggered[0]);
 
     // Now change the appointment vector by adding one to it.
-    // Confirm that the ClockWatcher doesn't re-trigger a[0]
+    // Confirm that the AlarmQueue doesn't re-trigger a[0]
     a.push_back(appointments[1]);
     m_range_planner->appointments().set(a);
     EXPECT_EQ(1, m_triggered.size());

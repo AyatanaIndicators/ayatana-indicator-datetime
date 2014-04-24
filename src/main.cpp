@@ -18,8 +18,8 @@
  */
 
 #include <datetime/actions-live.h>
+#include <datetime/alarm-queue.h>
 #include <datetime/clock.h>
-#include <datetime/clock-watcher.h>
 #include <datetime/engine-mock.h>
 #include <datetime/engine-eds.h>
 #include <datetime/exporter.h>
@@ -80,9 +80,9 @@ main(int /*argc*/, char** /*argv*/)
 
     // snap decisions
     std::shared_ptr<UpcomingPlanner> upcoming_planner(new UpcomingPlanner(std::shared_ptr<RangePlanner>(new SimpleRangePlanner(engine, file_timezone)), now));
-    ClockWatcherImpl clock_watcher(live_clock, upcoming_planner);
+    AlarmQueueImpl alarm_queue(live_clock, upcoming_planner);
     Snap snap;
-    clock_watcher.alarm_reached().connect([&snap](const Appointment& appt){
+    alarm_queue.alarm_reached().connect([&snap](const Appointment& appt){
         auto snap_show = [](const Appointment& a){
             const char* url;
             if(!a.url.empty())

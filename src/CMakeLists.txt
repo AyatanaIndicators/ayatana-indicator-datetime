@@ -10,10 +10,10 @@ add_definitions (-DTIMEZONE_FILE="/etc/timezone"
 add_library (${SERVICE_LIB} STATIC
              actions.cpp
              actions-live.cpp
+             alarm-queue.cpp
              appointment.cpp
              clock.cpp
              clock-live.cpp
-             clock-watcher.cpp
              date-time.cpp
              engine-eds.cpp
              exporter.cpp

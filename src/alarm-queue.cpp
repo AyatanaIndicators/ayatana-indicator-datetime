@@ -17,7 +17,7 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#include <datetime/clock-watcher.h>
+#include <datetime/alarm-queue.h>
 
 namespace unity {
 namespace indicator {
@@ -27,36 +27,36 @@ namespace datetime {
 ****
 ***/
 
-ClockWatcherImpl::ClockWatcherImpl(const std::shared_ptr<Clock>& clock,
+AlarmQueueImpl::AlarmQueueImpl(const std::shared_ptr<Clock>& clock,
                                    const std::shared_ptr<UpcomingPlanner>& upcoming_planner):
     m_clock(clock),
     m_upcoming_planner(upcoming_planner)
 {
     m_clock->date_changed.connect([this](){
         const auto now = m_clock->localtime();
-        g_debug("ClockWatcher %p refretching appointments due to date change: %s", this, now.format("%F %T").c_str());
+        g_debug("AlarmQueue %p refretching appointments due to date change: %s", this, now.format("%F %T").c_str());
         m_upcoming_planner->date().set(now);
     });
 
     m_clock->minute_changed.connect([this](){
-        g_debug("ClockWatcher %p calling pulse() due to clock minute_changed", this);
+        g_debug("AlarmQueue %p calling pulse() due to clock minute_changed", this);
         pulse();
     });
 
     m_upcoming_planner->appointments().changed().connect([this](const std::vector<Appointment>&){
-        g_debug("ClockWatcher %p calling pulse() due to appointments changed", this);
+        g_debug("AlarmQueue %p calling pulse() due to appointments changed", this);
         pulse();
     });
 
     pulse();
 }
 
-core::Signal<const Appointment&>& ClockWatcherImpl::alarm_reached()
+core::Signal<const Appointment&>& AlarmQueueImpl::alarm_reached()
 {
     return m_alarm_reached;
 }
 
-void ClockWatcherImpl::pulse()
+void AlarmQueueImpl::pulse()
 {
     const auto now = m_clock->localtime();
 

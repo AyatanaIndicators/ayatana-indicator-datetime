@@ -17,8 +17,8 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_CLOCK_WATCHER_H
-#define INDICATOR_DATETIME_CLOCK_WATCHER_H
+#ifndef INDICATOR_DATETIME_ALARM_QUEUE_H
+#define INDICATOR_DATETIME_ALARM_QUEUE_H
 
 #include <datetime/appointment.h>
 #include <datetime/clock.h>
@@ -39,24 +39,24 @@ namespace datetime {
  * \brief Watches the clock and appointments to notify when an
  *        appointment's time is reached.
  */
-class ClockWatcher
+class AlarmQueue
 {
 public:
-    ClockWatcher() =default;
-    virtual ~ClockWatcher() =default;
+    AlarmQueue() =default;
+    virtual ~AlarmQueue() =default;
     virtual core::Signal<const Appointment&>& alarm_reached() = 0;
 };
 
 
 /**
- * \brief A #ClockWatcher implementation 
+ * \brief A #AlarmQueue implementation 
  */
-class ClockWatcherImpl: public ClockWatcher
+class AlarmQueueImpl: public AlarmQueue
 {
 public:
-    ClockWatcherImpl(const std::shared_ptr<Clock>& clock,
+    AlarmQueueImpl(const std::shared_ptr<Clock>& clock,
                      const std::shared_ptr<UpcomingPlanner>& upcoming_planner);
-    ~ClockWatcherImpl() =default;
+    ~AlarmQueueImpl() =default;
     core::Signal<const Appointment&>& alarm_reached();
 
 private:
@@ -72,4 +72,4 @@ private:
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_CLOCK_WATCHER_H
+#endif // INDICATOR_DATETIME_ALARM_QUEUE_H
