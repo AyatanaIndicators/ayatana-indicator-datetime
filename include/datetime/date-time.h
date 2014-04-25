@@ -61,9 +61,12 @@ public:
     bool operator<=(const DateTime& that) const;
     bool operator!=(const DateTime& that) const;
     bool operator==(const DateTime& that) const;
+    int64_t operator- (const DateTime& that) const;
 
     static bool is_same_day(const DateTime& a, const DateTime& b);
     static bool is_same_minute(const DateTime& a, const DateTime& b);
+
+    bool is_set() const { return m_dt.get() != nullptr; }
 
 private:
     std::shared_ptr<GDateTime> m_dt;

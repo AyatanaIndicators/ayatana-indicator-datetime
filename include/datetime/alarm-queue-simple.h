@@ -17,54 +17,42 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_CLOCK_WATCHER_H
-#define INDICATOR_DATETIME_CLOCK_WATCHER_H
+#ifndef INDICATOR_DATETIME_ALARM_QUEUE_SIMPLE_H
+#define INDICATOR_DATETIME_ALARM_QUEUE_SIMPLE_H
 
-#include <datetime/appointment.h>
+#include <datetime/alarm-queue.h>
 #include <datetime/clock.h>
-#include <datetime/planner-upcoming.h>
-
-#include <core/signal.h>
-
-#include <memory>
-#include <set>
-#include <string>
+#include <datetime/planner.h>
+#include <datetime/wakeup-timer.h>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
-
 /**
- * \brief Watches the clock and appointments to notify when an
- *        appointment's time is reached.
+ * \brief A #AlarmQueue implementation 
  */
-class ClockWatcher
+class SimpleAlarmQueue: public AlarmQueue
 {
 public:
-    ClockWatcher() =default;
-    virtual ~ClockWatcher() =default;
-    virtual core::Signal<const Appointment&>& alarm_reached() = 0;
-};
-
-
-/**
- * \brief A #ClockWatcher implementation 
- */
-class ClockWatcherImpl: public ClockWatcher
-{
-public:
-    ClockWatcherImpl(const std::shared_ptr<Clock>& clock,
-                     const std::shared_ptr<UpcomingPlanner>& upcoming_planner);
-    ~ClockWatcherImpl() =default;
+    SimpleAlarmQueue(const std::shared_ptr<Clock>& clock,
+                     const std::shared_ptr<Planner>& upcoming_planner,
+                     const std::shared_ptr<WakeupTimer>& timer);
+    ~SimpleAlarmQueue();
     core::Signal<const Appointment&>& alarm_reached();
 
 private:
-    void pulse();
+    void requeue();
+    bool find_next_alarm(Appointment& setme) const;
+    std::vector<Appointment> find_current_alarms() const;
+    void check_alarms();
+
     std::set<std::string> m_triggered;
     const std::shared_ptr<Clock> m_clock;
-    const std::shared_ptr<UpcomingPlanner> m_upcoming_planner;
+    const std::shared_ptr<Planner> m_planner;
+    const std::shared_ptr<WakeupTimer> m_timer;
     core::Signal<const Appointment&> m_alarm_reached;
+    DateTime m_time;
 };
 
 
@@ -72,4 +60,4 @@ private:
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_CLOCK_WATCHER_H
+#endif // INDICATOR_DATETIME_ALARM_QUEUE_H

@@ -10,10 +10,10 @@ add_definitions (-DTIMEZONE_FILE="/etc/timezone"
 add_library (${SERVICE_LIB} STATIC
              actions.cpp
              actions-live.cpp
+             alarm-queue-simple.cpp
              appointment.cpp
              clock.cpp
              clock-live.cpp
-             clock-watcher.cpp
              date-time.cpp
              engine-eds.cpp
              exporter.cpp
@@ -30,7 +30,9 @@ add_library (${SERVICE_LIB} STATIC
              timezone-file.cpp
              timezone-geoclue.cpp
              timezones-live.cpp
-             utils.c)
+             utils.c
+             wakeup-timer-uha.cpp
+             wakeup-timer-mainloop.cpp)
 include_directories (${CMAKE_SOURCE_DIR})
 link_directories (${SERVICE_DEPS_LIBRARY_DIRS})
 
