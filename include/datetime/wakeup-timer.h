@@ -17,16 +17,12 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_ALARM_QUEUE_H
-#define INDICATOR_DATETIME_ALARM_QUEUE_H
+#ifndef INDICATOR_DATETIME_WAKEUP_TIMER_H
+#define INDICATOR_DATETIME_WAKEUP_TIMER_H
 
-#include <datetime/appointment.h>
+#include <datetime/date-time.h>
 
 #include <core/signal.h>
-
-#include <memory>
-#include <set>
-#include <string>
 
 namespace unity {
 namespace indicator {
@@ -37,15 +33,15 @@ namespace datetime {
 ***/
 
 /**
- * \brief Watches the clock and appointments to notify when an
- *        appointment's time is reached.
+ * \brief A one-shot timer that emits a signal when the timeout is reached
  */
-class AlarmQueue
+class WakeupTimer
 {
 public:
-    AlarmQueue() =default;
-    virtual ~AlarmQueue() =default;
-    virtual core::Signal<const Appointment&>& alarm_reached() = 0;
+    WakeupTimer() =default;
+    virtual ~WakeupTimer() =default;
+    virtual void set_wakeup_time (const DateTime&) =0;
+    virtual core::Signal<>& timeout() = 0;
 };
 
 /***
@@ -56,4 +52,4 @@ public:
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_ALARM_QUEUE_H
+#endif // INDICATOR_DATETIME_WAKEUP_TIMER_H

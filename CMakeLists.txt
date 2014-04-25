@@ -42,6 +42,7 @@ pkg_check_modules (SERVICE_DEPS REQUIRED
                    url-dispatcher-1>=1
                    properties-cpp>=0.0.1)
 include_directories (SYSTEM ${SERVICE_DEPS_INCLUDE_DIRS})
+set (SERVICE_DEPS_LIBRARIES -lubuntu_platform_hardware_api ${SERVICE_DEPS_LIBRARIES})
 
 ##
 ##  custom targets

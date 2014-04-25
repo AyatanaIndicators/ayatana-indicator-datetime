@@ -17,16 +17,13 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_ALARM_QUEUE_H
-#define INDICATOR_DATETIME_ALARM_QUEUE_H
+#ifndef INDICATOR_DATETIME_WAKEUP_TIMER_UHA_H
+#define INDICATOR_DATETIME_WAKEUP_TIMER_UHA_H
 
-#include <datetime/appointment.h>
+#include <datetime/clock.h>
+#include <datetime/wakeup-timer.h>
 
-#include <core/signal.h>
-
-#include <memory>
-#include <set>
-#include <string>
+#include <memory> // std::unique_ptr, std::shared_ptr
 
 namespace unity {
 namespace indicator {
@@ -37,15 +34,23 @@ namespace datetime {
 ***/
 
 /**
- * \brief Watches the clock and appointments to notify when an
- *        appointment's time is reached.
+ * \brief a WakeupTimer implemented the UbuntuHardwareAlarm API
  */
-class AlarmQueue
+class UhaWakeupTimer: public WakeupTimer
 {
 public:
-    AlarmQueue() =default;
-    virtual ~AlarmQueue() =default;
-    virtual core::Signal<const Appointment&>& alarm_reached() = 0;
+    UhaWakeupTimer(const std::shared_ptr<Clock>&);
+    ~UhaWakeupTimer();
+    void set_wakeup_time (const DateTime&);
+    core::Signal<>& timeout();
+
+    static bool is_supported();
+
+private:
+    UhaWakeupTimer(const UhaWakeupTimer&) =delete;
+    UhaWakeupTimer& operator= (const UhaWakeupTimer&) =delete;
+    class Impl;
+    std::unique_ptr<Impl> p;
 };
 
 /***
@@ -56,4 +61,4 @@ public:
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_ALARM_QUEUE_H
+#endif // INDICATOR_DATETIME_WAKEUP_TIMER_UHA_H
