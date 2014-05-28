@@ -30,7 +30,7 @@
 #include <set>
 #include <string>
 
-#define ALARM_SOUND_FILENAME "/usr/share/sounds/ubuntu/stereo/phone-incoming-call.ogg"
+#define ALARM_SOUND_FILENAME "/usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg"
 
 namespace unity {
 namespace indicator {
