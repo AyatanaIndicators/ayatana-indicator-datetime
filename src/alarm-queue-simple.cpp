@@ -105,25 +105,19 @@ bool SimpleAlarmQueue::find_next_alarm(Appointment& setme) const
     const auto beginning_of_minute = now.add_full (0, 0, 0, 0, 0, -now.seconds());
 
     const auto appointments = m_planner->appointments().get();
-    g_message ("planner has %zu appointments in it", (size_t)appointments.size());
+    g_debug ("planner has %zu appointments in it", (size_t)appointments.size());
 
     for(const auto& walk : appointments)
     {
         const std::pair<std::string,DateTime> trig {walk.uid, walk.begin};
-        if (m_triggered.count(trig)) {
-            g_message ("skipping; already used");
+        if (m_triggered.count(trig))
             continue;
-        }
 
-        if (walk.begin < beginning_of_minute) { // has this one already passed?
-            g_message ("skipping; too old");
+        if (walk.begin < beginning_of_minute) // has this one already passed?
             continue;
-        }
 
-        if (found && (tmp.begin < walk.begin)) { // do we already have a better match?
-            g_message ("skipping; bad match");
+        if (found && (tmp.begin < walk.begin)) // do we already have a better match?
             continue;
-        }
 
         tmp = walk;
         found = true;
