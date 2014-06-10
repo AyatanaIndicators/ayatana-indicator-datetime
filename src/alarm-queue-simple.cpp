@@ -35,7 +35,7 @@ SimpleAlarmQueue::SimpleAlarmQueue(const std::shared_ptr<Clock>& clock,
     m_clock(clock),
     m_planner(planner),
     m_timer(timer),
-    m_time(clock->localtime())
+    m_datetime(clock->localtime())
 {
     m_planner->appointments().changed().connect([this](const std::vector<Appointment>&){
         g_debug("AlarmQueue %p calling requeue() due to appointments changed", this);
@@ -45,8 +45,8 @@ SimpleAlarmQueue::SimpleAlarmQueue(const std::shared_ptr<Clock>& clock,
     m_clock->minute_changed.connect([=]{
         const auto now = m_clock->localtime();
         constexpr auto skew_threshold_usec = int64_t{90} * G_USEC_PER_SEC;
-        const bool clock_jumped = std::abs(now - m_time) > skew_threshold_usec;
-        m_time = now;
+        const bool clock_jumped = std::abs(now - m_datetime) > skew_threshold_usec;
+        m_datetime = now;
         if (clock_jumped) {
             g_debug("AlarmQueue %p calling requeue() due to clock skew", this);
             requeue();

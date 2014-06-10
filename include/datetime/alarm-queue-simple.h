@@ -52,7 +52,7 @@ private:
     const std::shared_ptr<Planner> m_planner;
     const std::shared_ptr<WakeupTimer> m_timer;
     core::Signal<const Appointment&> m_alarm_reached;
-    DateTime m_time;
+    DateTime m_datetime;
 };
 
 
