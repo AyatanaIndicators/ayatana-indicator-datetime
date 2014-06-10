@@ -71,16 +71,23 @@ public:
         g_debug("%s %s", G_STRLOC, G_STRFUNC);
         std::lock_guard<std::recursive_mutex> lg(m_mutex);
 
-        const auto diff_usec = d - m_clock->localtime();
-        struct timespec ts;
-        ts.tv_sec = diff_usec / G_USEC_PER_SEC;
-        ts.tv_nsec = (diff_usec % G_USEC_PER_SEC) * 1000;
-        g_debug("%s setting hardware wakeup time to %s (%zu seconds from now)",
-                G_STRFUNC, (size_t)ts.tv_sec, d.format("%F %T").c_str());
+        const auto wakeup_time = d.to_unix();
+
+        // simple sanity check: don't try to wait for something that's already passed
+        const auto now = m_clock->localtime().to_unix();
+        g_return_if_fail (wakeup_time >= now);
+
+        struct timespec sleep_interval;
+        sleep_interval.tv_sec = wakeup_time;
+        sleep_interval.tv_nsec = 0;
+        g_debug("%s %s setting hardware wakeup time to %s (%zu seconds from now)",
+                G_STRLOC, G_STRFUNC,
+                d.format("%F %T").c_str(),
+                (size_t)(wakeup_time - now));
         u_hardware_alarm_set_relative_to_with_behavior(m_hardware_alarm,
-                                                       U_HARDWARE_ALARM_TIME_REFERENCE_NOW,
+                                                       U_HARDWARE_ALARM_TIME_REFERENCE_RTC,
                                                        U_HARDWARE_ALARM_SLEEP_BEHAVIOR_WAKEUP_DEVICE,
-                                                       &ts);
+                                                       &sleep_interval);
     }
 
     core::Signal<>& timeout() { return m_timeout; }
@@ -106,6 +113,7 @@ private:
         {
             // wait for the next hw alarm
             UHardwareAlarmWaitResult wait_result;
+            g_debug ("calling wait_for_next_alarm");
             auto rc = u_hardware_alarm_wait_for_next_alarm(m_hardware_alarm, &wait_result);
             g_return_if_fail (rc == U_STATUS_SUCCESS);
 
