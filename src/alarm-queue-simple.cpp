@@ -79,7 +79,8 @@ void SimpleAlarmQueue::requeue()
     // kick any current alarms
     for (auto current : find_current_alarms())
     {
-        m_triggered.insert(current.uid);
+        const std::pair<std::string,DateTime> trig {current.uid, current.begin};
+        m_triggered.insert(trig);
         m_alarm_reached(current);
     }
 
@@ -103,16 +104,26 @@ bool SimpleAlarmQueue::find_next_alarm(Appointment& setme) const
     const auto now = m_clock->localtime();
     const auto beginning_of_minute = now.add_full (0, 0, 0, 0, 0, -now.seconds());
 
-    for(const auto& walk : m_planner->appointments().get())
+    const auto appointments = m_planner->appointments().get();
+    g_message ("planner has %zu appointments in it", (size_t)appointments.size());
+
+    for(const auto& walk : appointments)
     {
-        if (m_triggered.count(walk.uid)) // did we already use this one?
+        const std::pair<std::string,DateTime> trig {walk.uid, walk.begin};
+        if (m_triggered.count(trig)) {
+            g_message ("skipping; already used");
             continue;
+        }
 
-        if (walk.begin < beginning_of_minute) // has this one already passed?
+        if (walk.begin < beginning_of_minute) { // has this one already passed?
+            g_message ("skipping; too old");
             continue;
+        }
 
-        if (found && (tmp.begin < walk.begin)) // do we already have a better match?
+        if (found && (tmp.begin < walk.begin)) { // do we already have a better match?
+            g_message ("skipping; bad match");
             continue;
+        }
 
         tmp = walk;
         found = true;
@@ -133,7 +144,8 @@ std::vector<Appointment> SimpleAlarmQueue::find_current_alarms() const
 
     for(const auto& walk : m_planner->appointments().get())
     {
-        if (m_triggered.count(walk.uid)) // did we already use this one?
+        const std::pair<std::string,DateTime> trig {walk.uid, walk.begin};
+        if (m_triggered.count(trig)) // did we already use this one?
             continue;
         if (!DateTime::is_same_minute(now, walk.begin))
             continue;

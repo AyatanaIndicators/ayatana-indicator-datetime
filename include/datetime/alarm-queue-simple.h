@@ -47,7 +47,7 @@ private:
     std::vector<Appointment> find_current_alarms() const;
     void check_alarms();
 
-    std::set<std::string> m_triggered;
+    std::set<std::pair<std::string,DateTime>> m_triggered;
     const std::shared_ptr<Clock> m_clock;
     const std::shared_ptr<Planner> m_planner;
     const std::shared_ptr<WakeupTimer> m_timer;
