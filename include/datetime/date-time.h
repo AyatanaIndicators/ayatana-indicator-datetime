@@ -66,7 +66,7 @@ public:
     static bool is_same_day(const DateTime& a, const DateTime& b);
     static bool is_same_minute(const DateTime& a, const DateTime& b);
 
-    bool is_set() const { return m_dt.get() != nullptr; }
+    bool is_set() const { return m_dt != nullptr; }
 
 private:
     std::shared_ptr<GDateTime> m_dt;
