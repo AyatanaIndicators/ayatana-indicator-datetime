@@ -21,6 +21,8 @@
 
 #include <glib.h>
 
+#include <cstdlib> // abs()
+
 namespace unity {
 namespace indicator {
 namespace datetime {
@@ -63,7 +65,7 @@ private:
 
         const auto now = m_clock->localtime();
         const auto difference_usec = g_date_time_difference(m_wakeup_time.get(), now.get());
-        const guint interval_msec = (guint)difference_usec / 1000u;
+        const guint interval_msec = std::abs(difference_usec) / 1000u;
         g_debug("%s setting wakeup timer to kick at %s, which is in %zu seconds",
                 G_STRFUNC,
                 m_wakeup_time.format("%F %T").c_str(),
