@@ -102,7 +102,7 @@ private:
 
     static gboolean kick_idle (gpointer gself)
     {
-        static_cast<Impl*>(gself)->timeout();
+        static_cast<Impl*>(gself)->m_timeout();
 
         return G_SOURCE_REMOVE;
     }
