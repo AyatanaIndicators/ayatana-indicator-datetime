@@ -89,8 +89,8 @@ private:
 
     void set_wakeup_time_to_the_distant_future()
     {
-        const auto next_year = m_clock->localtime().add_full(1,0,0,0,0,0);
-        set_wakeup_time(next_year);
+        const auto tomorrow = m_clock->localtime().add_full(0,0,1,0,0,0);
+        set_wakeup_time(tomorrow);
     }
 
     static gboolean kick_idle (gpointer gself)
