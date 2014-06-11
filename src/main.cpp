@@ -32,7 +32,13 @@
 #include <datetime/timezone-file.h>
 #include <datetime/timezones-live.h>
 #include <datetime/wakeup-timer-mainloop.h>
-#include <datetime/wakeup-timer-uha.h>
+
+#ifdef HAVE_UBUNTU_HW_ALARM_H
+  #warning using hw alarms
+  #include <datetime/wakeup-timer-uha.h>
+#else
+  #warning not using hw arlarms
+#endif
 
 #include <glib/gi18n.h> // bindtextdomain()
 #include <gio/gio.h>
@@ -64,9 +70,11 @@ namespace
     {
         std::shared_ptr<WakeupTimer> wakeup_timer;
 
+#ifdef HAVE_UBUNTU_HW_ALARM_H
         if (UhaWakeupTimer::is_supported()) // prefer to use the platform API
             wakeup_timer = std::make_shared<UhaWakeupTimer>(clock);
         else
+#endif
             wakeup_timer = std::make_shared<MainloopWakeupTimer>(clock);
 
         return wakeup_timer;
