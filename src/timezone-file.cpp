@@ -22,6 +22,59 @@
 #include <cerrno>
 #include <cstdlib>
 
+namespace
+{
+    std::string get_timezone_from_file(const std::string& filename)
+    {
+        GError * error;
+        GIOChannel * io_channel;
+        std::string ret;
+
+        // read through filename line-by-line until we fine a nonempty non-comment line
+        error = nullptr;
+        io_channel = g_io_channel_new_file(filename.c_str(), "r", &error);
+        if (error == nullptr)
+        {
+            auto line = g_string_new(nullptr);
+
+            while(ret.empty())
+            {
+                const auto io_status = g_io_channel_read_line_string(io_channel, line, nullptr, &error);
+                if ((io_status == G_IO_STATUS_EOF) || (io_status == G_IO_STATUS_ERROR))
+                    break;
+                if (error != nullptr)
+                    break;
+
+                g_strstrip(line->str);
+
+                if (!line->len) // skip empty lines
+                    continue;
+
+                if (*line->str=='#') // skip comments
+                    continue;
+
+                ret = line->str;
+            }
+
+            g_string_free(line, true);
+        }
+
+        if (io_channel != nullptr)
+        {
+            g_io_channel_shutdown(io_channel, false, nullptr);
+            g_io_channel_unref(io_channel);
+        }
+
+        if (error != nullptr)
+        {
+            g_warning("%s Unable to read timezone file '%s': %s", G_STRLOC, filename.c_str(), error->message);
+            g_error_free(error);
+        }
+
+        return ret;
+    }
+}
+
 namespace unity {
 namespace indicator {
 namespace datetime {
@@ -95,20 +148,10 @@ FileTimezone::on_file_changed(gpointer gself)
 void
 FileTimezone::reload()
 {
-    GError * err = nullptr;
-    gchar * str = nullptr;
+    const auto new_timezone = get_timezone_from_file(m_filename);
 
-    if (!g_file_get_contents(m_filename.c_str(), &str, nullptr, &err))
-    {
-        g_warning("%s Unable to read timezone file '%s': %s", G_STRLOC, m_filename.c_str(), err->message);
-        g_error_free(err);
-    }
-    else
-    {
-        g_strstrip(str);
-        timezone.set(str);
-        g_free(str);
-    }
+    if (!new_timezone.empty())
+        timezone.set(new_timezone);
 }
 
 } // namespace datetime

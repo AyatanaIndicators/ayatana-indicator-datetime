@@ -131,3 +131,16 @@ TEST_F(TimezoneFixture, ChangedValue)
   ASSERT_TRUE(changed);
   ASSERT_EQ(changed_timezone, tz.timezone.get());
 }
+
+
+/**
+ * Test that timezone-file picks up the initial value
+ */
+TEST_F(TimezoneFixture, IgnoreComments)
+{
+  const std::string comment = "# Created by cloud-init v. 0.7.5 on Thu, 24 Apr 2014 14:03:29 +0000";
+  const std::string expected_timezone = "Europe/Berlin";
+  set_file(comment + "\n" + expected_timezone);
+  FileTimezone tz(TIMEZONE_FILE);
+  ASSERT_EQ(expected_timezone, tz.timezone.get());
+}
