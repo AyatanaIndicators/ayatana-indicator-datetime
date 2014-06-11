@@ -34,7 +34,7 @@ SimpleRangePlanner::SimpleRangePlanner(const std::shared_ptr<Engine>& engine,
     m_range(std::pair<DateTime,DateTime>(DateTime::NowLocal(), DateTime::NowLocal()))
 {
     engine->changed().connect([this](){
-        g_debug("RangePlanner %p rebuilding soon because Engine %p emitted 'changed' signal%p", this, m_engine.get());
+        g_debug("RangePlanner %p rebuilding soon because Engine %p emitted 'changed' signal", this, m_engine.get());
         rebuild_soon();
     });
 

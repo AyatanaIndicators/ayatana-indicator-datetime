@@ -18,8 +18,8 @@
  */
 
 #include <datetime/actions-live.h>
+#include <datetime/alarm-queue-simple.h>
 #include <datetime/clock.h>
-#include <datetime/clock-watcher.h>
 #include <datetime/engine-mock.h>
 #include <datetime/engine-eds.h>
 #include <datetime/exporter.h>
@@ -31,6 +31,11 @@
 #include <datetime/state.h>
 #include <datetime/timezone-file.h>
 #include <datetime/timezones-live.h>
+#include <datetime/wakeup-timer-mainloop.h>
+
+#ifdef HAVE_UBUNTU_HW_ALARM_H
+  #include <datetime/wakeup-timer-uha.h>
+#endif
 
 #include <glib/gi18n.h> // bindtextdomain()
 #include <gio/gio.h>
@@ -41,6 +46,81 @@
 #include <cstdlib> // exit()
 
 using namespace unity::indicator::datetime;
+
+namespace
+{
+    std::shared_ptr<Engine> create_engine()
+    {
+        std::shared_ptr<Engine> engine;
+
+        // we don't show appointments in the greeter,
+        // so no need to connect to EDS there...
+        if (!g_strcmp0("lightdm", g_get_user_name()))
+            engine.reset(new MockEngine);
+        else
+            engine.reset(new EdsEngine);
+
+        return engine;
+    }
+
+    std::shared_ptr<WakeupTimer> create_wakeup_timer(const std::shared_ptr<Clock>& clock)
+    {
+        std::shared_ptr<WakeupTimer> wakeup_timer;
+
+#ifdef HAVE_UBUNTU_HW_ALARM_H
+        if (UhaWakeupTimer::is_supported()) // prefer to use the platform API
+            wakeup_timer = std::make_shared<UhaWakeupTimer>(clock);
+        else
+#endif
+            wakeup_timer = std::make_shared<MainloopWakeupTimer>(clock);
+
+        return wakeup_timer;
+    }
+
+    std::shared_ptr<State> create_state(const std::shared_ptr<Engine>& engine,
+                                        const std::shared_ptr<Timezone>& tz)
+    {
+        // create the live objects
+        auto live_settings = std::make_shared<LiveSettings>();
+        auto live_timezones = std::make_shared<LiveTimezones>(live_settings, TIMEZONE_FILE);
+        auto live_clock = std::make_shared<LiveClock>(live_timezones);
+
+        // create a full-month planner currently pointing to the current month
+        const auto now = live_clock->localtime();
+        auto range_planner = std::make_shared<SimpleRangePlanner>(engine, tz);
+        auto calendar_month = std::make_shared<MonthPlanner>(range_planner, now);
+
+        // create an upcoming-events planner currently pointing to the current date
+        range_planner = std::make_shared<SimpleRangePlanner>(engine, tz);
+        auto calendar_upcoming = std::make_shared<UpcomingPlanner>(range_planner, now);
+
+        // create the state
+        auto state = std::make_shared<State>();
+        state->settings = live_settings;
+        state->clock = live_clock;
+        state->locations = std::make_shared<SettingsLocations>(live_settings, live_timezones);
+        state->calendar_month = calendar_month;
+        state->calendar_upcoming = calendar_upcoming;
+        return state;
+    }
+
+    std::shared_ptr<AlarmQueue> create_simple_alarm_queue(const std::shared_ptr<Clock>& clock,
+                                                          const std::shared_ptr<Engine>& engine,
+                                                          const std::shared_ptr<Timezone>& tz)
+    {
+        // create an upcoming-events planner that =always= tracks the clock's date
+        auto range_planner = std::make_shared<SimpleRangePlanner>(engine, tz);
+        auto upcoming_planner = std::make_shared<UpcomingPlanner>(range_planner, clock->localtime());
+        clock->date_changed.connect([clock,upcoming_planner](){
+            const auto now = clock->localtime();
+            g_debug("refretching appointments due to date change: %s", now.format("%F %T").c_str());
+            upcoming_planner->date().set(now);
+        });
+
+        auto wakeup_timer = create_wakeup_timer(clock);
+        return std::make_shared<SimpleAlarmQueue>(clock, upcoming_planner, wakeup_timer);
+    }
+}
 
 int
 main(int /*argc*/, char** /*argv*/)
@@ -54,35 +134,16 @@ main(int /*argc*/, char** /*argv*/)
     bindtextdomain(GETTEXT_PACKAGE, GNOMELOCALEDIR);
     textdomain(GETTEXT_PACKAGE);
 
-    // we don't show appointments in the greeter,
-    // so no need to connect to EDS there...
-    std::shared_ptr<Engine> engine;
-    if (!g_strcmp0("lightdm", g_get_user_name()))
-        engine.reset(new MockEngine);
-    else
-        engine.reset(new EdsEngine);
-
-    // build the state, actions, and menufactory
-    std::shared_ptr<State> state(new State);
-    std::shared_ptr<Settings> live_settings(new LiveSettings);
-    std::shared_ptr<Timezones> live_timezones(new LiveTimezones(live_settings, TIMEZONE_FILE));
-    std::shared_ptr<Clock> live_clock(new LiveClock(live_timezones));
-    std::shared_ptr<Timezone> file_timezone(new FileTimezone(TIMEZONE_FILE));
-    const auto now = live_clock->localtime();
-    state->settings = live_settings;
-    state->clock = live_clock;
-    state->locations.reset(new SettingsLocations(live_settings, live_timezones));
-    auto calendar_month = new MonthPlanner(std::shared_ptr<RangePlanner>(new SimpleRangePlanner(engine, file_timezone)), now);
-    state->calendar_month.reset(calendar_month);
-    state->calendar_upcoming.reset(new UpcomingPlanner(std::shared_ptr<RangePlanner>(new SimpleRangePlanner(engine, file_timezone)), now));
-    std::shared_ptr<Actions> actions(new LiveActions(state));
+    auto engine = create_engine();
+    auto timezone = std::make_shared<FileTimezone>(TIMEZONE_FILE);
+    auto state = create_state(engine, timezone);
+    auto actions = std::make_shared<LiveActions>(state);
     MenuFactory factory(actions, state);
 
-    // snap decisions
-    std::shared_ptr<UpcomingPlanner> upcoming_planner(new UpcomingPlanner(std::shared_ptr<RangePlanner>(new SimpleRangePlanner(engine, file_timezone)), now));
-    ClockWatcherImpl clock_watcher(live_clock, upcoming_planner);
+    // set up the snap decisions
     Snap snap;
-    clock_watcher.alarm_reached().connect([&snap](const Appointment& appt){
+    auto alarm_queue = create_simple_alarm_queue(state->clock, engine, timezone);
+    alarm_queue->alarm_reached().connect([&snap](const Appointment& appt){
         auto snap_show = [](const Appointment& a){
             const char* url;
             if(!a.url.empty())

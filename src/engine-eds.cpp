@@ -418,6 +418,14 @@ private:
             auto status = ICAL_STATUS_NONE;
             e_cal_component_get_status(component, &status);
 
+            const auto begin_dt = DateTime(begin);
+            const auto end_dt = DateTime(end);
+            g_debug ("got appointment from %s to %s, uid %s status %d",
+                     begin_dt.format("%F %T").c_str(),
+                     end_dt.format("%F %T").c_str(),
+                     uid,
+                     (int)status);
+
             if ((uid != nullptr) &&
                 (status != ICAL_STATUS_COMPLETED) &&
                 (status != ICAL_STATUS_CANCELLED))
@@ -430,8 +438,8 @@ private:
                 if (text.value)
                     appointment.summary = text.value;
 
-                appointment.begin = DateTime(begin);
-                appointment.end = DateTime(end);
+                appointment.begin = begin_dt;
+                appointment.end = end_dt;
                 appointment.color = subtask->color;
                 appointment.uid = uid;
 

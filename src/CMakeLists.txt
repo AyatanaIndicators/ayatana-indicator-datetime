@@ -7,30 +7,37 @@ SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g ${CXX_WARNING_ARGS} ${GCO
 add_definitions (-DTIMEZONE_FILE="/etc/timezone"
                  -DG_LOG_DOMAIN="Indicator-Datetime")
 
-add_library (${SERVICE_LIB} STATIC
-             actions.cpp
-             actions-live.cpp
-             appointment.cpp
-             clock.cpp
-             clock-live.cpp
-             clock-watcher.cpp
-             date-time.cpp
-             engine-eds.cpp
-             exporter.cpp
-             formatter.cpp
-             formatter-desktop.cpp
-             locations.cpp
-             locations-settings.cpp
-             menu.cpp
-             planner-month.cpp
-             planner-range.cpp
-             planner-upcoming.cpp
-             settings-live.cpp
-             snap.cpp
-             timezone-file.cpp
-             timezone-geoclue.cpp
-             timezones-live.cpp
-             utils.c)
+set (SERVICE_SOURCES
+     actions.cpp
+     actions-live.cpp
+     alarm-queue-simple.cpp
+     appointment.cpp
+     clock.cpp
+     clock-live.cpp
+     date-time.cpp
+     engine-eds.cpp
+     exporter.cpp
+     formatter.cpp
+     formatter-desktop.cpp
+     locations.cpp
+     locations-settings.cpp
+     menu.cpp
+     planner-month.cpp
+     planner-range.cpp
+     planner-upcoming.cpp
+     settings-live.cpp
+     snap.cpp
+     timezone-file.cpp
+     timezone-geoclue.cpp
+     timezones-live.cpp
+     utils.c
+     wakeup-timer-mainloop.cpp)
+
+if (HAVE_UBUNTU_HW_ALARM_H)
+  set (SERVICE_SOURCES ${SERVICE_SOURCES} wakeup-timer-uha.cpp)
+endif ()
+
+add_library (${SERVICE_LIB} STATIC ${SERVICE_SOURCES})
 include_directories (${CMAKE_SOURCE_DIR})
 link_directories (${SERVICE_DEPS_LIBRARY_DIRS})
 

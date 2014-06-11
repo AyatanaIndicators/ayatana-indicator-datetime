@@ -19,6 +19,8 @@ Build-Depends: cmake,
                libedataserver1.2-dev (>= 3.5),
                liburl-dispatcher1-dev,
                libproperties-cpp-dev,
+               libplatform-hardware-api-headers [armhf i386 amd64],
+               libplatform-hardware-api1-dev [armhf i386 amd64],
                libdbustest1-dev,
                locales,
 Standards-Version: 3.9.3

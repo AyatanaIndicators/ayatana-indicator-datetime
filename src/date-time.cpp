@@ -174,6 +174,11 @@ bool DateTime::operator==(const DateTime& that) const
     return g_date_time_compare(get(), that.get()) == 0;
 }
 
+int64_t DateTime::operator- (const DateTime& that) const
+{
+    return g_date_time_difference(get(), that.get());
+}
+
 bool DateTime::is_same_day(const DateTime& a, const DateTime& b)
 {
     // it's meaningless to compare uninitialized dates

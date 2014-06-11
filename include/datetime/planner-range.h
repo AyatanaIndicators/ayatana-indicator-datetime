@@ -53,7 +53,7 @@ class SimpleRangePlanner: public RangePlanner
 {
 public:
     SimpleRangePlanner(const std::shared_ptr<Engine>& engine,
-                     const std::shared_ptr<Timezone>& timezone);
+                       const std::shared_ptr<Timezone>& timezone);
     virtual ~SimpleRangePlanner();
 
     core::Property<std::vector<Appointment>>& appointments();
