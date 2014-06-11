@@ -34,10 +34,7 @@
 #include <datetime/wakeup-timer-mainloop.h>
 
 #ifdef HAVE_UBUNTU_HW_ALARM_H
-  #warning using hw alarms
   #include <datetime/wakeup-timer-uha.h>
-#else
-  #warning not using hw arlarms
 #endif
 
 #include <glib/gi18n.h> // bindtextdomain()
