@@ -1,3 +1,19 @@
+indicator-datetime (13.10.0+14.10.20140611-0ubuntu1) utopic; urgency=low
+
+  [ Charles Kerr ]
+  * when src/timezone-file.c reads the contents of a file, skip lines
+    that begin with '#' (LP: #1312775)
+  * Use the Suru Arpeggio as the default alarm sound. (LP: #1309063)
+  * Prefer to use ubuntu-platform-hardware-api for wakeups when possible
+    s.t. user-defined alarms/appointments can wake up the phone from
+    sleep to give a snap decision. (LP: #1299916)
+
+  [ Sergey "Shnatsel" Davidoff ]
+  * Add Pantheon, the desktop environment of elementary Project, to
+    OnlyShowIn lists in .desktop files. (LP: #1301699)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 11 Jun 2014 12:36:52 +0000
+
 indicator-datetime (13.10.0+14.04.20140415.3-0ubuntu1) trusty; urgency=low
 
   [ Charles Kerr ]
