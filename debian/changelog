@@ -1,4 +1,4 @@
-indicator-datetime (13.10.0+14.10.20140611-0ubuntu3) UNRELEASED; urgency=medium
+indicator-datetime (13.10.0+14.10.20140611-0ubuntu3) utopic; urgency=medium
 
   * Migrading to Platform V2
 
