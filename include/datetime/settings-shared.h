@@ -30,6 +30,16 @@ typedef enum
 }
 TimeFormatMode;
 
+typedef enum
+{
+  ALARM_VOLUME_VERY_QUIET,
+  ALARM_VOLUME_QUIET,
+  ALARM_VOLUME_NORMAL,
+  ALARM_VOLUME_LOUD,
+  ALARM_VOLUME_VERY_LOUD
+}
+AlarmVolume;
+
 #define SETTINGS_INTERFACE              "com.canonical.indicator.datetime"
 #define SETTINGS_SHOW_CLOCK_S           "show-clock"
 #define SETTINGS_TIME_FORMAT_S          "time-format"
@@ -45,5 +55,7 @@ TimeFormatMode;
 #define SETTINGS_SHOW_DETECTED_S        "show-auto-detected-location"
 #define SETTINGS_LOCATIONS_S            "locations"
 #define SETTINGS_TIMEZONE_NAME_S        "timezone-name"
+#define SETTINGS_ALARM_SOUND_S          "alarm-default-sound"
+#define SETTINGS_ALARM_VOLUME_S         "alarm-default-volume"
 
 #endif // INDICATOR_DATETIME_SETTINGS_SHARED

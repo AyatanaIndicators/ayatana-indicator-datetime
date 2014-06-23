@@ -52,6 +52,8 @@ LiveSettings::LiveSettings():
     update_show_year();
     update_time_format_mode();
     update_timezone_name();
+    update_alarm_sound();
+    update_alarm_volume();
 
     // now listen for clients to change the properties s.t. we can sync update GSettings
 
@@ -114,6 +116,14 @@ LiveSettings::LiveSettings():
 
     timezone_name.changed().connect([this](const std::string& value){
         g_settings_set_string(m_settings, SETTINGS_TIMEZONE_NAME_S, value.c_str());
+    });
+
+    alarm_sound.changed().connect([this](const std::string& value){
+        g_settings_set_string(m_settings, SETTINGS_ALARM_SOUND_S, value.c_str());
+    });
+
+    alarm_volume.changed().connect([this](AlarmVolume value){
+        g_settings_set_enum(m_settings, SETTINGS_ALARM_VOLUME_S, gint(value));
     });
 }
 
@@ -205,6 +215,18 @@ void LiveSettings::update_timezone_name()
     g_free(val);
 }
 
+void LiveSettings::update_alarm_sound()
+{
+    auto val = g_settings_get_string(m_settings, SETTINGS_ALARM_SOUND_S);
+    alarm_sound.set(val);
+    g_free(val);
+}
+
+void LiveSettings::update_alarm_volume()
+{
+    alarm_volume.set((AlarmVolume)g_settings_get_enum(m_settings, SETTINGS_ALARM_VOLUME_S));
+}
+
 /***
 ****
 ***/
@@ -246,6 +268,10 @@ void LiveSettings::update_key(const std::string& key)
         update_show_detected_locations();
     else if (key == SETTINGS_TIMEZONE_NAME_S)
         update_timezone_name();
+    else if (key == SETTINGS_ALARM_SOUND_S)
+        update_alarm_sound();
+    else if (key == SETTINGS_ALARM_VOLUME_S)
+        update_alarm_volume();
 }
 
 /***

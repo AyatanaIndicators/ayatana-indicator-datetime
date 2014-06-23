@@ -100,6 +100,31 @@ protected:
         EXPECT_EQ(str, tmp);
         g_clear_pointer(&tmp, g_free);
     }
+
+#if 0
+    void TestIntProperty(core::Property<int>& property, const gchar* key)
+    {
+        EXPECT_EQ(g_settings_get_int(m_gsettings, key), property.get());
+
+        int expected_values[] = { 1, 2, 3 };
+
+        // modify GSettings and confirm that the new value is propagated
+        for(const int& expected_value : expected_values)
+        {
+            g_settings_set_int(m_gsettings, key, expected_value);
+            EXPECT_EQ(expected_value, property.get());
+            EXPECT_EQ(expected_value, g_settings_get_int(m_gsettings, key));
+        }
+
+        // modify the property and confirm that the new value is propagated
+        for(const int& expected_value : expected_values)
+        {
+            property.set(expected_value);
+            EXPECT_EQ(expected_value, property.get());
+            EXPECT_EQ(expected_value, g_settings_get_int(m_gsettings, key));
+        }
+    }
+#endif
 };
 
 /***
@@ -129,6 +154,7 @@ TEST_F(SettingsFixture, StringProperties)
 {
     TestStringProperty(m_settings->custom_time_format, SETTINGS_CUSTOM_TIME_FORMAT_S);
     TestStringProperty(m_settings->timezone_name, SETTINGS_TIMEZONE_NAME_S);
+    TestStringProperty(m_settings->alarm_sound, SETTINGS_ALARM_SOUND_S);
 }
 
 TEST_F(SettingsFixture, TimeFormatMode)
@@ -151,6 +177,31 @@ TEST_F(SettingsFixture, TimeFormatMode)
         EXPECT_EQ(mode, g_settings_get_enum(m_gsettings, key));
     }
 }
+
+TEST_F(SettingsFixture, AlarmVolume)
+{
+    const auto key = SETTINGS_ALARM_VOLUME_S;
+    const AlarmVolume volumes[] = { ALARM_VOLUME_VERY_QUIET,
+                                    ALARM_VOLUME_QUIET,
+                                    ALARM_VOLUME_NORMAL,
+                                    ALARM_VOLUME_LOUD,
+                                    ALARM_VOLUME_VERY_LOUD };
+
+    for(const auto& val : volumes)
+    {
+        g_settings_set_enum(m_gsettings, key, val);
+        EXPECT_EQ(val, m_settings->alarm_volume.get());
+        EXPECT_EQ(val, g_settings_get_enum(m_gsettings, key));
+    }
+
+    for(const auto& val : volumes)
+    {
+        m_settings->alarm_volume.set(val);
+        EXPECT_EQ(val, m_settings->alarm_volume.get());
+        EXPECT_EQ(val, g_settings_get_enum(m_gsettings, key));
+    }
+}
+
 
 namespace
 {

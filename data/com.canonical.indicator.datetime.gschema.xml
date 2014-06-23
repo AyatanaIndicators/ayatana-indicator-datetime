@@ -5,6 +5,13 @@
 		<value nick="24-hour" value="2" />
 		<value nick="custom" value="3" />
 	</enum>
+	<enum id="alarm-volume-enum">
+		<value nick="very-quiet" value="0" />
+		<value nick="quiet" value="1" />
+		<value nick="normal" value="2" />
+		<value nick="loud" value="3" />
+		<value nick="very-loud" value="4" />
+	</enum>
 	<schema id="com.canonical.indicator.datetime" path="/com/canonical/indicator/datetime/" gettext-domain="indicator-datetime">
 		<key name="show-clock" type="b">
 			<default>true</default>
@@ -121,6 +128,20 @@
 			<summary>The name of the current timezone</summary>
 			<description>
 			  Some timezones can be known by many different cities or names.  This setting describes how the current zone prefers to be named.  Format is "TIMEZONE NAME" (e.g. "America/New_York Boston" to name the New_York zone Boston).
+			</description>
+		</key>
+		<key name="alarm-default-sound" type="s">
+			<default>'/usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg'</default>
+			<summary>The alarm's default sound file.</summary>
+			<description>
+			  If an alarm doesn't specify its own sound file, this file will be used as the fallback sound.
+			</description>
+		</key>
+		<key name="alarm-default-volume" enum="alarm-volume-enum">
+			<default>'normal'</default>
+			<summary>The alarm's default volume level.</summary>
+			<description>
+			  The volume at which alarms will be played.
 			</description>
 		</key>
 	</schema>
