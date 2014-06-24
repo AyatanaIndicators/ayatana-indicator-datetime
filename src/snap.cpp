@@ -64,17 +64,18 @@ public:
     Sound(const Properties& properties):
         m_properties(properties),
         m_canberra_id(get_next_canberra_id()),
-        m_cutoff(properties.clock->localtime().add_full(0, 0, 0, 0, properties.duration_minutes, 0.0))
+        m_loop_end_time(properties.clock->localtime().add_full(0, 0, 0, 0,
+                                              properties.duration_minutes, 0.0))
     {
         if (m_properties.loop)
         {
-            g_debug ("Looping '%s' until cutoff time %s",
-                     m_properties.filename.c_str(),
-                     m_cutoff.format("%F %T").c_str());
+            g_debug("Looping '%s' until cutoff time %s",
+                    m_properties.filename.c_str(),
+                    m_loop_end_time.format("%F %T").c_str());
         }
         else
         {
-            g_debug ("Playing '%s' once", m_properties.filename.c_str());
+            g_debug("Playing '%s' once", m_properties.filename.c_str());
         }
 
         const auto rv = ca_context_create(&m_context);
@@ -107,33 +108,11 @@ private:
                 g_warning("Failed to cancel alarm sound: %s", ca_strerror(rv));
         }
 
-        if (m_timeout_tag != 0)
+        if (m_loop_tag != 0)
         {
-            g_source_remove(m_timeout_tag);
-            m_timeout_tag = 0;
+            g_source_remove(m_loop_tag);
+            m_loop_tag = 0;
         }
-    }
-
-    static void on_done_playing(ca_context*, uint32_t /*id*/, int rv, void* gself)
-    {
-        auto self = static_cast<Self*>(gself);
-
-        // if we still need to loop, wait a second, then play it again
-        if ((self->m_properties.loop) &&
-            (rv == CA_SUCCESS) &&
-            (self->m_timeout_tag == 0) &&
-            (self->m_properties.clock->localtime() < self->m_cutoff))
-        {
-            self->m_timeout_tag = g_timeout_add_seconds(1, play_idle, self);
-        }
-    }
-
-    static gboolean play_idle(gpointer gself)
-    {
-        auto self = static_cast<Self*>(gself);
-        self->m_timeout_tag = 0;
-        self->play();
-        return G_SOURCE_REMOVE;
     }
 
     void play()
@@ -141,18 +120,22 @@ private:
         auto context = m_context;
         g_return_if_fail(context != nullptr);
 
+        const auto filename = m_properties.filename.c_str();
+        const float gain = get_gain_level(m_properties.volume);
+
         ca_proplist* props = nullptr;
         ca_proplist_create(&props);
-        ca_proplist_sets(props, CA_PROP_MEDIA_FILENAME, m_properties.filename.c_str());
-        ca_proplist_setf(props, CA_PROP_CANBERRA_VOLUME, "%f", get_decibel_multiplier(m_properties.volume));
-        const auto rv = ca_context_play_full(context, m_canberra_id, props, on_done_playing, this);
+        ca_proplist_sets(props, CA_PROP_MEDIA_FILENAME, filename);
+        ca_proplist_setf(props, CA_PROP_CANBERRA_VOLUME, "%f", gain);
+        const auto rv = ca_context_play_full(context, m_canberra_id, props,
+                                             on_done_playing, this);
         if (rv != CA_SUCCESS)
-            g_warning("Failed to play file '%s': %s", m_properties.filename.c_str(), ca_strerror(rv));
+            g_warning("Unable to play '%s': %s", filename, ca_strerror(rv));
 
         g_clear_pointer(&props, ca_proplist_destroy);
     }
 
-    static float get_decibel_multiplier(const AlarmVolume volume)
+    static float get_gain_level(const AlarmVolume volume)
     {
         /* These values aren't set in stone -- 
            arrived at from from manual tests on Nexus 4 */
@@ -166,6 +149,30 @@ private:
         }
     }
 
+    static void on_done_playing(ca_context*, uint32_t, int rv, void* gself)
+    {
+        // if we still need to loop, wait a second, then play it again
+
+        if (rv == CA_SUCCESS)
+        {
+            auto self = static_cast<Self*>(gself);
+            if ((self->m_loop_tag == 0) &&
+                (self->m_properties.loop) &&
+                (self->m_properties.clock->localtime() < self->m_loop_end_time))
+            {
+                self->m_loop_tag = g_timeout_add_seconds(1, play_idle, self);
+            }
+        }
+    }
+
+    static gboolean play_idle(gpointer gself)
+    {
+        auto self = static_cast<Self*>(gself);
+        self->m_loop_tag = 0;
+        self->play();
+        return G_SOURCE_REMOVE;
+    }
+
     /***
     ****
     ***/
@@ -176,11 +183,11 @@ private:
         return next_canberra_id++;
     }
 
-    ca_context* m_context = nullptr;
-    guint m_timeout_tag = 0;
     const Properties m_properties;
     const int32_t m_canberra_id;
-    const DateTime m_cutoff;
+    const DateTime m_loop_end_time;
+    ca_context* m_context = nullptr;
+    guint m_loop_tag = 0;
 };
 
 /**
@@ -195,8 +202,19 @@ public:
           const Sound::Properties& sound_properties):
         m_appointment(appointment),
         m_sound_properties(sound_properties),
-        m_mode(get_mode())
+        m_interactive(get_interactive())
     {
+        // ensure notify_init() is called once
+        // before we start popping up dialogs
+        static bool m_nn_inited = false;
+        if (G_UNLIKELY(!m_nn_inited))
+        {
+            if(!notify_init("indicator-datetime-service"))
+                g_critical("libnotify initialization failed");
+
+            m_nn_inited = true;
+        }
+
         show();
     }
 
@@ -226,20 +244,27 @@ private:
     {
         const Appointment& appointment = m_appointment;
 
-        const auto timestr = appointment.begin.format("%a, %X");
+        /// strftime(3) format string for an alarm's snap decision
+        const auto timestr = appointment.begin.format(_("%a, %X"));
         auto title = g_strdup_printf(_("Alarm %s"), timestr.c_str());
         const auto body = appointment.summary;
         const gchar* icon_name = "alarm-clock";
 
         m_nn = notify_notification_new(title, body.c_str(), icon_name);
-        if (m_mode == MODE_SNAP)
+        if (m_interactive)
         {
-            notify_notification_set_hint_string(m_nn, "x-canonical-snap-decisions", "true");
-            notify_notification_set_hint_string(m_nn, "x-canonical-private-button-tint", "true");
-            // text for the alarm popup dialog's button to show the active alarm
-            notify_notification_add_action(m_nn, "show", _("Show"), on_snap_show, this, nullptr);
-            // text for the alarm popup dialog's button to shut up the alarm
-            notify_notification_add_action(m_nn, "dismiss", _("Dismiss"), on_snap_dismiss, this, nullptr);
+            notify_notification_set_hint_string(m_nn,
+                                                "x-canonical-snap-decisions",
+                                                "true");
+            notify_notification_set_hint_string(m_nn,
+                                                "x-canonical-private-button-tint",
+                                                "true");
+            /// alarm popup dialog's button to show the active alarm
+            notify_notification_add_action(m_nn, "show", _("Show"),
+                                           on_snap_show, this, nullptr);
+            /// alarm popup dialog's button to shut up the alarm
+            notify_notification_add_action(m_nn, "dismiss", _("Dismiss"),
+                                           on_snap_dismiss, this, nullptr);
             g_signal_connect(m_nn, "closed", G_CALLBACK(on_snap_closed), this);
         }
 
@@ -248,7 +273,8 @@ private:
         notify_notification_show(m_nn, &error);
         if (error != NULL)
         {
-            g_critical("Unable to show snap decision for '%s': %s", body.c_str(), error->message);
+            g_critical("Unable to show snap decision for '%s': %s",
+                       body.c_str(), error->message);
             g_error_free(error);
             shown = false;
         }
@@ -256,7 +282,7 @@ private:
         // Loop the sound *only* if we're prompting the user for a response.
         // Otherwise, just play the sound once.
         Sound::Properties tmp = m_sound_properties;
-        tmp.loop = shown && (m_mode == MODE_SNAP);
+        tmp.loop = shown && m_interactive;
         m_sound.reset(new Sound(tmp));
 
         // if showing the notification didn't work,
@@ -271,7 +297,7 @@ private:
     }
 
     // user clicked 'show'
-    static void on_snap_show(NotifyNotification*, gchar* /*action*/, gpointer gself)
+    static void on_snap_show(NotifyNotification*, gchar*, gpointer gself)
     {
         auto self = static_cast<Self*>(gself);
         self->m_response_value = RESPONSE_SHOW;
@@ -279,7 +305,7 @@ private:
     }
 
     // user clicked 'dismiss'
-    static void on_snap_dismiss(NotifyNotification*, gchar* /*action*/, gpointer gself)
+    static void on_snap_dismiss(NotifyNotification*, gchar*, gpointer gself)
     {
         auto self = static_cast<Self*>(gself);
         self->m_response_value = RESPONSE_DISMISS;
@@ -295,7 +321,7 @@ private:
     }
 
     /***
-    ****
+    ****  Interactive
     ***/
 
     static std::set<std::string> get_server_caps()
@@ -316,34 +342,18 @@ private:
         return caps_set;
     }
 
-    typedef enum
+    static bool get_interactive()
     {
-        // just a bubble... no actions, no audio
-        MODE_BUBBLE,
+        static bool interactive;
+        static bool inited = false;
 
-        // a snap decision popup dialog + audio
-        MODE_SNAP
-    }
-    Mode;
-
-    static Mode get_mode()
-    {
-        static Mode mode;
-        static bool mode_inited = false;
-
-        if (G_UNLIKELY(!mode_inited))
+        if (G_UNLIKELY(!inited))
         {
-            const auto caps = get_server_caps();
-
-            if (caps.count("actions"))
-                mode = MODE_SNAP;
-            else
-                mode = MODE_BUBBLE;
-
-            mode_inited = true;
+            interactive = get_server_caps().count("actions") != 0;
+            inited = true;
         }
 
-        return mode;
+        return interactive;
     }
 
     /***
@@ -354,7 +364,7 @@ private:
 
     const Appointment m_appointment;
     const Sound::Properties m_sound_properties;
-    const Mode m_mode;
+    const bool m_interactive;
     std::unique_ptr<Sound> m_sound;
     core::Signal<Response> m_response;
     Response m_response_value = RESPONSE_CLOSE;
@@ -364,19 +374,6 @@ private:
 /** 
 ***  libnotify -- snap decisions
 **/
-
-void first_time_init()
-{
-    static bool inited = false;
-
-    if (G_UNLIKELY(!inited))
-    {
-        inited = true;
-
-        if(!notify_init("indicator-datetime-service"))
-            g_critical("libnotify initialization failed");
-    }
-}
 
 std::string get_local_filename (const std::string& str)
 {
@@ -389,15 +386,16 @@ std::string get_local_filename (const std::string& str)
 
         for(auto& file : files)
         {
-            if (g_file_is_native(file) && g_file_query_exists(file,nullptr))
+            if (g_file_is_native(file) && g_file_query_exists(file, nullptr))
             {
-                char * tmp = g_file_get_path(file);
-                ret = tmp;
-                g_free(tmp);
+                char* tmp = g_file_get_path(file);
+                if (tmp != nullptr)
+                {
+                    ret = tmp;
+                    g_free(tmp);
+                    break;
+                }
             }
-
-            if (!ret.empty())
-                break;
         }
 
         for(auto& file : files)
@@ -410,17 +408,17 @@ std::string get_local_filename (const std::string& str)
 std::string get_alarm_sound(const Appointment& appointment,
                             const std::shared_ptr<const Settings>& settings)
 {
-    static const constexpr char* const FALLBACK_AUDIO_FILENAME {"/usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg"};
+    const char* FALLBACK {"/usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg"};
 
     const std::string candidates[] = { appointment.audio_url,
                                        settings->alarm_sound.get(),
-                                       FALLBACK_AUDIO_FILENAME };
+                                       FALLBACK };
 
     std::string alarm_sound;
 
-    for (const auto& candidate : candidates)
+    for(const auto& candidate : candidates)
     {
-        alarm_sound = get_local_filename (candidate);
+        alarm_sound = get_local_filename(candidate);
 
         if (!alarm_sound.empty())
             break;
@@ -443,7 +441,6 @@ Snap::Snap(const std::shared_ptr<Clock>& clock,
     m_clock(clock),
     m_settings(settings)
 {
-    first_time_init();
 }
 
 Snap::~Snap()
@@ -460,13 +457,12 @@ void Snap::operator()(const Appointment& appointment,
         return;
     }
 
-    const Sound::Properties sound_properties { m_clock,
-                                               get_alarm_sound(appointment, m_settings),
-                                               m_settings->alarm_volume.get(),
-                                               m_settings->alarm_duration.get() };
-
     // create a popup...
-    auto popup = new Popup(appointment, sound_properties);
+    const Sound::Properties sp {m_clock,
+                                get_alarm_sound(appointment, m_settings),
+                                m_settings->alarm_volume.get(),
+                                m_settings->alarm_duration.get()};
+    auto popup = new Popup(appointment, sp);
      
     // listen for it to finish...
     popup->response().connect([appointment,
