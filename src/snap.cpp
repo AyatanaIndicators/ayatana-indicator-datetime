@@ -32,8 +32,6 @@
 #include <set>
 #include <string>
 
-#define FALLBACK_ALARM_SOUND "/usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg"
-
 namespace unity {
 namespace indicator {
 namespace datetime {
@@ -54,9 +52,9 @@ class LoopedSound
 
 public:
 
-    LoopedSound(const std::shared_ptr<const Settings>& settings):
-        m_filename(settings->alarm_sound.get()),
-        m_volume(settings->alarm_volume.get()),
+    LoopedSound(const std::string& filename, const AlarmVolume volume):
+        m_filename(filename),
+        m_volume(volume),
         m_canberra_id(get_next_canberra_id())
     {
         const auto rv = ca_context_create(&m_context);
@@ -118,21 +116,13 @@ private:
         auto context = m_context;
         g_return_if_fail(context != nullptr);
 
-        std::string filename = m_filename;
-        if (!g_file_test(filename.c_str(), G_FILE_TEST_EXISTS))
-        {
-            g_warning("Unable to find '%s' -- using fallback '%s' instead",
-                      filename.c_str(), FALLBACK_ALARM_SOUND);
-            filename = FALLBACK_ALARM_SOUND;
-        }
-
         ca_proplist* props = nullptr;
         ca_proplist_create(&props);
-        ca_proplist_sets(props, CA_PROP_MEDIA_FILENAME, filename.c_str());
+        ca_proplist_sets(props, CA_PROP_MEDIA_FILENAME, m_filename.c_str());
         ca_proplist_setf(props, CA_PROP_CANBERRA_VOLUME, "%f", get_decibel_multiplier(m_volume));
         const auto rv = ca_context_play_full(context, m_canberra_id, props, on_done_playing, this);
         if (rv != CA_SUCCESS)
-            g_warning("Failed to play file '%s': %s", filename.c_str(), ca_strerror(rv));
+            g_warning("Failed to play file '%s': %s", m_filename.c_str(), ca_strerror(rv));
 
         g_clear_pointer(&props, ca_proplist_destroy);
     }
@@ -177,9 +167,11 @@ class Popup
 public:
 
     Popup(const Appointment& appointment,
-          const std::shared_ptr<const Settings>& settings):
+          const std::string& sound_filename,
+          const AlarmVolume sound_volume):
         m_appointment(appointment),
-        m_settings(settings),
+        m_sound_filename(sound_filename),
+        m_sound_volume(sound_volume),
         m_mode(get_mode())
     {
         show();
@@ -238,10 +230,10 @@ private:
             shown = false;
         }
 
-        // if we were able to show a popup that requires
-        // user response, play the sound in a loop
+        // if we were able to show a popup that requires user response,
+        // play the sound in a loop
         if (shown && (m_mode == MODE_SNAP))
-            m_sound.reset(new LoopedSound(m_settings));
+            m_sound.reset(new LoopedSound(m_sound_filename, m_sound_volume));
 
         // if showing the notification didn't work,
         // treat it as if the user clicked the 'show' button
@@ -337,7 +329,8 @@ private:
     typedef Popup Self;
 
     const Appointment m_appointment;
-    const std::shared_ptr<const Settings> m_settings;
+    const std::string m_sound_filename;
+    const AlarmVolume m_sound_volume;
     const Mode m_mode;
     std::unique_ptr<LoopedSound> m_sound;
     core::Signal<Response> m_response;
@@ -360,6 +353,56 @@ void first_time_init()
         if(!notify_init("indicator-datetime-service"))
             g_critical("libnotify initialization failed");
     }
+}
+
+std::string get_local_filename (const std::string& str)
+{
+    std::string ret;
+
+    // maybe try it as a file path
+    if (ret.empty() && !str.empty())
+    {
+        auto file = g_file_new_for_path (str.c_str());
+        if (g_file_is_native(file) && g_file_query_exists(file,nullptr))
+            ret = g_file_get_path(file);
+        g_clear_object(&file);
+    }
+
+    // maybe try it as a uri
+    if (ret.empty() && !str.empty())
+    {
+        auto file = g_file_new_for_uri (str.c_str());
+        if (g_file_is_native(file) && g_file_query_exists(file,nullptr))
+            ret = g_file_get_path(file);
+        g_clear_object(&file);
+    }
+
+    return ret;
+}
+
+std::string get_alarm_sound(const Appointment& appointment,
+                            const std::shared_ptr<const Settings>& settings)
+{
+    static const constexpr char* const FALLBACK_AUDIO_FILENAME {"/usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg"};
+
+    const std::string candidates[] = { appointment.audio_url,
+                                       settings->alarm_sound.get(),
+                                       FALLBACK_AUDIO_FILENAME };
+
+    std::string alarm_sound;
+
+    for (const auto& candidate : candidates)
+    {
+        alarm_sound = get_local_filename (candidate);
+
+        if (!alarm_sound.empty())
+            break;
+    }
+
+    g_debug("%s: Appointment \"%s\" using alarm sound \"%s\"",
+            G_STRFUNC, appointment.summary.c_str(), alarm_sound.c_str());
+
+    return alarm_sound;
 }
 
 } // unnamed namespace
@@ -389,7 +432,9 @@ void Snap::operator()(const Appointment& appointment,
     }
 
     // create a popup...
-    auto popup = new Popup(appointment, m_settings);
+    auto popup = new Popup(appointment,
+                           get_alarm_sound(appointment, m_settings),
+                           m_settings->alarm_volume.get());
      
     // listen for it to finish...
     popup->response().connect([appointment,

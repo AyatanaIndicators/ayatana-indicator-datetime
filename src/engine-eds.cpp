@@ -443,8 +443,9 @@ private:
                 appointment.color = subtask->color;
                 appointment.uid = uid;
 
-                // if the component has display alarms that have a url,
-                // use the first one as our Appointment.url
+                // Look through all of this component's alarms
+                // for DISPLAY or AUDIO url attachments.
+                // If we find any, use them for appointment.url and audio_sound
                 auto alarm_uids = e_cal_component_get_alarm_uids(component);
                 appointment.has_alarms = alarm_uids != nullptr;
                 for(auto walk=alarm_uids; appointment.url.empty() && walk!=nullptr; walk=walk->next)
@@ -453,7 +454,7 @@ private:
 
                     ECalComponentAlarmAction action;
                     e_cal_component_alarm_get_action(alarm, &action);
-                    if (action == E_CAL_COMPONENT_ALARM_DISPLAY)
+                    if ((action == E_CAL_COMPONENT_ALARM_DISPLAY) || (action == E_CAL_COMPONENT_ALARM_AUDIO))
                     {
                         icalattach* attach = nullptr;
                         e_cal_component_alarm_get_attach(alarm, &attach);
@@ -463,7 +464,16 @@ private:
                             {
                                 const char* url = icalattach_get_url(attach);
                                 if (url != nullptr)
-                                    appointment.url = url;
+                                {
+                                    if ((action == E_CAL_COMPONENT_ALARM_DISPLAY) && appointment.url.empty())
+                                    {
+                                        appointment.url = url;
+                                    }
+                                    else if ((action == E_CAL_COMPONENT_ALARM_AUDIO) && appointment.audio_url.empty())
+                                    {
+                                        appointment.audio_url = url;
+                                    }
+                                }
                             }
 
                             icalattach_unref(attach);
