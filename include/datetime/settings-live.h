@@ -57,6 +57,7 @@ private:
     void update_timezone_name();
     void update_alarm_sound();
     void update_alarm_volume();
+    void update_alarm_duration();
 
     GSettings* m_settings;
 

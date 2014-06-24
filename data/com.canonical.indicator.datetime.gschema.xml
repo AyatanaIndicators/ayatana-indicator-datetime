@@ -144,5 +144,13 @@
 			  The volume at which alarms will be played.
 			</description>
 		</key>
+		<key name="alarm-duration-minutes" type="i">
+			<range min="1" max="60"/>
+			<default>30</default>
+			<summary>The alarm's duration.</summary>
+			<description>
+			  How long the alarm's sound will be looped if its snap decision is not dismissed by the user.
+			</description>
+		</key>
 	</schema>
 </schemalist>

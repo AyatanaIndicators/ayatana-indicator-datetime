@@ -57,5 +57,6 @@ AlarmVolume;
 #define SETTINGS_TIMEZONE_NAME_S        "timezone-name"
 #define SETTINGS_ALARM_SOUND_S          "alarm-default-sound"
 #define SETTINGS_ALARM_VOLUME_S         "alarm-default-volume"
+#define SETTINGS_ALARM_DURATION_S       "alarm-duration-minutes"
 
 #endif // INDICATOR_DATETIME_SETTINGS_SHARED

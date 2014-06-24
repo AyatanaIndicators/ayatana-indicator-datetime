@@ -101,7 +101,6 @@ protected:
         g_clear_pointer(&tmp, g_free);
     }
 
-#if 0
     void TestIntProperty(core::Property<int>& property, const gchar* key)
     {
         EXPECT_EQ(g_settings_get_int(m_gsettings, key), property.get());
@@ -124,7 +123,6 @@ protected:
             EXPECT_EQ(expected_value, g_settings_get_int(m_gsettings, key));
         }
     }
-#endif
 };
 
 /***
@@ -148,6 +146,11 @@ TEST_F(SettingsFixture, BoolProperties)
     TestBoolProperty(m_settings->show_locations, SETTINGS_SHOW_LOCATIONS_S);
     TestBoolProperty(m_settings->show_week_numbers, SETTINGS_SHOW_WEEK_NUMBERS_S);
     TestBoolProperty(m_settings->show_year, SETTINGS_SHOW_YEAR_S);
+}
+
+TEST_F(SettingsFixture, IntProperties)
+{
+    TestIntProperty(m_settings->alarm_duration, SETTINGS_ALARM_DURATION_S);
 }
 
 TEST_F(SettingsFixture, StringProperties)
