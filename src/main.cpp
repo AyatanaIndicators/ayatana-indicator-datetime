@@ -141,7 +141,7 @@ main(int /*argc*/, char** /*argv*/)
     MenuFactory factory(actions, state);
 
     // set up the snap decisions
-    Snap snap (state->settings);
+    Snap snap (state->clock, state->settings);
     auto alarm_queue = create_simple_alarm_queue(state->clock, engine, timezone);
     alarm_queue->alarm_reached().connect([&snap](const Appointment& appt){
         auto snap_show = [](const Appointment& a){

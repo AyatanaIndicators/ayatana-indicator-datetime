@@ -44,19 +44,39 @@ namespace
 {
 
 /**
- * Plays a sound in a loop.
+ * Plays a sound, possibly looping.
  */
-class LoopedSound
+class Sound
 {
-    typedef LoopedSound Self;
+    typedef Sound Self;
 
 public:
 
-    LoopedSound(const std::string& filename, const AlarmVolume volume):
-        m_filename(filename),
-        m_volume(volume),
-        m_canberra_id(get_next_canberra_id())
+    struct Properties
     {
+        std::shared_ptr<Clock> clock;
+        std::string filename;
+        AlarmVolume volume;
+        int duration_minutes;
+        bool loop;
+    };
+
+    Sound(const Properties& properties):
+        m_properties(properties),
+        m_canberra_id(get_next_canberra_id()),
+        m_cutoff(properties.clock->localtime().add_full(0, 0, 0, 0, properties.duration_minutes, 0.0))
+    {
+        if (m_properties.loop)
+        {
+            g_debug ("Looping '%s' until cutoff time %s",
+                     m_properties.filename.c_str(),
+                     m_cutoff.format("%F %T").c_str());
+        }
+        else
+        {
+            g_debug ("Playing '%s' once", m_properties.filename.c_str());
+        }
+
         const auto rv = ca_context_create(&m_context);
         if (rv == CA_SUCCESS)
         {
@@ -69,7 +89,7 @@ public:
         }
     }
 
-    ~LoopedSound()
+    ~Sound()
     {
         stop();
 
@@ -98,9 +118,14 @@ private:
     {
         auto self = static_cast<Self*>(gself);
 
-        // wait a second, then play it again
-        if ((rv == CA_SUCCESS) && (self->m_timeout_tag == 0))
+        // if we still need to loop, wait a second, then play it again
+        if ((self->m_properties.loop) &&
+            (rv == CA_SUCCESS) &&
+            (self->m_timeout_tag == 0) &&
+            (self->m_properties.clock->localtime() < self->m_cutoff))
+        {
             self->m_timeout_tag = g_timeout_add_seconds(1, play_idle, self);
+        }
     }
 
     static gboolean play_idle(gpointer gself)
@@ -118,11 +143,11 @@ private:
 
         ca_proplist* props = nullptr;
         ca_proplist_create(&props);
-        ca_proplist_sets(props, CA_PROP_MEDIA_FILENAME, m_filename.c_str());
-        ca_proplist_setf(props, CA_PROP_CANBERRA_VOLUME, "%f", get_decibel_multiplier(m_volume));
+        ca_proplist_sets(props, CA_PROP_MEDIA_FILENAME, m_properties.filename.c_str());
+        ca_proplist_setf(props, CA_PROP_CANBERRA_VOLUME, "%f", get_decibel_multiplier(m_properties.volume));
         const auto rv = ca_context_play_full(context, m_canberra_id, props, on_done_playing, this);
         if (rv != CA_SUCCESS)
-            g_warning("Failed to play file '%s': %s", m_filename.c_str(), ca_strerror(rv));
+            g_warning("Failed to play file '%s': %s", m_properties.filename.c_str(), ca_strerror(rv));
 
         g_clear_pointer(&props, ca_proplist_destroy);
     }
@@ -153,9 +178,9 @@ private:
 
     ca_context* m_context = nullptr;
     guint m_timeout_tag = 0;
-    const std::string m_filename;
-    const AlarmVolume m_volume;
+    const Properties m_properties;
     const int32_t m_canberra_id;
+    const DateTime m_cutoff;
 };
 
 /**
@@ -167,11 +192,9 @@ class Popup
 public:
 
     Popup(const Appointment& appointment,
-          const std::string& sound_filename,
-          const AlarmVolume sound_volume):
+          const Sound::Properties& sound_properties):
         m_appointment(appointment),
-        m_sound_filename(sound_filename),
-        m_sound_volume(sound_volume),
+        m_sound_properties(sound_properties),
         m_mode(get_mode())
     {
         show();
@@ -230,10 +253,11 @@ private:
             shown = false;
         }
 
-        // if we were able to show a popup that requires user response,
-        // play the sound in a loop
-        if (shown && (m_mode == MODE_SNAP))
-            m_sound.reset(new LoopedSound(m_sound_filename, m_sound_volume));
+        // Loop the sound *only* if we're prompting the user for a response.
+        // Otherwise, just play the sound once.
+        Sound::Properties tmp = m_sound_properties;
+        tmp.loop = shown && (m_mode == MODE_SNAP);
+        m_sound.reset(new Sound(tmp));
 
         // if showing the notification didn't work,
         // treat it as if the user clicked the 'show' button
@@ -329,10 +353,9 @@ private:
     typedef Popup Self;
 
     const Appointment m_appointment;
-    const std::string m_sound_filename;
-    const AlarmVolume m_sound_volume;
+    const Sound::Properties m_sound_properties;
     const Mode m_mode;
-    std::unique_ptr<LoopedSound> m_sound;
+    std::unique_ptr<Sound> m_sound;
     core::Signal<Response> m_response;
     Response m_response_value = RESPONSE_CLOSE;
     NotifyNotification* m_nn = nullptr;
@@ -359,22 +382,26 @@ std::string get_local_filename (const std::string& str)
 {
     std::string ret;
 
-    // maybe try it as a file path
-    if (ret.empty() && !str.empty())
+    if (!str.empty())
     {
-        auto file = g_file_new_for_path (str.c_str());
-        if (g_file_is_native(file) && g_file_query_exists(file,nullptr))
-            ret = g_file_get_path(file);
-        g_clear_object(&file);
-    }
+        GFile* files[] = { g_file_new_for_path(str.c_str()),
+                           g_file_new_for_uri(str.c_str()) };
 
-    // maybe try it as a uri
-    if (ret.empty() && !str.empty())
-    {
-        auto file = g_file_new_for_uri (str.c_str());
-        if (g_file_is_native(file) && g_file_query_exists(file,nullptr))
-            ret = g_file_get_path(file);
-        g_clear_object(&file);
+        for(auto& file : files)
+        {
+            if (g_file_is_native(file) && g_file_query_exists(file,nullptr))
+            {
+                char * tmp = g_file_get_path(file);
+                ret = tmp;
+                g_free(tmp);
+            }
+
+            if (!ret.empty())
+                break;
+        }
+
+        for(auto& file : files)
+            g_object_unref(file);
     }
 
     return ret;
@@ -411,7 +438,9 @@ std::string get_alarm_sound(const Appointment& appointment,
 ****
 ***/
 
-Snap::Snap(const std::shared_ptr<const Settings>& settings):
+Snap::Snap(const std::shared_ptr<Clock>& clock,
+           const std::shared_ptr<const Settings>& settings):
+    m_clock(clock),
     m_settings(settings)
 {
     first_time_init();
@@ -431,10 +460,13 @@ void Snap::operator()(const Appointment& appointment,
         return;
     }
 
+    const Sound::Properties sound_properties { m_clock,
+                                               get_alarm_sound(appointment, m_settings),
+                                               m_settings->alarm_volume.get(),
+                                               m_settings->alarm_duration.get() };
+
     // create a popup...
-    auto popup = new Popup(appointment,
-                           get_alarm_sound(appointment, m_settings),
-                           m_settings->alarm_volume.get());
+    auto popup = new Popup(appointment, sound_properties);
      
     // listen for it to finish...
     popup->response().connect([appointment,

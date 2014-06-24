@@ -21,10 +21,14 @@
 #include <datetime/appointment.h>
 #include <datetime/settings-live.h>
 #include <datetime/snap.h>
+#include <datetime/timezones-live.h>
 
 #include <glib.h>
 
 using namespace unity::indicator::datetime;
+
+#define TIMEZONE_FILE ("/etc/timezone")
+
 
 /***
 ****
@@ -70,7 +74,9 @@ int main()
     g_debug("SCHEMA_DIR is %s", SCHEMA_DIR);
 
     auto settings = std::make_shared<LiveSettings>();
-    Snap snap (settings);
+    auto timezones = std::make_shared<LiveTimezones>(settings, TIMEZONE_FILE);
+    auto clock = std::make_shared<LiveClock>(timezones);
+    Snap snap (clock, settings);
     snap(a, show, dismiss);
     g_main_loop_run(loop);
     g_main_loop_unref(loop);
