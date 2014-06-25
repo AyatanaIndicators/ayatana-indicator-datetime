@@ -2,7 +2,6 @@ Source: indicator-datetime
 Section: misc
 Priority: optional
 Maintainer: Ubuntu Desktop Team <ubuntu-desktop@lists.ubuntu.com>
-
 # g++-4.9: since we use c++11 features, explicitly select a g++ version
 #          to protect from ABI breaks in libstdc++
 # language-pack-en-base: needed so unit tests can use 12h and 24h locales
