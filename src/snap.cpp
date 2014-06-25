@@ -52,30 +52,28 @@ class Sound
 
 public:
 
-    struct Properties
-    {
-        std::shared_ptr<Clock> clock;
-        std::string filename;
-        AlarmVolume volume;
-        int duration_minutes;
-        bool loop;
-    };
-
-    Sound(const Properties& properties):
-        m_properties(properties),
+    Sound(const std::shared_ptr<Clock>& clock,
+          const std::string& filename,
+          AlarmVolume volume,
+          int duration_minutes,
+          bool loop):
+        m_clock(clock),
+        m_filename(filename),
+        m_volume(volume),
+        m_duration_minutes(duration_minutes),
+        m_loop(loop),
         m_canberra_id(get_next_canberra_id()),
-        m_loop_end_time(properties.clock->localtime().add_full(0, 0, 0, 0,
-                                              properties.duration_minutes, 0.0))
+        m_loop_end_time(clock->localtime().add_full(0, 0, 0, 0, duration_minutes, 0.0))
     {
-        if (m_properties.loop)
+        if (m_loop)
         {
             g_debug("Looping '%s' until cutoff time %s",
-                    m_properties.filename.c_str(),
+                    m_filename.c_str(),
                     m_loop_end_time.format("%F %T").c_str());
         }
         else
         {
-            g_debug("Playing '%s' once", m_properties.filename.c_str());
+            g_debug("Playing '%s' once", m_filename.c_str());
         }
 
         const auto rv = ca_context_create(&m_context);
@@ -120,8 +118,8 @@ private:
         auto context = m_context;
         g_return_if_fail(context != nullptr);
 
-        const auto filename = m_properties.filename.c_str();
-        const float gain = get_gain_level(m_properties.volume);
+        const auto filename = m_filename.c_str();
+        const float gain = get_gain_level(m_volume);
 
         ca_proplist* props = nullptr;
         ca_proplist_create(&props);
@@ -157,8 +155,8 @@ private:
         {
             auto self = static_cast<Self*>(gself);
             if ((self->m_loop_tag == 0) &&
-                (self->m_properties.loop) &&
-                (self->m_properties.clock->localtime() < self->m_loop_end_time))
+                (self->m_loop) &&
+                (self->m_clock->localtime() < self->m_loop_end_time))
             {
                 self->m_loop_tag = g_timeout_add_seconds(1, play_idle, self);
             }
@@ -183,11 +181,40 @@ private:
         return next_canberra_id++;
     }
 
-    const Properties m_properties;
+    const std::shared_ptr<Clock> m_clock;
+    const std::string m_filename;
+    const AlarmVolume m_volume;
+    const int m_duration_minutes;
+    const bool m_loop;
     const int32_t m_canberra_id;
     const DateTime m_loop_end_time;
     ca_context* m_context = nullptr;
     guint m_loop_tag = 0;
+};
+
+class SoundBuilder
+{
+public:
+    void set_clock(const std::shared_ptr<Clock>& c) {m_clock = c;}
+    void set_filename(const std::string& s) {m_filename = s;}
+    void set_volume(const AlarmVolume v) {m_volume = v;}
+    void set_duration_minutes(int i) {m_duration_minutes=i;}
+    void set_looping(bool b) {m_looping=b;}
+
+    Sound* operator()() {
+        return new Sound (m_clock,
+                          m_filename,
+                          m_volume,
+                          m_duration_minutes,
+                          m_looping);
+    }
+
+private:
+    std::shared_ptr<Clock> m_clock;
+    std::string m_filename;
+    AlarmVolume m_volume = ALARM_VOLUME_NORMAL;
+    int m_duration_minutes = 30;
+    bool m_looping = true;
 };
 
 /**
@@ -198,11 +225,10 @@ class Popup
 {
 public:
 
-    Popup(const Appointment& appointment,
-          const Sound::Properties& sound_properties):
+    Popup(const Appointment& appointment, const SoundBuilder& sound_builder):
         m_appointment(appointment),
-        m_sound_properties(sound_properties),
-        m_interactive(get_interactive())
+        m_interactive(get_interactive()),
+        m_sound_builder(sound_builder)
     {
         // ensure notify_init() is called once
         // before we start popping up dialogs
@@ -281,9 +307,8 @@ private:
 
         // Loop the sound *only* if we're prompting the user for a response.
         // Otherwise, just play the sound once.
-        Sound::Properties tmp = m_sound_properties;
-        tmp.loop = shown && m_interactive;
-        m_sound.reset(new Sound(tmp));
+        m_sound_builder.set_looping (shown && m_interactive);
+        m_sound.reset (m_sound_builder());
 
         // if showing the notification didn't work,
         // treat it as if the user clicked the 'show' button
@@ -363,8 +388,8 @@ private:
     typedef Popup Self;
 
     const Appointment m_appointment;
-    const Sound::Properties m_sound_properties;
     const bool m_interactive;
+    SoundBuilder m_sound_builder;
     std::unique_ptr<Sound> m_sound;
     core::Signal<Response> m_response;
     Response m_response_value = RESPONSE_CLOSE;
@@ -458,11 +483,12 @@ void Snap::operator()(const Appointment& appointment,
     }
 
     // create a popup...
-    const Sound::Properties sp {m_clock,
-                                get_alarm_sound(appointment, m_settings),
-                                m_settings->alarm_volume.get(),
-                                m_settings->alarm_duration.get()};
-    auto popup = new Popup(appointment, sp);
+    SoundBuilder sound_builder;
+    sound_builder.set_filename(get_alarm_sound(appointment, m_settings));
+    sound_builder.set_volume(m_settings->alarm_volume.get());
+    sound_builder.set_clock(m_clock);
+    sound_builder.set_duration_minutes(m_settings->alarm_duration.get());
+    auto popup = new Popup(appointment, sound_builder);
      
     // listen for it to finish...
     popup->response().connect([appointment,
