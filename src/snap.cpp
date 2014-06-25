@@ -141,8 +141,8 @@ private:
         {
             case ALARM_VOLUME_VERY_QUIET: return -8;
             case ALARM_VOLUME_QUIET:      return -4;
-            case ALARM_VOLUME_VERY_LOUD:  return  8;
             case ALARM_VOLUME_LOUD:       return  4;
+            case ALARM_VOLUME_VERY_LOUD:  return  8;
             default:                      return  0;
         }
     }
