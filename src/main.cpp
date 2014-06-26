@@ -164,7 +164,7 @@ main(int /*argc*/, char** /*argv*/)
     // export them & run until we lose the busname
     auto loop = g_main_loop_new(nullptr, false);
     Exporter exporter;
-    exporter.name_lost.connect([loop](){
+    exporter.name_lost().connect([loop](){
         g_message("%s exiting; failed/lost bus ownership", GETTEXT_PACKAGE);
         g_main_loop_quit(loop);
     });

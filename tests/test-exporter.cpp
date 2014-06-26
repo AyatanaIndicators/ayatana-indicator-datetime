@@ -122,7 +122,7 @@ TEST_F(ExporterFixture, Publish)
     // try closing the connection prematurely
     // to test Exporter's name-lost signal
     bool name_lost = false;
-    exporter.name_lost.connect([this,&name_lost](){
+    exporter.name_lost().connect([this,&name_lost](){
         name_lost = true;
         g_main_loop_quit(loop);
     });

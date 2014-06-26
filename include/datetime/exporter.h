@@ -25,8 +25,6 @@
 
 #include <core/signal.h>
 
-#include <gio/gio.h> // GActionGroup
-
 #include <memory> // std::shared_ptr
 #include <vector>
 
@@ -40,31 +38,21 @@ namespace datetime {
 class Exporter
 {
 public:
-    Exporter() =default;
+    Exporter();
     ~Exporter();
 
-    core::Signal<> name_lost;
+    core::Signal<>& name_lost();
 
     void publish(const std::shared_ptr<Actions>& actions,
                  const std::vector<std::shared_ptr<Menu>>& menus);
 
 private:
-    static void on_bus_acquired(GDBusConnection*, const gchar *name, gpointer gthis);
-    void on_bus_acquired(GDBusConnection*, const gchar *name);
+    class Impl;
+    std::unique_ptr<Impl> p;
 
-    static void on_name_lost(GDBusConnection*, const gchar *name, gpointer gthis);
-    void on_name_lost(GDBusConnection*, const gchar *name);
-
-    std::set<guint> m_exported_menu_ids;
-    guint m_own_id = 0;
-    guint m_exported_actions_id = 0;
-    GDBusConnection * m_dbus_connection = nullptr;
-    std::shared_ptr<Actions> m_actions;
-    std::vector<std::shared_ptr<Menu>> m_menus;
-
-    // we've got raw pointers and gsignal tags in here, so disable copying
-    Exporter(const Exporter&) =delete;
-    Exporter& operator=(const Exporter&) =delete;
+    // disable copying 
+    Exporter(const Exporter&) =delete; 
+    Exporter& operator=(const Exporter&) =delete; 
 };
 
 } // namespace datetime
