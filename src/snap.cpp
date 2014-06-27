@@ -60,7 +60,6 @@ public:
         m_clock(clock),
         m_filename(filename),
         m_volume(volume),
-        m_duration_minutes(duration_minutes),
         m_loop(loop),
         m_canberra_id(get_next_canberra_id()),
         m_loop_end_time(clock->localtime().add_full(0, 0, 0, 0, duration_minutes, 0.0))
@@ -184,7 +183,6 @@ private:
     const std::shared_ptr<Clock> m_clock;
     const std::string m_filename;
     const AlarmVolume m_volume;
-    const int m_duration_minutes;
     const bool m_loop;
     const int32_t m_canberra_id;
     const DateTime m_loop_end_time;
