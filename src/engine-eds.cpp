@@ -41,8 +41,7 @@ class EdsEngine::Impl
 {
 public:
 
-    Impl(EdsEngine& owner):
-        m_owner(owner),
+    Impl():
         m_cancellable(g_cancellable_new())
     {
         e_source_registry_new(m_cancellable, on_source_registry_ready, this);
@@ -492,7 +491,6 @@ private:
         return G_SOURCE_CONTINUE;
     }
  
-    EdsEngine& m_owner;
     core::Signal<> m_changed;
     std::set<ESource*> m_sources;
     std::map<ESource*,ECalClient*> m_clients;
@@ -508,7 +506,7 @@ private:
 ***/
 
 EdsEngine::EdsEngine():
-    p(new Impl(*this))
+    p(new Impl())
 {
 }
 
