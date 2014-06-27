@@ -130,7 +130,7 @@
 			  If an alarm doesn't specify its own sound file, this file will be used as the fallback sound.
 			</_description>
 		</key>
-		<key name="alarm-default-volume" type="i">
+		<key name="alarm-default-volume" type="u">
 			<range min="1" max="100"/>
 			<default>50</default>
 			<_summary>The alarm's default volume level.</_summary>
@@ -138,7 +138,7 @@
 			  The volume at which alarms will be played.
 			</_description>
 		</key>
-		<key name="alarm-duration-minutes" type="i">
+		<key name="alarm-duration-minutes" type="u">
 			<range min="1" max="60"/>
 			<default>30</default>
 			<_summary>The alarm's duration.</_summary>

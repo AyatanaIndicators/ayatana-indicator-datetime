@@ -107,20 +107,22 @@ private:
                          G_CALLBACK(on_gobject_notify_string), &p);
 
         // when the Settings changes, update the GObject
-        p.changed().connect([o, propname](const std::string& s){
-            g_object_set(o, propname, s.c_str(), nullptr);
+        p.changed().connect([o, propname](const std::string& val){
+            g_object_set(o, propname, val.c_str(), nullptr);
         });
     }
 
 
     static void
-    on_gobject_notify_int(GObject* o, GParamSpec* pspec, gpointer p)
+    on_gobject_notify_uint(GObject* o, GParamSpec* pspec, gpointer p)
     {
-        int val = 0;
+        uint val = 0;
         g_object_get (o, pspec->name, &val, nullptr);
-        static_cast<core::Property<int>*>(p)->set(val);
+        static_cast<core::Property<unsigned int>*>(p)->set(val);
     }
-    void bind_int_property(gpointer o, const char* propname, core::Property<int>& p)
+    void bind_uint_property(gpointer o,
+                            const char* propname,
+                            core::Property<unsigned int>& p)
     {
         // initialize the GObject property from the Settings
         g_object_set(o, propname, p.get(), nullptr);
@@ -128,19 +130,19 @@ private:
         // when the GObject changes, update the Settings
         const std::string notify_propname = std::string("notify::") + propname;
         g_signal_connect(o, notify_propname.c_str(),
-                         G_CALLBACK(on_gobject_notify_int), &p);
+                         G_CALLBACK(on_gobject_notify_uint), &p);
 
         // when the Settings changes, update the GObject
-        p.changed().connect([o, propname](int i){
-            g_object_set(o, propname, i, nullptr);
+        p.changed().connect([o, propname](unsigned int val){
+            g_object_set(o, propname, val, nullptr);
         });
     }
 
 
     void alarm_properties_init()
     {
-        bind_int_property(m_alarm_props, "duration", m_settings->alarm_duration);
-        bind_int_property(m_alarm_props, "default-volume", m_settings->alarm_volume);
+        bind_uint_property(m_alarm_props, "duration", m_settings->alarm_duration);
+        bind_uint_property(m_alarm_props, "default-volume", m_settings->alarm_volume);
         bind_string_property(m_alarm_props, "default-sound", m_settings->alarm_sound);
     }
 

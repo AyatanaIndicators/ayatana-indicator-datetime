@@ -123,12 +123,12 @@ LiveSettings::LiveSettings():
         g_settings_set_string(m_settings, SETTINGS_ALARM_SOUND_S, value.c_str());
     });
 
-    alarm_volume.changed().connect([this](int value){
-        g_settings_set_int(m_settings, SETTINGS_ALARM_VOLUME_S, value);
+    alarm_volume.changed().connect([this](unsigned int value){
+        g_settings_set_uint(m_settings, SETTINGS_ALARM_VOLUME_S, value);
     });
 
-    alarm_duration.changed().connect([this](int value){
-        g_settings_set_int(m_settings, SETTINGS_ALARM_DURATION_S, value);
+    alarm_duration.changed().connect([this](unsigned int value){
+        g_settings_set_uint(m_settings, SETTINGS_ALARM_DURATION_S, value);
     });
 }
 
@@ -229,12 +229,12 @@ void LiveSettings::update_alarm_sound()
 
 void LiveSettings::update_alarm_volume()
 {
-    alarm_volume.set(g_settings_get_int(m_settings, SETTINGS_ALARM_VOLUME_S));
+    alarm_volume.set(g_settings_get_uint(m_settings, SETTINGS_ALARM_VOLUME_S));
 }
 
 void LiveSettings::update_alarm_duration()
 {
-    alarm_duration.set(g_settings_get_int(m_settings, SETTINGS_ALARM_DURATION_S));
+    alarm_duration.set(g_settings_get_uint(m_settings, SETTINGS_ALARM_DURATION_S));
 }
 
 /***

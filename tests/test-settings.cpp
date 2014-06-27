@@ -101,26 +101,26 @@ protected:
         g_clear_pointer(&tmp, g_free);
     }
 
-    void TestIntProperty(core::Property<int>& property, const gchar* key)
+    void TestUIntProperty(core::Property<unsigned int>& property, const gchar* key)
     {
-        EXPECT_EQ(g_settings_get_int(m_gsettings, key), property.get());
+        EXPECT_EQ(g_settings_get_uint(m_gsettings, key), property.get());
 
-        int expected_values[] = { 1, 2, 3 };
+        unsigned int expected_values[] = { 1, 2, 3 };
 
         // modify GSettings and confirm that the new value is propagated
-        for(const int& expected_value : expected_values)
+        for(const auto& expected_value : expected_values)
         {
-            g_settings_set_int(m_gsettings, key, expected_value);
+            g_settings_set_uint(m_gsettings, key, expected_value);
             EXPECT_EQ(expected_value, property.get());
-            EXPECT_EQ(expected_value, g_settings_get_int(m_gsettings, key));
+            EXPECT_EQ(expected_value, g_settings_get_uint(m_gsettings, key));
         }
 
         // modify the property and confirm that the new value is propagated
-        for(const int& expected_value : expected_values)
+        for(const auto& expected_value : expected_values)
         {
             property.set(expected_value);
             EXPECT_EQ(expected_value, property.get());
-            EXPECT_EQ(expected_value, g_settings_get_int(m_gsettings, key));
+            EXPECT_EQ(expected_value, g_settings_get_uint(m_gsettings, key));
         }
     }
 };
@@ -148,10 +148,10 @@ TEST_F(SettingsFixture, BoolProperties)
     TestBoolProperty(m_settings->show_year, SETTINGS_SHOW_YEAR_S);
 }
 
-TEST_F(SettingsFixture, IntProperties)
+TEST_F(SettingsFixture, UIntProperties)
 {
-    TestIntProperty(m_settings->alarm_duration, SETTINGS_ALARM_DURATION_S);
-    TestIntProperty(m_settings->alarm_volume, SETTINGS_ALARM_VOLUME_S);
+    TestUIntProperty(m_settings->alarm_duration, SETTINGS_ALARM_DURATION_S);
+    TestUIntProperty(m_settings->alarm_volume, SETTINGS_ALARM_VOLUME_S);
 }
 
 TEST_F(SettingsFixture, StringProperties)

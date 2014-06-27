@@ -54,8 +54,8 @@ public:
 
     Sound(const std::shared_ptr<Clock>& clock,
           const std::string& filename,
-          int volume,
-          int duration_minutes,
+          unsigned int volume,
+          unsigned int duration_minutes,
           bool loop):
         m_clock(clock),
         m_filename(filename),
@@ -132,9 +132,9 @@ private:
         g_clear_pointer(&props, ca_proplist_destroy);
     }
 
-    static float get_gain_level(int volume)
+    static float get_gain_level(unsigned int volume)
     {
-        const int clamped_volume = CLAMP(volume, 1, 100);
+        const unsigned int clamped_volume = CLAMP(volume, 1, 100);
 
         /* This range isn't set in stone --
            arrived at from manual tests on Nextus 4 */
@@ -181,7 +181,7 @@ private:
 
     const std::shared_ptr<Clock> m_clock;
     const std::string m_filename;
-    const int m_volume;
+    const unsigned int m_volume;
     const bool m_loop;
     const int32_t m_canberra_id;
     const DateTime m_loop_end_time;
@@ -194,8 +194,8 @@ class SoundBuilder
 public:
     void set_clock(const std::shared_ptr<Clock>& c) {m_clock = c;}
     void set_filename(const std::string& s) {m_filename = s;}
-    void set_volume(const int v) {m_volume = v;}
-    void set_duration_minutes(int i) {m_duration_minutes=i;}
+    void set_volume(const unsigned int v) {m_volume = v;}
+    void set_duration_minutes(int unsigned i) {m_duration_minutes=i;}
     void set_looping(bool b) {m_looping=b;}
 
     Sound* operator()() {
@@ -209,8 +209,8 @@ public:
 private:
     std::shared_ptr<Clock> m_clock;
     std::string m_filename;
-    int m_volume = 50;
-    int m_duration_minutes = 30;
+    unsigned int m_volume = 50;
+    unsigned int m_duration_minutes = 30;
     bool m_looping = true;
 };
 
