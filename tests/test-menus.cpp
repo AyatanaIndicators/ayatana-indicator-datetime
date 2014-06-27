@@ -484,7 +484,7 @@ TEST_F(MenuFixture, HelloWorld)
     EXPECT_EQ(Menu::NUM_PROFILES, m_menus.size());
     for (int i=0; i<Menu::NUM_PROFILES; i++)
     {
-        EXPECT_TRUE(m_menus[i] != false);
+        EXPECT_TRUE(m_menus[i].get() != nullptr);
         EXPECT_TRUE(m_menus[i]->menu_model() != nullptr);
         EXPECT_EQ(i, m_menus[i]->profile());
     }
