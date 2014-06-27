@@ -151,6 +151,7 @@ TEST_F(SettingsFixture, BoolProperties)
 TEST_F(SettingsFixture, IntProperties)
 {
     TestIntProperty(m_settings->alarm_duration, SETTINGS_ALARM_DURATION_S);
+    TestIntProperty(m_settings->alarm_volume, SETTINGS_ALARM_VOLUME_S);
 }
 
 TEST_F(SettingsFixture, StringProperties)
@@ -180,31 +181,6 @@ TEST_F(SettingsFixture, TimeFormatMode)
         EXPECT_EQ(mode, g_settings_get_enum(m_gsettings, key));
     }
 }
-
-TEST_F(SettingsFixture, AlarmVolume)
-{
-    const auto key = SETTINGS_ALARM_VOLUME_S;
-    const AlarmVolume volumes[] = { ALARM_VOLUME_VERY_QUIET,
-                                    ALARM_VOLUME_QUIET,
-                                    ALARM_VOLUME_NORMAL,
-                                    ALARM_VOLUME_LOUD,
-                                    ALARM_VOLUME_VERY_LOUD };
-
-    for(const auto& val : volumes)
-    {
-        g_settings_set_enum(m_gsettings, key, val);
-        EXPECT_EQ(val, m_settings->alarm_volume.get());
-        EXPECT_EQ(val, g_settings_get_enum(m_gsettings, key));
-    }
-
-    for(const auto& val : volumes)
-    {
-        m_settings->alarm_volume.set(val);
-        EXPECT_EQ(val, m_settings->alarm_volume.get());
-        EXPECT_EQ(val, g_settings_get_enum(m_gsettings, key));
-    }
-}
-
 
 namespace
 {

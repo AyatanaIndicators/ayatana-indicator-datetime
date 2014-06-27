@@ -41,10 +41,29 @@ namespace
         g_main_loop_quit(static_cast<GMainLoop*>(gloop));
         return G_SOURCE_REMOVE;
     };
+
+    int volume = 50;
+
+    GOptionEntry entries[] =
+    {
+        { "volume", 'v', 0, G_OPTION_ARG_INT, &volume, "Volume level [1..100]", "volume" },
+        { NULL }
+    };
 }
 
-int main()
+int main(int argc, const char* argv[])
 {
+    GError* error = nullptr;
+    GOptionContext* context = g_option_context_new(nullptr);
+    g_option_context_add_main_entries(context, entries, nullptr);
+    if (!g_option_context_parse(context, &argc, (gchar***)&argv, &error))
+    {
+        g_print("option parsing failed: %s\n", error->message);
+        exit(1);
+    }
+    g_option_context_free(context);
+    volume = CLAMP(volume, 1, 100);
+
     Appointment a;
     a.color = "green";
     a.summary = "Alarm";
@@ -74,6 +93,7 @@ int main()
     g_debug("SCHEMA_DIR is %s", SCHEMA_DIR);
 
     auto settings = std::make_shared<LiveSettings>();
+    settings->alarm_volume.set(volume);
     auto timezones = std::make_shared<LiveTimezones>(settings, TIMEZONE_FILE);
     auto clock = std::make_shared<LiveClock>(timezones);
     Snap snap (clock, settings);

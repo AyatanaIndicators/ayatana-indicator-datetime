@@ -183,7 +183,7 @@ TEST_F(ExporterFixture, AlarmProperties)
     **** Try changing the Settings -- do the DBus properties change to match it?
     ***/
 
-    auto expected_volume = ALARM_VOLUME_VERY_LOUD;
+    auto expected_volume = 1;
     int expected_duration = 60;
     const char * expected_sound = "/tmp/foo.wav";
     settings->alarm_volume.set(expected_volume);
@@ -210,7 +210,7 @@ TEST_F(ExporterFixture, AlarmProperties)
     **** Try chaning the DBus properties -- do the Settings change to match it?
     ***/
 
-    expected_volume = ALARM_VOLUME_VERY_QUIET;
+    expected_volume = 100;
     expected_duration = 30;
     expected_sound = "/tmp/bar.wav";
     g_object_set(proxy, SOUND_PROP, expected_sound,

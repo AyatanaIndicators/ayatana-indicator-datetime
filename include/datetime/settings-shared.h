@@ -30,16 +30,6 @@ typedef enum
 }
 TimeFormatMode;
 
-typedef enum
-{
-  ALARM_VOLUME_VERY_QUIET,
-  ALARM_VOLUME_QUIET,
-  ALARM_VOLUME_NORMAL,
-  ALARM_VOLUME_LOUD,
-  ALARM_VOLUME_VERY_LOUD
-}
-AlarmVolume;
-
 #define SETTINGS_INTERFACE              "com.canonical.indicator.datetime"
 #define SETTINGS_SHOW_CLOCK_S           "show-clock"
 #define SETTINGS_TIME_FORMAT_S          "time-format"

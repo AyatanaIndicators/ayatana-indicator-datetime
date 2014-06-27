@@ -54,7 +54,7 @@ public:
 
     Sound(const std::shared_ptr<Clock>& clock,
           const std::string& filename,
-          AlarmVolume volume,
+          int volume,
           int duration_minutes,
           bool loop):
         m_clock(clock),
@@ -132,18 +132,17 @@ private:
         g_clear_pointer(&props, ca_proplist_destroy);
     }
 
-    static float get_gain_level(const AlarmVolume volume)
+    static float get_gain_level(int volume)
     {
-        /* These values aren't set in stone -- 
-           arrived at from from manual tests on Nexus 4 */
-        switch (volume)
-        {
-            case ALARM_VOLUME_VERY_QUIET: return -8;
-            case ALARM_VOLUME_QUIET:      return -4;
-            case ALARM_VOLUME_LOUD:       return  4;
-            case ALARM_VOLUME_VERY_LOUD:  return  8;
-            default:                      return  0;
-        }
+        const int clamped_volume = CLAMP(volume, 1, 100);
+
+        /* This range isn't set in stone --
+           arrived at from manual tests on Nextus 4 */
+        constexpr float gain_low = -10;
+        constexpr float gain_high = 10;
+
+        constexpr float gain_range = gain_high - gain_low;
+        return gain_low + (gain_range * (clamped_volume / 100.0f));
     }
 
     static void on_done_playing(ca_context*, uint32_t, int rv, void* gself)
@@ -182,7 +181,7 @@ private:
 
     const std::shared_ptr<Clock> m_clock;
     const std::string m_filename;
-    const AlarmVolume m_volume;
+    const int m_volume;
     const bool m_loop;
     const int32_t m_canberra_id;
     const DateTime m_loop_end_time;
@@ -195,7 +194,7 @@ class SoundBuilder
 public:
     void set_clock(const std::shared_ptr<Clock>& c) {m_clock = c;}
     void set_filename(const std::string& s) {m_filename = s;}
-    void set_volume(const AlarmVolume v) {m_volume = v;}
+    void set_volume(const int v) {m_volume = v;}
     void set_duration_minutes(int i) {m_duration_minutes=i;}
     void set_looping(bool b) {m_looping=b;}
 
@@ -210,7 +209,7 @@ public:
 private:
     std::shared_ptr<Clock> m_clock;
     std::string m_filename;
-    AlarmVolume m_volume = ALARM_VOLUME_NORMAL;
+    int m_volume = 50;
     int m_duration_minutes = 30;
     bool m_looping = true;
 };

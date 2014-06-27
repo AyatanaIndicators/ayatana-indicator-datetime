@@ -137,34 +137,10 @@ private:
     }
 
 
-    static void
-    on_gobject_notify_volume(GObject* o, GParamSpec* pspec, gpointer p)
-    {
-        int val = 0;
-        g_object_get (o, pspec->name, &val, nullptr);
-        static_cast<core::Property<AlarmVolume>*>(p)->set(AlarmVolume(val));
-    }
-    void bind_volume_property(gpointer o, const char* propname, core::Property<AlarmVolume>& p)
-    {
-        // initialize the GObject property from the Settings
-        g_object_set(o, propname, (int)p.get(), nullptr);
-
-        // when the GObject changes, update the Settings
-        const std::string notify_propname = std::string("notify::") + propname;
-        g_signal_connect(o, notify_propname.c_str(),
-                         G_CALLBACK(on_gobject_notify_volume), &p);
-
-        // when the Settings changes, update the GObject
-        p.changed().connect([o, propname](AlarmVolume i){
-            g_object_set(o, propname, (int)i, nullptr);
-        });
-    }
-
-
     void alarm_properties_init()
     {
         bind_int_property(m_alarm_props, "duration", m_settings->alarm_duration);
-        bind_volume_property(m_alarm_props, "default-volume", m_settings->alarm_volume);
+        bind_int_property(m_alarm_props, "default-volume", m_settings->alarm_volume);
         bind_string_property(m_alarm_props, "default-sound", m_settings->alarm_sound);
     }
 
