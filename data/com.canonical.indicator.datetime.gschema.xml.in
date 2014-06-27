@@ -8,143 +8,143 @@
 	<schema id="com.canonical.indicator.datetime" path="/com/canonical/indicator/datetime/" gettext-domain="indicator-datetime">
 		<key name="show-clock" type="b">
 			<default>true</default>
-			<summary>Show the clock in the panel</summary>
-			<description>
+			<_summary>Show the clock in the panel</_summary>
+			<_description>
 			  Controls whether the clock indicator appears in the panel or not.
-			</description>
+			</_description>
 		</key>
 		<key name="time-format" enum="time-enum">
 			<default>'locale-default'</default>
-			<summary>What the time format should be</summary>
-			<description>
+			<_summary>What the time format should be</_summary>
+			<_description>
 			  Controls the time format that is displayed in the indicator.  For almost
 			  all users this should be the default for their locale.  If you think the
 			  setting is wrong for your locale please join or talk to the translation
 			  team for your language.  If you just want something different you can
 			  adjust this to be either 12 or 24 time.  Or, you can use a custom format
 			  string and set the custom-time-format setting.
-			</description>
+			</_description>
 		</key>
 		<key name="custom-time-format" type="s">
 			<default>"%l:%M %p"</default>
-			<summary>The format string passed to strftime</summary>
-			<description>
+			<_summary>The format string passed to strftime</_summary>
+			<_description>
 			  The format of the time and/or date that is visible on the panel when using
 			  the indicator.  For most users this will be a set of predefined values as
 			  determined by the configuration utility, but advanced users can change it
 			  to anything strftime can accept.  Look at the man page on strftime for
 			  more information.
-			</description>
+			</_description>
 		</key>
 		<key name="show-seconds" type="b">
 			<default>false</default>
-			<summary>Show the number of seconds in the indicator</summary>
-			<description>
+			<_summary>Show the number of seconds in the indicator</_summary>
+			<_description>
 			  Makes the datetime indicator show the number of seconds in the indicator.
 			  It's important to note that this will cause additional battery drain as
 			  the time will update 60 times as often, so it is not recommended.  Also,
 			  this setting will be ignored if the time-format value is set to custom.
-			</description>
+			</_description>
 		</key>
 		<key name="show-day" type="b">
 			<default>false</default>
-			<summary>Show the day of the week in the indicator</summary>
-			<description>
+			<_summary>Show the day of the week in the indicator</_summary>
+			<_description>
 			  Puts the day of the week on the panel along with the time and/or date
 			  depending on settings.  This setting will be ignored if the time-format
 			  value is set to custom.
-			</description>
+			</_description>
 		</key>
 		<key name="show-date" type="b">
 			<default>false</default>
-			<summary>Show the month and date in the indicator</summary>
-			<description>
+			<_summary>Show the month and date in the indicator</_summary>
+			<_description>
 			  Puts the month and the date in the panel along with the time and/or day
 			  of the week depending on settings.  This setting will be ignored if the
 			  time-format value is set to custom.
-			</description>
+			</_description>
 		</key>
 		<key name="show-year" type="b">
 			<default>false</default>
-			<summary>Show the year in the indicator</summary>
-			<description>
+			<_summary>Show the year in the indicator</_summary>
+			<_description>
 			  Puts the year in the panel along with the month and the date.
 			  This setting will be ignored if either the time-format value is set to custom
 			  or if show-date is set to false.
-			</description>
+			</_description>
 		</key>
 		<key name="show-calendar" type="b">
 			<default>true</default>
-			<summary>Show the monthly calendar in the indicator</summary>
-			<description>
+			<_summary>Show the monthly calendar in the indicator</_summary>
+			<_description>
 			  Puts the monthly calendar in indicator-datetime's menu.
-			</description>
+			</_description>
 		</key>
 		<key name="show-week-numbers" type="b">
 			<default>false</default>
-			<summary>Show week numbers in calendar</summary>
-			<description>
+			<_summary>Show week numbers in calendar</_summary>
+			<_description>
 			  Shows the week numbers in the monthly calendar in indicator-datetime's menu.
-			</description>
+			</_description>
 		</key>
 		<key name="show-events" type="b">
 			<default>true</default>
-			<summary>Show events in the indicator</summary>
-			<description>
+			<_summary>Show events in the indicator</_summary>
+			<_description>
 			  Shows events from Evolution in indicator-datetime's menu.
-			</description>
+			</_description>
 		</key>
 		<key name="show-auto-detected-location" type="b">
 			<default>false</default>
-			<summary>Show the auto-detected location in the indicator</summary>
-			<description>
+			<_summary>Show the auto-detected location in the indicator</_summary>
+			<_description>
 			  Shows your current location (determined from geoclue and /etc/timezone) in indicator-datetime's menu.
-			</description>
+			</_description>
 		</key>
 		<key name="show-locations" type="b">
 			<default>false</default>
-			<summary>Show locations in the indicator</summary>
-			<description>
+			<_summary>Show locations in the indicator</_summary>
+			<_description>
 			  Shows custom defined locations in indicator-datetime's menu.
-			</description>
+			</_description>
 		</key>
 		<key name="locations" type="as">
 			<default>['UTC']</default>
-			<summary>A List of locations</summary>
-			<description>
+			<_summary>A List of locations</_summary>
+			<_description>
 			  Adds the list of locations the user has configured to display in the 
 			  indicator-datetime menu.
-			</description>
+			</_description>
 		</key>
 		<key name="timezone-name" type="s">
 			<default>''</default>
-			<summary>The name of the current timezone</summary>
-			<description>
+			<_summary>The name of the current timezone</_summary>
+			<_description>
 			  Some timezones can be known by many different cities or names.  This setting describes how the current zone prefers to be named.  Format is "TIMEZONE NAME" (e.g. "America/New_York Boston" to name the New_York zone Boston).
-			</description>
+			</_description>
 		</key>
 		<key name="alarm-default-sound" type="s">
 			<default>'/usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg'</default>
-			<summary>The alarm's default sound file.</summary>
-			<description>
+			<_summary>The alarm's default sound file.</_summary>
+			<_description>
 			  If an alarm doesn't specify its own sound file, this file will be used as the fallback sound.
-			</description>
+			</_description>
 		</key>
 		<key name="alarm-default-volume" type="i">
 			<range min="1" max="100"/>
 			<default>50</default>
-			<summary>The alarm's default volume level.</summary>
-			<description>
+			<_summary>The alarm's default volume level.</_summary>
+			<_description>
 			  The volume at which alarms will be played.
-			</description>
+			</_description>
 		</key>
 		<key name="alarm-duration-minutes" type="i">
 			<range min="1" max="60"/>
 			<default>30</default>
-			<summary>The alarm's duration.</summary>
-			<description>
+			<_summary>The alarm's duration.</_summary>
+			<_description>
 			  How long the alarm's sound will be looped if its snap decision is not dismissed by the user.
-			</description>
+			</_description>
 		</key>
 	</schema>
 </schemalist>
