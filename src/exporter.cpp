@@ -20,6 +20,8 @@
 #include <datetime/dbus-shared.h>
 #include <datetime/exporter.h>
 
+#include "dbus-alarm-properties.h"
+
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 
@@ -35,9 +37,11 @@ class Exporter::Impl
 {
 public:
 
-    Impl (Exporter* owner):
-        m_owner(owner)
+    Impl(const std::shared_ptr<Settings>& settings):
+        m_settings(settings),
+        m_alarm_props(datetime_alarm_properties_skeleton_new())
     {
+        alarm_properties_init();
     }
 
     ~Impl()
@@ -50,6 +54,9 @@ public:
             if (m_exported_actions_id)
                 g_dbus_connection_unexport_action_group(m_bus, m_exported_actions_id);
         }
+
+        g_dbus_interface_skeleton_unexport(G_DBUS_INTERFACE_SKELETON(m_alarm_props));
+        g_clear_object(&m_alarm_props);
 
         if (m_own_id)
             g_bus_unown_name(m_own_id);
@@ -76,6 +83,95 @@ public:
 
 private:
 
+    /***
+    ****
+    ***/
+
+    static void
+    on_gobject_notify_string(GObject* o, GParamSpec* pspec, gpointer p)
+    {
+        gchar* val = nullptr;
+        g_object_get (o, pspec->name, &val, nullptr);
+        static_cast<core::Property<std::string>*>(p)->set(val);
+        g_free(val);
+    }
+    void bind_string_property(gpointer o, const char* propname,
+                              core::Property<std::string>& p)
+    {
+        // initialize the GObject property from the Settings
+        g_object_set(o, propname, p.get().c_str(), nullptr);
+
+        // when the GObject changes, update the Settings
+        const std::string notify_propname = std::string("notify::") + propname;
+        g_signal_connect(o, notify_propname.c_str(),
+                         G_CALLBACK(on_gobject_notify_string), &p);
+
+        // when the Settings changes, update the GObject
+        p.changed().connect([o, propname](const std::string& s){
+            g_object_set(o, propname, s.c_str(), nullptr);
+        });
+    }
+
+
+    static void
+    on_gobject_notify_int(GObject* o, GParamSpec* pspec, gpointer p)
+    {
+        int val = 0;
+        g_object_get (o, pspec->name, &val, nullptr);
+        static_cast<core::Property<int>*>(p)->set(val);
+    }
+    void bind_int_property(gpointer o, const char* propname, core::Property<int>& p)
+    {
+        // initialize the GObject property from the Settings
+        g_object_set(o, propname, p.get(), nullptr);
+
+        // when the GObject changes, update the Settings
+        const std::string notify_propname = std::string("notify::") + propname;
+        g_signal_connect(o, notify_propname.c_str(),
+                         G_CALLBACK(on_gobject_notify_int), &p);
+
+        // when the Settings changes, update the GObject
+        p.changed().connect([o, propname](int i){
+            g_object_set(o, propname, i, nullptr);
+        });
+    }
+
+
+    static void
+    on_gobject_notify_volume(GObject* o, GParamSpec* pspec, gpointer p)
+    {
+        int val = 0;
+        g_object_get (o, pspec->name, &val, nullptr);
+        static_cast<core::Property<AlarmVolume>*>(p)->set(AlarmVolume(val));
+    }
+    void bind_volume_property(gpointer o, const char* propname, core::Property<AlarmVolume>& p)
+    {
+        // initialize the GObject property from the Settings
+        g_object_set(o, propname, (int)p.get(), nullptr);
+
+        // when the GObject changes, update the Settings
+        const std::string notify_propname = std::string("notify::") + propname;
+        g_signal_connect(o, notify_propname.c_str(),
+                         G_CALLBACK(on_gobject_notify_volume), &p);
+
+        // when the Settings changes, update the GObject
+        p.changed().connect([o, propname](AlarmVolume i){
+            g_object_set(o, propname, (int)i, nullptr);
+        });
+    }
+
+
+    void alarm_properties_init()
+    {
+        bind_int_property(m_alarm_props, "duration", m_settings->alarm_duration);
+        bind_volume_property(m_alarm_props, "default-volume", m_settings->alarm_volume);
+        bind_string_property(m_alarm_props, "default-sound", m_settings->alarm_sound);
+    }
+
+    /***
+    ****
+    ***/
+
     static void on_bus_acquired(GDBusConnection* connection,
                                 const gchar* name,
                                 gpointer gthis)
@@ -88,8 +184,14 @@ private:
     {
         m_bus = static_cast<GDBusConnection*>(g_object_ref(G_OBJECT(bus)));
 
-        // export the actions
+        // export the alarm properties
         GError * error = nullptr;
+        g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(m_alarm_props),
+                                         m_bus,
+                                         BUS_PATH"/AlarmProperties",
+                                         &error);
+
+        // export the actions
         const auto id = g_dbus_connection_export_action_group(m_bus,
                                                               BUS_PATH,
                                                               m_actions->action_group(),
@@ -136,13 +238,14 @@ private:
     ****
     ***/
 
-    Exporter const * m_owner;
+    std::shared_ptr<Settings> m_settings;
     std::set<guint> m_exported_menu_ids;
     guint m_own_id = 0;
     guint m_exported_actions_id = 0;
     GDBusConnection* m_bus = nullptr;
     std::shared_ptr<Actions> m_actions;
     std::vector<std::shared_ptr<Menu>> m_menus;
+    DatetimeAlarmProperties* m_alarm_props = nullptr;
 };
 
 
@@ -150,8 +253,8 @@ private:
 ****
 ***/
 
-Exporter::Exporter():
-    p(new Impl(this))
+Exporter::Exporter(const std::shared_ptr<Settings>& settings):
+    p(new Impl(settings))
 {
 }
 

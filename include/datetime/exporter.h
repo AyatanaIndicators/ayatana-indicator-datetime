@@ -22,6 +22,7 @@
 
 #include <datetime/actions.h>
 #include <datetime/menu.h>
+#include <datetime/settings.h>
 
 #include <core/signal.h>
 
@@ -38,7 +39,7 @@ namespace datetime {
 class Exporter
 {
 public:
-    Exporter();
+    Exporter(const std::shared_ptr<Settings>&);
     ~Exporter();
 
     core::Signal<>& name_lost();

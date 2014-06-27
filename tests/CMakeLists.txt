@@ -27,8 +27,10 @@ add_custom_command (OUTPUT gschemas.compiled
 
 # look for headers in our src dir, and also in the directories where we autogenerate files...
 include_directories (${CMAKE_SOURCE_DIR}/src)
+include_directories (${CMAKE_BINARY_DIR}/src)
 include_directories (${CMAKE_CURRENT_BINARY_DIR})
 include_directories (${DBUSTEST_INCLUDE_DIRS})
+
 
 add_definitions (-DSANDBOX="${CMAKE_CURRENT_BINARY_DIR}")
 
