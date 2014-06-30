@@ -1,44 +1,35 @@
+* '''Checklist for component''': indicator-datetime
+ * '''Component Test Plan''': https://wiki.ubuntu.com/Process/Merges/TestPlan/indicator-datetime
+ * '''Trunk URL''': lp:indicator-datetime
+ * '''Ubuntu Package URL (LP)''': http://launchpad.net/ubuntu/+source/indicator-datetime
 
 This documents the expections that the project has on what both submitters
 and reviewers should ensure that they've done for a merge into the project.
 
-== Submitter Responsibilities ==
+== MP Submission Checklist Template ==
 
- * Ensure the project compiles and the test suite executes without error
- * Ensure that non-obvious code has comments explaining it
- * If the change affects specific features, please reference the appropriate
-   tags in the merge description so reviewers can test appropriately:
-   [phone profile], [desktop profile], [alarms]
+'''Note: Please ensure you include the following form filled out and submitted along side your code to the MP ticket.'''
 
-== Reviewer Responsibilities ==
+ * Are there any related MPs required for this MP to build/function as expected? Please list.
+ * Is your branch in sync with latest trunk? (e.g. bzr pull lp:trunk -> no changes)
+ * Did the code build without warnings?
+ * Did the tests run successfully?
+ * Did you perform an exploratory manual test run of your code change and any related functionality?
+ * If you changed the packaging (debian), did you subscribe the ubuntu-unity team to this MP?
+ * Has your component test plan been executed successfully on emulator, N4?
+ * Please list which manual tests are germane for the reviewer in this MR.
 
- * Did the Jenkins build compile?  Pass?  Run unit tests successfully?
- * Are there appropriate tests to cover any new functionality?
- * Do the tag-specific tests pass?
+== MP Review Checklist Template ==
 
-== Phone Profile Tests ==
+'''Note: Please ensure you include the following form filled out and submitted along side your code to the MP ticket.'''
 
- * Run tests indicator-datetime/unity8*
+ * Have you checked that the submitter has accurately filled out the submitter checklist and has taken no shortcuts?
+ * Did you run the manual tests listed by the submitter?
+ * Did you do exploratory testing related to the component you own with the MP changeset included?
+ * If new features have been added, are the manual tests sufficient to cover them?
 
-== Desktop Profile Tests ==
+== MP Landing Checklist Template ==
 
- * Run tests indicator-datetime/unity7*
+ * Ensure that the checklists have been properly filled out by submitter and all reviewers
 
-== Alarm Tests ==
-
- * Hardware wakeups for new alarms:
-   1. Create and save an upcoming alarm in ubuntu-clock-app.
-   2. Unplug the phone from any USB connection and put it to sleep.
-   3. Confirm that the alarm sounds on time even if the phone is asleep.
-      (Note: if in doubt about sleep you can see in the syslog whether the
-      device actually suspended or whether the suspend was aborted)
-
- * Hardware wakeups for edited alarms:
-   1. Edit an alarm that's already passed. (see previous test)
-   2. Unplug the phone from any USB connection and put it to sleep.
-   3. Confirm that the alarm sounds on time even if the phone is asleep.
-      (Note: if in doubt about sleep you can see in the syslog whether the
-      device actually suspended or whether the suspend was aborted.)
-
-   
 
