@@ -19,15 +19,29 @@
  */
 
 #include <datetime/appointment.h>
+#include <datetime/settings-live.h>
 #include <datetime/snap.h>
+#include <datetime/timezones-live.h>
 
 #include <glib.h>
 
 using namespace unity::indicator::datetime;
 
+#define TIMEZONE_FILE ("/etc/timezone")
+
+
 /***
 ****
 ***/
+
+namespace
+{
+    gboolean quit_idle (gpointer gloop)
+    {
+        g_main_loop_quit(static_cast<GMainLoop*>(gloop));
+        return G_SOURCE_REMOVE;
+    };
+}
 
 int main()
 {
@@ -47,15 +61,24 @@ int main()
     auto loop = g_main_loop_new(nullptr, false);
     auto show = [loop](const Appointment& appt){
         g_message("You clicked 'show' for appt url '%s'", appt.url.c_str());
-        g_main_loop_quit(loop);
+        g_idle_add(quit_idle, loop);
     };
     auto dismiss = [loop](const Appointment&){
         g_message("You clicked 'dismiss'");
-        g_main_loop_quit(loop);
+        g_idle_add(quit_idle, loop);
     };
-    
-    Snap snap;
+
+    // only use local, temporary settings
+    g_assert(g_setenv("GSETTINGS_SCHEMA_DIR", SCHEMA_DIR, true));
+    g_assert(g_setenv("GSETTINGS_BACKEND", "memory", true));
+    g_debug("SCHEMA_DIR is %s", SCHEMA_DIR);
+
+    auto settings = std::make_shared<LiveSettings>();
+    auto timezones = std::make_shared<LiveTimezones>(settings, TIMEZONE_FILE);
+    auto clock = std::make_shared<LiveClock>(timezones);
+    Snap snap (clock, settings);
     snap(a, show, dismiss);
     g_main_loop_run(loop);
+    g_main_loop_unref(loop);
     return 0;
 }

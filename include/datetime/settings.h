@@ -56,6 +56,9 @@ public:
     core::Property<bool> show_year;
     core::Property<TimeFormatMode> time_format_mode;
     core::Property<std::string> timezone_name;
+    core::Property<std::string> alarm_sound;
+    core::Property<AlarmVolume> alarm_volume;
+    core::Property<int> alarm_duration;
 };
 
 } // namespace datetime

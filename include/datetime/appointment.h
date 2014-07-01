@@ -39,6 +39,7 @@ public:
     std::string summary;
     std::string url;
     std::string uid;
+    std::string audio_url;
     bool has_alarms = false;
     DateTime begin;
     DateTime end;
