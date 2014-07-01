@@ -21,6 +21,8 @@
 #include "state-mock.h"
 #include "glib-fixture.h"
 
+#include "dbus-alarm-properties.h"
+
 #include <datetime/actions.h>
 #include <datetime/dbus-shared.h>
 #include <datetime/exporter.h>
@@ -76,13 +78,14 @@ TEST_F(ExporterFixture, Publish)
 {
     std::shared_ptr<State> state(new MockState);
     std::shared_ptr<Actions> actions(new MockActions(state));
+    std::shared_ptr<Settings> settings(new Settings);
     std::vector<std::shared_ptr<Menu>> menus;
 
     MenuFactory menu_factory (actions, state);
     for(int i=0; i<Menu::NUM_PROFILES; i++)
       menus.push_back(menu_factory.buildMenu(Menu::Profile(i)));
 
-    Exporter exporter;
+    Exporter exporter(settings);
     exporter.publish(actions, menus);
     wait_msec();
 
@@ -122,7 +125,7 @@ TEST_F(ExporterFixture, Publish)
     // try closing the connection prematurely
     // to test Exporter's name-lost signal
     bool name_lost = false;
-    exporter.name_lost.connect([this,&name_lost](){
+    exporter.name_lost().connect([this,&name_lost](){
         name_lost = true;
         g_main_loop_quit(loop);
     });
@@ -134,4 +137,92 @@ TEST_F(ExporterFixture, Publish)
     g_strfreev(names_strv);
     g_clear_object(&exported);
     g_clear_object(&connection);
+}
+
+TEST_F(ExporterFixture, AlarmProperties)
+{
+    /***
+    **** Set up the exporter
+    ***/
+
+    std::shared_ptr<State> state(new MockState);
+    std::shared_ptr<Actions> actions(new MockActions(state));
+    std::shared_ptr<Settings> settings(new Settings);
+    std::vector<std::shared_ptr<Menu>> menus;
+
+    MenuFactory menu_factory (actions, state);
+    for(int i=0; i<Menu::NUM_PROFILES; i++)
+      menus.push_back(menu_factory.buildMenu(Menu::Profile(i)));
+
+    Exporter exporter(settings);
+    exporter.publish(actions, menus);
+    wait_msec();
+
+    /***
+    **** Set up the proxy
+    ***/
+
+    auto on_proxy_ready = [](GObject*, GAsyncResult* res, gpointer gproxy){
+        GError* error = nullptr;
+        *reinterpret_cast<DatetimeAlarmProperties**>(gproxy) = datetime_alarm_properties_proxy_new_for_bus_finish(res, &error);
+        EXPECT_TRUE(error == nullptr);
+    };
+
+    DatetimeAlarmProperties* proxy = nullptr;
+    datetime_alarm_properties_proxy_new_for_bus(G_BUS_TYPE_SESSION,
+                                                G_DBUS_PROXY_FLAGS_NONE,
+                                                BUS_NAME,
+                                                BUS_PATH"/AlarmProperties",
+                                                nullptr,
+                                                on_proxy_ready,
+                                                &proxy);
+    wait_msec(100);
+    ASSERT_TRUE(proxy != nullptr);
+
+    /***
+    **** Try changing the Settings -- do the DBus properties change to match it?
+    ***/
+
+    auto expected_volume = 1;
+    int expected_duration = 60;
+    const char * expected_sound = "/tmp/foo.wav";
+    settings->alarm_volume.set(expected_volume);
+    settings->alarm_duration.set(expected_duration);
+    settings->alarm_sound.set(expected_sound);
+    wait_msec();
+
+    static constexpr const char* const SOUND_PROP {"default-sound"};
+    static constexpr const char* const VOLUME_PROP {"default-volume"};
+    static constexpr const char* const DURATION_PROP {"duration"};
+
+    char* sound = nullptr;
+    int volume = -1;
+    int duration = -1;
+    g_object_get(proxy, SOUND_PROP, &sound,
+                        VOLUME_PROP, &volume,
+                        DURATION_PROP, &duration,
+                        nullptr);
+    EXPECT_STREQ(expected_sound, sound);
+    EXPECT_EQ(expected_volume, volume);
+    EXPECT_EQ(expected_duration, duration);
+
+    /***
+    **** Try chaning the DBus properties -- do the Settings change to match it?
+    ***/
+
+    expected_volume = 100;
+    expected_duration = 30;
+    expected_sound = "/tmp/bar.wav";
+    g_object_set(proxy, SOUND_PROP, expected_sound,
+                        VOLUME_PROP, expected_volume,
+                        DURATION_PROP, expected_duration,
+                        nullptr);
+    wait_msec();
+
+    EXPECT_STREQ(expected_sound, settings->alarm_sound.get().c_str());
+    EXPECT_EQ(expected_volume, settings->alarm_volume.get());
+    EXPECT_EQ(expected_duration, settings->alarm_duration.get());
+
+    // cleanup
+    g_clear_object(&proxy);
 }

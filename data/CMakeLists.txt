@@ -4,9 +4,15 @@
 
 include (UseGSettings)
 set (SCHEMA_NAME "com.canonical.indicator.datetime.gschema.xml")
-set (SCHEMA_FILE "${CMAKE_CURRENT_SOURCE_DIR}/${SCHEMA_NAME}")
-add_schema (${SCHEMA_FILE})
+set (SCHEMA_FILE "${CMAKE_CURRENT_BINARY_DIR}/${SCHEMA_NAME}")
+set (SCHEMA_FILE_IN "${CMAKE_CURRENT_SOURCE_DIR}/${SCHEMA_NAME}.in")
 
+# generate the .xml file using intltool
+set (ENV{LC_ALL} "C")
+execute_process (COMMAND intltool-merge -quiet --xml-style --utf8 --no-translations "${SCHEMA_FILE_IN}" "${SCHEMA_FILE}")
+
+# let UseGSettings do the rest
+add_schema (${SCHEMA_FILE})
 
 ##
 ##  Upstart Job File

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <interface name="com.canonical.indicator.datetime.AlarmProperties">
+
+    <property name="DefaultSound" type="s" access="readwrite">
+      <doc:doc>
+        <doc:description>
+          <doc:para>The default alarm sound's filename.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </property>
+
+    <property name="DefaultVolume" type="i" access="readwrite">
+      <doc:doc>
+        <doc:description>
+          <doc:para>How loudly to play alarm sounds. [Range: 1-100]</doc:para>
+        </doc:description>
+      </doc:doc>
+    </property>
+
+    <property name="Duration" type="i" access="readwrite">
+      <doc:doc>
+        <doc:description>
+          <doc:para>How long an alarm's sound should be looped.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </property>
+
+  </interface>
+</node>

@@ -22,3 +22,25 @@ Test-case indicator-datetime/unity8-items-check
 		<dd>The menu is populated with items</dd>
 </dl>
 
+Test-case indicator-datetime/new-alarm-wakeup
+<dl>
+	<dt>Create and save an upcoming alarm in ubuntu-clock-app</dt>
+	<dt>Unplug the phone from any USB connection and put it to sleep</dt>
+		<dd>Confirm that the alarm sounds on time even if the phone is asleep.
+		(Note: if in doubt about sleep you can see in the syslog whether the
+		device actually suspended or whether the suspend was aborted)</dd>
+</dl>
+
+Test-case indicator-datetime/edited-alarm-wakeup
+<dl>
+	<dt>Edit an alarm that's already passed. (see previous test)</dt>
+	<dt>Unplug the phone from any USB connection and put it to sleep</dt>
+		<dd>Confirm that the alarm sounds on time even if the phone is asleep.
+		(Note: if in doubt about sleep you can see in the syslog whether the
+		device actually suspended or whether the suspend was aborted)</dd>
+</dl>
+
+<strong>
+    If all actions produce the expected results listed, please <a href="results#add_result">submit</a> a 'passed' result.
+    If an action fails, or produces an unexpected result, please <a href="results#add_result">submit</a> a 'failed' result and <a href="../../buginstructions">file a bug</a>. Please be sure to include the bug number when you <a href="results#add_result">submit</a> your result</strong>.
+
