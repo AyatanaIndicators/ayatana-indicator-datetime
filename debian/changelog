@@ -1,3 +1,11 @@
+indicator-datetime (13.10.0+14.10.20140701-0ubuntu1) utopic; urgency=low
+
+  [ Charles Kerr ]
+  * Add the ability to have per-alarm custom sounds. (LP: #1318997)
+  * Expose the new alarm settings as DBus properties. (LP: #1318997)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 01 Jul 2014 09:37:06 +0000
+
 indicator-datetime (13.10.0+14.10.20140611-0ubuntu3) utopic; urgency=medium
 
   * Migrading to Platform V2
