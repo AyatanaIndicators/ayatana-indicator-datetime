@@ -40,6 +40,16 @@ Test-case indicator-datetime/edited-alarm-wakeup
 		device actually suspended or whether the suspend was aborted)</dd>
 </dl>
 
+Test-case indicator-datetime/tell-snap-decision-to-dismiss
+<dl>
+	<dt>Set an alarm and wait for it to arrive.</td>
+		<dd>Alarm should go off at the specified time</dd>
+	<dt>Press the 'Dismiss' button in the alarm's snap decision popup</dt>
+		<dd>Popup should disappear</dd>
+		<dd>Sound should stop</dd>
+</dl>
+
+
 <strong>
     If all actions produce the expected results listed, please <a href="results#add_result">submit</a> a 'passed' result.
     If an action fails, or produces an unexpected result, please <a href="results#add_result">submit</a> a 'failed' result and <a href="../../buginstructions">file a bug</a>. Please be sure to include the bug number when you <a href="results#add_result">submit</a> your result</strong>.
