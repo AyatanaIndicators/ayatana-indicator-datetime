@@ -38,7 +38,7 @@ pkg_check_modules (SERVICE_DEPS REQUIRED
                    libical>=0.48
                    libecal-1.2>=3.5
                    libedataserver-1.2>=3.5
-                   libcanberra>=0.12
+                   gstreamer-1.0>=1.2
                    libnotify>=0.7.6
                    url-dispatcher-1>=1
                    properties-cpp>=0.0.1)
