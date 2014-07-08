@@ -29,6 +29,7 @@
 #include <glib/gi18n.h>
 #include <glib.h>
 
+#include <mutex> // std::call_once()
 #include <set>
 #include <string>
 
@@ -64,11 +65,8 @@ public:
         m_loop_end_time(clock->localtime().add_full(0, 0, 0, 0, (int)duration_minutes, 0.0))
     {
         // init GST once
-        static bool gst_initialized = false;
-        if (!gst_initialized)
-        {
-            gst_initialized = true;
-
+	static std::once_flag once;
+        std::call_once(once, [](){
             GError* error = nullptr;
             gst_init_check (nullptr, nullptr, &error);
             if (error)
@@ -76,7 +74,7 @@ public:
                 g_critical("Unable to play alarm sound: %s", error->message);
                 g_error_free(error);
             }
-        }
+        });
 
         if (m_loop)
         {
@@ -218,14 +216,11 @@ public:
     {
         // ensure notify_init() is called once
         // before we start popping up dialogs
-        static bool m_nn_inited = false;
-        if (G_UNLIKELY(!m_nn_inited))
-        {
+	static std::once_flag once;
+        std::call_once(once, [](){
             if(!notify_init("indicator-datetime-service"))
                 g_critical("libnotify initialization failed");
-
-            m_nn_inited = true;
-        }
+        });
 
         show();
     }
@@ -356,13 +351,11 @@ private:
     static bool get_interactive()
     {
         static bool interactive;
-        static bool inited = false;
 
-        if (G_UNLIKELY(!inited))
-        {
+	static std::once_flag once;
+        std::call_once(once, [](){
             interactive = get_server_caps().count("actions") != 0;
-            inited = true;
-        }
+        });
 
         return interactive;
     }
