@@ -131,10 +131,17 @@ private:
        gst_element_set_state (m_play, GST_STATE_PLAYING);
     }
 
+    // convert settings range [1..100] to gst playbin's range is [0...1.0]
     gdouble get_volume() const
     {
-        // input int range is [1..100]; gst playbin's range is [0...1.0]
-        return CLAMP(m_volume, 1, 100) / 100.0;
+        constexpr int in_range_lo = 1;
+        constexpr int in_range_hi = 100;
+        const double in = CLAMP(m_volume, in_range_lo, in_range_hi);
+        const double pct = (in - in_range_lo) / (in_range_hi - in_range_lo);
+
+        constexpr double out_range_lo = 0.0; 
+        constexpr double out_range_hi = 1.0; 
+        return out_range_lo + (pct * (out_range_hi - out_range_lo));
     }
 
     static gboolean bus_callback(GstBus*, GstMessage* msg, gpointer gself)
