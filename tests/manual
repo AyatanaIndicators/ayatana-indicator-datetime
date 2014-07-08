@@ -44,9 +44,9 @@ Test-case indicator-datetime/tell-snap-decision-to-dismiss
 <dl>
 	<dt>Set an alarm and wait for it to arrive.</td>
 		<dd>Alarm should go off at the specified time</dd>
-	<dt>Press the 'Dismiss' button in the alarm's snap decision popup</dt>
+	<dt>Press the 'Dismiss' button in the alarm's snap decision popup before the sound stops.</dt>
 		<dd>Popup should disappear</dd>
-		<dd>Sound should stop</dd>
+		<dd>Sound should stop at the same time, rather than playing til the end of the file.</dd>
 </dl>
 
 
