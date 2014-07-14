@@ -139,7 +139,6 @@ TEST_F(LocationsFixture, ChangeLocationStrings)
     EXPECT_EQ("Europe/London", l[3].zone());
     EXPECT_EQ("Berlin", l[4].name());
     EXPECT_EQ("Europe/Berlin", l[4].zone());
-    locations_changed = false;
 }
 
 TEST_F(LocationsFixture, ChangeLocationVisibility)

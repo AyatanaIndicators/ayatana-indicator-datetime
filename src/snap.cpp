@@ -23,12 +23,13 @@
 
 #include <core/signal.h>
 
-#include <canberra.h>
+#include <gst/gst.h>
 #include <libnotify/notify.h>
 
 #include <glib/gi18n.h>
 #include <glib.h>
 
+#include <mutex> // std::call_once()
 #include <set>
 #include <string>
 
@@ -53,154 +54,140 @@ class Sound
 public:
 
     Sound(const std::shared_ptr<Clock>& clock,
-          const std::string& filename,
+          const std::string& uri,
           unsigned int volume,
           unsigned int duration_minutes,
           bool loop):
         m_clock(clock),
-        m_filename(filename),
+        m_uri(uri),
         m_volume(volume),
         m_loop(loop),
-        m_canberra_id(get_next_canberra_id()),
-        m_loop_end_time(clock->localtime().add_full(0, 0, 0, 0, duration_minutes, 0.0))
+        m_loop_end_time(clock->localtime().add_full(0, 0, 0, 0, (int)duration_minutes, 0.0))
     {
+        // init GST once
+	static std::once_flag once;
+        std::call_once(once, [](){
+            GError* error = nullptr;
+            gst_init_check (nullptr, nullptr, &error);
+            if (error)
+            {
+                g_critical("Unable to play alarm sound: %s", error->message);
+                g_error_free(error);
+            }
+        });
+
         if (m_loop)
         {
             g_debug("Looping '%s' until cutoff time %s",
-                    m_filename.c_str(),
+                    m_uri.c_str(),
                     m_loop_end_time.format("%F %T").c_str());
         }
         else
         {
-            g_debug("Playing '%s' once", m_filename.c_str());
+            g_debug("Playing '%s' once", m_uri.c_str());
         }
 
-        const auto rv = ca_context_create(&m_context);
-        if (rv == CA_SUCCESS)
-        {
-            play();
-        }
-        else
-        {
-            g_warning("Failed to create canberra context: %s", ca_strerror(rv));
-            m_context = nullptr;
-        }
+        m_play = gst_element_factory_make("playbin", "play");
+
+        auto bus = gst_pipeline_get_bus(GST_PIPELINE(m_play));
+        m_watch_source = gst_bus_add_watch(bus, bus_callback, this);
+        gst_object_unref(bus);
+
+        play();
     }
 
     ~Sound()
     {
         stop();
 
-        g_clear_pointer(&m_context, ca_context_destroy);
+        g_source_remove(m_watch_source);
+
+        if (m_play != nullptr)
+        {
+            gst_element_set_state (m_play, GST_STATE_NULL);
+            g_clear_pointer (&m_play, gst_object_unref);
+        }
     }
 
 private:
 
     void stop()
     {
-        if (m_context != nullptr)
+        if (m_play != nullptr)
         {
-            const auto rv = ca_context_cancel(m_context, m_canberra_id);
-            if (rv != CA_SUCCESS)
-                g_warning("Failed to cancel alarm sound: %s", ca_strerror(rv));
-        }
-
-        if (m_loop_tag != 0)
-        {
-            g_source_remove(m_loop_tag);
-            m_loop_tag = 0;
+            gst_element_set_state (m_play, GST_STATE_PAUSED);
         }
     }
 
     void play()
     {
-        auto context = m_context;
-        g_return_if_fail(context != nullptr);
+       g_return_if_fail(m_play != nullptr);
 
-        const auto filename = m_filename.c_str();
-        const float gain = get_gain_level(m_volume);
-
-        ca_proplist* props = nullptr;
-        ca_proplist_create(&props);
-        ca_proplist_sets(props, CA_PROP_MEDIA_FILENAME, filename);
-        ca_proplist_setf(props, CA_PROP_CANBERRA_VOLUME, "%f", gain);
-        const auto rv = ca_context_play_full(context, m_canberra_id, props,
-                                             on_done_playing, this);
-        if (rv != CA_SUCCESS)
-            g_warning("Unable to play '%s': %s", filename, ca_strerror(rv));
-
-        g_clear_pointer(&props, ca_proplist_destroy);
+       g_object_set(G_OBJECT (m_play), "uri", m_uri.c_str(),
+                                       "volume", get_volume(),
+                                       nullptr);
+       gst_element_set_state (m_play, GST_STATE_PLAYING);
     }
 
-    static float get_gain_level(unsigned int volume)
+    // convert settings range [1..100] to gst playbin's range is [0...1.0]
+    gdouble get_volume() const
     {
-        const unsigned int clamped_volume = CLAMP(volume, 1, 100);
+        constexpr int in_range_lo = 1;
+        constexpr int in_range_hi = 100;
+        const double in = CLAMP(m_volume, in_range_lo, in_range_hi);
+        const double pct = (in - in_range_lo) / (in_range_hi - in_range_lo);
 
-        /* This range isn't set in stone --
-           arrived at from manual tests on Nextus 4 */
-        constexpr float gain_low = -10;
-        constexpr float gain_high = 10;
-
-        constexpr float gain_range = gain_high - gain_low;
-        return gain_low + (gain_range * (clamped_volume / 100.0f));
+        constexpr double out_range_lo = 0.0; 
+        constexpr double out_range_hi = 1.0; 
+        return out_range_lo + (pct * (out_range_hi - out_range_lo));
     }
 
-    static void on_done_playing(ca_context*, uint32_t, int rv, void* gself)
+    static gboolean bus_callback(GstBus*, GstMessage* msg, gpointer gself)
     {
-        // if we still need to loop, wait a second, then play it again
+        auto self = static_cast<Sound*>(gself);
 
-        if (rv == CA_SUCCESS)
+        if ((GST_MESSAGE_TYPE(msg) == GST_MESSAGE_EOS) &&
+            (self->m_loop) &&
+            (self->m_clock->localtime() < self->m_loop_end_time))
         {
-            auto self = static_cast<Self*>(gself);
-            if ((self->m_loop_tag == 0) &&
-                (self->m_loop) &&
-                (self->m_clock->localtime() < self->m_loop_end_time))
-            {
-                self->m_loop_tag = g_timeout_add_seconds(1, play_idle, self);
-            }
+            gst_element_seek(self->m_play,
+                             1.0,
+                             GST_FORMAT_TIME,
+                             GST_SEEK_FLAG_FLUSH,
+                             GST_SEEK_TYPE_SET,
+                             0,
+                             GST_SEEK_TYPE_NONE,
+                             (gint64)GST_CLOCK_TIME_NONE);
         }
-    }
 
-    static gboolean play_idle(gpointer gself)
-    {
-        auto self = static_cast<Self*>(gself);
-        self->m_loop_tag = 0;
-        self->play();
-        return G_SOURCE_REMOVE;
+        return G_SOURCE_CONTINUE; // keep listening
     }
 
     /***
     ****
     ***/
 
-    static int32_t get_next_canberra_id()
-    {
-        static int32_t next_canberra_id = 1;
-        return next_canberra_id++;
-    }
-
     const std::shared_ptr<Clock> m_clock;
-    const std::string m_filename;
+    const std::string m_uri;
     const unsigned int m_volume;
     const bool m_loop;
-    const int32_t m_canberra_id;
     const DateTime m_loop_end_time;
-    ca_context* m_context = nullptr;
-    guint m_loop_tag = 0;
+    guint m_watch_source = 0;
+    GstElement* m_play = nullptr;
 };
 
 class SoundBuilder
 {
 public:
     void set_clock(const std::shared_ptr<Clock>& c) {m_clock = c;}
-    void set_filename(const std::string& s) {m_filename = s;}
+    void set_uri(const std::string& uri) {m_uri = uri;}
     void set_volume(const unsigned int v) {m_volume = v;}
     void set_duration_minutes(int unsigned i) {m_duration_minutes=i;}
     void set_looping(bool b) {m_looping=b;}
 
     Sound* operator()() {
         return new Sound (m_clock,
-                          m_filename,
+                          m_uri,
                           m_volume,
                           m_duration_minutes,
                           m_looping);
@@ -208,7 +195,7 @@ public:
 
 private:
     std::shared_ptr<Clock> m_clock;
-    std::string m_filename;
+    std::string m_uri;
     unsigned int m_volume = 50;
     unsigned int m_duration_minutes = 30;
     bool m_looping = true;
@@ -229,14 +216,11 @@ public:
     {
         // ensure notify_init() is called once
         // before we start popping up dialogs
-        static bool m_nn_inited = false;
-        if (G_UNLIKELY(!m_nn_inited))
-        {
+	static std::once_flag once;
+        std::call_once(once, [](){
             if(!notify_init("indicator-datetime-service"))
                 g_critical("libnotify initialization failed");
-
-            m_nn_inited = true;
-        }
+        });
 
         show();
     }
@@ -367,13 +351,11 @@ private:
     static bool get_interactive()
     {
         static bool interactive;
-        static bool inited = false;
 
-        if (G_UNLIKELY(!inited))
-        {
+	static std::once_flag once;
+        std::call_once(once, [](){
             interactive = get_server_caps().count("actions") != 0;
-            inited = true;
-        }
+        });
 
         return interactive;
     }
@@ -397,38 +379,8 @@ private:
 ***  libnotify -- snap decisions
 **/
 
-std::string get_local_filename (const std::string& str)
-{
-    std::string ret;
-
-    if (!str.empty())
-    {
-        GFile* files[] = { g_file_new_for_path(str.c_str()),
-                           g_file_new_for_uri(str.c_str()) };
-
-        for(auto& file : files)
-        {
-            if (g_file_is_native(file) && g_file_query_exists(file, nullptr))
-            {
-                char* tmp = g_file_get_path(file);
-                if (tmp != nullptr)
-                {
-                    ret = tmp;
-                    g_free(tmp);
-                    break;
-                }
-            }
-        }
-
-        for(auto& file : files)
-            g_object_unref(file);
-    }
-
-    return ret;
-}
-
-std::string get_alarm_sound(const Appointment& appointment,
-                            const std::shared_ptr<const Settings>& settings)
+std::string get_alarm_uri(const Appointment& appointment,
+                          const std::shared_ptr<const Settings>& settings)
 {
     const char* FALLBACK {"/usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg"};
 
@@ -436,20 +388,28 @@ std::string get_alarm_sound(const Appointment& appointment,
                                        settings->alarm_sound.get(),
                                        FALLBACK };
 
-    std::string alarm_sound;
+    std::string uri;
 
     for(const auto& candidate : candidates)
     {
-        alarm_sound = get_local_filename(candidate);
-
-        if (!alarm_sound.empty())
+        if (gst_uri_is_valid (candidate.c_str()))
+        {
+            uri = candidate;
             break;
+        }
+        else if (g_file_test(candidate.c_str(), G_FILE_TEST_EXISTS))
+        {
+            gchar* tmp = gst_filename_to_uri(candidate.c_str(), nullptr);
+            if (tmp != nullptr)
+            {
+                uri = tmp;
+                g_free (tmp);
+                break;
+            }
+        }
     }
 
-    g_debug("%s: Appointment \"%s\" using alarm sound \"%s\"",
-            G_STRFUNC, appointment.summary.c_str(), alarm_sound.c_str());
-
-    return alarm_sound;
+    return uri;
 }
 
 } // unnamed namespace
@@ -481,7 +441,7 @@ void Snap::operator()(const Appointment& appointment,
 
     // create a popup...
     SoundBuilder sound_builder;
-    sound_builder.set_filename(get_alarm_sound(appointment, m_settings));
+    sound_builder.set_uri(get_alarm_uri(appointment, m_settings));
     sound_builder.set_volume(m_settings->alarm_volume.get());
     sound_builder.set_clock(m_clock);
     sound_builder.set_duration_minutes(m_settings->alarm_duration.get());
