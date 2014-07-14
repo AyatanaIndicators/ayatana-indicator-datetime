@@ -1,3 +1,11 @@
+indicator-datetime (13.10.0+14.10.20140714.1-0ubuntu1) utopic; urgency=low
+
+  [ Charles Kerr ]
+  * Use GStreamer's API directly to play sound instead of using
+    libcanberra. (LP: #1283065)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 14 Jul 2014 13:40:44 +0000
+
 indicator-datetime (13.10.0+14.10.20140701-0ubuntu1) utopic; urgency=low
 
   [ Charles Kerr ]
