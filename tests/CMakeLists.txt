@@ -5,7 +5,12 @@ add_library (gtest STATIC
 set_target_properties (gtest PROPERTIES INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${GTEST_INCLUDE_DIR})
 set_target_properties (gtest PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS} -w)
 
-SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -g ${CC_WARNING_ARGS}")
+SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g ${CC_WARNING_ARGS}")
+
+# dbustest
+pkg_check_modules(DBUSTEST REQUIRED
+                  dbustest-1>=14.04.0)
+include_directories (SYSTEM ${DBUSTEST_INCLUDE_DIRS})
 
 # build the necessary schemas
 set_directory_properties (PROPERTIES
@@ -40,8 +45,9 @@ function(add_test_by_name name)
   add_executable (${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
   add_test (${TEST_NAME} ${TEST_NAME})
   add_dependencies (${TEST_NAME} libindicatordatetimeservice)
-  target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
+  target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
 endfunction()
+add_test_by_name(test-snap)
 add_test_by_name(test-actions)
 add_test_by_name(test-alarm-queue)
 add_test(NAME dear-reader-the-next-test-takes-60-seconds COMMAND true)
