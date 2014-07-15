@@ -182,7 +182,8 @@ public:
     void set_clock(const std::shared_ptr<Clock>& c) {m_clock = c;}
     void set_uri(const std::string& uri) {m_uri = uri;}
     void set_volume(const unsigned int v) {m_volume = v;}
-    void set_duration_minutes(int unsigned i) {m_duration_minutes=i;}
+    void set_duration_minutes(unsigned int i) {m_duration_minutes=i;}
+    unsigned int duration_minutes() const {return m_duration_minutes;}
     void set_looping(bool b) {m_looping=b;}
 
     Sound* operator()() {
@@ -260,12 +261,15 @@ private:
         m_nn = notify_notification_new(title, body.c_str(), icon_name);
         if (m_interactive)
         {
-            notify_notification_set_hint(m_nn,
-                                         "x-canonical-snap-decisions",
+            const int32_t duration_secs = m_sound_builder.duration_minutes()*60;
+
+            notify_notification_set_hint(m_nn, HINT_SNAP,
                                          g_variant_new_boolean(true));
-            notify_notification_set_hint(m_nn,
-                                         "x-canonical-private-button-tint",
+            notify_notification_set_hint(m_nn, HINT_TINT,
                                          g_variant_new_boolean(true));
+            notify_notification_set_hint(m_nn, HINT_TIMEOUT,
+                                         g_variant_new_int32(duration_secs));
+
             /// alarm popup dialog's button to show the active alarm
             notify_notification_add_action(m_nn, "show", _("Show"),
                                            on_snap_show, this, nullptr);
@@ -373,6 +377,10 @@ private:
     core::Signal<Response> m_response;
     Response m_response_value = RESPONSE_CLOSE;
     NotifyNotification* m_nn = nullptr;
+
+    static constexpr char const * HINT_SNAP {"x-canonical-snap-decisions"};
+    static constexpr char const * HINT_TINT {"x-canonical-private-button-tint"};
+    static constexpr char const * HINT_TIMEOUT {"x-canonical-snap-decisions-timeout"};
 };
 
 /** 
