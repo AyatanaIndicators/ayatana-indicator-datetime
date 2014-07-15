@@ -216,14 +216,6 @@ public:
         m_interactive(get_interactive()),
         m_sound_builder(sound_builder)
     {
-        // ensure notify_init() is called once
-        // before we start popping up dialogs
-	static std::once_flag once;
-        std::call_once(once, [](){
-            if(!notify_init("indicator-datetime-service"))
-                g_critical("libnotify initialization failed");
-        });
-
         show();
     }
 
@@ -421,6 +413,8 @@ std::string get_alarm_uri(const Appointment& appointment,
     return uri;
 }
 
+int32_t n_existing_snaps = 0;
+
 } // unnamed namespace
 
 /***
@@ -432,10 +426,14 @@ Snap::Snap(const std::shared_ptr<Clock>& clock,
     m_clock(clock),
     m_settings(settings)
 {
+    if (!n_existing_snaps++ && !notify_init("indicator-datetime-service"))
+        g_critical("libnotify initialization failed");
 }
 
 Snap::~Snap()
 {
+    if (!--n_existing_snaps)
+        notify_uninit();
 }
 
 void Snap::operator()(const Appointment& appointment,
