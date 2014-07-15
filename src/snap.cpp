@@ -260,12 +260,12 @@ private:
         m_nn = notify_notification_new(title, body.c_str(), icon_name);
         if (m_interactive)
         {
-            notify_notification_set_hint_string(m_nn,
-                                                "x-canonical-snap-decisions",
-                                                "true");
-            notify_notification_set_hint_string(m_nn,
-                                                "x-canonical-private-button-tint",
-                                                "true");
+            notify_notification_set_hint(m_nn,
+                                         "x-canonical-snap-decisions",
+                                         g_variant_new_boolean(true));
+            notify_notification_set_hint(m_nn,
+                                         "x-canonical-private-button-tint",
+                                         g_variant_new_boolean(true));
             /// alarm popup dialog's button to show the active alarm
             notify_notification_add_action(m_nn, "show", _("Show"),
                                            on_snap_show, this, nullptr);
