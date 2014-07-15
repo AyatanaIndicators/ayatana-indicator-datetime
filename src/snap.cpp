@@ -29,6 +29,7 @@
 #include <glib/gi18n.h>
 #include <glib.h>
 
+#include <chrono>
 #include <mutex> // std::call_once()
 #include <set>
 #include <string>
@@ -261,14 +262,14 @@ private:
         m_nn = notify_notification_new(title, body.c_str(), icon_name);
         if (m_interactive)
         {
-            const int32_t duration_msec = m_sound_builder.duration_minutes()*60*1000;
+            const auto duration = std::chrono::minutes(m_sound_builder.duration_minutes());
 
             notify_notification_set_hint(m_nn, HINT_SNAP,
                                          g_variant_new_boolean(true));
             notify_notification_set_hint(m_nn, HINT_TINT,
                                          g_variant_new_boolean(true));
             notify_notification_set_hint(m_nn, HINT_TIMEOUT,
-                                         g_variant_new_int32(duration_msec));
+                                         g_variant_new_int32(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()));
 
             /// alarm popup dialog's button to show the active alarm
             notify_notification_add_action(m_nn, "show", _("Show"),
