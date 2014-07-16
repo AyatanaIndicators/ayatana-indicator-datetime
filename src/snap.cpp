@@ -29,6 +29,7 @@
 #include <glib/gi18n.h>
 #include <glib.h>
 
+#include <chrono>
 #include <mutex> // std::call_once()
 #include <set>
 #include <string>
@@ -182,7 +183,8 @@ public:
     void set_clock(const std::shared_ptr<Clock>& c) {m_clock = c;}
     void set_uri(const std::string& uri) {m_uri = uri;}
     void set_volume(const unsigned int v) {m_volume = v;}
-    void set_duration_minutes(int unsigned i) {m_duration_minutes=i;}
+    void set_duration_minutes(unsigned int i) {m_duration_minutes=i;}
+    unsigned int duration_minutes() const {return m_duration_minutes;}
     void set_looping(bool b) {m_looping=b;}
 
     Sound* operator()() {
@@ -214,14 +216,6 @@ public:
         m_interactive(get_interactive()),
         m_sound_builder(sound_builder)
     {
-        // ensure notify_init() is called once
-        // before we start popping up dialogs
-	static std::once_flag once;
-        std::call_once(once, [](){
-            if(!notify_init("indicator-datetime-service"))
-                g_critical("libnotify initialization failed");
-        });
-
         show();
     }
 
@@ -260,12 +254,15 @@ private:
         m_nn = notify_notification_new(title, body.c_str(), icon_name);
         if (m_interactive)
         {
-            notify_notification_set_hint_string(m_nn,
-                                                "x-canonical-snap-decisions",
-                                                "true");
-            notify_notification_set_hint_string(m_nn,
-                                                "x-canonical-private-button-tint",
-                                                "true");
+            const auto duration = std::chrono::minutes(m_sound_builder.duration_minutes());
+
+            notify_notification_set_hint(m_nn, HINT_SNAP,
+                                         g_variant_new_boolean(true));
+            notify_notification_set_hint(m_nn, HINT_TINT,
+                                         g_variant_new_boolean(true));
+            notify_notification_set_hint(m_nn, HINT_TIMEOUT,
+                                         g_variant_new_int32(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()));
+
             /// alarm popup dialog's button to show the active alarm
             notify_notification_add_action(m_nn, "show", _("Show"),
                                            on_snap_show, this, nullptr);
@@ -373,6 +370,10 @@ private:
     core::Signal<Response> m_response;
     Response m_response_value = RESPONSE_CLOSE;
     NotifyNotification* m_nn = nullptr;
+
+    static constexpr char const * HINT_SNAP {"x-canonical-snap-decisions"};
+    static constexpr char const * HINT_TINT {"x-canonical-private-button-tint"};
+    static constexpr char const * HINT_TIMEOUT {"x-canonical-snap-decisions-timeout"};
 };
 
 /** 
@@ -412,6 +413,8 @@ std::string get_alarm_uri(const Appointment& appointment,
     return uri;
 }
 
+int32_t n_existing_snaps = 0;
+
 } // unnamed namespace
 
 /***
@@ -423,10 +426,14 @@ Snap::Snap(const std::shared_ptr<Clock>& clock,
     m_clock(clock),
     m_settings(settings)
 {
+    if (!n_existing_snaps++ && !notify_init("indicator-datetime-service"))
+        g_critical("libnotify initialization failed");
 }
 
 Snap::~Snap()
 {
+    if (!--n_existing_snaps)
+        notify_uninit();
 }
 
 void Snap::operator()(const Appointment& appointment,
