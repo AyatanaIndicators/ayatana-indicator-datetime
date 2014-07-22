@@ -262,6 +262,8 @@ private:
                                          g_variant_new_boolean(true));
             notify_notification_set_hint(m_nn, HINT_TIMEOUT,
                                          g_variant_new_int32(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()));
+            notify_notification_set_hint(m_nn, HINT_NONSHAPEDICON,
+                                         g_variant_new_boolean(true));
 
             /// alarm popup dialog's button to show the active alarm
             notify_notification_add_action(m_nn, "show", _("Show"),
@@ -374,6 +376,7 @@ private:
     static constexpr char const * HINT_SNAP {"x-canonical-snap-decisions"};
     static constexpr char const * HINT_TINT {"x-canonical-private-button-tint"};
     static constexpr char const * HINT_TIMEOUT {"x-canonical-snap-decisions-timeout"};
+    static constexpr char const * HINT_NONSHAPEDICON {"x-canonical-non-shaped-icon"};
 };
 
 /** 
