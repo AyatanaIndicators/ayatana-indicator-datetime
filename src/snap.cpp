@@ -45,6 +45,8 @@ namespace datetime {
 namespace
 {
 
+static constexpr char const * APP_NAME = {"indicator-datetime-service"};
+
 /**
  * Plays a sound, possibly looping.
  */
@@ -214,13 +216,29 @@ public:
     Popup(const Appointment& appointment, const SoundBuilder& sound_builder):
         m_appointment(appointment),
         m_interactive(get_interactive()),
-        m_sound_builder(sound_builder)
+        m_sound_builder(sound_builder),
+        m_cancellable(g_cancellable_new())
     {
+        g_bus_get (G_BUS_TYPE_SYSTEM, m_cancellable, on_system_bus_ready, this);
+
         show();
     }
 
     ~Popup()
     {
+        if (m_cancellable != nullptr)
+        {
+            g_cancellable_cancel (m_cancellable);
+            g_clear_object (&m_cancellable);
+        }
+
+        if (m_system_bus != nullptr)
+        {
+            unforce_awake ();
+            unforce_screen ();
+            g_clear_object (&m_system_bus);
+        } 
+
         if (m_nn != nullptr)
         {
             notify_notification_clear_actions(m_nn);
@@ -361,6 +379,169 @@ private:
     ****
     ***/
 
+    static void on_system_bus_ready (GObject *, GAsyncResult *res, gpointer gself)
+    {
+        GError * error;
+        GDBusConnection * system_bus;
+
+        error = nullptr;
+        system_bus = g_bus_get_finish (res, &error);
+        if (error != nullptr)
+        {
+            if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+                g_warning ("Unable to get bus: %s", error->message);
+
+            g_error_free (error);
+        }
+        else if (system_bus != nullptr)
+        {
+            auto self = static_cast<Popup*>(gself);
+
+            self->m_system_bus = G_DBUS_CONNECTION (g_object_ref (system_bus));
+
+            // ask powerd to keep the system awake
+            static constexpr int32_t POWERD_SYS_STATE_ACTIVE = 1;
+            g_dbus_connection_call (system_bus,
+                                    "com.canonical.powerd",
+                                    "/com/canonical/powerd",
+                                    "com.canonical.powerd",
+                                    "requestSysState",
+                                    g_variant_new("(si)", APP_NAME, POWERD_SYS_STATE_ACTIVE),
+                                    G_VARIANT_TYPE("(s)"),
+                                    G_DBUS_CALL_FLAGS_NONE,
+                                    -1,
+                                    self->m_cancellable,
+                                    on_force_awake_response,
+                                    self);
+
+            // ask unity-system-compositor to turn on the screen
+            g_dbus_connection_call (system_bus,
+                                    "com.canonical.Unity.Screen",
+                                    "/com/canonical/Unity/Screen",
+                                    "com.canonical.Unity.Screen",
+                                    "keepDisplayOn",
+                                    nullptr,
+                                    G_VARIANT_TYPE("(i)"),
+                                    G_DBUS_CALL_FLAGS_NONE,
+                                    -1,
+                                    self->m_cancellable,
+                                    on_force_screen_response,
+                                    self);
+
+            g_object_unref (system_bus);
+        }
+    }
+
+    static void on_force_awake_response (GObject      * connection,
+                                         GAsyncResult * res,
+                                         gpointer       gself)
+    {
+        GError * error;
+        GVariant * args;
+
+        error = nullptr;
+        args = g_dbus_connection_call_finish (G_DBUS_CONNECTION(connection), res, &error);
+        if (error != nullptr)
+        {
+            if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+                g_warning ("Unable to inhibit sleep: %s", error->message);
+
+            g_error_free (error);
+        }
+        else
+        {
+            auto self = static_cast<Popup*>(gself);
+
+            g_message ("%s response is '%s'", G_STRFUNC, g_variant_print (args, true));
+
+            g_clear_pointer (&self->m_awake_cookie, g_free);
+            g_variant_get (args, "(s)", &self->m_awake_cookie);
+            g_message ("m_awake_cookie is now '%s'", self->m_awake_cookie);
+ 
+            g_variant_unref (args);
+        }
+    }
+
+    static void on_force_screen_response (GObject      * connection,
+                                          GAsyncResult * res,
+                                          gpointer       gself)
+    {
+        GError * error;
+        GVariant * args;
+
+        error = nullptr;
+        args = g_dbus_connection_call_finish (G_DBUS_CONNECTION(connection), res, &error);
+        if (error != nullptr)
+        {
+            if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+                g_warning ("Unable to turn on the screen: %s", error->message);
+
+            g_error_free (error);
+        }
+        else
+        {
+            auto self = static_cast<Popup*>(gself);
+
+            g_message ("%s response is '%s'", G_STRFUNC, g_variant_print (args, true));
+
+            g_clear_pointer (&self->m_screen_cookie, g_free);
+            g_variant_get (args, "(i)", &self->m_screen_cookie);
+            g_message ("m_screen_cookie is now '%d'", self->m_screen_cookie);
+ 
+            g_variant_unref (args);
+        }
+    }
+
+    void unforce_awake ()
+    {
+        g_return_if_fail (G_IS_DBUS_CONNECTION(m_system_bus));
+
+        if (m_awake_cookie != nullptr)
+        {
+            g_dbus_connection_call (m_system_bus,
+                                    "com.canonical.powerd",
+                                    "/com/canonical/powerd",
+                                    "com.canonical.powerd",
+                                    "clearSysState",
+                                    g_variant_new("(s)", m_awake_cookie),
+                                    nullptr,
+                                    G_DBUS_CALL_FLAGS_NONE,
+                                    -1,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+
+            g_clear_pointer (&m_awake_cookie, g_free);
+        }
+    }
+
+    void unforce_screen ()
+    {
+        g_return_if_fail (G_IS_DBUS_CONNECTION(m_system_bus));
+
+        if (m_screen_cookie != 0)
+        {
+            g_dbus_connection_call (m_system_bus,
+                                    "com.canonical.Unity.Screen",
+                                    "/com/canonical/Unity/Screen",
+                                    "com.canonical.Unity.Screen",
+                                    "removeDisplayOnRequest",
+                                    g_variant_new("(i)", m_screen_cookie),
+                                    nullptr,
+                                    G_DBUS_CALL_FLAGS_NONE,
+                                    -1,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+
+            m_screen_cookie = 0;
+        }
+    }
+
+    /***
+    ****
+    ***/
+
     typedef Popup Self;
 
     const Appointment m_appointment;
@@ -370,6 +551,10 @@ private:
     core::Signal<Response> m_response;
     Response m_response_value = RESPONSE_CLOSE;
     NotifyNotification* m_nn = nullptr;
+    GCancellable * m_cancellable = nullptr;
+    GDBusConnection * m_system_bus = nullptr;
+    char * m_awake_cookie = nullptr;
+    int32_t m_screen_cookie = 0;
 
     static constexpr char const * HINT_SNAP {"x-canonical-snap-decisions"};
     static constexpr char const * HINT_TINT {"x-canonical-private-button-tint"};
@@ -426,7 +611,7 @@ Snap::Snap(const std::shared_ptr<Clock>& clock,
     m_clock(clock),
     m_settings(settings)
 {
-    if (!n_existing_snaps++ && !notify_init("indicator-datetime-service"))
+    if (!n_existing_snaps++ && !notify_init(APP_NAME))
         g_critical("libnotify initialization failed");
 }
 
