@@ -30,6 +30,7 @@
 #include <glib.h>
 
 #include <chrono>
+#include <limits>
 #include <mutex> // std::call_once()
 #include <set>
 #include <string>
@@ -484,7 +485,7 @@ private:
 
             g_message ("%s response is '%s'", G_STRFUNC, g_variant_print (args, true));
 
-            g_clear_pointer (&self->m_screen_cookie, g_free);
+            self->m_screen_cookie = NO_SCREEN_COOKIE;
             g_variant_get (args, "(i)", &self->m_screen_cookie);
             g_message ("m_screen_cookie is now '%d'", self->m_screen_cookie);
  
@@ -498,6 +499,7 @@ private:
 
         if (m_awake_cookie != nullptr)
         {
+g_message ("%s calling clearSysState %s", G_STRFUNC, m_awake_cookie);
             g_dbus_connection_call (m_system_bus,
                                     "com.canonical.powerd",
                                     "/com/canonical/powerd",
@@ -519,8 +521,9 @@ private:
     {
         g_return_if_fail (G_IS_DBUS_CONNECTION(m_system_bus));
 
-        if (m_screen_cookie != 0)
+        if (m_screen_cookie != NO_SCREEN_COOKIE)
         {
+g_message ("%s calling removeDisplayOnRequest %d", G_STRFUNC, (int)m_screen_cookie);
             g_dbus_connection_call (m_system_bus,
                                     "com.canonical.Unity.Screen",
                                     "/com/canonical/Unity/Screen",
@@ -534,7 +537,7 @@ private:
                                     nullptr,
                                     nullptr);
 
-            m_screen_cookie = 0;
+            m_screen_cookie = NO_SCREEN_COOKIE;
         }
     }
 
@@ -554,7 +557,9 @@ private:
     GCancellable * m_cancellable = nullptr;
     GDBusConnection * m_system_bus = nullptr;
     char * m_awake_cookie = nullptr;
-    int32_t m_screen_cookie = 0;
+    int32_t m_screen_cookie = NO_SCREEN_COOKIE;
+
+    static constexpr int32_t NO_SCREEN_COOKIE { std::numeric_limits<int32_t>::min() };
 
     static constexpr char const * HINT_SNAP {"x-canonical-snap-decisions"};
     static constexpr char const * HINT_TINT {"x-canonical-private-button-tint"};
