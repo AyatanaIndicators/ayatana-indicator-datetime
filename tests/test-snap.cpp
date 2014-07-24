@@ -18,6 +18,7 @@
  */
 
 #include <datetime/appointment.h>
+#include <datetime/dbus-shared.h>
 #include <datetime/settings.h>
 #include <datetime/snap.h>
 #include <datetime/timezones.h>
@@ -50,6 +51,15 @@ private:
 
 protected:
 
+  static constexpr int SCREEN_COOKIE {8675309};
+  static constexpr char const * SCREEN_METHOD_KEEP_DISPLAY_ON {"keepDisplayOn"}; 
+  static constexpr char const * SCREEN_METHOD_REMOVE_DISPLAY_ON_REQUEST {"removeDisplayOnRequest"};
+
+  static constexpr int POWERD_SYS_STATE_ACTIVE = 1;
+  static constexpr char const * POWERD_COOKIE {"567-48-8307"};
+  static constexpr char const * POWERD_METHOD_REQUEST_SYS_STATE {"requestSysState"};
+  static constexpr char const * POWERD_METHOD_CLEAR_SYS_STATE {"clearSysState"};
+
   static constexpr int NOTIFY_ID {1234};
 
   static constexpr int NOTIFICATION_CLOSED_EXPIRED   {1};
@@ -65,14 +75,22 @@ protected:
 
   static constexpr char const * HINT_TIMEOUT {"x-canonical-snap-decisions-timeout"};
 
-  DbusTestService * service = nullptr;
-  DbusTestDbusMock * mock = nullptr;
-  DbusTestDbusMockObject * obj = nullptr;
-  GDBusConnection * bus = nullptr;
   Appointment appt;
+  GDBusConnection * system_bus = nullptr;
+  GDBusConnection * session_bus = nullptr;
+  DbusTestService * service = nullptr;
+  DbusTestDbusMock * notify_mock = nullptr;
+  DbusTestDbusMock * powerd_mock = nullptr;
+  DbusTestDbusMock * screen_mock = nullptr;
+  DbusTestDbusMockObject * notify_obj = nullptr;
+  DbusTestDbusMockObject * powerd_obj = nullptr;
+  DbusTestDbusMockObject * screen_obj = nullptr;
 
   void SetUp()
   {
+    GError * error = nullptr;
+    char * str = nullptr;
+
     super::SetUp();
 
     // init the Appointment
@@ -88,39 +106,126 @@ protected:
     g_date_time_unref(end);
     g_date_time_unref(begin);
 
-    //
-    // init DBusMock / dbus-test-runner
-    //
-
     service = dbus_test_service_new(nullptr);
 
-    GError * error = nullptr;
-    mock = dbus_test_dbus_mock_new(NOTIFY_BUSNAME);
-    obj = dbus_test_dbus_mock_get_object(mock, NOTIFY_PATH, NOTIFY_INTERFACE, &error);
-    g_assert_no_error (error);
+    ///
+    ///  Add the Notifications mock
+    ///
+
+    notify_mock = dbus_test_dbus_mock_new(NOTIFY_BUSNAME);
+    notify_obj = dbus_test_dbus_mock_get_object(notify_mock,
+                                                NOTIFY_PATH,
+                                                NOTIFY_INTERFACE,
+                                                &error);
+    g_assert_no_error(error);
     
-    dbus_test_dbus_mock_object_add_method(mock, obj, METHOD_GET_INFO,
+    str = g_strdup("ret = ('mock-notify', 'test vendor', '1.0', '1.1')");
+    dbus_test_dbus_mock_object_add_method(notify_mock,
+                                          notify_obj,
+                                          METHOD_GET_INFO,
                                           nullptr,
                                           G_VARIANT_TYPE("(ssss)"),
-                                          "ret = ('mock-notify', 'test vendor', '1.0', '1.1')", // python
+                                          str,
                                           &error);
     g_assert_no_error (error);
+    g_free (str);
 
-    auto python_str = g_strdup_printf ("ret = %d", NOTIFY_ID);
-    dbus_test_dbus_mock_object_add_method(mock, obj, METHOD_NOTIFY,
+    str = g_strdup_printf ("ret = %d", NOTIFY_ID);
+    dbus_test_dbus_mock_object_add_method(notify_mock,
+                                          notify_obj,
+                                          METHOD_NOTIFY,
                                           G_VARIANT_TYPE("(susssasa{sv}i)"),
                                           G_VARIANT_TYPE_UINT32,
-                                          python_str,
+                                          str,
                                           &error);
-    g_free (python_str);
+    g_assert_no_error (error);
+    g_free (str);
+
+    dbus_test_service_add_task(service, DBUS_TEST_TASK(notify_mock));
+
+    ///
+    ///  Add the powerd mock
+    ///
+
+    powerd_mock = dbus_test_dbus_mock_new(BUS_POWERD_NAME);
+    powerd_obj = dbus_test_dbus_mock_get_object(powerd_mock,
+                                                BUS_POWERD_PATH,
+                                                BUS_POWERD_INTERFACE,
+                                                &error);
+    g_assert_no_error(error);
+   
+    str = g_strdup_printf ("ret = '%s'", POWERD_COOKIE); 
+    dbus_test_dbus_mock_object_add_method(powerd_mock,
+                                          powerd_obj,
+                                          POWERD_METHOD_REQUEST_SYS_STATE,
+                                          G_VARIANT_TYPE("(si)"),
+                                          G_VARIANT_TYPE("(s)"),
+                                          str,
+                                          &error);
+    g_assert_no_error (error);
+    g_free (str);
+
+    dbus_test_dbus_mock_object_add_method(powerd_mock,
+                                          powerd_obj,
+                                          POWERD_METHOD_CLEAR_SYS_STATE,
+                                          G_VARIANT_TYPE("(s)"),
+                                          nullptr,
+                                          "",
+                                          &error);
     g_assert_no_error (error);
 
-    dbus_test_service_add_task(service, DBUS_TEST_TASK(mock));
-    dbus_test_service_start_tasks(service);
+    dbus_test_service_add_task(service, DBUS_TEST_TASK(powerd_mock));
 
-    bus = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, nullptr);
-    g_dbus_connection_set_exit_on_close(bus, FALSE);
-    g_object_add_weak_pointer(G_OBJECT(bus), (gpointer *)&bus);
+    ///
+    ///  Add the Screen mock
+    ///
+
+    screen_mock = dbus_test_dbus_mock_new(BUS_SCREEN_NAME);
+    screen_obj = dbus_test_dbus_mock_get_object(screen_mock,
+                                                BUS_SCREEN_PATH,
+                                                BUS_SCREEN_INTERFACE,
+                                                &error);
+    g_assert_no_error(error);
+   
+    str = g_strdup_printf ("ret = %d", SCREEN_COOKIE); 
+    dbus_test_dbus_mock_object_add_method(screen_mock,
+                                          screen_obj,
+                                          SCREEN_METHOD_KEEP_DISPLAY_ON,
+                                          nullptr,
+                                          G_VARIANT_TYPE("(i)"),
+                                          str,
+                                          &error);
+    g_assert_no_error (error);
+    g_free (str);
+
+    dbus_test_dbus_mock_object_add_method(screen_mock,
+                                          screen_obj,
+                                          SCREEN_METHOD_REMOVE_DISPLAY_ON_REQUEST,
+                                          G_VARIANT_TYPE("(i)"),
+                                          nullptr,
+                                          "",
+                                          &error);
+    g_assert_no_error (error);
+
+    dbus_test_service_add_task(service, DBUS_TEST_TASK(screen_mock));
+
+
+    // start 'em up.
+    // make the system bus work off the mock bus too, since that's
+    // where the upower and screen are on the system bus...
+
+    dbus_test_service_start_tasks(service);
+    g_setenv("DBUS_SYSTEM_BUS_ADDRESS", g_getenv("DBUS_SESSION_BUS_ADDRESS"), TRUE);
+
+    session_bus = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+    ASSERT_NE(nullptr, session_bus);
+    g_dbus_connection_set_exit_on_close(session_bus, false);
+    g_object_add_weak_pointer(G_OBJECT(session_bus), (gpointer *)&session_bus);
+
+    system_bus = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, NULL);
+    ASSERT_NE(nullptr, system_bus);
+    g_dbus_connection_set_exit_on_close(system_bus, FALSE);
+    g_object_add_weak_pointer(G_OBJECT(system_bus), (gpointer *)&system_bus);
 
     notify_init(APP_NAME);
   }
@@ -129,14 +234,17 @@ protected:
   {
     notify_uninit();
 
-    g_clear_object(&mock);
+    g_clear_object(&screen_mock);
+    g_clear_object(&powerd_mock);
+    g_clear_object(&notify_mock);
     g_clear_object(&service);
-    g_object_unref(bus);
+    g_object_unref(session_bus);
+    g_object_unref(system_bus);
 
     // wait a little while for the scaffolding to shut down,
     // but don't block on it forever...
     unsigned int cleartry = 0;
-    while ((bus != nullptr) && (cleartry < 50))
+    while (((system_bus != nullptr) || (session_bus != nullptr)) && (cleartry < 50))
       {
         g_usleep(100000);
         while (g_main_pending())
@@ -145,6 +253,23 @@ protected:
       }
 
     super::TearDown();
+  }
+
+  void make_interactive()
+  {
+    // GetCapabilities returns an array containing 'actions',
+    // so our snap decision will be interactive.
+    // For this test, it means we should get a timeout Notify Hint
+    // that matches duration_minutes
+    GError * error = nullptr;
+    dbus_test_dbus_mock_object_add_method(notify_mock,
+                                          notify_obj,
+                                          METHOD_GET_CAPS,
+                                          nullptr,
+                                          G_VARIANT_TYPE_STRING_ARRAY,
+                                          "ret = ['actions', 'body']",
+                                          &error);
+    g_assert_no_error (error);
   }
 };
 
@@ -168,15 +293,10 @@ TEST_F(SnapFixture, InteractiveDuration)
   settings->alarm_duration.set(duration_minutes);
   auto timezones = std::make_shared<Timezones>();
   auto clock = std::make_shared<LiveClock>(timezones);
+
   Snap snap (clock, settings);
 
-  // GetCapabilities returns an array containing 'actions',
-  // so our snap decision will be interactive.
-  // For this test, it means we should get a timeout Notify Hint
-  // that matches duration_minutes
-  GError * error = nullptr;
-  dbus_test_dbus_mock_object_add_method(mock, obj, METHOD_GET_CAPS, nullptr, G_VARIANT_TYPE_STRING_ARRAY, "ret = ['actions', 'body']", &error);
-  g_assert_no_error (error);
+  make_interactive();
 
   // call the Snap Decision
   auto func = [this](const Appointment&){g_idle_add(quit_idle, loop);};
@@ -184,7 +304,12 @@ TEST_F(SnapFixture, InteractiveDuration)
 
   // confirm that Notify got called once
   guint len = 0;
-  auto calls = dbus_test_dbus_mock_object_get_method_calls (mock, obj, METHOD_NOTIFY, &len, &error);
+  GError * error = nullptr;
+  const auto calls = dbus_test_dbus_mock_object_get_method_calls (notify_mock,
+                                                                  notify_obj,
+                                                                  METHOD_NOTIFY,
+                                                                  &len,
+                                                                  &error);
   g_assert_no_error(error);
   ASSERT_EQ(1, len);
 
@@ -210,3 +335,102 @@ TEST_F(SnapFixture, InteractiveDuration)
   g_variant_unref(hints);
 }
 
+/***
+****
+***/
+
+TEST_F(SnapFixture, InhibitSleep)
+{
+  //static constexpr int duration_minutes = 120;
+  auto settings = std::make_shared<Settings>();
+  //settings->alarm_duration.set(duration_minutes);
+  auto timezones = std::make_shared<Timezones>();
+  auto clock = std::make_shared<LiveClock>(timezones);
+  auto snap = new Snap (clock, settings);
+
+  make_interactive();
+
+  // invoke the notification
+  auto func = [this](const Appointment&){g_idle_add(quit_idle, loop);};
+  (*snap)(appt, func, func);
+
+  wait_msec(1000);
+
+  // confirm that sleep got inhibited
+  GError * error = nullptr;
+  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (powerd_mock,
+                                                             powerd_obj,
+                                                             POWERD_METHOD_REQUEST_SYS_STATE,
+                                                             g_variant_new("(si)", APP_NAME, POWERD_SYS_STATE_ACTIVE),
+                                                             &error));
+
+  // confirm that the screen got forced on
+  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (screen_mock,
+                                                             screen_obj,
+                                                             SCREEN_METHOD_KEEP_DISPLAY_ON,
+                                                             nullptr,
+                                                             &error));
+
+  // force-close the snap
+  delete snap;
+  wait_msec(100);
+
+  // confirm that sleep got uninhibted
+  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (powerd_mock,
+                                                             powerd_obj,
+                                                             POWERD_METHOD_CLEAR_SYS_STATE,
+                                                             g_variant_new("(s)", POWERD_COOKIE),
+                                                             &error));
+
+  // confirm that the screen's no longer forced on
+  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (screen_mock,
+                                                             screen_obj,
+                                                             SCREEN_METHOD_REMOVE_DISPLAY_ON_REQUEST,
+                                                             g_variant_new("(i)", SCREEN_COOKIE),
+                                                             &error));
+
+  g_assert_no_error (error);
+}
+
+/***
+****
+***/
+
+TEST_F(SnapFixture, ForceScreen)
+{
+  //static constexpr int duration_minutes = 120;
+  auto settings = std::make_shared<Settings>();
+  //settings->alarm_duration.set(duration_minutes);
+  auto timezones = std::make_shared<Timezones>();
+  auto clock = std::make_shared<LiveClock>(timezones);
+  auto snap = new Snap (clock, settings);
+
+  make_interactive();
+
+  // invoke the notification
+  auto func = [this](const Appointment&){g_idle_add(quit_idle, loop);};
+  (*snap)(appt, func, func);
+
+  wait_msec(1000);
+
+  // confirm that sleep got inhibited
+  GError * error = nullptr;
+  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (powerd_mock,
+                                                             powerd_obj,
+                                                             POWERD_METHOD_REQUEST_SYS_STATE,
+                                                             g_variant_new("(si)", APP_NAME, POWERD_SYS_STATE_ACTIVE),
+                                                             &error));
+  g_assert_no_error(error);
+
+  // force-close the snap
+  delete snap;
+  wait_msec(100);
+
+  // confirm that sleep got uninhibted
+  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (powerd_mock,
+                                                             powerd_obj,
+                                                             POWERD_METHOD_CLEAR_SYS_STATE,
+                                                             g_variant_new("(s)", POWERD_COOKIE),
+                                                             &error));
+  g_assert_no_error(error);
+}
