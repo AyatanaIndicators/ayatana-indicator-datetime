@@ -453,11 +453,9 @@ private:
         {
             auto self = static_cast<Popup*>(gself);
 
-            g_message ("%s response is '%s'", G_STRFUNC, g_variant_print (args, true));
-
             g_clear_pointer (&self->m_awake_cookie, g_free);
             g_variant_get (args, "(s)", &self->m_awake_cookie);
-            g_message ("m_awake_cookie is now '%s'", self->m_awake_cookie);
+            g_debug ("m_awake_cookie is now '%s'", self->m_awake_cookie);
  
             g_variant_unref (args);
         }
@@ -483,11 +481,9 @@ private:
         {
             auto self = static_cast<Popup*>(gself);
 
-            g_message ("%s response is '%s'", G_STRFUNC, g_variant_print (args, true));
-
             self->m_screen_cookie = NO_SCREEN_COOKIE;
             g_variant_get (args, "(i)", &self->m_screen_cookie);
-            g_message ("m_screen_cookie is now '%d'", self->m_screen_cookie);
+            g_debug ("m_screen_cookie is now '%d'", self->m_screen_cookie);
  
             g_variant_unref (args);
         }
@@ -499,7 +495,6 @@ private:
 
         if (m_awake_cookie != nullptr)
         {
-g_message ("%s calling clearSysState %s", G_STRFUNC, m_awake_cookie);
             g_dbus_connection_call (m_system_bus,
                                     "com.canonical.powerd",
                                     "/com/canonical/powerd",
@@ -523,7 +518,6 @@ g_message ("%s calling clearSysState %s", G_STRFUNC, m_awake_cookie);
 
         if (m_screen_cookie != NO_SCREEN_COOKIE)
         {
-g_message ("%s calling removeDisplayOnRequest %d", G_STRFUNC, (int)m_screen_cookie);
             g_dbus_connection_call (m_system_bus,
                                     "com.canonical.Unity.Screen",
                                     "/com/canonical/Unity/Screen",
@@ -650,8 +644,8 @@ void Snap::operator()(const Appointment& appointment,
                                dismiss,
                                popup](Popup::Response response){
      
-        // we can't delete the Popup inside its response() signal handler,
-        // so push that to an idle func
+        // we can't delete the Popup inside its response() signal handler
+        // because core::signal deadlocks, so push that to an idle func
         g_idle_add([](gpointer gdata){
             delete static_cast<Popup*>(gdata);
             return G_SOURCE_REMOVE;
