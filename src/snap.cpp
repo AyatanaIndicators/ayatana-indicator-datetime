@@ -18,6 +18,7 @@
  */
 
 #include <datetime/appointment.h>
+#include <datetime/dbus-shared.h>
 #include <datetime/formatter.h>
 #include <datetime/snap.h>
 
@@ -403,9 +404,9 @@ private:
             // ask powerd to keep the system awake
             static constexpr int32_t POWERD_SYS_STATE_ACTIVE = 1;
             g_dbus_connection_call (system_bus,
-                                    "com.canonical.powerd",
-                                    "/com/canonical/powerd",
-                                    "com.canonical.powerd",
+                                    BUS_POWERD_NAME,
+                                    BUS_POWERD_PATH,
+                                    BUS_POWERD_INTERFACE,
                                     "requestSysState",
                                     g_variant_new("(si)", APP_NAME, POWERD_SYS_STATE_ACTIVE),
                                     G_VARIANT_TYPE("(s)"),
@@ -417,9 +418,9 @@ private:
 
             // ask unity-system-compositor to turn on the screen
             g_dbus_connection_call (system_bus,
-                                    "com.canonical.Unity.Screen",
-                                    "/com/canonical/Unity/Screen",
-                                    "com.canonical.Unity.Screen",
+                                    BUS_SCREEN_NAME,
+                                    BUS_SCREEN_PATH,
+                                    BUS_SCREEN_INTERFACE,
                                     "keepDisplayOn",
                                     nullptr,
                                     G_VARIANT_TYPE("(i)"),
@@ -496,9 +497,9 @@ private:
         if (m_awake_cookie != nullptr)
         {
             g_dbus_connection_call (m_system_bus,
-                                    "com.canonical.powerd",
-                                    "/com/canonical/powerd",
-                                    "com.canonical.powerd",
+                                    BUS_POWERD_NAME,
+                                    BUS_POWERD_PATH,
+                                    BUS_POWERD_INTERFACE,
                                     "clearSysState",
                                     g_variant_new("(s)", m_awake_cookie),
                                     nullptr,
@@ -519,9 +520,9 @@ private:
         if (m_screen_cookie != NO_SCREEN_COOKIE)
         {
             g_dbus_connection_call (m_system_bus,
-                                    "com.canonical.Unity.Screen",
-                                    "/com/canonical/Unity/Screen",
-                                    "com.canonical.Unity.Screen",
+                                    BUS_SCREEN_NAME,
+                                    BUS_SCREEN_PATH,
+                                    BUS_SCREEN_INTERFACE,
                                     "removeDisplayOnRequest",
                                     g_variant_new("(i)", m_screen_cookie),
                                     nullptr,
