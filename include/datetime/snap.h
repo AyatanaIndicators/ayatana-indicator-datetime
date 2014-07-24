@@ -24,8 +24,9 @@
 #include <datetime/clock.h>
 #include <datetime/settings.h>
 
-#include <memory>
 #include <functional>
+#include <memory>
+#include <set>
 
 namespace unity {
 namespace indicator {
@@ -49,6 +50,10 @@ public:
 private:
     const std::shared_ptr<Clock> m_clock;
     const std::shared_ptr<const Settings> m_settings;
+
+    class Popup;
+    friend class Popup;
+    std::set<Popup*> m_pending;
 };
 
 } // namespace datetime

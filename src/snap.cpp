@@ -207,11 +207,52 @@ private:
     bool m_looping = true;
 };
 
+/** 
+***  libnotify -- snap decisions
+**/
+
+std::string get_alarm_uri(const Appointment& appointment,
+                          const std::shared_ptr<const Settings>& settings)
+{
+    const char* FALLBACK {"/usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg"};
+
+    const std::string candidates[] = { appointment.audio_url,
+                                       settings->alarm_sound.get(),
+                                       FALLBACK };
+
+    std::string uri;
+
+    for(const auto& candidate : candidates)
+    {
+        if (gst_uri_is_valid (candidate.c_str()))
+        {
+            uri = candidate;
+            break;
+        }
+        else if (g_file_test(candidate.c_str(), G_FILE_TEST_EXISTS))
+        {
+            gchar* tmp = gst_filename_to_uri(candidate.c_str(), nullptr);
+            if (tmp != nullptr)
+            {
+                uri = tmp;
+                g_free (tmp);
+                break;
+            }
+        }
+    }
+
+    return uri;
+}
+
+int32_t n_existing_snaps = 0;
+
+} // unnamed namespace
+
 /**
  * A popup notification (with optional sound)
  * that emits a Response signal when done.
  */
-class Popup
+class Snap::Popup
 {
 public:
 
@@ -561,47 +602,6 @@ private:
     static constexpr char const * HINT_TIMEOUT {"x-canonical-snap-decisions-timeout"};
 };
 
-/** 
-***  libnotify -- snap decisions
-**/
-
-std::string get_alarm_uri(const Appointment& appointment,
-                          const std::shared_ptr<const Settings>& settings)
-{
-    const char* FALLBACK {"/usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg"};
-
-    const std::string candidates[] = { appointment.audio_url,
-                                       settings->alarm_sound.get(),
-                                       FALLBACK };
-
-    std::string uri;
-
-    for(const auto& candidate : candidates)
-    {
-        if (gst_uri_is_valid (candidate.c_str()))
-        {
-            uri = candidate;
-            break;
-        }
-        else if (g_file_test(candidate.c_str(), G_FILE_TEST_EXISTS))
-        {
-            gchar* tmp = gst_filename_to_uri(candidate.c_str(), nullptr);
-            if (tmp != nullptr)
-            {
-                uri = tmp;
-                g_free (tmp);
-                break;
-            }
-        }
-    }
-
-    return uri;
-}
-
-int32_t n_existing_snaps = 0;
-
-} // unnamed namespace
-
 /***
 ****
 ***/
@@ -617,6 +617,9 @@ Snap::Snap(const std::shared_ptr<Clock>& clock,
 
 Snap::~Snap()
 {
+    for (auto popup : m_pending)
+        delete popup;
+
     if (!--n_existing_snaps)
         notify_uninit();
 }
@@ -638,12 +641,17 @@ void Snap::operator()(const Appointment& appointment,
     sound_builder.set_clock(m_clock);
     sound_builder.set_duration_minutes(m_settings->alarm_duration.get());
     auto popup = new Popup(appointment, sound_builder);
+
+    m_pending.insert(popup);
      
     // listen for it to finish...
-    popup->response().connect([appointment,
+    popup->response().connect([this,
+                               appointment,
                                show,
                                dismiss,
                                popup](Popup::Response response){
+
+        m_pending.erase(popup);
      
         // we can't delete the Popup inside its response() signal handler
         // because core::signal deadlocks, so push that to an idle func
