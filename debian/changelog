@@ -1,3 +1,11 @@
+indicator-datetime (13.10.0+14.10.20140725-0ubuntu1) utopic; urgency=low
+
+  [ Mirco Müller ]
+  * Make use of the x-canonical-non-shaped-icon hint to suppress masking
+    the symbolic icon with an UbuntuShape. (LP: #1346925)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 25 Jul 2014 08:55:41 +0000
+
 indicator-datetime (13.10.0+14.10.20140718-0ubuntu1) utopic; urgency=low
 
   [ Charles Kerr ]
