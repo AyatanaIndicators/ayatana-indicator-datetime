@@ -96,11 +96,11 @@ public:
     /** Close a notification.
         @param key the int returned by show()
         @return true if the notification was closed. */
-    bool close(int key);
+    void close(int key);
 
     /** Close all remaining notifications.
         *@return true if all closed successfully. */
-    bool close_all();
+    void close_all();
 
     const std::string& app_name() const;
     

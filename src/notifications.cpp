@@ -154,42 +154,32 @@ public:
         return m_caps.count("actions") != 0;
     }
 
-    bool close_all ()
+    void close_all ()
     {
-        bool all_closed = true;
-
         // close() removes the item from m_notifications,
         // so increment the iterator before it gets invalidated
         for (auto it=m_notifications.begin(), e=m_notifications.end(); it!=e; )
         {
           const int key = it->first;
           ++it;
-          if (!close (key))
-              all_closed = false;
+          close (key);
         }
-
-        return all_closed;
     }
 
-    bool close (int key)
+    void close (int key)
     {
-        bool is_closed = true;
-
         // if we've got this one...
         auto it = m_notifications.find(key);
         if (it != m_notifications.end())
         {
             GError * error = nullptr;
-            is_closed = notify_notification_close (it->second.nn.get(), &error);
-            if (!is_closed)
+            if (!notify_notification_close (it->second.nn.get(), &error))
             {
                 g_warning ("Unable to close notification %d: %s", key, error->message);
                 g_error_free (error);
             }
             on_closed (key);
         }
-
-        return is_closed;
     }
 
     int show (const Builder& builder)
@@ -339,16 +329,16 @@ Engine::show(const Builder& builder)
     return impl->show(builder);
 }
 
-bool
+void
 Engine::close_all()
 {
-    return impl->close_all();
+    impl->close_all();
 }
 
-bool
+void
 Engine::close(int key)
 {
-    return impl->close(key);
+    impl->close(key);
 }
 
 const std::string&
