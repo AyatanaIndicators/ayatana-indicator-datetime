@@ -63,13 +63,14 @@ public:
         gst_object_unref(bus);
 
         g_debug("Playing '%s'", m_uri.c_str());
-        play();
+        g_object_set(G_OBJECT (m_play), "uri", m_uri.c_str(),
+                                        "volume", get_volume(),
+                                        nullptr);
+        gst_element_set_state (m_play, GST_STATE_PLAYING);
     }
 
     ~Impl()
     {
-        stop();
-
         g_source_remove(m_watch_source);
 
         if (m_play != nullptr)
@@ -80,24 +81,6 @@ public:
     }
 
 private:
-
-    void stop()
-    {
-        if (m_play != nullptr)
-        {
-            gst_element_set_state (m_play, GST_STATE_PAUSED);
-        }
-    }
-
-    void play()
-    {
-       g_return_if_fail(m_play != nullptr);
-
-       g_object_set(G_OBJECT (m_play), "uri", m_uri.c_str(),
-                                       "volume", get_volume(),
-                                       nullptr);
-       gst_element_set_state (m_play, GST_STATE_PLAYING);
-    }
 
     // convert settings range [1..100] to gst playbin's range is [0...1.0]
     gdouble get_volume() const

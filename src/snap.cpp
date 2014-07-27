@@ -39,8 +39,11 @@ namespace datetime {
 ****
 ***/
 
-static std::string get_alarm_uri(const Appointment& appointment,
-                                 const std::shared_ptr<const Settings>& settings)
+namespace // unnamed namespace
+{
+
+std::string get_alarm_uri(const Appointment& appointment,
+                          const std::shared_ptr<const Settings>& settings)
 {
     const char* FALLBACK {"/usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg"};
 
@@ -72,6 +75,8 @@ static std::string get_alarm_uri(const Appointment& appointment,
     return uri;
 }
 
+} // unnamed namespace
+
 /***
 ****
 ***/
@@ -102,7 +107,7 @@ void Snap::operator()(const Appointment& appointment,
     // force the system to stay awake
     auto awake = std::make_shared<uin::Awake>(m_engine->app_name());
 
-    // create the sound...,
+    // create the sound...
     const auto uri = get_alarm_uri(appointment, m_settings);
     const auto volume = m_settings->alarm_volume.get();
     const bool loop = m_engine->supports_actions();

@@ -34,8 +34,7 @@ class Engine;
 /**
  * Helper class for showing notifications.
  *
- * Populate the builder, with the relevant properites,
- * then pass it to Engine::show().
+ * Populate the builder, then pass it to Engine::show().
  * 
  * @see Engine::show(Builder)
  */
@@ -46,7 +45,9 @@ public:
     ~Builder();
 
     void set_title (const std::string& title);
+
     void set_body (const std::string& body);
+
     void set_icon_name (const std::string& icon_name);
 
     /* Set an interval, after which the notification will automatically

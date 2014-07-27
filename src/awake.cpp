@@ -58,7 +58,9 @@ public:
 
 private:
 
-    static void on_system_bus_ready (GObject *, GAsyncResult *res, gpointer gself)
+    static void on_system_bus_ready (GObject *,
+                                     GAsyncResult *res,
+                                     gpointer gself)
     {
         GError * error;
         GDBusConnection * system_bus;
@@ -119,7 +121,9 @@ private:
         GVariant * args;
 
         error = nullptr;
-        args = g_dbus_connection_call_finish (G_DBUS_CONNECTION(connection), res, &error);
+        args = g_dbus_connection_call_finish (G_DBUS_CONNECTION(connection),
+                                              res,
+                                              &error);
         if (error != nullptr)
         {
             if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED) &&
@@ -150,7 +154,9 @@ private:
         GVariant * args;
 
         error = nullptr;
-        args = g_dbus_connection_call_finish (G_DBUS_CONNECTION(connection), res, &error);
+        args = g_dbus_connection_call_finish (G_DBUS_CONNECTION(connection),
+                                              res,
+                                              &error);
         if (error != nullptr)
         {
             if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED) &&
@@ -233,7 +239,7 @@ private:
 ***/
 
 Awake::Awake(const std::string& app_name):
-  impl(new Impl (app_name))
+    impl(new Impl (app_name))
 {
 }
 

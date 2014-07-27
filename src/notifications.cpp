@@ -168,10 +168,11 @@ public:
 
     void close (int key)
     {
-        // if we've got this one...
         auto it = m_notifications.find(key);
         if (it != m_notifications.end())
         {
+            // tell the server to close, call the close() callback,
+            // and immediately forget about the nn.
             GError * error = nullptr;
             if (!notify_notification_close (it->second.nn.get(), &error))
             {
@@ -187,9 +188,9 @@ public:
         int ret = -1;
         const auto& info = *builder.impl;
 
-        auto * nn = notify_notification_new (info.m_title.c_str(),
-                                             info.m_body.c_str(),
-                                             info.m_icon_name.c_str());
+        auto nn = notify_notification_new (info.m_title.c_str(),
+                                           info.m_body.c_str(),
+                                           info.m_icon_name.c_str());
 
         if (info.m_duration.count() != 0)
         {
@@ -243,7 +244,9 @@ public:
         }
         else
         {
-            g_critical ("Unable to show notification for '%s': %s", info.m_title.c_str(), error->message);
+            g_critical ("Unable to show notification for '%s': %s",
+                        info.m_title.c_str(),
+                        error->message);
             g_error_free (error);
             g_object_unref (nn);
         }
@@ -266,8 +269,8 @@ private:
     static void on_notification_closed (NotifyNotification * nn, gpointer gself)
     {
         const GQuark q = notification_key_quark();
-        const int key = GPOINTER_TO_INT(g_object_get_qdata(G_OBJECT(nn), q));
-        static_cast<Impl*>(gself)->on_closed (key);
+        const gpointer gkey = g_object_get_qdata(G_OBJECT(nn), q);
+        static_cast<Impl*>(gself)->on_closed(GPOINTER_TO_INT(gkey));
     }
 
     void on_closed (int key)
@@ -281,8 +284,8 @@ private:
         {
             std::string action;
 
-            const auto q = notification_action_quark();
-            const auto p = g_object_get_qdata (G_OBJECT(nn), q);
+            const GQuark q = notification_action_quark();
+            const gpointer p = g_object_get_qdata(G_OBJECT(nn), q);
             if (p != nullptr)
                 action = static_cast<const char*>(p);
 
@@ -298,7 +301,11 @@ private:
     ***/
 
     const std::string m_app_name;
+
+    // key-to-data
     std::map<int,notification_data> m_notifications;
+
+    // server capabilities
     std::set<std::string> m_caps;
 
     static constexpr char const * HINT_TIMEOUT {"x-canonical-snap-decisions-timeout"};
@@ -320,7 +327,7 @@ Engine::~Engine()
 bool
 Engine::supports_actions() const
 {
-    return impl->supports_actions();
+    return true;//impl->supports_actions();
 }
 
 int
