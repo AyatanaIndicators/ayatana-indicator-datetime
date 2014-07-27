@@ -11,6 +11,7 @@ set (SERVICE_CXX_SOURCES
      actions.cpp
      actions-live.cpp
      alarm-queue-simple.cpp
+     awake.cpp
      appointment.cpp
      clock.cpp
      clock-live.cpp
@@ -22,11 +23,13 @@ set (SERVICE_CXX_SOURCES
      locations.cpp
      locations-settings.cpp
      menu.cpp
+     notifications.cpp
      planner-month.cpp
      planner-range.cpp
      planner-upcoming.cpp
      settings-live.cpp
      snap.cpp
+     sound.cpp
      timezone-file.cpp
      timezone-geoclue.cpp
      timezones-live.cpp

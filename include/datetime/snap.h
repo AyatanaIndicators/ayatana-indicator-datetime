@@ -21,8 +21,9 @@
 #define INDICATOR_DATETIME_SNAP_H
 
 #include <datetime/appointment.h>
-#include <datetime/clock.h>
 #include <datetime/settings.h>
+
+#include <notifications/notifications.h>
 
 #include <functional>
 #include <memory>
@@ -38,7 +39,7 @@ namespace datetime {
 class Snap
 {
 public:
-    Snap(const std::shared_ptr<Clock>& clock,
+    Snap(const std::shared_ptr<unity::indicator::notifications::Engine>& engine,
          const std::shared_ptr<const Settings>& settings);
     virtual ~Snap();
 
@@ -48,12 +49,9 @@ public:
                     appointment_func dismiss);
 
 private:
-    const std::shared_ptr<Clock> m_clock;
+    const std::shared_ptr<unity::indicator::notifications::Engine> m_engine;
     const std::shared_ptr<const Settings> m_settings;
-
-    class Popup;
-    friend class Popup;
-    std::set<Popup*> m_pending;
+    std::set<int> m_notifications;
 };
 
 } // namespace datetime
