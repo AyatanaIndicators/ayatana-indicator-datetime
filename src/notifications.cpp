@@ -160,7 +160,7 @@ public:
 
         // close() removes the item from m_notifications,
         // so increment the iterator before it gets invalidated
-        for (auto it=m_notifications.begin(), end=m_notifications.end(); it!=end; )
+        for (auto it=m_notifications.begin(), e=m_notifications.end(); it!=e; )
         {
           const int key = it->first;
           ++it;

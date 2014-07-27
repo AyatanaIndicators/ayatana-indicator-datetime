@@ -109,38 +109,35 @@ void Snap::operator()(const Appointment& appointment,
     auto sound = std::make_shared<uin::Sound>(uri, volume, loop);
 
     // show a notification...
-    const auto minutes = m_settings->alarm_duration.get();
+    const auto minutes = std::chrono::minutes(m_settings->alarm_duration.get());
     const bool interactive = m_engine->supports_actions();
-    uin::Builder notification_builder;
-    notification_builder.set_body (appointment.summary);
-    notification_builder.set_icon_name ("alarm-clock");
-    notification_builder.add_hint (uin::Builder::HINT_SNAP);
-    notification_builder.add_hint (uin::Builder::HINT_TINT);
+    uin::Builder b;
+    b.set_body (appointment.summary);
+    b.set_icon_name ("alarm-clock");
+    b.add_hint (uin::Builder::HINT_SNAP);
+    b.add_hint (uin::Builder::HINT_TINT);
     const auto timestr = appointment.begin.format (_("%a, %X"));
     auto title = g_strdup_printf (_("Alarm %s"), timestr.c_str());
-    notification_builder.set_title (title);
+    b.set_title (title);
     g_free (title);
-    notification_builder.set_timeout (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::minutes(minutes)));
+    b.set_timeout (std::chrono::duration_cast<std::chrono::seconds>(minutes));
     if (interactive) {
-        notification_builder.add_action ("show", _("Show"));
-        notification_builder.add_action ("dismiss", _("Dismiss"));
+        b.add_action ("show", _("Show"));
+        b.add_action ("dismiss", _("Dismiss"));
     }
 
     // add the 'sound' and 'awake' objects to the capture so that
     // they stay alive until the closed callback is called; i.e.,
     // for the lifespan of the notficiation
-    notification_builder.set_closed_callback([appointment,
-                                              show,
-                                              dismiss,
-                                              sound,
-                                              awake](const std::string& action){
+    b.set_closed_callback([appointment, show, dismiss, sound, awake]
+                          (const std::string& action){
         if (action == "show")
             show(appointment);
         else
             dismiss(appointment);
     });
 
-    const auto key = m_engine->show (notification_builder);
+    const auto key = m_engine->show(b);
     if (key)
         m_notifications.insert (key);
     else
