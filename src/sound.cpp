@@ -49,8 +49,7 @@ public:
 	static std::once_flag once;
         std::call_once(once, [](){
             GError* error = nullptr;
-            gst_init_check (nullptr, nullptr, &error);
-            if (error)
+            if (!gst_init_check (nullptr, nullptr, &error))
             {
                 g_critical("Unable to play alarm sound: %s", error->message);
                 g_error_free(error);
