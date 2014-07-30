@@ -30,6 +30,7 @@ Test-case indicator-datetime/new-alarm-wakeup
 		(Note: if in doubt about sleep you can see in the syslog whether the
 		device actually suspended or whether the suspend was aborted)</dd>
 		<dd>Confirm that the screen comes on when the alarm is triggered.<dd>
+		<dd>If the device supports haptic feedback, confirm the alarm vibrates.</dd>
 </dl>
 
 Test-case indicator-datetime/edited-alarm-wakeup
@@ -40,6 +41,7 @@ Test-case indicator-datetime/edited-alarm-wakeup
 		(Note: if in doubt about sleep you can see in the syslog whether the
 		device actually suspended or whether the suspend was aborted)</dd>
 		<dd>Confirm that the screen comes on when the alarm is triggered.<dd>
+		<dd>If the device supports haptic feedback, confirm the alarm vibrates.</dd>
 </dl>
 
 Test-case indicator-datetime/tell-snap-decision-to-dismiss
