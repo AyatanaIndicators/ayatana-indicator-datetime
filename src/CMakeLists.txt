@@ -20,6 +20,7 @@ set (SERVICE_CXX_SOURCES
      exporter.cpp
      formatter.cpp
      formatter-desktop.cpp
+     haptic.cpp
      locations.cpp
      locations-settings.cpp
      menu.cpp

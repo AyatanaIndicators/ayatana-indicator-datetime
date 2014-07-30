@@ -41,7 +41,8 @@ pkg_check_modules (SERVICE_DEPS REQUIRED
                    gstreamer-1.0>=1.2
                    libnotify>=0.7.6
                    url-dispatcher-1>=1
-                   properties-cpp>=0.0.1)
+                   properties-cpp>=0.0.1
+                   ubuntu-platform-api>=2.2.0)
 include_directories (SYSTEM ${SERVICE_DEPS_INCLUDE_DIRS})
 
 CHECK_INCLUDE_FILE(ubuntu/hardware/alarm.h HAVE_UBUNTU_HW_ALARM_H)

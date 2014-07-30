@@ -21,6 +21,7 @@ Build-Depends: cmake,
                libproperties-cpp-dev,
                libubuntu-platform-hardware-api-headers [armhf i386 amd64],
                libubuntu-platform-hardware-api-dev [armhf i386 amd64],
+               libubuntu-application-api-dev [armhf i386 amd64],
                libdbustest1-dev,
                locales,
 Standards-Version: 3.9.3

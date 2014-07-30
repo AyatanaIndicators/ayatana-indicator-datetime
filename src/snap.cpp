@@ -20,6 +20,7 @@
 #include <datetime/snap.h>
 
 #include <notifications/awake.h>
+#include <notifications/haptic.h>
 #include <notifications/sound.h>
 
 #include <gst/gst.h>
@@ -76,6 +77,9 @@ public:
         const bool loop = m_engine->supports_actions();
         auto sound = std::make_shared<uin::Sound>(uri, volume, loop);
 
+        // create the haptic feedback...
+        auto haptic = std::make_shared<uin::Haptic>();
+
         // show a notification...
         const auto minutes = std::chrono::minutes(m_settings->alarm_duration.get());
         const bool interactive = m_engine->supports_actions();
@@ -94,10 +98,10 @@ public:
             b.add_action ("dismiss", _("Dismiss"));
         }
 
-        // add the 'sound' and 'awake' objects to the capture so that
+        // add 'sound', 'haptic', and 'awake' objects to the capture so
         // they stay alive until the closed callback is called; i.e.,
         // for the lifespan of the notficiation
-        b.set_closed_callback([appointment, show, dismiss, sound, awake]
+        b.set_closed_callback([appointment, show, dismiss, sound, awake, haptic]
                               (const std::string& action){
             if (action == "show")
                 show(appointment);
