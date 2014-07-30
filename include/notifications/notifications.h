@@ -91,16 +91,14 @@ public:
     bool supports_actions() const;
 
     /** Show a notification.
-        @return nonzero on success, zero on failure. */
+        @return zero on failure, or a key that can be passed to close() */
     int show(const Builder& builder);
 
     /** Close a notification.
-        @param key the int returned by show()
-        @return true if the notification was closed. */
+        @param key the int returned by show() */
     void close(int key);
 
-    /** Close all remaining notifications.
-        *@return true if all closed successfully. */
+    /** Close all remaining notifications. */
     void close_all();
 
     const std::string& app_name() const;
