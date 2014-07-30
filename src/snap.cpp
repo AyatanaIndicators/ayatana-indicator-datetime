@@ -18,6 +18,7 @@
  */
 
 #include <datetime/appointment.h>
+#include <datetime/dbus-shared.h>
 #include <datetime/formatter.h>
 #include <datetime/snap.h>
 
@@ -30,6 +31,7 @@
 #include <glib.h>
 
 #include <chrono>
+#include <limits>
 #include <mutex> // std::call_once()
 #include <set>
 #include <string>
@@ -44,6 +46,8 @@ namespace datetime {
 
 namespace
 {
+
+static constexpr char const * APP_NAME = {"indicator-datetime-service"};
 
 /**
  * Plays a sound, possibly looping.
@@ -203,24 +207,81 @@ private:
     bool m_looping = true;
 };
 
+/** 
+***  libnotify -- snap decisions
+**/
+
+std::string get_alarm_uri(const Appointment& appointment,
+                          const std::shared_ptr<const Settings>& settings)
+{
+    const char* FALLBACK {"/usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg"};
+
+    const std::string candidates[] = { appointment.audio_url,
+                                       settings->alarm_sound.get(),
+                                       FALLBACK };
+
+    std::string uri;
+
+    for(const auto& candidate : candidates)
+    {
+        if (gst_uri_is_valid (candidate.c_str()))
+        {
+            uri = candidate;
+            break;
+        }
+        else if (g_file_test(candidate.c_str(), G_FILE_TEST_EXISTS))
+        {
+            gchar* tmp = gst_filename_to_uri(candidate.c_str(), nullptr);
+            if (tmp != nullptr)
+            {
+                uri = tmp;
+                g_free (tmp);
+                break;
+            }
+        }
+    }
+
+    return uri;
+}
+
+int32_t n_existing_snaps = 0;
+
+} // unnamed namespace
+
 /**
  * A popup notification (with optional sound)
  * that emits a Response signal when done.
  */
-class Popup
+class Snap::Popup
 {
 public:
 
     Popup(const Appointment& appointment, const SoundBuilder& sound_builder):
         m_appointment(appointment),
         m_interactive(get_interactive()),
-        m_sound_builder(sound_builder)
+        m_sound_builder(sound_builder),
+        m_cancellable(g_cancellable_new())
     {
+        g_bus_get (G_BUS_TYPE_SYSTEM, m_cancellable, on_system_bus_ready, this);
+
         show();
     }
 
     ~Popup()
     {
+        if (m_cancellable != nullptr)
+        {
+            g_cancellable_cancel (m_cancellable);
+            g_clear_object (&m_cancellable);
+        }
+
+        if (m_system_bus != nullptr)
+        {
+            unforce_awake ();
+            unforce_screen ();
+            g_clear_object (&m_system_bus);
+        } 
+
         if (m_nn != nullptr)
         {
             notify_notification_clear_actions(m_nn);
@@ -363,6 +424,165 @@ private:
     ****
     ***/
 
+    static void on_system_bus_ready (GObject *, GAsyncResult *res, gpointer gself)
+    {
+        GError * error;
+        GDBusConnection * system_bus;
+
+        error = nullptr;
+        system_bus = g_bus_get_finish (res, &error);
+        if (error != nullptr)
+        {
+            if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+                g_warning ("Unable to get bus: %s", error->message);
+
+            g_error_free (error);
+        }
+        else if (system_bus != nullptr)
+        {
+            auto self = static_cast<Popup*>(gself);
+
+            self->m_system_bus = G_DBUS_CONNECTION (g_object_ref (system_bus));
+
+            // ask powerd to keep the system awake
+            static constexpr int32_t POWERD_SYS_STATE_ACTIVE = 1;
+            g_dbus_connection_call (system_bus,
+                                    BUS_POWERD_NAME,
+                                    BUS_POWERD_PATH,
+                                    BUS_POWERD_INTERFACE,
+                                    "requestSysState",
+                                    g_variant_new("(si)", APP_NAME, POWERD_SYS_STATE_ACTIVE),
+                                    G_VARIANT_TYPE("(s)"),
+                                    G_DBUS_CALL_FLAGS_NONE,
+                                    -1,
+                                    self->m_cancellable,
+                                    on_force_awake_response,
+                                    self);
+
+            // ask unity-system-compositor to turn on the screen
+            g_dbus_connection_call (system_bus,
+                                    BUS_SCREEN_NAME,
+                                    BUS_SCREEN_PATH,
+                                    BUS_SCREEN_INTERFACE,
+                                    "keepDisplayOn",
+                                    nullptr,
+                                    G_VARIANT_TYPE("(i)"),
+                                    G_DBUS_CALL_FLAGS_NONE,
+                                    -1,
+                                    self->m_cancellable,
+                                    on_force_screen_response,
+                                    self);
+
+            g_object_unref (system_bus);
+        }
+    }
+
+    static void on_force_awake_response (GObject      * connection,
+                                         GAsyncResult * res,
+                                         gpointer       gself)
+    {
+        GError * error;
+        GVariant * args;
+
+        error = nullptr;
+        args = g_dbus_connection_call_finish (G_DBUS_CONNECTION(connection), res, &error);
+        if (error != nullptr)
+        {
+            if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+                g_warning ("Unable to inhibit sleep: %s", error->message);
+
+            g_error_free (error);
+        }
+        else
+        {
+            auto self = static_cast<Popup*>(gself);
+
+            g_clear_pointer (&self->m_awake_cookie, g_free);
+            g_variant_get (args, "(s)", &self->m_awake_cookie);
+            g_debug ("m_awake_cookie is now '%s'", self->m_awake_cookie);
+ 
+            g_variant_unref (args);
+        }
+    }
+
+    static void on_force_screen_response (GObject      * connection,
+                                          GAsyncResult * res,
+                                          gpointer       gself)
+    {
+        GError * error;
+        GVariant * args;
+
+        error = nullptr;
+        args = g_dbus_connection_call_finish (G_DBUS_CONNECTION(connection), res, &error);
+        if (error != nullptr)
+        {
+            if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+                g_warning ("Unable to turn on the screen: %s", error->message);
+
+            g_error_free (error);
+        }
+        else
+        {
+            auto self = static_cast<Popup*>(gself);
+
+            self->m_screen_cookie = NO_SCREEN_COOKIE;
+            g_variant_get (args, "(i)", &self->m_screen_cookie);
+            g_debug ("m_screen_cookie is now '%d'", self->m_screen_cookie);
+ 
+            g_variant_unref (args);
+        }
+    }
+
+    void unforce_awake ()
+    {
+        g_return_if_fail (G_IS_DBUS_CONNECTION(m_system_bus));
+
+        if (m_awake_cookie != nullptr)
+        {
+            g_dbus_connection_call (m_system_bus,
+                                    BUS_POWERD_NAME,
+                                    BUS_POWERD_PATH,
+                                    BUS_POWERD_INTERFACE,
+                                    "clearSysState",
+                                    g_variant_new("(s)", m_awake_cookie),
+                                    nullptr,
+                                    G_DBUS_CALL_FLAGS_NONE,
+                                    -1,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+
+            g_clear_pointer (&m_awake_cookie, g_free);
+        }
+    }
+
+    void unforce_screen ()
+    {
+        g_return_if_fail (G_IS_DBUS_CONNECTION(m_system_bus));
+
+        if (m_screen_cookie != NO_SCREEN_COOKIE)
+        {
+            g_dbus_connection_call (m_system_bus,
+                                    BUS_SCREEN_NAME,
+                                    BUS_SCREEN_PATH,
+                                    BUS_SCREEN_INTERFACE,
+                                    "removeDisplayOnRequest",
+                                    g_variant_new("(i)", m_screen_cookie),
+                                    nullptr,
+                                    G_DBUS_CALL_FLAGS_NONE,
+                                    -1,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+
+            m_screen_cookie = NO_SCREEN_COOKIE;
+        }
+    }
+
+    /***
+    ****
+    ***/
+
     typedef Popup Self;
 
     const Appointment m_appointment;
@@ -372,53 +592,18 @@ private:
     core::Signal<Response> m_response;
     Response m_response_value = RESPONSE_CLOSE;
     NotifyNotification* m_nn = nullptr;
+    GCancellable * m_cancellable = nullptr;
+    GDBusConnection * m_system_bus = nullptr;
+    char * m_awake_cookie = nullptr;
+    int32_t m_screen_cookie = NO_SCREEN_COOKIE;
+
+    static constexpr int32_t NO_SCREEN_COOKIE { std::numeric_limits<int32_t>::min() };
 
     static constexpr char const * HINT_SNAP {"x-canonical-snap-decisions"};
     static constexpr char const * HINT_TINT {"x-canonical-private-button-tint"};
     static constexpr char const * HINT_TIMEOUT {"x-canonical-snap-decisions-timeout"};
     static constexpr char const * HINT_NONSHAPEDICON {"x-canonical-non-shaped-icon"};
 };
-
-/** 
-***  libnotify -- snap decisions
-**/
-
-std::string get_alarm_uri(const Appointment& appointment,
-                          const std::shared_ptr<const Settings>& settings)
-{
-    const char* FALLBACK {"/usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg"};
-
-    const std::string candidates[] = { appointment.audio_url,
-                                       settings->alarm_sound.get(),
-                                       FALLBACK };
-
-    std::string uri;
-
-    for(const auto& candidate : candidates)
-    {
-        if (gst_uri_is_valid (candidate.c_str()))
-        {
-            uri = candidate;
-            break;
-        }
-        else if (g_file_test(candidate.c_str(), G_FILE_TEST_EXISTS))
-        {
-            gchar* tmp = gst_filename_to_uri(candidate.c_str(), nullptr);
-            if (tmp != nullptr)
-            {
-                uri = tmp;
-                g_free (tmp);
-                break;
-            }
-        }
-    }
-
-    return uri;
-}
-
-int32_t n_existing_snaps = 0;
-
-} // unnamed namespace
 
 /***
 ****
@@ -429,12 +614,15 @@ Snap::Snap(const std::shared_ptr<Clock>& clock,
     m_clock(clock),
     m_settings(settings)
 {
-    if (!n_existing_snaps++ && !notify_init("indicator-datetime-service"))
+    if (!n_existing_snaps++ && !notify_init(APP_NAME))
         g_critical("libnotify initialization failed");
 }
 
 Snap::~Snap()
 {
+    for (auto popup : m_pending)
+        delete popup;
+
     if (!--n_existing_snaps)
         notify_uninit();
 }
@@ -456,15 +644,20 @@ void Snap::operator()(const Appointment& appointment,
     sound_builder.set_clock(m_clock);
     sound_builder.set_duration_minutes(m_settings->alarm_duration.get());
     auto popup = new Popup(appointment, sound_builder);
+
+    m_pending.insert(popup);
      
     // listen for it to finish...
-    popup->response().connect([appointment,
+    popup->response().connect([this,
+                               appointment,
                                show,
                                dismiss,
                                popup](Popup::Response response){
+
+        m_pending.erase(popup);
      
-        // we can't delete the Popup inside its response() signal handler,
-        // so push that to an idle func
+        // we can't delete the Popup inside its response() signal handler
+        // because core::signal deadlocks, so push that to an idle func
         g_idle_add([](gpointer gdata){
             delete static_cast<Popup*>(gdata);
             return G_SOURCE_REMOVE;

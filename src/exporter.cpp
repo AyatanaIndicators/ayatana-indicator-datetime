@@ -72,7 +72,7 @@ public:
         m_actions = actions;
         m_menus = menus;
         m_own_id = g_bus_own_name(G_BUS_TYPE_SESSION,
-                                  BUS_NAME,
+                                  BUS_DATETIME_NAME,
                                   G_BUS_NAME_OWNER_FLAGS_ALLOW_REPLACEMENT,
                                   on_bus_acquired,
                                   nullptr,
@@ -166,12 +166,12 @@ private:
         GError * error = nullptr;
         g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(m_alarm_props),
                                          m_bus,
-                                         BUS_PATH"/AlarmProperties",
+                                         BUS_DATETIME_PATH"/AlarmProperties",
                                          &error);
 
         // export the actions
         const auto id = g_dbus_connection_export_action_group(m_bus,
-                                                              BUS_PATH,
+                                                              BUS_DATETIME_PATH,
                                                               m_actions->action_group(),
                                                               &error);
         if (id)
@@ -187,7 +187,7 @@ private:
         // export the menus
         for(auto& menu : m_menus)
         {
-            const auto path = std::string(BUS_PATH) + "/" + menu->name();
+            const auto path = std::string(BUS_DATETIME_PATH) + "/" + menu->name();
             const auto id = g_dbus_connection_export_menu_model(m_bus, path.c_str(), menu->menu_model(), &error);
             if (id)
             {

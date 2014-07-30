@@ -90,7 +90,7 @@ TEST_F(ExporterFixture, Publish)
     wait_msec();
 
     auto connection = g_bus_get_sync (G_BUS_TYPE_SESSION, nullptr, nullptr);
-    auto exported = g_dbus_action_group_get (connection, BUS_NAME, BUS_PATH);
+    auto exported = g_dbus_action_group_get (connection, BUS_DATETIME_NAME, BUS_DATETIME_PATH);
     auto names_strv = g_action_group_list_actions(G_ACTION_GROUP(exported));
 
     // wait for the exported ActionGroup to be populated
@@ -171,8 +171,8 @@ TEST_F(ExporterFixture, AlarmProperties)
     DatetimeAlarmProperties* proxy = nullptr;
     datetime_alarm_properties_proxy_new_for_bus(G_BUS_TYPE_SESSION,
                                                 G_DBUS_PROXY_FLAGS_NONE,
-                                                BUS_NAME,
-                                                BUS_PATH"/AlarmProperties",
+                                                BUS_DATETIME_NAME,
+                                                BUS_DATETIME_PATH"/AlarmProperties",
                                                 nullptr,
                                                 on_proxy_ready,
                                                 &proxy);
