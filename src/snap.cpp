@@ -84,6 +84,7 @@ public:
         b.set_icon_name ("alarm-clock");
         b.add_hint (uin::Builder::HINT_SNAP);
         b.add_hint (uin::Builder::HINT_TINT);
+        b.add_hint (uin::Builder::HINT_NONSHAPEDICON);
         const auto timestr = appointment.begin.format (_("%a, %X"));
         auto title = g_strdup_printf (_("Alarm %s"), timestr.c_str());
         b.set_title (title);

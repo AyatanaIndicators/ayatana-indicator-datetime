@@ -60,6 +60,7 @@ public:
     void add_hint (const std::string& name);
     static constexpr char const * HINT_SNAP {"x-canonical-snap-decisions"};
     static constexpr char const * HINT_TINT {"x-canonical-private-button-tint"};
+    static constexpr char const * HINT_NONSHAPEDICON {"x-canonical-non-shaped-icon"};
 
     /* Add an action button.
        This may fail if the Engine doesn't support actions.
