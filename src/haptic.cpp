@@ -40,13 +40,21 @@ public:
         m_sensor(ua_sensors_haptic_new())
     {
         if (m_sensor == nullptr)
+        {
             g_warning ("Haptic device unavailable");
+        }
         else
-            m_tag = g_timeout_add_seconds (1, on_timeout, this);
+        {
+            ua_sensors_haptic_enable(m_sensor);
+            m_tag = g_timeout_add_seconds (2, on_timeout, this);
+        }
     }
 
     ~Impl()
     {
+        if (m_sensor != nullptr)
+            ua_sensors_haptic_enable(m_sensor);
+
         if (m_tag)
             g_source_remove(m_tag);
     }
@@ -61,8 +69,8 @@ private:
 
     void vibrate_now()
     {
-        const uint32_t msec = 1500;
-        ua_sensors_haptic_vibrate_once (m_sensor, msec);
+        const uint32_t msec = 1000;
+        (void) ua_sensors_haptic_vibrate_once (m_sensor, msec);
     }
 
     const Mode m_mode;
