@@ -27,7 +27,6 @@
 
 #include <functional>
 #include <memory>
-#include <set>
 
 namespace unity {
 namespace indicator {
@@ -49,9 +48,8 @@ public:
                     appointment_func dismiss);
 
 private:
-    const std::shared_ptr<unity::indicator::notifications::Engine> m_engine;
-    const std::shared_ptr<const Settings> m_settings;
-    std::set<int> m_notifications;
+    class Impl;
+    std::unique_ptr<Impl> impl;
 };
 
 } // namespace datetime
