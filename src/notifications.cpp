@@ -327,7 +327,7 @@ Engine::~Engine()
 bool
 Engine::supports_actions() const
 {
-    return true;//impl->supports_actions();
+    return impl->supports_actions();
 }
 
 int
