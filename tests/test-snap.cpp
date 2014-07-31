@@ -56,7 +56,7 @@ private:
 
 protected:
 
-  static constexpr char const * HAPTIC_METHOD_VIBRATE {"Vibrate"};
+  static constexpr char const * HAPTIC_METHOD_VIBRATE_PATTERN {"VibratePattern"};
 
   static constexpr int SCREEN_COOKIE {8675309};
   static constexpr char const * SCREEN_METHOD_KEEP_DISPLAY_ON {"keepDisplayOn"}; 
@@ -253,8 +253,8 @@ protected:
    
     dbus_test_dbus_mock_object_add_method(haptic_mock,
                                           haptic_obj,
-                                          HAPTIC_METHOD_VIBRATE,
-                                          G_VARIANT_TYPE("(u)"),
+                                          HAPTIC_METHOD_VIBRATE_PATTERN,
+                                          G_VARIANT_TYPE("(auu)"),
                                           nullptr,
                                           "",
                                           &error);
@@ -419,7 +419,7 @@ TEST_F(SnapFixture, InhibitSleep)
   // confirm that haptic feedback got called
   EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (haptic_mock,
                                                              haptic_obj,
-                                                             HAPTIC_METHOD_VIBRATE,
+                                                             HAPTIC_METHOD_VIBRATE_PATTERN,
                                                              nullptr,
                                                              &error));
 

@@ -22,6 +22,8 @@
 
 #include <gio/gio.h>
 
+#include <vector>
+
 namespace unity {
 namespace indicator {
 namespace notifications {
@@ -81,38 +83,65 @@ private:
 
     void start_vibrating()
     {
-        /* We only support one vibrate mode for now: an on/off pulse at
-           one-second intervals. So set a looping 2-second timer that asks
-           the phone to vibrate for one second. */
-        m_tag = g_timeout_add_seconds (2, on_timeout, this);
+        g_return_if_fail (m_tag == 0);
+
+        switch (m_mode)
+        {
+            case MODE_PULSE: // the only mode currently supported... :)
+                // one second on, one second off.
+                m_vibrate_pattern_msec = std::vector<uint32_t>({1000, 1000});
+                break;
+        }
+
+        // Set up a loop so that the pattern keeps repeating.
+        // NB: VibratePattern takes a repeat arg, but we avoid it because
+        // there's no way to cancel a pattern once it's started...
+        // The phone would keep vibrating long after the alarm was dismissed!
+        // So we stick to a short pattern and handle the repeat loop manually.
+        guint interval_msec = 0;
+        for (const auto& msec : m_vibrate_pattern_msec)
+            interval_msec += msec;
+        m_tag = g_timeout_add (interval_msec, on_timeout, this);
         on_timeout (this);
     }
 
     static gboolean on_timeout (gpointer gself)
     {
-        static_cast<Impl*>(gself)->vibrate_now();
-        return G_SOURCE_CONTINUE;
-    }
+        auto self = static_cast<Impl*>(gself);
 
-    void vibrate_now()
-    {
-        g_dbus_connection_call (m_bus,
+        // build the pattern array of uint32s
+        GVariantBuilder builder;
+        g_variant_builder_init (&builder, G_VARIANT_TYPE_ARRAY);
+        for (const auto& msec : self->m_vibrate_pattern_msec)
+            g_variant_builder_add_value (&builder, g_variant_new_uint32(msec));
+        auto pattern_array = g_variant_builder_end (&builder);
+
+        // build the argument list
+        g_variant_builder_init (&builder, G_VARIANT_TYPE_TUPLE);
+        g_variant_builder_add_value (&builder, pattern_array);
+        g_variant_builder_add_value (&builder, g_variant_new_uint32(1u));
+        auto args = g_variant_builder_end (&builder);
+
+        g_dbus_connection_call (self->m_bus,
                                 BUS_HAPTIC_NAME,
                                 BUS_HAPTIC_PATH,
                                 BUS_HAPTIC_INTERFACE,
-                                "Vibrate",
-                                g_variant_new("(u)", 1000u),
+                                "VibratePattern",
+                                args,
                                 nullptr,
                                 G_DBUS_CALL_FLAGS_NONE,
                                 -1,
-                                m_cancellable,
+                                self->m_cancellable,
                                 nullptr,
                                 nullptr);
+
+        return G_SOURCE_CONTINUE;
     }
 
     const Mode m_mode;
     GCancellable * m_cancellable = nullptr;
     GDBusConnection * m_bus = nullptr;
+    std::vector<uint32_t> m_vibrate_pattern_msec;
     guint m_tag = 0;
 };
 
