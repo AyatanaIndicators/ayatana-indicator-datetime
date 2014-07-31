@@ -17,11 +17,10 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
+#include <notifications/dbus-shared.h>
 #include <notifications/haptic.h>
 
-#include <ubuntu/application/sensors/haptic.h>
-
-#include <glib.h>
+#include <gio/gio.h>
 
 namespace unity {
 namespace indicator {
@@ -37,33 +36,57 @@ public:
 
     Impl(const Mode& mode):
         m_mode(mode),
-        m_sensor(ua_sensors_haptic_new())
+        m_cancellable(g_cancellable_new())
     {
-        if (m_sensor == nullptr)
-        {
-            g_warning ("Haptic device unavailable");
-        }
-        else
-        {
-            /* We only support one vibrate mode for now: an on/off pulse at
-               one-second intervals. So, set a timer to go off every 2 seconds
-               that vibrates for one second. */
-            ua_sensors_haptic_enable(m_sensor);
-            m_tag = g_timeout_add_seconds (2, on_timeout, this);
-            on_timeout (this);
-        }
+        g_bus_get (G_BUS_TYPE_SESSION, m_cancellable, on_bus_ready, this);
     }
 
     ~Impl()
     {
-        if (m_sensor != nullptr)
-            ua_sensors_haptic_disable(m_sensor);
-
         if (m_tag)
             g_source_remove(m_tag);
+
+        g_cancellable_cancel (m_cancellable);
+        g_object_unref (m_cancellable);
+
+        g_clear_object (&m_bus);
     }
 
 private:
+
+    static void on_bus_ready (GObject*, GAsyncResult* res, gpointer gself)
+    {
+        GError * error;
+        GDBusConnection * bus;
+
+        error = nullptr;
+        bus = g_bus_get_finish (res, &error);
+        if (error != nullptr)
+        {
+            if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+                g_warning ("Unable to get bus: %s", error->message);
+
+            g_error_free (error);
+        }
+        else if (bus != nullptr)
+        {
+            auto self = static_cast<Impl*>(gself);
+
+            self->m_bus = G_DBUS_CONNECTION (g_object_ref (bus));
+            self->start_vibrating();
+
+            g_object_unref (bus);
+        }
+    }
+
+    void start_vibrating()
+    {
+        /* We only support one vibrate mode for now: an on/off pulse at
+           one-second intervals. So set a looping 2-second timer that asks
+           the phone to vibrate for one second. */
+        m_tag = g_timeout_add_seconds (2, on_timeout, this);
+        on_timeout (this);
+    }
 
     static gboolean on_timeout (gpointer gself)
     {
@@ -73,12 +96,23 @@ private:
 
     void vibrate_now()
     {
-        const uint32_t msec = 1000;
-        (void) ua_sensors_haptic_vibrate_once (m_sensor, msec);
+        g_dbus_connection_call (m_bus,
+                                BUS_HAPTIC_NAME,
+                                BUS_HAPTIC_PATH,
+                                BUS_HAPTIC_INTERFACE,
+                                "Vibrate",
+                                g_variant_new("(u)", 1000u),
+                                nullptr,
+                                G_DBUS_CALL_FLAGS_NONE,
+                                -1,
+                                m_cancellable,
+                                nullptr,
+                                nullptr);
     }
 
     const Mode m_mode;
-    UASensorsHaptic * m_sensor = nullptr;
+    GCancellable * m_cancellable = nullptr;
+    GDBusConnection * m_bus = nullptr;
     guint m_tag = 0;
 };
 

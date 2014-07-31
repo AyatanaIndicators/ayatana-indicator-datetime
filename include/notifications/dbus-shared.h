@@ -29,4 +29,8 @@
 #define BUS_POWERD_PATH      "/com/canonical/powerd"
 #define BUS_POWERD_INTERFACE "com.canonical.powerd"
 
+#define BUS_HAPTIC_NAME      "com.canonical.usensord"
+#define BUS_HAPTIC_PATH      "/com/canonical/usensord/haptic"
+#define BUS_HAPTIC_INTERFACE "com.canonical.usensord.haptic"
+
 #endif /* INDICATOR_NOTIFICATIONS_DBUS_SHARED_H */
