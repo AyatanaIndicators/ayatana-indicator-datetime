@@ -144,6 +144,7 @@ private:
         bind_uint_property(m_alarm_props, "duration", m_settings->alarm_duration);
         bind_uint_property(m_alarm_props, "default-volume", m_settings->alarm_volume);
         bind_string_property(m_alarm_props, "default-sound", m_settings->alarm_sound);
+        bind_string_property(m_alarm_props, "haptic-feedback", m_settings->alarm_haptic);
     }
 
     /***
