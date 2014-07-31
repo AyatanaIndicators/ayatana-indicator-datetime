@@ -36,9 +36,12 @@ namespace notifications {
 class Haptic
 {
 public:
-    enum Mode { VIBRATE_DEFAULT };
+    enum Mode
+    {
+      MODE_PULSE
+    };
 
-    Haptic(const Mode& mode = VIBRATE_DEFAULT);
+    Haptic(const Mode& mode = MODE_PULSE);
     ~Haptic();
 
 private:
