@@ -45,6 +45,9 @@ public:
         }
         else
         {
+            /* We only support one vibrate mode for now: an on/off pulse at
+               one-second intervals. So, set a timer to go off every 2 seconds
+               that vibrates for one second. */
             ua_sensors_haptic_enable(m_sensor);
             m_tag = g_timeout_add_seconds (2, on_timeout, this);
             on_timeout (this);
