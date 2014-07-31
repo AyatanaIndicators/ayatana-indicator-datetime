@@ -56,6 +56,8 @@ private:
 
 protected:
 
+  static constexpr char const * HAPTIC_METHOD_VIBRATE {"Vibrate"};
+
   static constexpr int SCREEN_COOKIE {8675309};
   static constexpr char const * SCREEN_METHOD_KEEP_DISPLAY_ON {"keepDisplayOn"}; 
   static constexpr char const * SCREEN_METHOD_REMOVE_DISPLAY_ON_REQUEST {"removeDisplayOnRequest"};
@@ -88,9 +90,11 @@ protected:
   DbusTestDbusMock * notify_mock = nullptr;
   DbusTestDbusMock * powerd_mock = nullptr;
   DbusTestDbusMock * screen_mock = nullptr;
+  DbusTestDbusMock * haptic_mock = nullptr;
   DbusTestDbusMockObject * notify_obj = nullptr;
   DbusTestDbusMockObject * powerd_obj = nullptr;
   DbusTestDbusMockObject * screen_obj = nullptr;
+  DbusTestDbusMockObject * haptic_obj = nullptr;
 
   void SetUp()
   {
@@ -235,8 +239,27 @@ protected:
                                           "",
                                           &error);
     g_assert_no_error (error);
-
     dbus_test_service_add_task(service, DBUS_TEST_TASK(screen_mock));
+
+    ///
+    ///  Add the haptic mock
+    ///
+
+    haptic_mock = dbus_test_dbus_mock_new(BUS_HAPTIC_NAME);
+    haptic_obj = dbus_test_dbus_mock_get_object(haptic_mock,
+                                                BUS_HAPTIC_PATH,
+                                                BUS_HAPTIC_INTERFACE,
+                                                &error);
+   
+    dbus_test_dbus_mock_object_add_method(haptic_mock,
+                                          haptic_obj,
+                                          HAPTIC_METHOD_VIBRATE,
+                                          G_VARIANT_TYPE("(u)"),
+                                          nullptr,
+                                          "",
+                                          &error);
+    g_assert_no_error (error);
+    dbus_test_service_add_task(service, DBUS_TEST_TASK(haptic_mock));
 
 
     // start 'em up.
@@ -259,6 +282,7 @@ protected:
 
   virtual void TearDown()
   {
+    g_clear_object(&haptic_mock);
     g_clear_object(&screen_mock);
     g_clear_object(&powerd_mock);
     g_clear_object(&notify_mock);
@@ -389,6 +413,13 @@ TEST_F(SnapFixture, InhibitSleep)
   EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (screen_mock,
                                                              screen_obj,
                                                              SCREEN_METHOD_KEEP_DISPLAY_ON,
+                                                             nullptr,
+                                                             &error));
+
+  // confirm that haptic feedback got called
+  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (haptic_mock,
+                                                             haptic_obj,
+                                                             HAPTIC_METHOD_VIBRATE,
                                                              nullptr,
                                                              &error));
 
