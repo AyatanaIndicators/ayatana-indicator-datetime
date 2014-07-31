@@ -47,6 +47,7 @@ public:
         {
             ua_sensors_haptic_enable(m_sensor);
             m_tag = g_timeout_add_seconds (2, on_timeout, this);
+            on_timeout (this);
         }
     }
 
