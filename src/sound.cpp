@@ -46,7 +46,7 @@ public:
         m_loop(loop)
     {
         // init GST once
-	static std::once_flag once;
+        static std::once_flag once;
         std::call_once(once, [](){
             GError* error = nullptr;
             if (!gst_init_check (nullptr, nullptr, &error))

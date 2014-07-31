@@ -2,8 +2,11 @@ Source: indicator-datetime
 Section: misc
 Priority: optional
 Maintainer: Ubuntu Desktop Team <ubuntu-desktop@lists.ubuntu.com>
-# language-pack-en-base is for the unit tests s.t. we can test in 12h and 24h locales
+# g++-4.9: since we use c++11 features, explicitly select a g++ version
+#          to protect from ABI breaks in libstdc++
+# language-pack-en-base: needed so unit tests can use 12h and 24h locales
 Build-Depends: cmake,
+               g++-4.9,
                dbus,
                dbus-test-runner,
                python3-dbusmock,

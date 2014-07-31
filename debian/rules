@@ -1,5 +1,10 @@
 #!/usr/bin/make -f
 
+# Explicitly selecting a G{CC,++}-version here to avoid accidental
+# ABI breaks introduced by toolchain updates.
+export CC=$(DEB_HOST_GNU_TYPE)-gcc-4.9
+export CXX=$(DEB_HOST_GNU_TYPE)-g++-4.9
+
 LDFLAGS += -Wl,-z,defs -Wl,--as-needed
 
 %:

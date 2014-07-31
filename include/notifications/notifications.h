@@ -60,6 +60,7 @@ public:
     void add_hint (const std::string& name);
     static constexpr char const * HINT_SNAP {"x-canonical-snap-decisions"};
     static constexpr char const * HINT_TINT {"x-canonical-private-button-tint"};
+    static constexpr char const * HINT_NONSHAPEDICON {"x-canonical-non-shaped-icon"};
 
     /* Add an action button.
        This may fail if the Engine doesn't support actions.
@@ -91,16 +92,14 @@ public:
     bool supports_actions() const;
 
     /** Show a notification.
-        @return nonzero on success, zero on failure. */
+        @return zero on failure, or a key that can be passed to close() */
     int show(const Builder& builder);
 
     /** Close a notification.
-        @param key the int returned by show()
-        @return true if the notification was closed. */
+        @param key the int returned by show() */
     void close(int key);
 
-    /** Close all remaining notifications.
-        *@return true if all closed successfully. */
+    /** Close all remaining notifications. */
     void close_all();
 
     const std::string& app_name() const;
