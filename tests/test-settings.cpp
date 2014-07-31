@@ -159,6 +159,7 @@ TEST_F(SettingsFixture, StringProperties)
     TestStringProperty(m_settings->custom_time_format, SETTINGS_CUSTOM_TIME_FORMAT_S);
     TestStringProperty(m_settings->timezone_name, SETTINGS_TIMEZONE_NAME_S);
     TestStringProperty(m_settings->alarm_sound, SETTINGS_ALARM_SOUND_S);
+    TestStringProperty(m_settings->alarm_haptic, SETTINGS_ALARM_HAPTIC_S);
 }
 
 TEST_F(SettingsFixture, TimeFormatMode)

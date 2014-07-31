@@ -123,6 +123,14 @@
 			  Some timezones can be known by many different cities or names.  This setting describes how the current zone prefers to be named.  Format is "TIMEZONE NAME" (e.g. "America/New_York Boston" to name the New_York zone Boston).
 			</_description>
 		</key>
+		<key name="alarm-haptic-feedback" type="s">
+			<default>'pulse'</default>
+			<_summary>What kind of haptic feedback, if any, to trigger with an alarm.</_summary>
+			<_description>
+                          What kind of haptic feedback, if any, to trigger with an alarm.
+                          Two modes are currently supported: 'pulse', 'none'.
+			</_description>
+		</key>
 		<key name="alarm-default-sound" type="s">
 			<default>'/usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg'</default>
 			<_summary>The alarm's default sound file.</_summary>
