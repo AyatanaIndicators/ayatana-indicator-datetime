@@ -78,7 +78,10 @@ public:
         auto sound = std::make_shared<uin::Sound>(uri, volume, loop);
 
         // create the haptic feedback...
-        auto haptic = std::make_shared<uin::Haptic>();
+        const auto haptic_mode = m_settings->alarm_haptic.get();
+        std::shared_ptr<uin::Haptic> haptic;
+        if (haptic_mode == "pulse")
+            haptic = std::make_shared<uin::Haptic>(uin::Haptic::MODE_PULSE);
 
         // show a notification...
         const auto minutes = std::chrono::minutes(m_settings->alarm_duration.get());

@@ -416,13 +416,6 @@ TEST_F(SnapFixture, InhibitSleep)
                                                              nullptr,
                                                              &error));
 
-  // confirm that haptic feedback got called
-  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (haptic_mock,
-                                                             haptic_obj,
-                                                             HAPTIC_METHOD_VIBRATE_PATTERN,
-                                                             nullptr,
-                                                             &error));
-
   // force-close the snap
   wait_msec(100);
   delete snap;
@@ -484,4 +477,46 @@ TEST_F(SnapFixture, ForceScreen)
                                                              g_variant_new("(s)", POWERD_COOKIE),
                                                              &error));
   g_assert_no_error(error);
+}
+
+/***
+****
+***/
+
+TEST_F(SnapFixture, HapticModes)
+{
+  auto settings = std::make_shared<Settings>();
+  auto ne = std::make_shared<unity::indicator::notifications::Engine>(APP_NAME);
+  auto func = [this](const Appointment&){g_idle_add(quit_idle, loop);};
+  GError * error = nullptr;
+
+  // invoke a snap decision while haptic feedback is set to "pulse",
+  // confirm that VibratePattern got called
+  settings->alarm_haptic.set("pulse");
+  auto snap = new Snap (ne, settings);
+  (*snap)(appt, func, func);
+  wait_msec(100);
+  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (haptic_mock,
+                                                             haptic_obj,
+                                                             HAPTIC_METHOD_VIBRATE_PATTERN,
+                                                             nullptr,
+                                                             &error));
+  delete snap;
+
+  // invoke a snap decision while haptic feedback is set to "none",
+  // confirm that VibratePattern =didn't= get called
+  wait_msec(100);
+  dbus_test_dbus_mock_object_clear_method_calls (haptic_mock, haptic_obj, &error);
+  settings->alarm_haptic.set("none");
+  snap = new Snap (ne, settings);
+  (*snap)(appt, func, func);
+  wait_msec(100);
+  EXPECT_FALSE (dbus_test_dbus_mock_object_check_method_call (haptic_mock,
+                                                              haptic_obj,
+                                                              HAPTIC_METHOD_VIBRATE_PATTERN,
+                                                              nullptr,
+                                                              &error));
+  delete snap;
+
+  g_assert_no_error (error);
 }
