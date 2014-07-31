@@ -54,7 +54,7 @@ public:
     ~Impl()
     {
         if (m_sensor != nullptr)
-            ua_sensors_haptic_enable(m_sensor);
+            ua_sensors_haptic_disable(m_sensor);
 
         if (m_tag)
             g_source_remove(m_tag);
