@@ -156,14 +156,14 @@ public:
 
     void close_all ()
     {
-        // close() removes the item from m_notifications,
-        // so increment the iterator before it gets invalidated
-        for (auto it=m_notifications.begin(), e=m_notifications.end(); it!=e; )
-        {
-          const int key = it->first;
-          ++it;
-          close (key);
-        }
+        // call close() on all our keys
+
+        std::set<int> keys;
+        for (const auto& it : m_notifications)
+            keys.insert (it.first);
+
+        for (const int key : keys)
+            close (key);
     }
 
     void close (int key)
@@ -171,15 +171,16 @@ public:
         auto it = m_notifications.find(key);
         if (it != m_notifications.end())
         {
-            // tell the server to close, call the close() callback,
-            // and immediately forget about the nn.
+            // tell the server to close the notification
             GError * error = nullptr;
             if (!notify_notification_close (it->second.nn.get(), &error))
             {
                 g_warning ("Unable to close notification %d: %s", key, error->message);
                 g_error_free (error);
             }
-            on_closed (key);
+         
+            // call the user callback and remove it from our bookkeeping
+            remove_closed_notification (key);
         }
     }
 
@@ -270,10 +271,10 @@ private:
     {
         const GQuark q = notification_key_quark();
         const gpointer gkey = g_object_get_qdata(G_OBJECT(nn), q);
-        static_cast<Impl*>(gself)->on_closed(GPOINTER_TO_INT(gkey));
+        static_cast<Impl*>(gself)->remove_closed_notification(GPOINTER_TO_INT(gkey));
     }
 
-    void on_closed (int key)
+    void remove_closed_notification (int key)
     {
         auto it = m_notifications.find(key);
         g_return_if_fail (it != m_notifications.end());
