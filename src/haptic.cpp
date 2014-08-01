@@ -22,6 +22,7 @@
 
 #include <gio/gio.h>
 
+#include <numeric>
 #include <vector>
 
 namespace unity {
@@ -88,60 +89,62 @@ private:
         switch (m_mode)
         {
             case MODE_PULSE: // the only mode currently supported... :)
+
                 // one second on, one second off.
-                m_vibrate_pattern_msec = std::vector<uint32_t>({1000, 1000});
+                m_pattern = std::vector<uint32_t>({1000u, 1000u});
                 break;
         }
 
-        // Set up a loop so that the pattern keeps repeating.
-        // NB: VibratePattern takes a repeat arg, but we avoid it because
-        // there's no way to cancel a pattern once it's started...
-        // The phone would keep vibrating long after the alarm was dismissed!
-        // So we stick to a short pattern and handle the repeat loop manually.
-        guint interval_msec = 0;
-        for (const auto& msec : m_vibrate_pattern_msec)
-            interval_msec += msec;
-        m_tag = g_timeout_add (interval_msec, on_timeout, this);
-        on_timeout (this);
+        // Set up a loop to keep repeating the pattern
+        auto msec = std::accumulate(m_pattern.begin(), m_pattern.end(), 0u);
+        m_tag = g_timeout_add(msec, call_vibrate_pattern_static, this);
+        call_vibrate_pattern();
     }
 
-    static gboolean on_timeout (gpointer gself)
+    static gboolean call_vibrate_pattern_static (gpointer gself)
     {
-        auto self = static_cast<Impl*>(gself);
+        static_cast<Impl*>(gself)->call_vibrate_pattern();
+        return G_SOURCE_CONTINUE;
+    }
 
-        // build the pattern array of uint32s
+    void call_vibrate_pattern()
+    {
+        // build the vibrate pattern
         GVariantBuilder builder;
         g_variant_builder_init (&builder, G_VARIANT_TYPE_ARRAY);
-        for (const auto& msec : self->m_vibrate_pattern_msec)
+        for (const auto& msec : m_pattern)
             g_variant_builder_add_value (&builder, g_variant_new_uint32(msec));
         auto pattern_array = g_variant_builder_end (&builder);
 
-        // build the argument list
+        /* Use a repeat_count of 1 here because we handle looping ourselves.
+           NB: VibratePattern could do it for us, but doesn't let us cancel
+           a running loop -- we could keep vibrating even after "this" was
+           destructed */
+        auto repeat_count = g_variant_new_uint32 (1u);
+ 
         g_variant_builder_init (&builder, G_VARIANT_TYPE_TUPLE);
         g_variant_builder_add_value (&builder, pattern_array);
-        g_variant_builder_add_value (&builder, g_variant_new_uint32(1u));
-        auto args = g_variant_builder_end (&builder);
+        g_variant_builder_add_value (&builder, repeat_count);
+        auto vibrate_pattern_args = g_variant_builder_end (&builder);
 
-        g_dbus_connection_call (self->m_bus,
+        g_dbus_connection_call (m_bus,
                                 BUS_HAPTIC_NAME,
                                 BUS_HAPTIC_PATH,
                                 BUS_HAPTIC_INTERFACE,
                                 "VibratePattern",
-                                args,
+                                vibrate_pattern_args,
                                 nullptr,
                                 G_DBUS_CALL_FLAGS_NONE,
                                 -1,
-                                self->m_cancellable,
+                                m_cancellable,
                                 nullptr,
                                 nullptr);
-
-        return G_SOURCE_CONTINUE;
     }
 
     const Mode m_mode;
     GCancellable * m_cancellable = nullptr;
     GDBusConnection * m_bus = nullptr;
-    std::vector<uint32_t> m_vibrate_pattern_msec;
+    std::vector<uint32_t> m_pattern;
     guint m_tag = 0;
 };
 

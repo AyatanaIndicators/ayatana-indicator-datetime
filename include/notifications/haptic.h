@@ -31,7 +31,7 @@ namespace notifications {
 ***/
 
 /**
- * A class that forces the screen display on and inhibits sleep
+ * Tries to emit haptic feedback to match the user-specified mode.
  */
 class Haptic
 {
