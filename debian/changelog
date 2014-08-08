@@ -1,3 +1,12 @@
+indicator-datetime (13.10.0+14.10.20140808-0ubuntu1) utopic; urgency=low
+
+  [ Charles Kerr ]
+  * Add haptic feedback support for alarms. (LP: #1350017)
+  * Have the shared Translations.cmake file look for .c, .cc, .cpp,
+    .cxx, and .vala files. (LP: #1354058)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 08 Aug 2014 20:52:54 +0000
+
 indicator-datetime (13.10.0+14.10.20140730-0ubuntu1) utopic; urgency=low
 
   [ Charles Kerr ]
