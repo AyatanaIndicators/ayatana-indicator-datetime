@@ -189,30 +189,36 @@ public:
         int ret = -1;
         const auto& info = *builder.impl;
 
-        auto nn = notify_notification_new (info.m_title.c_str(),
-                                           info.m_body.c_str(),
-                                           info.m_icon_name.c_str());
+        std::shared_ptr<NotifyNotification> nn (
+            notify_notification_new(info.m_title.c_str(),
+                                    info.m_body.c_str(),
+                                    info.m_icon_name.c_str()),
+            [this](NotifyNotification * n) {
+                g_signal_handlers_disconnect_by_data(n, this);
+                g_object_unref (G_OBJECT(n));
+            }
+        );
 
         if (info.m_duration.count() != 0)
         {
             const auto& d= info.m_duration;
             auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(d);
 
-            notify_notification_set_hint (nn,
+            notify_notification_set_hint (nn.get(),
                                           HINT_TIMEOUT,
                                           g_variant_new_int32(ms.count()));
         }
 
         for (const auto& hint : info.m_string_hints)
         {
-            notify_notification_set_hint (nn,
+            notify_notification_set_hint (nn.get(),
                                           hint.c_str(),
                                           g_variant_new_boolean(true));
         }
 
         for (const auto& action : info.m_actions)
         {
-            notify_notification_add_action (nn,
+            notify_notification_add_action (nn.get(),
                                             action.first.c_str(),
                                             action.second.c_str(),
                                             on_notification_clicked,
@@ -220,27 +226,19 @@ public:
                                             nullptr);
         }
 
-        // if we can show it, keep it
+        static int next_key = 1;
+        const int key = next_key++;
+        g_object_set_qdata (G_OBJECT(nn.get()),
+                            notification_key_quark(),
+                            GINT_TO_POINTER(key));
+
+        m_notifications[key] = { nn, info.m_closed_callback };
+        g_signal_connect (nn.get(), "closed",
+                          G_CALLBACK(on_notification_closed), this);
+     
         GError * error = nullptr;
-        if (notify_notification_show(nn, &error))
+        if (notify_notification_show(nn.get(), &error))
         {
-            static int next_key = 1;
-            const int key = next_key++;
-
-            g_signal_connect (nn, "closed",
-                              G_CALLBACK(on_notification_closed), this);
-            g_object_set_qdata (G_OBJECT(nn),
-                                notification_key_quark(),
-                                GINT_TO_POINTER(key));
-
-            notification_data ndata;
-            ndata.closed_callback = info.m_closed_callback;
-            ndata.nn.reset(nn, [this](NotifyNotification * n) {
-                g_signal_handlers_disconnect_by_data(n, this);
-                g_object_unref (G_OBJECT(n));
-            });
-
-            m_notifications[key] = ndata;
             ret = key;
         }
         else
@@ -249,7 +247,7 @@ public:
                         info.m_title.c_str(),
                         error->message);
             g_error_free (error);
-            g_object_unref (nn);
+            m_notifications.erase(key);
         }
 
         return ret;
@@ -293,7 +291,6 @@ private:
             ndata.closed_callback (action);
         }
 
-        g_signal_handlers_disconnect_by_data(nn, this);
         m_notifications.erase(it);
     }
 
