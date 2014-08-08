@@ -120,21 +120,6 @@ public:
     {
         if (!notify_init(app_name.c_str()))
             g_critical("Unable to initialize libnotify!");
-
-        // put the server capabilities into m_caps
-        auto caps_gl = notify_get_server_caps();
-        std::string caps_str;
-        for(auto l=caps_gl; l!=nullptr; l=l->next)
-        {
-            m_caps.insert((const char*)l->data);
-
-            caps_str += (const char*) l->data;;
-            if (l->next != nullptr)
-                caps_str += ", ";
-        }
-
-        g_debug("%s notify_get_server() returned [%s]", G_STRFUNC, caps_str.c_str());
-        g_list_free_full(caps_gl, g_free);
     }
 
     ~Impl()
@@ -151,7 +136,7 @@ public:
 
     bool supports_actions() const
     {
-        return m_caps.count("actions") != 0;
+        return server_caps().count("actions") != 0;
     }
 
     void close_all ()
@@ -255,6 +240,28 @@ public:
 
 private:
 
+    const std::set<std::string>& server_caps() const
+    {
+        if (G_UNLIKELY(m_lazy_caps.empty()))
+        {
+            auto caps_gl = notify_get_server_caps();
+            std::string caps_str;
+            for(auto l=caps_gl; l!=nullptr; l=l->next)
+            {
+                m_lazy_caps.insert((const char*)l->data);
+
+                caps_str += (const char*) l->data;;
+                if (l->next != nullptr)
+                    caps_str += ", ";
+            }
+
+            g_debug("%s notify_get_server() returned [%s]", G_STRFUNC, caps_str.c_str());
+            g_list_free_full(caps_gl, g_free);
+        }
+
+        return m_lazy_caps;
+    }
+
     static void on_notification_clicked (NotifyNotification * nn,
                                          char               * action,
                                          gpointer)
@@ -303,8 +310,9 @@ private:
     // key-to-data
     std::map<int,notification_data> m_notifications;
 
-    // server capabilities
-    std::set<std::string> m_caps;
+    // server capabilities.
+    // as the name indicates, don't use this directly: use server_caps() instead
+    mutable std::set<std::string> m_lazy_caps;
 
     static constexpr char const * HINT_TIMEOUT {"x-canonical-snap-decisions-timeout"};
 };
