@@ -32,6 +32,7 @@
 #include <datetime/timezone-file.h>
 #include <datetime/timezones-live.h>
 #include <datetime/wakeup-timer-mainloop.h>
+#include <notifications/notifications.h>
 
 #ifdef HAVE_UBUNTU_HW_ALARM_H
   #include <datetime/wakeup-timer-uha.h>
@@ -44,6 +45,8 @@
 
 #include <locale.h>
 #include <cstdlib> // exit()
+
+namespace uin = unity::indicator::notifications;
 
 using namespace unity::indicator::datetime;
 
@@ -141,7 +144,8 @@ main(int /*argc*/, char** /*argv*/)
     MenuFactory factory(actions, state);
 
     // set up the snap decisions
-    Snap snap (state->clock, state->settings);
+    auto notification_engine = std::make_shared<uin::Engine>("indicator-datetime-service");
+    std::unique_ptr<Snap> snap (new Snap(notification_engine, state->settings));
     auto alarm_queue = create_simple_alarm_queue(state->clock, engine, timezone);
     alarm_queue->alarm_reached().connect([&snap](const Appointment& appt){
         auto snap_show = [](const Appointment& a){
@@ -153,7 +157,7 @@ main(int /*argc*/, char** /*argv*/)
             url_dispatch_send(url, nullptr, nullptr);
         };
         auto snap_dismiss = [](const Appointment&){};
-        snap(appt, snap_show, snap_dismiss);
+        (*snap)(appt, snap_show, snap_dismiss);
     });
 
     // create the menus
@@ -170,6 +174,7 @@ main(int /*argc*/, char** /*argv*/)
     });
     exporter.publish(actions, menus);
     g_main_loop_run(loop);
+
     g_main_loop_unref(loop);
     return 0;
 }

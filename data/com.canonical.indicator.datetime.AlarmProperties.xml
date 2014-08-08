@@ -11,6 +11,15 @@
       </doc:doc>
     </property>
 
+    <property name="HapticFeedback" type="s" access="readwrite">
+      <doc:doc>
+        <doc:description>
+          <doc:para>What kind of haptic feedback, if any, to trigger with an alarm.</doc:para>
+          <doc:para>Two modes are currently supported: 'pulse', 'none'.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </property>
+
     <property name="DefaultVolume" type="i" access="readwrite">
       <doc:doc>
         <doc:description>

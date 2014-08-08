@@ -18,10 +18,19 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef _INDICATOR_DATETIME_DBUS_SHARED_H_
-#define _INDICATOR_DATETIME_DBUS_SHARED_H_
+#ifndef UNITY_INDICATOR_NOTIFICATIONS_DBUS_SHARED_H
+#define UNITY_INDICATOR_NOTIFICATIONS_DBUS_SHARED_H
 
-#define BUS_DATETIME_NAME    "com.canonical.indicator.datetime"
-#define BUS_DATETIME_PATH    "/com/canonical/indicator/datetime"
+#define BUS_SCREEN_NAME      "com.canonical.Unity.Screen"
+#define BUS_SCREEN_PATH      "/com/canonical/Unity/Screen"
+#define BUS_SCREEN_INTERFACE "com.canonical.Unity.Screen"
 
-#endif /* _INDICATOR_DATETIME_DBUS_SHARED_H_ */
+#define BUS_POWERD_NAME      "com.canonical.powerd"
+#define BUS_POWERD_PATH      "/com/canonical/powerd"
+#define BUS_POWERD_INTERFACE "com.canonical.powerd"
+
+#define BUS_HAPTIC_NAME      "com.canonical.usensord"
+#define BUS_HAPTIC_PATH      "/com/canonical/usensord/haptic"
+#define BUS_HAPTIC_INTERFACE "com.canonical.usensord.haptic"
+
+#endif /* INDICATOR_NOTIFICATIONS_DBUS_SHARED_H */

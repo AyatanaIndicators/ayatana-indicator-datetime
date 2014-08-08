@@ -17,43 +17,44 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_SNAP_H
-#define INDICATOR_DATETIME_SNAP_H
+#ifndef UNITY_INDICATOR_NOTIFICATIONS_SOUND_H
+#define UNITY_INDICATOR_NOTIFICATIONS_SOUND_H
 
-#include <datetime/appointment.h>
-#include <datetime/settings.h>
-
-#include <notifications/notifications.h>
-
-#include <functional>
 #include <memory>
+#include <string>
 
 namespace unity {
 namespace indicator {
-namespace datetime {
+namespace notifications {
+
+/***
+****
+***/
 
 /**
- * \brief Pops up Snap Decisions for appointments
+ * Plays a sound, possibly looping.
+ *
+ * @param uri the file to play
+ * @param volume the volume at which to play the sound, [0..100]
+ * @param loop if true, loop the sound for the lifespan of the object
  */
-class Snap
+class Sound
 {
 public:
-    Snap(const std::shared_ptr<unity::indicator::notifications::Engine>& engine,
-         const std::shared_ptr<const Settings>& settings);
-    virtual ~Snap();
-
-    typedef std::function<void(const Appointment&)> appointment_func;
-    void operator()(const Appointment& appointment,
-                    appointment_func show,
-                    appointment_func dismiss);
+    Sound(const std::string& uri, unsigned int volume, bool loop);
+    ~Sound();
 
 private:
     class Impl;
     std::unique_ptr<Impl> impl;
 };
 
-} // namespace datetime
+/***
+****
+***/
+
+} // namespace notifications
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_SNAP_H
+#endif // UNITY_INDICATOR_NOTIFICATIONS_SOUND_H

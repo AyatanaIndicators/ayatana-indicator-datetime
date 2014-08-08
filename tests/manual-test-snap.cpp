@@ -22,13 +22,13 @@
 #include <datetime/settings-live.h>
 #include <datetime/snap.h>
 #include <datetime/timezones-live.h>
+#include <notifications/notifications.h>
 
 #include <glib.h>
 
 using namespace unity::indicator::datetime;
 
-#define TIMEZONE_FILE ("/etc/timezone")
-
+namespace uin = unity::indicator::notifications;
 
 /***
 ****
@@ -94,11 +94,12 @@ int main(int argc, const char* argv[])
 
     auto settings = std::make_shared<LiveSettings>();
     settings->alarm_volume.set(volume);
-    auto timezones = std::make_shared<LiveTimezones>(settings, TIMEZONE_FILE);
-    auto clock = std::make_shared<LiveClock>(timezones);
-    Snap snap (clock, settings);
+
+    auto notification_engine = std::make_shared<uin::Engine>("indicator-datetime-service");
+    Snap snap (notification_engine, settings);
     snap(a, show, dismiss);
     g_main_loop_run(loop);
+
     g_main_loop_unref(loop);
     return 0;
 }

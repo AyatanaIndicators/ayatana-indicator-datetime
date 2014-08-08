@@ -21,11 +21,11 @@
 #include <datetime/dbus-shared.h>
 #include <datetime/settings.h>
 #include <datetime/snap.h>
-#include <datetime/timezones.h>
+
+#include <notifications/dbus-shared.h>
+#include <notifications/notifications.h>
 
 #include <libdbustest/dbus-test.h>
-
-#include <libnotify/notify.h>
 
 #include <glib.h>
 
@@ -36,6 +36,11 @@ using namespace unity::indicator::datetime;
 /***
 ****
 ***/
+
+namespace
+{
+  static constexpr char const * APP_NAME {"indicator-datetime-service"};
+}
 
 using namespace unity::indicator::datetime;
 
@@ -51,6 +56,8 @@ private:
 
 protected:
 
+  static constexpr char const * HAPTIC_METHOD_VIBRATE_PATTERN {"VibratePattern"};
+
   static constexpr int SCREEN_COOKIE {8675309};
   static constexpr char const * SCREEN_METHOD_KEEP_DISPLAY_ON {"keepDisplayOn"}; 
   static constexpr char const * SCREEN_METHOD_REMOVE_DISPLAY_ON_REQUEST {"removeDisplayOnRequest"};
@@ -60,18 +67,19 @@ protected:
   static constexpr char const * POWERD_METHOD_REQUEST_SYS_STATE {"requestSysState"};
   static constexpr char const * POWERD_METHOD_CLEAR_SYS_STATE {"clearSysState"};
 
-  static constexpr int NOTIFY_ID {1234};
+  static constexpr int FIRST_NOTIFY_ID {1000};
 
   static constexpr int NOTIFICATION_CLOSED_EXPIRED   {1};
   static constexpr int NOTIFICATION_CLOSED_DISMISSED {2};
   static constexpr int NOTIFICATION_CLOSED_API       {3};
   static constexpr int NOTIFICATION_CLOSED_UNDEFINED {4};
 
-  static constexpr char const * APP_NAME {"indicator-datetime-service"};
-
-  static constexpr char const * METHOD_NOTIFY {"Notify"};
+  static constexpr char const * METHOD_CLOSE {"CloseNotification"};
   static constexpr char const * METHOD_GET_CAPS {"GetCapabilities"};
   static constexpr char const * METHOD_GET_INFO {"GetServerInformation"};
+  static constexpr char const * METHOD_NOTIFY {"Notify"};
+
+  static constexpr char const * SIGNAL_CLOSED {"NotificationClosed"};
 
   static constexpr char const * HINT_TIMEOUT {"x-canonical-snap-decisions-timeout"};
 
@@ -82,9 +90,11 @@ protected:
   DbusTestDbusMock * notify_mock = nullptr;
   DbusTestDbusMock * powerd_mock = nullptr;
   DbusTestDbusMock * screen_mock = nullptr;
+  DbusTestDbusMock * haptic_mock = nullptr;
   DbusTestDbusMockObject * notify_obj = nullptr;
   DbusTestDbusMockObject * powerd_obj = nullptr;
   DbusTestDbusMockObject * screen_obj = nullptr;
+  DbusTestDbusMockObject * haptic_obj = nullptr;
 
   void SetUp()
   {
@@ -118,7 +128,8 @@ protected:
                                                 NOTIFY_INTERFACE,
                                                 &error);
     g_assert_no_error(error);
-    
+   
+    // METHOD_GET_INFO 
     str = g_strdup("ret = ('mock-notify', 'test vendor', '1.0', '1.1')");
     dbus_test_dbus_mock_object_add_method(notify_mock,
                                           notify_obj,
@@ -130,12 +141,34 @@ protected:
     g_assert_no_error (error);
     g_free (str);
 
-    str = g_strdup_printf ("ret = %d", NOTIFY_ID);
+    // METHOD_NOTIFY
+    str = g_strdup_printf("try:\n"
+                          "  self.NextNotifyId\n"
+                          "except AttributeError:\n"
+                          "  self.NextNotifyId = %d\n"
+                          "ret = self.NextNotifyId\n"
+                          "self.NextNotifyId += 1\n",
+                          FIRST_NOTIFY_ID);
     dbus_test_dbus_mock_object_add_method(notify_mock,
                                           notify_obj,
                                           METHOD_NOTIFY,
                                           G_VARIANT_TYPE("(susssasa{sv}i)"),
                                           G_VARIANT_TYPE_UINT32,
+                                          str,
+                                          &error);
+    g_assert_no_error (error);
+    g_free (str);
+
+    // METHOD_CLOSE 
+    str = g_strdup_printf("self.EmitSignal('%s', '%s', 'uu', [ args[0], %d ])",
+                          NOTIFY_INTERFACE,
+                          SIGNAL_CLOSED,
+                          NOTIFICATION_CLOSED_API);
+    dbus_test_dbus_mock_object_add_method(notify_mock,
+                                          notify_obj,
+                                          METHOD_CLOSE,
+                                          G_VARIANT_TYPE("(u)"),
+                                          nullptr,
                                           str,
                                           &error);
     g_assert_no_error (error);
@@ -206,8 +239,27 @@ protected:
                                           "",
                                           &error);
     g_assert_no_error (error);
-
     dbus_test_service_add_task(service, DBUS_TEST_TASK(screen_mock));
+
+    ///
+    ///  Add the haptic mock
+    ///
+
+    haptic_mock = dbus_test_dbus_mock_new(BUS_HAPTIC_NAME);
+    haptic_obj = dbus_test_dbus_mock_get_object(haptic_mock,
+                                                BUS_HAPTIC_PATH,
+                                                BUS_HAPTIC_INTERFACE,
+                                                &error);
+   
+    dbus_test_dbus_mock_object_add_method(haptic_mock,
+                                          haptic_obj,
+                                          HAPTIC_METHOD_VIBRATE_PATTERN,
+                                          G_VARIANT_TYPE("(auu)"),
+                                          nullptr,
+                                          "",
+                                          &error);
+    g_assert_no_error (error);
+    dbus_test_service_add_task(service, DBUS_TEST_TASK(haptic_mock));
 
 
     // start 'em up.
@@ -226,14 +278,11 @@ protected:
     ASSERT_NE(nullptr, system_bus);
     g_dbus_connection_set_exit_on_close(system_bus, FALSE);
     g_object_add_weak_pointer(G_OBJECT(system_bus), (gpointer *)&system_bus);
-
-    notify_init(APP_NAME);
   }
 
   virtual void TearDown()
   {
-    notify_uninit();
-
+    g_clear_object(&haptic_mock);
     g_clear_object(&screen_mock);
     g_clear_object(&powerd_mock);
     g_clear_object(&notify_mock);
@@ -291,10 +340,8 @@ TEST_F(SnapFixture, InteractiveDuration)
   static constexpr int duration_minutes = 120;
   auto settings = std::make_shared<Settings>();
   settings->alarm_duration.set(duration_minutes);
-  auto timezones = std::make_shared<Timezones>();
-  auto clock = std::make_shared<LiveClock>(timezones);
-
-  Snap snap (clock, settings);
+  auto ne = std::make_shared<unity::indicator::notifications::Engine>(APP_NAME);
+  Snap snap (ne, settings);
 
   make_interactive();
 
@@ -333,6 +380,7 @@ TEST_F(SnapFixture, InteractiveDuration)
   const auto duration = std::chrono::minutes(duration_minutes);
   EXPECT_EQ(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count(), i32);
   g_variant_unref(hints);
+  ne.reset();
 }
 
 /***
@@ -341,12 +389,9 @@ TEST_F(SnapFixture, InteractiveDuration)
 
 TEST_F(SnapFixture, InhibitSleep)
 {
-  //static constexpr int duration_minutes = 120;
   auto settings = std::make_shared<Settings>();
-  //settings->alarm_duration.set(duration_minutes);
-  auto timezones = std::make_shared<Timezones>();
-  auto clock = std::make_shared<LiveClock>(timezones);
-  auto snap = new Snap (clock, settings);
+  auto ne = std::make_shared<unity::indicator::notifications::Engine>(APP_NAME);
+  auto snap = new Snap (ne, settings);
 
   make_interactive();
 
@@ -372,6 +417,7 @@ TEST_F(SnapFixture, InhibitSleep)
                                                              &error));
 
   // force-close the snap
+  wait_msec(100);
   delete snap;
   wait_msec(100);
 
@@ -398,12 +444,9 @@ TEST_F(SnapFixture, InhibitSleep)
 
 TEST_F(SnapFixture, ForceScreen)
 {
-  //static constexpr int duration_minutes = 120;
   auto settings = std::make_shared<Settings>();
-  //settings->alarm_duration.set(duration_minutes);
-  auto timezones = std::make_shared<Timezones>();
-  auto clock = std::make_shared<LiveClock>(timezones);
-  auto snap = new Snap (clock, settings);
+  auto ne = std::make_shared<unity::indicator::notifications::Engine>(APP_NAME);
+  auto snap = new Snap (ne, settings);
 
   make_interactive();
 
@@ -423,6 +466,7 @@ TEST_F(SnapFixture, ForceScreen)
   g_assert_no_error(error);
 
   // force-close the snap
+  wait_msec(100);
   delete snap;
   wait_msec(100);
 
@@ -433,4 +477,46 @@ TEST_F(SnapFixture, ForceScreen)
                                                              g_variant_new("(s)", POWERD_COOKIE),
                                                              &error));
   g_assert_no_error(error);
+}
+
+/***
+****
+***/
+
+TEST_F(SnapFixture, HapticModes)
+{
+  auto settings = std::make_shared<Settings>();
+  auto ne = std::make_shared<unity::indicator::notifications::Engine>(APP_NAME);
+  auto func = [this](const Appointment&){g_idle_add(quit_idle, loop);};
+  GError * error = nullptr;
+
+  // invoke a snap decision while haptic feedback is set to "pulse",
+  // confirm that VibratePattern got called
+  settings->alarm_haptic.set("pulse");
+  auto snap = new Snap (ne, settings);
+  (*snap)(appt, func, func);
+  wait_msec(100);
+  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (haptic_mock,
+                                                             haptic_obj,
+                                                             HAPTIC_METHOD_VIBRATE_PATTERN,
+                                                             nullptr,
+                                                             &error));
+  delete snap;
+
+  // invoke a snap decision while haptic feedback is set to "none",
+  // confirm that VibratePattern =didn't= get called
+  wait_msec(100);
+  dbus_test_dbus_mock_object_clear_method_calls (haptic_mock, haptic_obj, &error);
+  settings->alarm_haptic.set("none");
+  snap = new Snap (ne, settings);
+  (*snap)(appt, func, func);
+  wait_msec(100);
+  EXPECT_FALSE (dbus_test_dbus_mock_object_check_method_call (haptic_mock,
+                                                              haptic_obj,
+                                                              HAPTIC_METHOD_VIBRATE_PATTERN,
+                                                              nullptr,
+                                                              &error));
+  delete snap;
+
+  g_assert_no_error (error);
 }

@@ -48,5 +48,6 @@ TimeFormatMode;
 #define SETTINGS_ALARM_SOUND_S          "alarm-default-sound"
 #define SETTINGS_ALARM_VOLUME_S         "alarm-default-volume"
 #define SETTINGS_ALARM_DURATION_S       "alarm-duration-minutes"
+#define SETTINGS_ALARM_HAPTIC_S         "alarm-haptic-feedback"
 
 #endif // INDICATOR_DATETIME_SETTINGS_SHARED
