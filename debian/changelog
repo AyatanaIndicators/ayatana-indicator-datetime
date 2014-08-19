@@ -1,3 +1,11 @@
+indicator-datetime (13.10.0+14.10.20140819-0ubuntu1) utopic; urgency=low
+
+  [ Charles Kerr ]
+  * Use powerd's hardware wakeup API instead of of using the
+    u_hardware_alarm_*() API directly.
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 19 Aug 2014 20:19:19 +0000
+
 indicator-datetime (13.10.0+14.10.20140808-0ubuntu1) utopic; urgency=low
 
   [ Charles Kerr ]
