@@ -44,12 +44,6 @@ pkg_check_modules (SERVICE_DEPS REQUIRED
                    properties-cpp>=0.0.1)
 include_directories (SYSTEM ${SERVICE_DEPS_INCLUDE_DIRS})
 
-CHECK_INCLUDE_FILE(ubuntu/hardware/alarm.h HAVE_UBUNTU_HW_ALARM_H)
-if (HAVE_UBUNTU_HW_ALARM_H)
-  set (SERVICE_DEPS_LIBRARIES -lubuntu_platform_hardware_api ${SERVICE_DEPS_LIBRARIES})
-  add_definitions(-DHAVE_UBUNTU_HW_ALARM_H)
-endif ()
-
 ##
 ##  custom targets
 ##
