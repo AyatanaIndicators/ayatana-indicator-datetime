@@ -17,8 +17,8 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_WAKEUP_TIMER_UHA_H
-#define INDICATOR_DATETIME_WAKEUP_TIMER_UHA_H
+#ifndef INDICATOR_DATETIME_WAKEUP_TIMER_POWERD_H
+#define INDICATOR_DATETIME_WAKEUP_TIMER_POWERD_H
 
 #include <datetime/clock.h>
 #include <datetime/wakeup-timer.h>
@@ -34,21 +34,19 @@ namespace datetime {
 ***/
 
 /**
- * \brief a WakeupTimer implemented the UbuntuHardwareAlarm API
+ * \brief a WakeupTimer implemented with g_timeout_add() 
  */
-class UhaWakeupTimer: public WakeupTimer
+class PowerdWakeupTimer: public WakeupTimer
 {
 public:
-    UhaWakeupTimer(const std::shared_ptr<Clock>&);
-    ~UhaWakeupTimer();
-    void set_wakeup_time (const DateTime&);
+    PowerdWakeupTimer(const std::shared_ptr<Clock>&);
+    ~PowerdWakeupTimer();
+    void set_wakeup_time(const DateTime&);
     core::Signal<>& timeout();
 
-    static bool is_supported();
-
 private:
-    UhaWakeupTimer(const UhaWakeupTimer&) =delete;
-    UhaWakeupTimer& operator= (const UhaWakeupTimer&) =delete;
+    PowerdWakeupTimer(const PowerdWakeupTimer&) =delete;
+    PowerdWakeupTimer& operator=(const PowerdWakeupTimer&) =delete;
     class Impl;
     std::unique_ptr<Impl> p;
 };
@@ -61,4 +59,4 @@ private:
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_WAKEUP_TIMER_UHA_H
+#endif // INDICATOR_DATETIME_WAKEUP_TIMER_MAINLOOP_H

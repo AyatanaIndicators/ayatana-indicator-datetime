@@ -31,12 +31,8 @@
 #include <datetime/state.h>
 #include <datetime/timezone-file.h>
 #include <datetime/timezones-live.h>
-#include <datetime/wakeup-timer-mainloop.h>
+#include <datetime/wakeup-timer-powerd.h>
 #include <notifications/notifications.h>
-
-#ifdef HAVE_UBUNTU_HW_ALARM_H
-  #include <datetime/wakeup-timer-uha.h>
-#endif
 
 #include <glib/gi18n.h> // bindtextdomain()
 #include <gio/gio.h>
@@ -64,20 +60,6 @@ namespace
             engine.reset(new EdsEngine);
 
         return engine;
-    }
-
-    std::shared_ptr<WakeupTimer> create_wakeup_timer(const std::shared_ptr<Clock>& clock)
-    {
-        std::shared_ptr<WakeupTimer> wakeup_timer;
-
-#ifdef HAVE_UBUNTU_HW_ALARM_H
-        if (UhaWakeupTimer::is_supported()) // prefer to use the platform API
-            wakeup_timer = std::make_shared<UhaWakeupTimer>(clock);
-        else
-#endif
-            wakeup_timer = std::make_shared<MainloopWakeupTimer>(clock);
-
-        return wakeup_timer;
     }
 
     std::shared_ptr<State> create_state(const std::shared_ptr<Engine>& engine,
@@ -120,7 +102,7 @@ namespace
             upcoming_planner->date().set(now);
         });
 
-        auto wakeup_timer = create_wakeup_timer(clock);
+        auto wakeup_timer = std::make_shared<PowerdWakeupTimer>(clock);
         return std::make_shared<SimpleAlarmQueue>(clock, upcoming_planner, wakeup_timer);
     }
 }
