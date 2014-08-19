@@ -35,10 +35,8 @@ set (SERVICE_CXX_SOURCES
      timezone-geoclue.cpp
      timezones-live.cpp
      utils.c
-     wakeup-timer-mainloop.cpp)
-if (HAVE_UBUNTU_HW_ALARM_H)
-  set (SERVICE_CXX_SOURCES ${SERVICE_CXX_SOURCES} wakeup-timer-uha.cpp)
-endif ()
+     wakeup-timer-mainloop.cpp
+     wakeup-timer-powerd.cpp)
 
 # generated sources
 include (GdbusCodegen)
