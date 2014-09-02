@@ -59,12 +59,12 @@ public:
     }
 
     void operator()(const Appointment& appointment,
-                    appointment_func show,
-                    appointment_func dismiss)
+                    appointment_func snooze,
+                    appointment_func ok)
     {
         if (!appointment.has_alarms)
         {
-            dismiss(appointment);
+            ok(appointment);
             return;
         }
 
@@ -98,26 +98,24 @@ public:
         g_free (title);
         b.set_timeout (std::chrono::duration_cast<std::chrono::seconds>(minutes));
         if (interactive) {
-            b.add_action ("show", _("Show"));
-            b.add_action ("dismiss", _("Dismiss"));
+            b.add_action ("snooze", _("Snooze"));
+            b.add_action ("ok", _("OK"));
         }
 
         // add 'sound', 'haptic', and 'awake' objects to the capture so
         // they stay alive until the closed callback is called; i.e.,
         // for the lifespan of the notficiation
-        b.set_closed_callback([appointment, show, dismiss, sound, awake, haptic]
+        b.set_closed_callback([appointment, snooze, ok, sound, awake, haptic]
                               (const std::string& action){
-            if (action == "show")
-                show(appointment);
+            if (action == "snooze")
+                snooze(appointment);
             else
-                dismiss(appointment);
+                ok(appointment);
         });
 
         const auto key = m_engine->show(b);
         if (key)
             m_notifications.insert (key);
-        else
-            show(appointment);
     }
 
 private:
@@ -177,9 +175,9 @@ Snap::~Snap()
 void
 Snap::operator()(const Appointment& appointment,
                  appointment_func show,
-                 appointment_func dismiss)
+                 appointment_func ok)
 {
-  (*impl)(appointment, show, dismiss);
+  (*impl)(appointment, show, ok);
 }
 
 /***
