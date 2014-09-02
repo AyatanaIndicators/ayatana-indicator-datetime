@@ -37,12 +37,11 @@ namespace datetime {
 class Planner
 {
 public:
-    virtual ~Planner() =default;
-
+    virtual ~Planner();
     virtual core::Property<std::vector<Appointment>>& appointments() =0;
 
 protected:
-    Planner() =default;
+    Planner();
     static void sort(std::vector<Appointment>&);
     static void trim(std::vector<Appointment>&, const DateTime& begin, const DateTime& end);
 };

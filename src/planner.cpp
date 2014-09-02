@@ -19,6 +19,8 @@
 
 #include <datetime/planner.h>
 
+#include <algorithm> 
+
 namespace unity {
 namespace indicator {
 namespace datetime {
@@ -35,6 +37,7 @@ Planner::~Planner()
 {
 }
 
+#if 0
 void
 Planner::set_range_to_calendar_month(const DateTime& dt)
 {
@@ -59,6 +62,7 @@ Planner::set_range_to_upcoming_month(const DateTime& begin)
             end.format(fmt).c_str());
     range().set(std::make_pair(begin,end));
 }
+#endif
 
 void
 Planner::sort(std::vector<Appointment>& appts)
@@ -73,9 +77,9 @@ Planner::trim(std::vector<Appointment>& appts,
               const DateTime& begin,
               const DateTime& end)
 {
-    decltype(appts) tmp;
-    auto predicate = [begin,end](const Appointment& a){return begin<=a.begin && a.begin<=end;}
-    std::copy(std::begin(appts), std::end(appts), std::back_inserter(tmp), predicate);
+    std::vector<Appointment> tmp;
+    auto predicate = [begin,end](const Appointment& a){return begin<=a.begin && a.begin<=end;};
+    std::copy_if(std::begin(appts), std::end(appts), std::back_inserter(tmp), predicate);
     appts.swap(tmp);
 }
 
