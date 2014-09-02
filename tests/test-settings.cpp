@@ -152,6 +152,7 @@ TEST_F(SettingsFixture, UIntProperties)
 {
     TestUIntProperty(m_settings->alarm_duration, SETTINGS_ALARM_DURATION_S);
     TestUIntProperty(m_settings->alarm_volume, SETTINGS_ALARM_VOLUME_S);
+    TestUIntProperty(m_settings->snooze_duration, SETTINGS_SNOOZE_DURATION_S);
 }
 
 TEST_F(SettingsFixture, StringProperties)

@@ -36,5 +36,13 @@
       </doc:doc>
     </property>
 
+    <property name="SnoozeDuration" type="i" access="readwrite">
+      <doc:doc>
+        <doc:description>
+          <doc:para>How many minutes to wait when the Snooze button is pressed. [Range: 1-15]</doc:para>
+        </doc:description>
+      </doc:doc>
+    </property>
+
   </interface>
 </node>

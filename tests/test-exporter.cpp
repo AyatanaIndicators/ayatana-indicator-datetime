@@ -184,11 +184,13 @@ TEST_F(ExporterFixture, AlarmProperties)
     ***/
 
     auto expected_volume = 1;
-    int expected_duration = 60;
+    int expected_duration = 4;
+    int expected_snooze_duration = 5;
     const char * expected_sound = "/tmp/foo.wav";
     const char * expected_haptic = "pulse";
     settings->alarm_volume.set(expected_volume);
     settings->alarm_duration.set(expected_duration);
+    settings->snooze_duration.set(expected_snooze_duration);
     settings->alarm_sound.set(expected_sound);
     settings->alarm_haptic.set(expected_haptic);
     wait_msec();
@@ -197,20 +199,24 @@ TEST_F(ExporterFixture, AlarmProperties)
     static constexpr const char* const VOLUME_PROP {"default-volume"};
     static constexpr const char* const DURATION_PROP {"duration"};
     static constexpr const char* const HAPTIC_PROP {"haptic-feedback"};
+    static constexpr const char* const SNOOZE_PROP {"snooze-duration"};
 
     char* sound = nullptr;
     char* haptic = nullptr;
     int volume = -1;
     int duration = -1;
+    int snooze = -1;
     g_object_get(proxy, SOUND_PROP, &sound,
                         HAPTIC_PROP, &haptic,
                         VOLUME_PROP, &volume,
                         DURATION_PROP, &duration,
+                        SNOOZE_PROP, &snooze,
                         nullptr);
     EXPECT_STREQ(expected_sound, sound);
     EXPECT_STREQ(expected_haptic, haptic);
     EXPECT_EQ(expected_volume, volume);
     EXPECT_EQ(expected_duration, duration);
+    EXPECT_EQ(expected_snooze_duration, snooze);
 
     g_clear_pointer (&sound, g_free);
     g_clear_pointer (&haptic, g_free);
@@ -223,10 +229,12 @@ TEST_F(ExporterFixture, AlarmProperties)
     expected_duration = 30;
     expected_sound = "/tmp/bar.wav";
     expected_haptic = "none";
+    expected_snooze_duration = 5;
     g_object_set(proxy, SOUND_PROP, expected_sound,
                         HAPTIC_PROP, expected_haptic,
                         VOLUME_PROP, expected_volume,
                         DURATION_PROP, expected_duration,
+                        SNOOZE_PROP, expected_snooze_duration,
                         nullptr);
     wait_msec();
 
@@ -234,6 +242,7 @@ TEST_F(ExporterFixture, AlarmProperties)
     EXPECT_STREQ(expected_haptic, settings->alarm_haptic.get().c_str());
     EXPECT_EQ(expected_volume, settings->alarm_volume.get());
     EXPECT_EQ(expected_duration, settings->alarm_duration.get());
+    EXPECT_EQ(expected_snooze_duration, settings->snooze_duration.get());
 
     // cleanup
     g_clear_object(&proxy);
