@@ -17,34 +17,36 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_H
-#define INDICATOR_DATETIME_PLANNER_H
+#ifndef INDICATOR_DATETIME_PLANNER_SNOOZE_H
+#define INDICATOR_DATETIME_PLANNER_SNOOZE_H
 
-#include <datetime/appointment.h>
-#include <datetime/date-time.h>
+#include <datetime/clock.h>
+#include <datetime/planner.h>
+#include <datetime/settings.h>
 
-#include <core/property.h>
-
-#include <vector>
+#include <memory>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
 /**
- * \brief Simple collection of appointments
+ * A planner to hold 'Snooze' copies of other appointments
  */
-class Planner
+class SnoozePlanner: public Planner
 {
 public:
-    virtual ~Planner() =default;
+    SnoozePlanner(const std::shared_ptr<Settings>&,
+                  const std::shared_ptr<Clock>&);
+    ~SnoozePlanner();
+    void add(const Appointment&);
 
-    virtual core::Property<std::vector<Appointment>>& appointments() =0;
+    core::Property<std::vector<Appointment>>& appointments();
 
 protected:
-    Planner() =default;
-    static void sort(std::vector<Appointment>&);
-    static void trim(std::vector<Appointment>&, const DateTime& begin, const DateTime& end);
+    class Impl;
+    friend class Impl;
+    std::unique_ptr<Impl> impl;
 };
 
 } // namespace datetime
