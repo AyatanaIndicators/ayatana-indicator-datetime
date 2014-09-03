@@ -43,7 +43,6 @@ public:
 protected:
     Planner();
     static void sort(std::vector<Appointment>&);
-    static void trim(std::vector<Appointment>&, const DateTime& begin, const DateTime& end);
 };
 
 } // namespace datetime
