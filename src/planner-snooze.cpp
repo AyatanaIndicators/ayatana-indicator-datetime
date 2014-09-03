@@ -55,10 +55,10 @@ public:
     {
         Appointment appt = appt_in;
 
-        // adjust the time
-        const auto appt_length_secs = appt.end - appt.begin;
+        // reschedule the alarm to go off N minutes from now
+        const auto alarm_duration_secs = appt.end - appt.begin;
         appt.begin = m_clock->localtime().add_full(0,0,0,0,m_settings->snooze_duration.get(),0);
-        appt.end = appt.begin.add_full(0,0,0,0,0,appt_length_secs);
+        appt.end = appt.begin.add_full(0,0,0,0,0,alarm_duration_secs);
 
         // give it a new ID
         gchar* uid = e_uid_new();
