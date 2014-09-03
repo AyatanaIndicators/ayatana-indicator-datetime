@@ -33,6 +33,16 @@ Test-case indicator-datetime/new-alarm-wakeup
 		<dd>If the device supports haptic feedback, confirm the alarm vibrates.</dd>
 </dl>
 
+Test-case indicator-datetime/snooze
+<dl>
+	<dt>Create and save an upcoming alarm in ubuntu-clock-app</dt>
+	<dt>When the alarm goes off, press the 'Snooze' button</dt>
+		<dd>The alarm should go away, then reappear N minutes later.
+		By default the N is 5 minutes but will be configurable from ubuntu-clock-app.</dd>
+	<dt>When the snoozed alarm reappears, press the 'OK' button</dt>
+		<dd>This time when the alarm is dismissed, it should not reappear.</dd>
+</dl>
+
 Test-case indicator-datetime/edited-alarm-wakeup
 <dl>
 	<dt>Edit an alarm that's already passed. (see previous test)</dt>
