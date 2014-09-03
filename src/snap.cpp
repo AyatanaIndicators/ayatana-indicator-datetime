@@ -98,8 +98,8 @@ public:
         g_free (title);
         b.set_timeout (std::chrono::duration_cast<std::chrono::seconds>(minutes));
         if (interactive) {
-            b.add_action ("snooze", _("Snooze"));
             b.add_action ("ok", _("OK"));
+            b.add_action ("snooze", _("Snooze"));
         }
 
         // add 'sound', 'haptic', and 'awake' objects to the capture so
