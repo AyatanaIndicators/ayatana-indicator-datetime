@@ -41,7 +41,7 @@ public:
     ~SnoozePlanner();
     void add(const Appointment&);
 
-    core::Property<std::vector<Appointment>>& appointments();
+    core::Property<std::vector<Appointment>>& appointments() override;
 
 protected:
     class Impl;

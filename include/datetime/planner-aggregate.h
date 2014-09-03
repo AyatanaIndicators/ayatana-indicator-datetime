@@ -38,7 +38,7 @@ public:
     virtual ~AggregatePlanner();
     void add(const std::shared_ptr<Planner>&);
 
-    core::Property<std::vector<Appointment>>& appointments();
+    core::Property<std::vector<Appointment>>& appointments() override;
 
 protected:
     class Impl;
