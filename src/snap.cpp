@@ -18,6 +18,7 @@
  */
 
 #include <datetime/snap.h>
+#include <datetime/utils.h> // is_locale_12h()
 
 #include <notifications/awake.h>
 #include <notifications/haptic.h>
@@ -92,8 +93,10 @@ public:
         b.add_hint (uin::Builder::HINT_SNAP);
         b.add_hint (uin::Builder::HINT_TINT);
         b.add_hint (uin::Builder::HINT_NONSHAPEDICON);
-        const auto timestr = appointment.begin.format (_("%a, %X"));
-        auto title = g_strdup_printf (_("Alarm %s"), timestr.c_str());
+
+        const auto timefmt = is_locale_12h() ? _("%a, %l:%M %p") : _("%a, %H:%M");
+        const auto timestr = appointment.begin.format(timefmt);
+        auto title = g_strdup_printf(_("Alarm %s"), timestr.c_str());
         b.set_title (title);
         g_free (title);
         b.set_timeout (std::chrono::duration_cast<std::chrono::seconds>(minutes));
