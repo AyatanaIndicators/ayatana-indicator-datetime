@@ -110,6 +110,21 @@ private:
                              GST_SEEK_TYPE_NONE,
                              (gint64)GST_CLOCK_TIME_NONE);
         }
+        else if ((GST_MESSAGE_TYPE(msg) == GST_MESSAGE_STREAM_START) && (self->m_loop))
+        {
+            /* Set the media role if audio sink is pulsesink */
+            GstElement *audio_sink = NULL;
+            GstPluginFeature *feature = NULL;
+            g_object_get(self->m_play, "audio-sink", &audio_sink, NULL);
+            feature = GST_PLUGIN_FEATURE_CAST(GST_ELEMENT_GET_CLASS(audio_sink)->elementfactory);
+            if (feature && g_strcmp0(gst_plugin_feature_get_name(feature), "pulsesink") == 0)
+            {
+                std::string role_str("props,media.role=alarm");
+                GstStructure *props = gst_structure_from_string(role_str.c_str(), NULL);
+                g_object_set(audio_sink, "stream-properties", props, NULL);
+                gst_structure_free(props);
+            }
+        }
 
         return G_SOURCE_CONTINUE; // keep listening
     }
