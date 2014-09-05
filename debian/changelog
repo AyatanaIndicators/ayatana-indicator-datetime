@@ -1,3 +1,12 @@
+indicator-datetime (13.10.0+14.10.20140905-0ubuntu1) utopic; urgency=low
+
+  [ Charles Kerr ]
+  * Add the snooze feature (LP: #1354400)
+  * In the alarm's popup notifications' titlebars, don't show the
+    seconds in the time format string. (LP: #1364374)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 05 Sep 2014 14:12:46 +0000
+
 indicator-datetime (13.10.0+14.10.20140904.1-0ubuntu1) utopic; urgency=low
 
   [ Ricardo Salveti de Araujo ]
