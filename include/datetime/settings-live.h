@@ -59,6 +59,7 @@ private:
     void update_alarm_volume();
     void update_alarm_duration();
     void update_alarm_haptic();
+    void update_snooze_duration();
 
     GSettings* m_settings;
 

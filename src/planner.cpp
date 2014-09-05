@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2014 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -17,36 +17,38 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_PLANNER_H
-#define INDICATOR_DATETIME_PLANNER_H
+#include <datetime/planner.h>
 
-#include <datetime/appointment.h>
-#include <datetime/date-time.h>
-
-#include <core/property.h>
-
-#include <vector>
+#include <algorithm> 
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
-/**
- * \brief Simple collection of appointments
- */
-class Planner
-{
-public:
-    virtual ~Planner();
-    virtual core::Property<std::vector<Appointment>>& appointments() =0;
+/***
+****
+***/
 
-protected:
-    Planner();
-    static void sort(std::vector<Appointment>&);
-};
+Planner::Planner()
+{
+}
+
+Planner::~Planner()
+{
+}
+
+void
+Planner::sort(std::vector<Appointment>& appts)
+{
+    std::sort(std::begin(appts),
+              std::end(appts),
+              [](const Appointment& a, const Appointment& b){return a.begin < b.begin;});
+}
+
+/***
+****
+***/
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
-
-#endif // INDICATOR_DATETIME_PLANNER_H

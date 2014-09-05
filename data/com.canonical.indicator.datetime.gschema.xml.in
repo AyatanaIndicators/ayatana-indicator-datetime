@@ -154,5 +154,13 @@
 			  How long the alarm's sound will be looped if its snap decision is not dismissed by the user.
 			</_description>
 		</key>
+		<key name="snooze-duration-minutes" type="u">
+			<range min="1" max="20"/>
+			<default>5</default>
+			<_summary>The snooze duration.</_summary>
+			<_description>
+			  How long to wait when the user hits the Snooze button.
+			</_description>
+		</key>
 	</schema>
 </schemalist>

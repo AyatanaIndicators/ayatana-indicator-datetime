@@ -25,6 +25,9 @@ set (SERVICE_CXX_SOURCES
      locations-settings.cpp
      menu.cpp
      notifications.cpp
+     planner.cpp
+     planner-aggregate.cpp
+     planner-snooze.cpp
      planner-month.cpp
      planner-range.cpp
      planner-upcoming.cpp

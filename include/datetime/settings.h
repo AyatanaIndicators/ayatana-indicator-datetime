@@ -60,6 +60,7 @@ public:
     core::Property<std::string> alarm_haptic;
     core::Property<unsigned int> alarm_volume;
     core::Property<unsigned int> alarm_duration;
+    core::Property<unsigned int> snooze_duration;
 };
 
 } // namespace datetime

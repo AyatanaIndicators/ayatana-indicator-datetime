@@ -56,6 +56,7 @@ LiveSettings::LiveSettings():
     update_alarm_volume();
     update_alarm_duration();
     update_alarm_haptic();
+    update_snooze_duration();
 
     // now listen for clients to change the properties s.t. we can sync update GSettings
 
@@ -134,6 +135,10 @@ LiveSettings::LiveSettings():
 
     alarm_haptic.changed().connect([this](const std::string& value){
         g_settings_set_string(m_settings, SETTINGS_ALARM_HAPTIC_S, value.c_str());
+    });
+
+    snooze_duration.changed().connect([this](unsigned int value){
+        g_settings_set_uint(m_settings, SETTINGS_SNOOZE_DURATION_S, value);
     });
 }
 
@@ -249,6 +254,11 @@ void LiveSettings::update_alarm_haptic()
     g_free(val);
 }
 
+void LiveSettings::update_snooze_duration()
+{
+    snooze_duration.set(g_settings_get_uint(m_settings, SETTINGS_SNOOZE_DURATION_S));
+}
+
 /***
 ****
 ***/
@@ -298,6 +308,8 @@ void LiveSettings::update_key(const std::string& key)
         update_alarm_duration();
     else if (key == SETTINGS_ALARM_HAPTIC_S)
         update_alarm_haptic();
+    else if (key == SETTINGS_SNOOZE_DURATION_S)
+        update_snooze_duration();
 }
 
 /***

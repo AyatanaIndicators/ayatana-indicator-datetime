@@ -25,6 +25,8 @@
 #include <datetime/exporter.h>
 #include <datetime/locations-settings.h>
 #include <datetime/menu.h>
+#include <datetime/planner-aggregate.h>
+#include <datetime/planner-snooze.h>
 #include <datetime/planner-range.h>
 #include <datetime/settings-live.h>
 #include <datetime/snap.h>
@@ -36,8 +38,6 @@
 
 #include <glib/gi18n.h> // bindtextdomain()
 #include <gio/gio.h>
-
-#include <url-dispatcher.h>
 
 #include <locale.h>
 #include <cstdlib> // exit()
@@ -90,6 +90,7 @@ namespace
     }
 
     std::shared_ptr<AlarmQueue> create_simple_alarm_queue(const std::shared_ptr<Clock>& clock,
+                                                          const std::shared_ptr<Planner>& snooze_planner,
                                                           const std::shared_ptr<Engine>& engine,
                                                           const std::shared_ptr<Timezone>& tz)
     {
@@ -102,8 +103,14 @@ namespace
             upcoming_planner->date().set(now);
         });
 
+        // create an aggregate planner that folds together the above
+        // upcoming-events planner and locally-generated snooze events
+        std::shared_ptr<AggregatePlanner> planner = std::make_shared<AggregatePlanner>();
+        planner->add(upcoming_planner);
+        planner->add(snooze_planner);
+
         auto wakeup_timer = std::make_shared<PowerdWakeupTimer>(clock);
-        return std::make_shared<SimpleAlarmQueue>(clock, upcoming_planner, wakeup_timer);
+        return std::make_shared<SimpleAlarmQueue>(clock, planner, wakeup_timer);
     }
 }
 
@@ -126,21 +133,14 @@ main(int /*argc*/, char** /*argv*/)
     MenuFactory factory(actions, state);
 
     // set up the snap decisions
+    auto snooze_planner = std::make_shared<SnoozePlanner>(state->settings, state->clock);
     auto notification_engine = std::make_shared<uin::Engine>("indicator-datetime-service");
     std::unique_ptr<Snap> snap (new Snap(notification_engine, state->settings));
-    auto alarm_queue = create_simple_alarm_queue(state->clock, engine, timezone);
-    alarm_queue->alarm_reached().connect([&snap](const Appointment& appt){
-        auto snap_show = [](const Appointment& a){
-            const char* url;
-            if(!a.url.empty())
-                url = a.url.c_str();
-            else // alarm doesn't have a URl associated with it; use a fallback
-                url = "appid://com.ubuntu.clock/clock/current-user-version";
-            url_dispatch_send(url, nullptr, nullptr);
-        };
-        auto snap_dismiss = [](const Appointment&){};
-        (*snap)(appt, snap_show, snap_dismiss);
-    });
+    auto alarm_queue = create_simple_alarm_queue(state->clock, snooze_planner, engine, timezone);
+    auto on_snooze = [snooze_planner](const Appointment& a) {snooze_planner->add(a);};
+    auto on_ok = [](const Appointment&){};
+    auto on_alarm_reached = [&snap, &on_snooze, &on_ok](const Appointment& a) {(*snap)(a, on_snooze, on_ok);};
+    alarm_queue->alarm_reached().connect(on_alarm_reached);
 
     // create the menus
     std::vector<std::shared_ptr<Menu>> menus;

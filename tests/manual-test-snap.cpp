@@ -78,12 +78,12 @@ int main(int argc, const char* argv[])
     g_date_time_unref(begin);
 
     auto loop = g_main_loop_new(nullptr, false);
-    auto show = [loop](const Appointment& appt){
-        g_message("You clicked 'show' for appt url '%s'", appt.url.c_str());
+    auto on_snooze = [loop](const Appointment& appt){
+        g_message("You clicked 'Snooze' for appt url '%s'", appt.url.c_str());
         g_idle_add(quit_idle, loop);
     };
-    auto dismiss = [loop](const Appointment&){
-        g_message("You clicked 'dismiss'");
+    auto on_ok = [loop](const Appointment&){
+        g_message("You clicked 'OK'");
         g_idle_add(quit_idle, loop);
     };
 
@@ -97,7 +97,7 @@ int main(int argc, const char* argv[])
 
     auto notification_engine = std::make_shared<uin::Engine>("indicator-datetime-service");
     Snap snap (notification_engine, settings);
-    snap(a, show, dismiss);
+    snap(a, on_snooze, on_ok);
     g_main_loop_run(loop);
 
     g_main_loop_unref(loop);

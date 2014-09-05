@@ -44,8 +44,8 @@ public:
 
     typedef std::function<void(const Appointment&)> appointment_func;
     void operator()(const Appointment& appointment,
-                    appointment_func show,
-                    appointment_func dismiss);
+                    appointment_func snooze,
+                    appointment_func ok);
 
 private:
     class Impl;
