@@ -516,7 +516,7 @@ protected:
 
         GVariantBuilder b;
         g_variant_builder_init(&b, G_VARIANT_TYPE_VARDICT);
-        g_variant_builder_add(&b, "{sv}", "title", g_variant_new_string (_("Upcoming")));
+        g_variant_builder_add(&b, "{sv}", "title", g_variant_new_string (_("Upcoming events")));
         g_variant_builder_add(&b, "{sv}", "visible", g_variant_new_boolean (TRUE));
         if (has_alarms)
         {
