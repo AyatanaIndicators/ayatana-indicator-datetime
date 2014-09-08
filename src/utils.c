@@ -307,26 +307,29 @@ char* generate_full_format_string_at_time (GDateTime* now,
                 case DATE_PROXIMITY_TOMORROW:
                     /* Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
                        This format string is used for showing, on a 12-hour clock, events/appointments that happen tomorrow.
-                       (\u2003 is a unicode em space which is slightly wider than a normal space.)
-                       en_US example: "Tomorrow\u2003%l:%M %p" --> "Tomorrow  1:00 PM" */
-                    g_string_assign (ret, T_("Tomorrow\u2003%l:%M %p"));
+                       (Note: the space between the day and the time is an em space (unicode character 2003), which is
+                       slightly wider than a normal space.)
+                       en_US example: "Tomorrow %l:%M %p" --> "Tomorrow 1:00 PM" */
+                    g_string_assign (ret, T_("Tomorrow %l:%M %p"));
                     break;
 
                 case DATE_PROXIMITY_WEEK:
                     /* Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
                        This format string is used for showing, on a 12-hour clock, events/appointments that happen this week.
-                       (\u2003 is a unicode em space which is slightly wider than a normal space.)
-                       en_US example: "Tomorrow\u2003%l:%M %p" --> "Fri  1:00 PM" */
-                    g_string_assign (ret, T_("%a\u2003%l:%M %p"));
+                       (Note: the space between the day and the time is an em space (unicode character 2003), which is
+                       slightly wider than a normal space.)
+                       en_US example: "Tomorrow %l:%M %p" --> "Fri 1:00 PM" */
+                    g_string_assign (ret, T_("%a %l:%M %p"));
                     break;
 
                 case DATE_PROXIMITY_FAR:
                     /* Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
                        This format string is used for showing, on a 12-hour clock, events/appointments that happen over a week from now.
-                       (\u2003 is a unicode em space which is slightly wider than a normal space.)
-                       en_US example: "%a %d %b\u2003%l:%M %p" --> "Fri Oct 31  1:00 PM"
-                       en_GB example: "%a %b %d\u2003%l:%M %p" --> "Fri 31 Oct  1:00 PM" */
-                    g_string_assign (ret, T_("%a %d %b\u2003%l:%M %p"));
+                       (Note: the space between the day and the time is an em space (unicode character 2003), which is
+                       slightly wider than a normal space.)
+                       en_US example: "%a %d %b %l:%M %p" --> "Fri Oct 31 1:00 PM"
+                       en_GB example: "%a %b %d %l:%M %p" --> "Fri 31 Oct 1:00 PM" */
+                    g_string_assign (ret, T_("%a %d %b %l:%M %p"));
                     break;
             }
         }
@@ -344,26 +347,29 @@ char* generate_full_format_string_at_time (GDateTime* now,
                 case DATE_PROXIMITY_TOMORROW:
                     /* Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
                        This format string is used for showing, on a 24-hour clock, events/appointments that happen tomorrow.
-                       (\u2003 is a unicode em space which is slightly wider than a normal space.)
-                       en_US example: "Tomorrow\u2003%l:%M %p" --> "Tomorrow  13:00" */
-                    g_string_assign (ret, T_("Tomorrow\u2003%H:%M"));
+                       (Note: the space between the day and the time is an em space (unicode character 2003), which is
+                       slightly wider than a normal space.)
+                       en_US example: "Tomorrow %l:%M %p" --> "Tomorrow 13:00" */
+                    g_string_assign (ret, T_("Tomorrow %H:%M"));
                     break;
 
                 case DATE_PROXIMITY_WEEK:
                     /* Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
                        This format string is used for showing, on a 24-hour clock, events/appointments that happen this week.
-                       (\u2003 is a unicode em space which is slightly wider than a normal space.)
-                       en_US example: "%a\u2003%H:%M" --> "Fri  13:00" */
-                    g_string_assign (ret, T_("%a\u2003%H:%M"));
+                       (Note: the space between the day and the time is an em space (unicode character 2003), which is
+                       slightly wider than a normal space.)
+                       en_US example: "%a %H:%M" --> "Fri 13:00" */
+                    g_string_assign (ret, T_("%a %H:%M"));
                     break;
 
                 case DATE_PROXIMITY_FAR:
                     /* Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
                        This format string is used for showing, on a 24-hour clock, events/appointments that happen over a week from now.
-                       (\u2003 is a unicode em space which is slightly wider than a normal space.)
-                       en_US example: "%a %d %b\u2003%H:%M" --> "Fri Oct 31  13:00"
-                       en_GB example: "%a %b %d\u2003%H:%M" --> "Fri 31 Oct  13:00" */
-                    g_string_assign (ret, T_("%a %d %b\u2003%H:%M"));
+                       (Note: the space between the day and the time is an em space (unicode character 2003), which is
+                       slightly wider than a normal space.)
+                       en_US example: "%a %d %b %H:%M" --> "Fri Oct 31 13:00"
+                       en_GB example: "%a %b %d %H:%M" --> "Fri 31 Oct 13:00" */
+                    g_string_assign (ret, T_("%a %d %b %H:%M"));
                     break;
             }
         }
