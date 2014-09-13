@@ -41,33 +41,60 @@ class Clock::Impl
 public:
 
     Impl(Clock& owner):
-        m_owner(owner)
+        m_owner(owner),
+        m_cancellable(g_cancellable_new())
     {
-        auto tag = g_bus_watch_name(G_BUS_TYPE_SYSTEM,
-                                    "org.freedesktop.login1",
-                                    G_BUS_NAME_WATCHER_FLAGS_NONE,
-                                    on_login1_appeared,
-                                    on_login1_vanished,
-                                    this, nullptr);
-        m_watched_names.insert(tag);
-
-        tag = g_bus_watch_name(G_BUS_TYPE_SYSTEM,
-                               BUS_POWERD_NAME,
-                               G_BUS_NAME_WATCHER_FLAGS_NONE,
-                               on_powerd_appeared,
-                               on_powerd_vanished,
-                               this, nullptr);
-        m_watched_names.insert(tag);
+        g_bus_get(G_BUS_TYPE_SYSTEM, m_cancellable, on_bus_ready, this);
     }
-
 
     ~Impl()
     {
+        g_cancellable_cancel(m_cancellable);
+        g_object_unref(m_cancellable);
+
         for(const auto& tag : m_watched_names)
             g_bus_unwatch_name(tag);
     }
 
 private:
+
+    static void on_bus_ready(GObject      * /*source_object*/,
+                             GAsyncResult * res,
+                             gpointer       gself)
+    {
+        GError * error = NULL;
+        GDBusConnection * bus;
+
+        if ((bus = g_bus_get_finish(res, &error)))
+        {
+            auto self = static_cast<Impl*>(gself);
+
+            auto tag = g_bus_watch_name_on_connection(bus,
+                                                      "org.freedesktop.login1",
+                                                      G_BUS_NAME_WATCHER_FLAGS_NONE,
+                                                      on_login1_appeared,
+                                                      on_login1_vanished,
+                                                      gself, nullptr);
+            self->m_watched_names.insert(tag);
+
+            tag = g_bus_watch_name_on_connection(bus,
+                                                 BUS_POWERD_NAME,
+                                                 G_BUS_NAME_WATCHER_FLAGS_NONE,
+                                                 on_powerd_appeared,
+                                                 on_powerd_vanished,
+                                                 gself, nullptr);
+            self->m_watched_names.insert(tag);
+
+            g_object_unref(bus);
+        }
+        else if (error != nullptr)
+        {
+            if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+                g_warning("%s Couldn't get system bus: %s", G_STRLOC, error->message);
+
+            g_error_free(error);
+        }
+    }
 
     void remember_subscription(const std::string  & name,
                                GDBusConnection    * bus,
@@ -178,6 +205,7 @@ private:
     ***/
 
     Clock& m_owner;
+    GCancellable * m_cancellable = nullptr;
     std::set<guint> m_watched_names;
     std::map<std::string,std::vector<std::shared_ptr<GDBusConnection>>> m_subscriptions;
 };
