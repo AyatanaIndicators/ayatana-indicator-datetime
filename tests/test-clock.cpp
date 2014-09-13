@@ -32,18 +32,6 @@ class ClockFixture: public TestDBusFixture
 {
   private:
     typedef TestDBusFixture super;
-
-  public:
-    void emitPrepareForSleep()
-    {
-      g_dbus_connection_emit_signal(g_bus_get_sync(G_BUS_TYPE_SYSTEM, nullptr, nullptr),
-                                    nullptr,
-                                    "/org/freedesktop/login1", // object path
-                                    "org.freedesktop.login1.Manager", // interface
-                                    "PrepareForSleep", // signal name
-                                    g_variant_new("(b)", FALSE),
-                                    nullptr);
-    }
 };
 
 TEST_F(ClockFixture, MinuteChangedSignalShouldTriggerOncePerMinute)
@@ -113,6 +101,27 @@ TEST_F(ClockFixture, TimezoneChangeTriggersSkew)
     g_time_zone_unref(tz_la);
 }
 
+/***
+****
+***/
+
+namespace
+{
+  void on_login1_name_acquired(GDBusConnection * connection,
+                               const gchar     * /*name*/,
+                               gpointer          /*user_data*/)
+  {
+      g_dbus_connection_emit_signal(connection,
+                                    nullptr,
+                                    "/org/freedesktop/login1", // object path
+                                    "org.freedesktop.login1.Manager", // interface
+                                    "PrepareForSleep", // signal name
+                                    g_variant_new("(b)", FALSE),
+                                    nullptr);
+  }
+}
+
+
 /**
  * Confirm that a "PrepareForSleep" event wil trigger a skew event
  */
@@ -121,7 +130,7 @@ TEST_F(ClockFixture, SleepTriggersSkew)
     std::shared_ptr<Timezones> zones(new Timezones);
     zones->timezone.set("America/New_York");
     LiveClock clock(zones);
-    wait_msec(500); // wait for the bus to set up
+    wait_msec(250); // wait for the bus to set up
 
     bool skewed = false;
     clock.minute_changed.connect([&skewed, this](){
@@ -130,11 +139,16 @@ TEST_F(ClockFixture, SleepTriggersSkew)
                     return G_SOURCE_REMOVE;
                 });
 
-    g_idle_add([](gpointer gself){
-                   static_cast<ClockFixture*>(gself)->emitPrepareForSleep();
-                   return G_SOURCE_REMOVE;
-                }, this);
-
+    auto name_tag = g_bus_own_name(G_BUS_TYPE_SYSTEM,
+                                   "org.freedesktop.login1",
+                                   G_BUS_NAME_OWNER_FLAGS_NONE,
+                                   nullptr /* bus acquired */,
+                                   on_login1_name_acquired,
+                                   nullptr /* name lost */,
+                                   nullptr /* user_data */,
+                                   nullptr /* user_data closure */);
     g_main_loop_run(loop);
     EXPECT_TRUE(skewed);
+
+    g_bus_unown_name(name_tag);
 }
