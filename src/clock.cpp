@@ -18,6 +18,7 @@
  */
 
 #include <datetime/clock.h>
+#include <datetime/dbus-shared.h>
 
 #include <glib.h>
 #include <gio/gio.h>
@@ -49,6 +50,14 @@ public:
                                     on_login1_vanished,
                                     this, nullptr);
         m_watched_names.insert(tag);
+
+        tag = g_bus_watch_name(G_BUS_TYPE_SYSTEM,
+                               BUS_POWERD_NAME,
+                               G_BUS_NAME_WATCHER_FLAGS_NONE,
+                               on_powerd_appeared,
+                               on_powerd_vanished,
+                               this, nullptr);
+        m_watched_names.insert(tag);
     }
 
 
@@ -60,19 +69,18 @@ public:
 
 private:
 
-    void remember_subscription(const std::string& name,
-                               GDBusConnection* bus,
-                               guint tag)
+    void remember_subscription(const std::string  & name,
+                               GDBusConnection    * bus,
+                               guint                tag)
     {
-        auto subscription = std::shared_ptr<GDBusConnection>(
-              G_DBUS_CONNECTION(g_object_ref(bus)),
-              [tag](GDBusConnection* bus){
-                  g_dbus_connection_signal_unsubscribe(bus, tag);
-                  g_object_unref(G_OBJECT(bus));
-              }
-        );
+        g_object_ref(bus);
 
-        m_subscriptions[name].push_back(subscription);
+        auto deleter = [tag](GDBusConnection* bus){
+            g_dbus_connection_signal_unsubscribe(bus, tag);
+            g_object_unref(G_OBJECT(bus));
+        };
+
+        m_subscriptions[name].push_back(std::shared_ptr<GDBusConnection>(bus, deleter));
     }
 
     /**
@@ -115,6 +123,53 @@ private:
                                      GVariant*        /*parameters*/,
                                      gpointer           gself)
     {
+        g_debug("firing clock.minute_changed() due to PrepareForSleep");
+        static_cast<Impl*>(gself)->m_owner.minute_changed();
+    }
+
+    /**
+    ***  DBus Chatter: com.canonical.powerd
+    ***
+    ***  Fire Clock::minute_changed() signal when powerd says the system's
+    ***  has awoken from sleep -- the old timestamp is likely out-of-date
+    **/
+
+    static void on_powerd_appeared(GDBusConnection * bus,
+                                   const gchar     * name,
+                                   const gchar     * name_owner,
+                                   gpointer          gself)
+    {
+        auto tag = g_dbus_connection_signal_subscribe(bus,
+                                                      name_owner,
+                                                      BUS_POWERD_INTERFACE,
+                                                      "Wakeup", // signal name
+                                                      BUS_POWERD_PATH,
+                                                      nullptr, // arg0
+                                                      G_DBUS_SIGNAL_FLAGS_NONE,
+                                                      on_wakeup,
+                                                      gself, // user_data
+                                                      nullptr); // user_data closure
+
+
+        static_cast<Impl*>(gself)->remember_subscription(name, bus, tag);
+    }
+
+    static void on_powerd_vanished(GDBusConnection * /*bus*/,
+                                   const gchar     * name,
+                                   gpointer          gself)
+    {
+        static_cast<Impl*>(gself)->m_subscriptions[name].clear();
+    }
+
+    static void on_wakeup(GDBusConnection* /*connection*/,
+                          const gchar*     /*sender_name*/,
+                          const gchar*     /*object_path*/,
+                          const gchar*     /*interface_name*/,
+                          const gchar*     /*signal_name*/,
+                          GVariant*        /*parameters*/,
+                          gpointer           gself)
+    {
+        g_debug("firing clock.minute_changed() due to powerd.Wakeup");
         static_cast<Impl*>(gself)->m_owner.minute_changed();
     }
 
