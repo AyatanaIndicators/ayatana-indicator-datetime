@@ -55,12 +55,9 @@ protected:
     void maybe_emit (const DateTime& a, const DateTime& b);
 
 private:
-    static void on_system_bus_ready(GObject*, GAsyncResult*, gpointer);
-    static void on_prepare_for_sleep(GDBusConnection*, const gchar*, const gchar*, const gchar*, const gchar*, GVariant*, gpointer);
-
-    GCancellable * m_cancellable = nullptr;
-    GDBusConnection * m_system_bus = nullptr;
-    unsigned int m_sleep_subscription_id = 0;
+    class Impl;
+    friend class Impl;
+    std::unique_ptr<Impl> m_impl;
 
     // we've got raw pointers and GSignal tags in here, so disable copying
     Clock(const Clock&) =delete;
