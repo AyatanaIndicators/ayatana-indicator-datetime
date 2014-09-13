@@ -24,9 +24,6 @@
 
 #include <string> // std::string
 
-#include <glib.h>
-#include <gio/gio.h>
-
 namespace unity {
 namespace indicator {
 namespace datetime {
@@ -37,21 +34,15 @@ namespace datetime {
 class FileTimezone: public Timezone
 {
 public:
-    FileTimezone();
     FileTimezone(const std::string& filename);
     ~FileTimezone();
 
 private:
-    void set_filename(const std::string& filename);
-    static void on_file_changed(gpointer gself);
-    void clear();
-    void reload();
+    class Impl;
+    friend Impl;
+    std::unique_ptr<Impl> impl;
 
-    std::string m_filename;
-    GFileMonitor * m_monitor = nullptr;
-    unsigned long m_monitor_handler_id = 0;
-
-    // we have raw pointers and glib tags in here, so disable copying
+    // we have pointers in here, so disable copying
     FileTimezone(const FileTimezone&) =delete;
     FileTimezone& operator=(const FileTimezone&) =delete;
 };

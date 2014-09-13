@@ -25,8 +25,6 @@
 #include <core/property.h>
 #include <core/signal.h>
 
-#include <gio/gio.h> // GDBusConnection
-
 #include <memory> // std::shared_ptr, std::unique_ptr
 
 namespace unity {
