@@ -94,7 +94,16 @@ public:
         b.add_hint (uin::Builder::HINT_TINT);
         b.add_hint (uin::Builder::HINT_NONSHAPEDICON);
 
-        const auto timefmt = is_locale_12h() ? _("%a, %l:%M %p") : _("%a, %H:%M");
+        const char * timefmt;
+        if (is_locale_12h()) {
+            /** strftime(3) format for abbreviated weekday,
+                hours, minutes in a 12h locale; e.g. Wed, 2:00 PM */
+            timefmt = _("%a, %l:%M %p");
+        } else {
+            /** A strftime(3) format for abbreviated weekday,
+                hours, minutes in a 24h locale; e.g. Wed, 14:00 */
+            timefmt = _("%a, %H:%M");
+        }
         const auto timestr = appointment.begin.format(timefmt);
         auto title = g_strdup_printf(_("Alarm %s"), timestr.c_str());
         b.set_title (title);
