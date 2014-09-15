@@ -41,13 +41,21 @@ public:
 
     DateTime localtime() const { return m_localtime; }
 
-    void set_localtime(const DateTime& dt) {
+    void set_localtime(const DateTime& dt)
+    {
         const auto old = m_localtime;
-        m_localtime = dt;
+
+        set_localtime_quietly(dt);
+
         if (!DateTime::is_same_minute(old, m_localtime))
             minute_changed();
         if (!DateTime::is_same_day(old, m_localtime))
             date_changed();
+    }
+
+    void set_localtime_quietly(const DateTime& dt)
+    {
+        m_localtime = dt;
     }
 
 private:
