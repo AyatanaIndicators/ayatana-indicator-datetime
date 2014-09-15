@@ -18,7 +18,10 @@
  */
 
 #include <datetime/clock.h>
+#include <datetime/clock-mock.h>
 #include <datetime/timezones.h>
+
+#include <notifications/dbus-shared.h>
 
 #include "test-dbus-fixture.h"
 
@@ -32,18 +35,6 @@ class ClockFixture: public TestDBusFixture
 {
   private:
     typedef TestDBusFixture super;
-
-  public:
-    void emitPrepareForSleep()
-    {
-      g_dbus_connection_emit_signal(g_bus_get_sync(G_BUS_TYPE_SYSTEM, nullptr, nullptr),
-                                    nullptr,
-                                    "/org/freedesktop/login1", // object path
-                                    "org.freedesktop.login1.Manager", // interface
-                                    "PrepareForSleep", // signal name
-                                    g_variant_new("(b)", FALSE),
-                                    nullptr);
-    }
 };
 
 TEST_F(ClockFixture, MinuteChangedSignalShouldTriggerOncePerMinute)
@@ -113,6 +104,27 @@ TEST_F(ClockFixture, TimezoneChangeTriggersSkew)
     g_time_zone_unref(tz_la);
 }
 
+/***
+****
+***/
+
+namespace
+{
+  void on_login1_name_acquired(GDBusConnection * connection,
+                               const gchar     * /*name*/,
+                               gpointer          /*user_data*/)
+  {
+      g_dbus_connection_emit_signal(connection,
+                                    nullptr,
+                                    "/org/freedesktop/login1", // object path
+                                    "org.freedesktop.login1.Manager", // interface
+                                    "PrepareForSleep", // signal name
+                                    g_variant_new("(b)", FALSE),
+                                    nullptr);
+  }
+}
+
+
 /**
  * Confirm that a "PrepareForSleep" event wil trigger a skew event
  */
@@ -121,7 +133,7 @@ TEST_F(ClockFixture, SleepTriggersSkew)
     std::shared_ptr<Timezones> zones(new Timezones);
     zones->timezone.set("America/New_York");
     LiveClock clock(zones);
-    wait_msec(500); // wait for the bus to set up
+    wait_msec(250); // wait for the bus to set up
 
     bool skewed = false;
     clock.minute_changed.connect([&skewed, this](){
@@ -130,11 +142,74 @@ TEST_F(ClockFixture, SleepTriggersSkew)
                     return G_SOURCE_REMOVE;
                 });
 
-    g_idle_add([](gpointer gself){
-                   static_cast<ClockFixture*>(gself)->emitPrepareForSleep();
-                   return G_SOURCE_REMOVE;
-                }, this);
-
+    auto name_tag = g_bus_own_name(G_BUS_TYPE_SYSTEM,
+                                   "org.freedesktop.login1",
+                                   G_BUS_NAME_OWNER_FLAGS_NONE,
+                                   nullptr /* bus acquired */,
+                                   on_login1_name_acquired,
+                                   nullptr /* name lost */,
+                                   nullptr /* user_data */,
+                                   nullptr /* user_data closure */);
     g_main_loop_run(loop);
     EXPECT_TRUE(skewed);
+
+    g_bus_unown_name(name_tag);
+}
+
+namespace
+{
+  void on_powerd_name_acquired(GDBusConnection * /*connection*/,
+                               const gchar     * /*name*/,
+                               gpointer          is_owned)
+  {
+    *static_cast<bool*>(is_owned) = true;
+  }
+}
+
+/**
+ * Confirm that powerd's SysPowerStateChange triggers
+ * a timestamp change
+ */
+TEST_F(ClockFixture, SysPowerStateChange)
+{
+  // set up the mock clock
+  bool minute_changed = false;
+  auto clock = std::make_shared<MockClock>(DateTime::NowLocal());
+  clock->minute_changed.connect([&minute_changed]() {
+    minute_changed = true;
+  });
+  
+  // control test -- minute_changed shouldn't get triggered
+  // when the clock is silently changed
+  gboolean is_owned = false;
+  auto tag = g_bus_own_name_on_connection(system_bus,
+                                          BUS_POWERD_NAME,
+                                          G_BUS_NAME_OWNER_FLAGS_NONE,
+                                          on_powerd_name_acquired,
+                                          nullptr,
+                                          &is_owned /* user_data */,
+                                          nullptr /* user_data closure */);
+  const DateTime not_now {DateTime::Local(1999, 12, 31, 23, 59, 59)};
+  clock->set_localtime_quietly(not_now);
+  wait_msec();
+  ASSERT_TRUE(is_owned);
+  ASSERT_FALSE(minute_changed);
+
+  // now for the actual test,
+  // confirm that SysPowerStateChange triggers a minute_changed() signal
+  GError * error = nullptr;
+  auto emitted = g_dbus_connection_emit_signal(system_bus,
+                                               nullptr,
+                                               BUS_POWERD_PATH,
+                                               BUS_POWERD_INTERFACE,
+                                               "SysPowerStateChange",
+                                               g_variant_new("(i)", 1),
+                                               &error);
+  wait_msec();
+  EXPECT_TRUE(emitted);
+  EXPECT_EQ(nullptr, error);
+  EXPECT_TRUE(minute_changed);
+
+  // cleanup
+  g_bus_unown_name(tag);
 }
