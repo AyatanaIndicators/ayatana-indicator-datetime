@@ -22,6 +22,13 @@ Test-case indicator-datetime/unity8-items-check
 		<dd>The menu is populated with items</dd>
 </dl>
 
+Test-case indicator-datetime/timestamp-wakeup
+<dl>
+        <dt>Unplug the phone from any USB connection and put it to sleep</dt>
+        <dd>Reawaken the device.</dt>
+                <dd>The indicator should be showing the correct time.</dd>
+</dl>
+
 Test-case indicator-datetime/new-alarm-wakeup
 <dl>
 	<dt>Create and save an upcoming alarm in ubuntu-clock-app</dt>
