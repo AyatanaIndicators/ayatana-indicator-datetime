@@ -169,11 +169,11 @@ private:
         auto tag = g_dbus_connection_signal_subscribe(bus,
                                                       name_owner,
                                                       BUS_POWERD_INTERFACE,
-                                                      "Wakeup", // signal name
+                                                      "SysPowerStateChange",
                                                       BUS_POWERD_PATH,
                                                       nullptr, // arg0
                                                       G_DBUS_SIGNAL_FLAGS_NONE,
-                                                      on_wakeup,
+                                                      on_sys_power_state_change,
                                                       gself, // user_data
                                                       nullptr); // user_data closure
 
@@ -188,15 +188,15 @@ private:
         static_cast<Impl*>(gself)->m_subscriptions[name].clear();
     }
 
-    static void on_wakeup(GDBusConnection* /*connection*/,
-                          const gchar*     /*sender_name*/,
-                          const gchar*     /*object_path*/,
-                          const gchar*     /*interface_name*/,
-                          const gchar*     /*signal_name*/,
-                          GVariant*        /*parameters*/,
-                          gpointer           gself)
+    static void on_sys_power_state_change(GDBusConnection* /*connection*/,
+                                            const gchar*     /*sender_name*/,
+                                            const gchar*     /*object_path*/,
+                                            const gchar*     /*interface_name*/,
+                                            const gchar*     /*signal_name*/,
+                                            GVariant*        /*parameters*/,
+                                            gpointer           gself)
     {
-        g_debug("firing clock.minute_changed() due to powerd.Wakeup");
+        g_debug("firing clock.minute_changed() due to state change");
         static_cast<Impl*>(gself)->m_owner.minute_changed();
     }
 
