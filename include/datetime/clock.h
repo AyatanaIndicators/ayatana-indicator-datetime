@@ -71,7 +71,7 @@ private:
 ****
 ***/
 
-class Timezones;
+class Timezone;
 
 /**
  * \brief A live #Clock that provides the actual system time.
@@ -79,7 +79,7 @@ class Timezones;
 class LiveClock: public Clock
 {
 public:
-    LiveClock (const std::shared_ptr<const Timezones>& zones);
+    LiveClock (const std::shared_ptr<const Timezone>& zones);
     virtual ~LiveClock();
     virtual DateTime localtime() const;
 

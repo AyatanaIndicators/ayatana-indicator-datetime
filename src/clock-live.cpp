@@ -18,7 +18,7 @@
  */
 
 #include <datetime/clock.h>
-#include <datetime/timezones.h>
+#include <datetime/timezone.h>
 
 namespace unity {
 namespace indicator {
@@ -59,14 +59,15 @@ class LiveClock::Impl
 {
 public:
 
-    Impl(LiveClock& owner, const std::shared_ptr<const Timezones>& tzd):
+    Impl(LiveClock& owner, const std::shared_ptr<const Timezone>& timezone_):
         m_owner(owner),
-        m_timezones(tzd)
+        m_timezone(timezone_)
     {
-        if (m_timezones)
+        if (m_timezone)
         {
-            m_timezones->timezone.changed().connect([this](const std::string& z) {setTimezone(z);});
-            setTimezone(m_timezones->timezone.get());
+            auto setter = [this](const std::string& z){setTimezone(z);};
+            m_timezone->timezone.changed().connect(setter);
+            setter(m_timezone->timezone.get());
         }
 
         restart_minute_timer();
@@ -76,14 +77,14 @@ public:
     {
         clearTimer(m_timer);
 
-        g_clear_pointer(&m_timezone, g_time_zone_unref);
+        g_clear_pointer(&m_gtimezone, g_time_zone_unref);
     }
 
     DateTime localtime() const
     {
-        g_assert(m_timezone != nullptr);
+        g_assert(m_gtimezone != nullptr);
 
-        auto gdt = g_date_time_new_now(m_timezone);
+        auto gdt = g_date_time_new_now(m_gtimezone);
         DateTime ret(gdt);
         g_date_time_unref(gdt);
         return ret;
@@ -93,8 +94,8 @@ private:
 
     void setTimezone(const std::string& str)
     {
-        g_clear_pointer(&m_timezone, g_time_zone_unref);
-        m_timezone = g_time_zone_new(str.c_str());
+        g_clear_pointer(&m_gtimezone, g_time_zone_unref);
+        m_gtimezone = g_time_zone_new(str.c_str());
         m_owner.minute_changed();
     }
 
@@ -134,15 +135,15 @@ private:
 protected:
 
     LiveClock& m_owner;
-    GTimeZone* m_timezone = nullptr;
-    std::shared_ptr<const Timezones> m_timezones;
+    GTimeZone* m_gtimezone = nullptr;
+    std::shared_ptr<const Timezone> m_timezone;
 
     DateTime m_prev_datetime;
     unsigned int m_timer = 0;
 };
 
-LiveClock::LiveClock(const std::shared_ptr<const Timezones>& tzd):
-    p(new Impl(*this, tzd))
+LiveClock::LiveClock(const std::shared_ptr<const Timezone>& timezone_):
+    p(new Impl(*this, timezone_))
 {
 }
 

@@ -18,9 +18,10 @@
  */
 
 #include <datetime/clock.h>
-#include <datetime/timezones.h>
+#include <datetime/timezone.h>
 
 #include "test-dbus-fixture.h"
+#include "timezone-mock.h"
 
 /***
 ****
@@ -49,9 +50,9 @@ class ClockFixture: public TestDBusFixture
 TEST_F(ClockFixture, MinuteChangedSignalShouldTriggerOncePerMinute)
 {
     // start up a live clock
-    std::shared_ptr<Timezones> zones(new Timezones);
-    zones->timezone.set("America/New_York");
-    LiveClock clock(zones);
+    auto timezone_ = std::make_shared<MockTimezone>();
+    timezone_->timezone.set("America/New_York");
+    LiveClock clock(timezone_);
     wait_msec(500); // wait for the bus to set up
 
     // count how many times clock.minute_changed() is emitted over the next minute
@@ -74,17 +75,17 @@ TEST_F(ClockFixture, MinuteChangedSignalShouldTriggerOncePerMinute)
 
 TEST_F(ClockFixture, HelloFixture)
 {
-    std::shared_ptr<Timezones> zones(new Timezones);
-    zones->timezone.set("America/New_York");
-    LiveClock clock(zones);
+    auto timezone_ = std::make_shared<MockTimezone>();
+    timezone_->timezone.set("America/New_York");
+    LiveClock clock(timezone_);
 }
 
 
 TEST_F(ClockFixture, TimezoneChangeTriggersSkew)
 {
-    std::shared_ptr<Timezones> zones(new Timezones);
-    zones->timezone.set("America/New_York");
-    LiveClock clock(zones);
+    auto timezone_ = std::make_shared<MockTimezone>();
+    timezone_->timezone.set("America/New_York");
+    LiveClock clock(timezone_);
 
     auto tz_nyc = g_time_zone_new("America/New_York");
     auto now_nyc = g_date_time_new_now(tz_nyc);
@@ -99,9 +100,9 @@ TEST_F(ClockFixture, TimezoneChangeTriggersSkew)
                    g_main_loop_quit(loop);
                });
     g_idle_add([](gpointer gs){
-                   static_cast<Timezones*>(gs)->timezone.set("America/Los_Angeles");
+                   static_cast<Timezone*>(gs)->timezone.set("America/Los_Angeles");
                    return G_SOURCE_REMOVE;
-               }, zones.get());
+               }, timezone_.get());
     g_main_loop_run(loop);
 
     auto tz_la = g_time_zone_new("America/Los_Angeles");
@@ -118,9 +119,9 @@ TEST_F(ClockFixture, TimezoneChangeTriggersSkew)
  */
 TEST_F(ClockFixture, SleepTriggersSkew)
 {
-    std::shared_ptr<Timezones> zones(new Timezones);
-    zones->timezone.set("America/New_York");
-    LiveClock clock(zones);
+    auto timezone_ = std::make_shared<MockTimezone>();
+    timezone_->timezone.set("America/New_York");
+    LiveClock clock(timezone_);
     wait_msec(500); // wait for the bus to set up
 
     bool skewed = false;

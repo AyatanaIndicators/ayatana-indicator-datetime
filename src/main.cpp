@@ -67,8 +67,8 @@ namespace
     {
         // create the live objects
         auto live_settings = std::make_shared<LiveSettings>();
-        auto live_timezones = std::make_shared<LiveTimezones>(live_settings, TIMEZONE_FILE);
-        auto live_clock = std::make_shared<LiveClock>(live_timezones);
+        auto timezone_ = std::make_shared<FileTimezone>(TIMEZONE_FILE);
+        auto live_clock = std::make_shared<LiveClock>(timezone_);
 
         // create a full-month planner currently pointing to the current month
         const auto now = live_clock->localtime();
@@ -80,6 +80,7 @@ namespace
         auto calendar_upcoming = std::make_shared<UpcomingPlanner>(range_planner, now);
 
         // create the state
+        auto live_timezones = std::make_shared<LiveTimezones>(live_settings, TIMEZONE_FILE);
         auto state = std::make_shared<State>();
         state->settings = live_settings;
         state->clock = live_clock;
