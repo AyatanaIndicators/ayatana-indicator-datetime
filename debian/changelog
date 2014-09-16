@@ -1,3 +1,11 @@
+indicator-datetime (13.10.0+14.10.20140915-0ubuntu1) utopic; urgency=low
+
+  [ Charles Kerr ]
+  * Update the time strings when a powerd Wakeup signal is detected.
+    (LP: #1359802)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 15 Sep 2014 21:03:00 +0000
+
 indicator-datetime (13.10.0+14.10.20140908.1-0ubuntu1) utopic; urgency=low
 
   [ Charles Kerr ]

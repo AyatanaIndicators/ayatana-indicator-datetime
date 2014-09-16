@@ -24,4 +24,9 @@
 #define BUS_DATETIME_NAME    "com.canonical.indicator.datetime"
 #define BUS_DATETIME_PATH    "/com/canonical/indicator/datetime"
 
+#define BUS_POWERD_NAME      "com.canonical.powerd"
+#define BUS_POWERD_PATH      "/com/canonical/powerd"
+#define BUS_POWERD_INTERFACE "com.canonical.powerd"
+
+
 #endif /* _INDICATOR_DATETIME_DBUS_SHARED_H_ */
