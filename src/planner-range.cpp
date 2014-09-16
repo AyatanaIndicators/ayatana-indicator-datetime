@@ -28,13 +28,18 @@ namespace datetime {
 ***/
 
 SimpleRangePlanner::SimpleRangePlanner(const std::shared_ptr<Engine>& engine,
-                                   const std::shared_ptr<Timezone>& timezone):
+                                       const std::shared_ptr<Timezone>& timezone):
     m_engine(engine),
     m_timezone(timezone),
     m_range(std::pair<DateTime,DateTime>(DateTime::NowLocal(), DateTime::NowLocal()))
 {
     engine->changed().connect([this](){
         g_debug("RangePlanner %p rebuilding soon because Engine %p emitted 'changed' signal", this, m_engine.get());
+        rebuild_soon();
+    });
+
+    m_timezone->timezone.changed().connect([this](const std::string& s){
+        g_debug("RangePlanner %p rebuilding soon because the timezone changed to '%s'", this, s.c_str());
         rebuild_soon();
     });
 
