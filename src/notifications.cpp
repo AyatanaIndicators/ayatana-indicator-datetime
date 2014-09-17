@@ -198,7 +198,7 @@ public:
         {
             notify_notification_set_hint (nn.get(),
                                           hint.c_str(),
-                                          g_variant_new_boolean(true));
+                                          g_variant_new_string("true"));
         }
 
         for (const auto& action : info.m_actions)
