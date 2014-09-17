@@ -61,7 +61,7 @@ public:
     const std::shared_ptr<State> state() const;
 
 protected:
-    Actions(const std::shared_ptr<State>& state);
+    explicit Actions(const std::shared_ptr<State>& state);
     virtual ~Actions();
 
 private:

@@ -47,7 +47,7 @@ namespace
     GOptionEntry entries[] =
     {
         { "volume", 'v', 0, G_OPTION_ARG_INT, &volume, "Volume level [1..100]", "volume" },
-        { NULL }
+        { nullptr }
     };
 }
 

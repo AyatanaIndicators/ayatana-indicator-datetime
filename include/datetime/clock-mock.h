@@ -36,7 +36,7 @@ namespace datetime {
 class MockClock: public Clock
 {
 public:
-    MockClock(const DateTime& dt): m_localtime(dt) {}
+    explicit MockClock(const DateTime& dt): m_localtime(dt) {}
     ~MockClock() =default;
 
     DateTime localtime() const { return m_localtime; }

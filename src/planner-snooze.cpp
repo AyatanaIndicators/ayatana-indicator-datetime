@@ -46,7 +46,7 @@ public:
     {
     }
 
-    virtual core::Property<std::vector<Appointment>>& appointments()
+    core::Property<std::vector<Appointment>>& appointments()
     {
         return m_appointments;
     }

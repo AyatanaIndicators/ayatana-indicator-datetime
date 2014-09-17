@@ -17,6 +17,9 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
+#ifndef INDICATOR_DATETIME_TESTS_DBUS_FIXTURE_H
+#define INDICATOR_DATETIME_TESTS_DBUS_FIXTURE_H
+
 #include "glib-fixture.h"
 
 /***
@@ -27,9 +30,10 @@ class TestDBusFixture: public GlibFixture
 {
   public:
 
-    TestDBusFixture() {}
+    TestDBusFixture() =default;
+    virtual ~TestDBusFixture() =default;
 
-    TestDBusFixture(const std::vector<std::string>& service_dirs_in): service_dirs(service_dirs_in) {}
+    explicit TestDBusFixture(const std::vector<std::string>& service_dirs_in): service_dirs(service_dirs_in) {}
 
   private:
 
@@ -65,7 +69,7 @@ class TestDBusFixture: public GlibFixture
     GDBusConnection * system_bus;
     const std::vector<std::string> service_dirs;
 
-    virtual void SetUp ()
+    virtual void SetUp() override
     {
       super::SetUp ();
 
@@ -84,7 +88,7 @@ class TestDBusFixture: public GlibFixture
       g_main_loop_run (loop);
     }
 
-    virtual void TearDown ()
+    virtual void TearDown() override
     {
       wait_msec();
 
@@ -100,3 +104,5 @@ class TestDBusFixture: public GlibFixture
       super::TearDown();
     }
 };
+
+#endif /* INDICATOR_DATETIME_TESTS_DBUS_FIXTURE_H */

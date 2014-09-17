@@ -47,7 +47,7 @@ class LocationsFixture: public GlibFixture
     const std::string nyc = "America/New_York";
     const std::string chicago = "America/Chicago";
 
-    virtual void SetUp()
+    void SetUp() override
     {
       super::SetUp();
 
@@ -65,7 +65,7 @@ class LocationsFixture: public GlibFixture
       m_timezones->timezones.set(std::set<std::string>({ nyc, chicago }));
     }
 
-    virtual void TearDown()
+    void TearDown() override
     {
       m_timezones.reset();
       m_settings.reset();

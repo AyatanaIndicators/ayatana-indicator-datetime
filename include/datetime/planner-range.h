@@ -72,7 +72,7 @@ private:
     core::Property<std::vector<Appointment>> m_appointments;
 
     // we've got a GSignal tag here, so disable copying
-    SimpleRangePlanner(const RangePlanner&) =delete;
+    explicit SimpleRangePlanner(const RangePlanner&) =delete;
     SimpleRangePlanner& operator=(const RangePlanner&) =delete;
 };
 

@@ -17,8 +17,8 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_ENGINE_MOCK__H
-#define INDICATOR_DATETIME_ENGINE_MOCK__H
+#ifndef INDICATOR_DATETIME_ENGINE_MOCK_H
+#define INDICATOR_DATETIME_ENGINE_MOCK_H
 
 #include <datetime/engine.h>
 
@@ -65,4 +65,4 @@ private:
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_ENGINE_NOOP__H
+#endif // INDICATOR_DATETIME_ENGINE_MOCK_H

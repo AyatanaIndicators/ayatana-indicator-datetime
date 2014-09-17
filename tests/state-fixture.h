@@ -17,17 +17,29 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
+#ifndef INDICATOR_DATETIME_TESTS_STATE_FIXTURE_H
+#define INDICATOR_DATETIME_TESTS_STATE_FIXTURE_H
+
 #include "glib-fixture.h"
 
 #include "actions-mock.h"
 #include "state-mock.h"
 
-using namespace unity::indicator::datetime;
+namespace unity {
+namespace indicator {
+namespace datetime {
+
+/***
+****
+***/
 
 class StateFixture: public GlibFixture
 {
 private:
     typedef GlibFixture super;
+
+public:
+    virtual ~StateFixture() =default;
 
 protected:
     std::shared_ptr<MockState> m_mock_state;
@@ -56,5 +68,15 @@ protected:
 
         super::TearDown();
     }
+
 };
 
+/***
+****
+***/
+
+} // namespace datetime
+} // namespace indicator
+} // namespace unity
+
+#endif /* INDICATOR_DATETIME_TESTS_STATE_FIXTURE_H */

@@ -42,7 +42,7 @@ protected:
 
     GTestDBus* bus = nullptr;
 
-    void SetUp()
+    void SetUp() override
     {
         super::SetUp();
 
@@ -54,7 +54,7 @@ protected:
         g_setenv("DBUS_SESSION_BUS_ADDRESS", address, true);
     }
 
-    void TearDown()
+    void TearDown() override
     {
         GError * error = nullptr;
         GDBusConnection* connection = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, &error);
@@ -76,9 +76,9 @@ TEST_F(ExporterFixture, HelloWorld)
 
 TEST_F(ExporterFixture, Publish)
 {
-    std::shared_ptr<State> state(new MockState);
-    std::shared_ptr<Actions> actions(new MockActions(state));
-    std::shared_ptr<Settings> settings(new Settings);
+    auto state = std::make_shared<MockState>();
+    auto actions = std::make_shared<MockActions>(state);
+    auto settings = std::make_shared<Settings>();
     std::vector<std::shared_ptr<Menu>> menus;
 
     MenuFactory menu_factory (actions, state);

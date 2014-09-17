@@ -26,17 +26,19 @@
 ****
 ***/
 
+using namespace unity::indicator::datetime;
+
 class MockLiveActions: public LiveActions
 {
 public:
     std::string last_cmd;
     std::string last_url;
-    MockLiveActions(const std::shared_ptr<State>& state_in): LiveActions(state_in) {}
-    virtual ~MockLiveActions() {}
+    explicit MockLiveActions(const std::shared_ptr<State>& state_in): LiveActions(state_in) {}
+    ~MockLiveActions() {}
 
 protected:
-    void dispatch_url(const std::string& url) { last_url = url; }
-    void execute_command(const std::string& cmd) { last_cmd = cmd; }
+    void dispatch_url(const std::string& url) override { last_url = url; }
+    void execute_command(const std::string& cmd) override { last_cmd = cmd; }
 };
 
 /***

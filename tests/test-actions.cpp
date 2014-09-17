@@ -55,12 +55,12 @@ class ActionsFixture: public StateFixture
 
 protected:
 
-    virtual void SetUp()
+    void SetUp() override
     {
         super::SetUp();
     }
 
-    virtual void TearDown()
+    void TearDown() override
     {
         super::TearDown();
     }

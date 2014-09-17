@@ -39,7 +39,7 @@ namespace datetime {
 class Exporter
 {
 public:
-    Exporter(const std::shared_ptr<Settings>&);
+    explicit Exporter(const std::shared_ptr<Settings>&);
     ~Exporter();
 
     core::Signal<>& name_lost();

@@ -86,7 +86,7 @@ public:
     std::string relative_format(GDateTime* then, GDateTime* then_end=nullptr) const;
 
 protected:
-    Formatter(const std::shared_ptr<const Clock>&);
+    explicit Formatter(const std::shared_ptr<const Clock>&);
     virtual ~Formatter();
 
     static const char* default_header_time_format(bool twelvehour, bool show_seconds);
@@ -126,7 +126,7 @@ private:
 class PhoneFormatter: public Formatter
 {
 public:
-    PhoneFormatter(const std::shared_ptr<const Clock>& clock): Formatter(clock) {
+    explicit PhoneFormatter(const std::shared_ptr<const Clock>& clock): Formatter(clock) {
         header_format.set(default_header_time_format(is_locale_12h(), false));
     }
 };

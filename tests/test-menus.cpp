@@ -39,7 +39,7 @@ protected:
     std::shared_ptr<MenuFactory> m_menu_factory;
     std::vector<std::shared_ptr<Menu>> m_menus;
 
-    virtual void SetUp()
+    void SetUp() override
     {
         super::SetUp();
 
@@ -49,7 +49,7 @@ protected:
             m_menus.push_back(m_menu_factory->buildMenu(Menu::Profile(i)));
     }
 
-    virtual void TearDown()
+    void TearDown() override
     {
         m_menus.clear();
         m_menu_factory.reset();

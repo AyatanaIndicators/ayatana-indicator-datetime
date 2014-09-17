@@ -39,7 +39,7 @@ namespace datetime {
 class MainloopWakeupTimer: public WakeupTimer
 {
 public:
-    MainloopWakeupTimer(const std::shared_ptr<Clock>&);
+    explicit MainloopWakeupTimer(const std::shared_ptr<Clock>&);
     ~MainloopWakeupTimer();
     void set_wakeup_time (const DateTime&);
     core::Signal<>& timeout();

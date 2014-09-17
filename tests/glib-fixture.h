@@ -17,6 +17,9 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef INDICATOR_DATETIME_TESTS_GLIB_FIXTURE_H
+#define INDICATOR_DATETIME_TESTS_GLIB_FIXTURE_H
+
 #include <map>
 
 #include <glib.h>
@@ -29,6 +32,10 @@
 
 class GlibFixture : public ::testing::Test
 {
+  public:
+
+    virtual ~GlibFixture() =default;
+
   private:
 
     //GLogFunc realLogHandler;
@@ -59,7 +66,7 @@ class GlibFixture : public ::testing::Test
 
   protected:
 
-    virtual void SetUp()
+    virtual void SetUp() override
     {
       setlocale(LC_ALL, "C.UTF-8");
 
@@ -76,7 +83,7 @@ class GlibFixture : public ::testing::Test
 
     }
 
-    virtual void TearDown()
+    virtual void TearDown() override
     {
 #if 0
       // confirm there aren't any unexpected log messages
@@ -136,3 +143,5 @@ class GlibFixture : public ::testing::Test
 
     GMainLoop * loop;
 };
+
+#endif /* INDICATOR_DATETIME_TESTS_GLIB_FIXTURE_H */

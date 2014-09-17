@@ -17,12 +17,21 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
+#ifndef INDICATOR_DATETIME_STATE_MOCK_H
+#define INDICATOR_DATETIME_STATE_MOCK_H
+
 #include "planner-mock.h"
 
 #include <datetime/clock-mock.h>
 #include <datetime/state.h>
 
-using namespace unity::indicator::datetime;
+namespace unity {
+namespace indicator {
+namespace datetime {
+
+/***
+****
+***/
 
 class MockState: public State
 {
@@ -47,3 +56,12 @@ public:
     }
 };
 
+/***
+****
+***/
+
+} // namespace datetime
+} // namespace indicator
+} // namespace unity
+
+#endif /* INDICATOR_DATETIME_STATE_MOCK_H */

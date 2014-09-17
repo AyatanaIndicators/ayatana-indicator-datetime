@@ -52,7 +52,7 @@ TEST_F(TimezonesFixture, ManagerTest)
   std::string timezone_geo = "America/Denver";
 
   set_file(timezone_file);
-  std::shared_ptr<Settings> settings(new Settings);
+  auto settings = std::make_shared<Settings>();
   LiveTimezones z(settings, TIMEZONE_FILE);
   wait_msec(500); // wait for the bus to get set up
   EXPECT_EQ(timezone_file, z.timezone.get());

@@ -46,7 +46,7 @@ class FormatterFixture: public GlibFixture
 
     std::shared_ptr<Settings> m_settings;
 
-    virtual void SetUp()
+    void SetUp() override
     {
       super::SetUp();
 
@@ -54,7 +54,7 @@ class FormatterFixture: public GlibFixture
       m_original_locale = g_strdup(setlocale(LC_TIME, nullptr));
     }
 
-    virtual void TearDown()
+    void TearDown() override
     {
       m_settings.reset();
 
@@ -90,7 +90,7 @@ class FormatterFixture: public GlibFixture
 TEST_F(FormatterFixture, TestPhoneHeader)
 {
     auto now = g_date_time_new_local(2020, 10, 31, 18, 30, 59);
-    std::shared_ptr<Clock> clock(new MockClock(DateTime(now)));
+    auto clock = std::make_shared<MockClock>(DateTime(now));
     g_date_time_unref(now);
 
     // test the default value in a 24h locale
@@ -143,7 +143,7 @@ TEST_F(FormatterFixture, TestDesktopHeader)
   };
 
   auto now = g_date_time_new_local(2020, 10, 31, 18, 30, 59);
-  std::shared_ptr<Clock> clock(new MockClock(DateTime(now)));
+  auto clock = std::make_shared<MockClock>(DateTime(now));
   g_date_time_unref(now);
 
   for(const auto& test_case : test_cases)
@@ -193,7 +193,7 @@ TEST_F(FormatterFixture, TestUpcomingTimes)
     {
         if (test_case.is_12h ? Set12hLocale() : Set24hLocale())
         {
-            std::shared_ptr<Clock> clock (new MockClock(DateTime(test_case.now)));
+            auto clock = std::make_shared<MockClock>(DateTime(test_case.now));
             DesktopFormatter f(clock, m_settings);
         
             const auto fmt = f.relative_format(test_case.then);
@@ -236,7 +236,7 @@ TEST_F(FormatterFixture, TestEventTimes)
     {
         if (test_case.is_12h ? Set12hLocale() : Set24hLocale())
         {
-            std::shared_ptr<Clock> clock(new MockClock(DateTime(test_case.now)));
+            auto clock = std::make_shared<MockClock>(DateTime(test_case.now));
             DesktopFormatter f(clock, m_settings);
           
             const auto fmt = f.relative_format(test_case.then, test_case.then_end);
