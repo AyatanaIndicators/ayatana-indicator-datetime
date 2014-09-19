@@ -1,3 +1,15 @@
+indicator-datetime (13.10.0+14.10.20140919-0ubuntu1) utopic; urgency=low
+
+  [ Charles Kerr ]
+  * Adjust our floating alarms when the local timezone changes. (LP:
+    #1332095)
+  * Move timezone code behind a private Impl class
+  * Fix flint++ warnings
+  * Make alarm notifications icons and button color match Design's
+    specs. (LP: #1370594)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 19 Sep 2014 14:35:23 +0000
+
 indicator-datetime (13.10.0+14.10.20140915-0ubuntu1) utopic; urgency=low
 
   [ Charles Kerr ]
