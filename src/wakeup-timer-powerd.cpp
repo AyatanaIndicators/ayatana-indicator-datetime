@@ -22,6 +22,8 @@
 
 #include <notifications/dbus-shared.h> // BUS_POWERD_NAME
 
+#include <gio/gio.h>
+
 #include <memory> // std::shared_ptr
 
 namespace unity {

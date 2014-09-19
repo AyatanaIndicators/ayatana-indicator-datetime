@@ -19,11 +19,97 @@
 
 #include <datetime/timezone-file.h>
 
+#include <gio/gio.h>
+
 #include <cerrno>
 #include <cstdlib>
 
-namespace
+namespace unity {
+namespace indicator {
+namespace datetime {
+
+/***
+****
+***/
+
+class FileTimezone::Impl
 {
+public:
+
+    Impl(FileTimezone& owner, const std::string& filename):
+        m_owner(owner)
+    {
+        set_filename(filename);
+    }
+
+    ~Impl()
+    {
+        clear();
+    }
+
+private:
+
+    void clear()
+    {
+        if (m_monitor_handler_id)
+            g_signal_handler_disconnect(m_monitor, m_monitor_handler_id);
+
+        g_clear_object (&m_monitor);
+
+        m_filename.clear();
+    }
+
+    void set_filename(const std::string& filename)
+    {
+        clear();
+
+        auto tmp = realpath(filename.c_str(), nullptr);
+        if(tmp != nullptr)
+        {
+            m_filename = tmp;
+            free(tmp);
+        }
+        else
+        {
+            g_warning("Unable to resolve path '%s': %s", filename.c_str(), g_strerror(errno));
+            m_filename = filename; // better than nothing?
+        }
+
+        auto file = g_file_new_for_path(m_filename.c_str());
+        GError * err = nullptr;
+        m_monitor = g_file_monitor_file(file, G_FILE_MONITOR_NONE, nullptr, &err);
+        g_object_unref(file);
+        if (err)
+        {
+            g_warning("%s Unable to monitor timezone file '%s': %s", G_STRLOC, TIMEZONE_FILE, err->message);
+            g_error_free(err);
+        }
+        else
+        {
+            m_monitor_handler_id = g_signal_connect_swapped(m_monitor, "changed", G_CALLBACK(on_file_changed), this);
+            g_debug("%s Monitoring timezone file '%s'", G_STRLOC, m_filename.c_str());
+        }
+
+        reload();
+    }
+
+    static void on_file_changed(gpointer gself)
+    {
+        static_cast<Impl*>(gself)->reload();
+    }
+
+    void reload()
+    {
+        const auto new_timezone = get_timezone_from_file(m_filename);
+
+        if (!new_timezone.empty())
+            m_owner.timezone.set(new_timezone);
+    }
+
+    /***
+    ****
+    ***/
+
     std::string get_timezone_from_file(const std::string& filename)
     {
         GError * error;
@@ -73,86 +159,33 @@ namespace
 
         return ret;
     }
-}
 
-namespace unity {
-namespace indicator {
-namespace datetime {
+    /***
+    ****
+    ***/
 
-FileTimezone::FileTimezone()
+    FileTimezone & m_owner;
+    std::string m_filename;
+    GFileMonitor * m_monitor = nullptr;
+    unsigned long m_monitor_handler_id = 0;
+};
+
+/***
+****
+***/
+
+FileTimezone::FileTimezone(const std::string& filename):
+    impl(new Impl{*this, filename})
 {
-}
-
-FileTimezone::FileTimezone(const std::string& filename)
-{
-    set_filename(filename);
 }
 
 FileTimezone::~FileTimezone()
 {
-    clear();
 }
 
-void
-FileTimezone::clear()
-{
-    if (m_monitor_handler_id)
-        g_signal_handler_disconnect(m_monitor, m_monitor_handler_id);
-
-    g_clear_object (&m_monitor);
-
-    m_filename.clear();
-}
-
-void
-FileTimezone::set_filename(const std::string& filename)
-{
-    clear();
-
-    auto tmp = realpath(filename.c_str(), nullptr);
-    if(tmp != nullptr)
-      {
-        m_filename = tmp;
-        free(tmp);
-      }
-    else
-      {
-        g_warning("Unable to resolve path '%s': %s", filename.c_str(), g_strerror(errno));
-        m_filename = filename; // better than nothing?
-      }
-
-    auto file = g_file_new_for_path(m_filename.c_str());
-    GError * err = nullptr;
-    m_monitor = g_file_monitor_file(file, G_FILE_MONITOR_NONE, nullptr, &err);
-    g_object_unref(file);
-    if (err)
-      {
-        g_warning("%s Unable to monitor timezone file '%s': %s", G_STRLOC, TIMEZONE_FILE, err->message);
-        g_error_free(err);
-      }
-    else
-      {
-        m_monitor_handler_id = g_signal_connect_swapped(m_monitor, "changed", G_CALLBACK(on_file_changed), this);
-        g_debug("%s Monitoring timezone file '%s'", G_STRLOC, m_filename.c_str());
-      }
-
-    reload();
-}
-
-void
-FileTimezone::on_file_changed(gpointer gself)
-{
-    static_cast<FileTimezone*>(gself)->reload();
-}
-
-void
-FileTimezone::reload()
-{
-    const auto new_timezone = get_timezone_from_file(m_filename);
-
-    if (!new_timezone.empty())
-        timezone.set(new_timezone);
-}
+/***
+****
+***/
 
 } // namespace datetime
 } // namespace indicator
