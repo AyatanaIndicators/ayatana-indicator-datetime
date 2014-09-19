@@ -96,7 +96,7 @@ protected:
   DbusTestDbusMockObject * screen_obj = nullptr;
   DbusTestDbusMockObject * haptic_obj = nullptr;
 
-  void SetUp()
+  void SetUp() override
   {
     GError * error = nullptr;
     char * str = nullptr;
@@ -269,18 +269,18 @@ protected:
     dbus_test_service_start_tasks(service);
     g_setenv("DBUS_SYSTEM_BUS_ADDRESS", g_getenv("DBUS_SESSION_BUS_ADDRESS"), TRUE);
 
-    session_bus = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+    session_bus = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, nullptr);
     ASSERT_NE(nullptr, session_bus);
     g_dbus_connection_set_exit_on_close(session_bus, false);
     g_object_add_weak_pointer(G_OBJECT(session_bus), (gpointer *)&session_bus);
 
-    system_bus = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, NULL);
+    system_bus = g_bus_get_sync(G_BUS_TYPE_SYSTEM, nullptr, nullptr);
     ASSERT_NE(nullptr, system_bus);
     g_dbus_connection_set_exit_on_close(system_bus, FALSE);
     g_object_add_weak_pointer(G_OBJECT(system_bus), (gpointer *)&system_bus);
   }
 
-  virtual void TearDown()
+  void TearDown() override
   {
     g_clear_object(&haptic_mock);
     g_clear_object(&screen_mock);

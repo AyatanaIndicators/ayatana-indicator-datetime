@@ -85,7 +85,7 @@ private:
 class Engine
 {
 public:
-    Engine(const std::string& app_name);
+    explicit Engine(const std::string& app_name);
     ~Engine();
 
     /** @see Builder::set_action() */

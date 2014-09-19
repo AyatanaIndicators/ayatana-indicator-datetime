@@ -18,8 +18,8 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef _INDICATOR_DATETIME_DBUS_SHARED_H_
-#define _INDICATOR_DATETIME_DBUS_SHARED_H_
+#ifndef INDICATOR_DATETIME_DBUS_SHARED_H
+#define INDICATOR_DATETIME_DBUS_SHARED_H
 
 #define BUS_DATETIME_NAME    "com.canonical.indicator.datetime"
 #define BUS_DATETIME_PATH    "/com/canonical/indicator/datetime"
@@ -29,4 +29,4 @@
 #define BUS_POWERD_INTERFACE "com.canonical.powerd"
 
 
-#endif /* _INDICATOR_DATETIME_DBUS_SHARED_H_ */
+#endif /* INDICATOR_DATETIME_DBUS_SHARED_H */

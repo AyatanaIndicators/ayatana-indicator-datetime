@@ -17,6 +17,9 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef INDICATOR_DATETIME_TESTS_GEOCLUE_FIXTURE_H
+#define INDICATOR_DATETIME_TESTS_GEOCLUE_FIXTURE_H
+
 #include "glib-fixture.h"
 
 #include <libdbustest/dbus-test.h>
@@ -39,7 +42,7 @@ class GeoclueFixture : public GlibFixture
     DbusTestDbusMockObject * obj_geo_addr = nullptr;
     const std::string timezone_1 = "America/Denver";
 
-    void SetUp ()
+    void SetUp () override
     {
       super::SetUp();
 
@@ -80,7 +83,7 @@ class GeoclueFixture : public GlibFixture
       g_string_free (gstr, TRUE);
     }
 
-    virtual void TearDown ()
+    void TearDown () override
     {
       g_clear_object (&mock);
       g_clear_object (&service);
@@ -148,3 +151,4 @@ public:
 
 };
 
+#endif /* INDICATOR_DATETIME_TESTS_GEOCLUE_FIXTURE_H */

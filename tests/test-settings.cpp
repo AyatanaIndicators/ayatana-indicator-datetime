@@ -39,7 +39,7 @@ protected:
     std::shared_ptr<Settings> m_settings;
     GSettings * m_gsettings;
 
-    virtual void SetUp()
+    void SetUp() override
     {
         super::SetUp();
 
@@ -48,7 +48,7 @@ protected:
         m_settings = std::dynamic_pointer_cast<Settings>(m_live);
     }
 
-    virtual void TearDown()
+    void TearDown() override
     {
         g_clear_object(&m_gsettings);
         m_settings.reset();

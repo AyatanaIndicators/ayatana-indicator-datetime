@@ -285,7 +285,7 @@ private:
         if (e_cal_client_get_view_finish (E_CAL_CLIENT(client), res, &view, &error))
         {
             // add the view to our collection
-            e_cal_client_view_set_flags(view, E_CAL_CLIENT_VIEW_FLAGS_NONE, NULL);
+            e_cal_client_view_set_flags(view, E_CAL_CLIENT_VIEW_FLAGS_NONE, nullptr);
             e_cal_client_view_start(view, &error);
             g_debug("got a view for %s", e_cal_client_get_local_attachment_store(E_CAL_CLIENT(client)));
             auto self = static_cast<Impl*>(gself);

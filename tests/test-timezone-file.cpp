@@ -52,12 +52,12 @@ class TimezoneFixture: public GlibFixture
 
   protected:
 
-    virtual void SetUp()
+    void SetUp() override
     {
       super::SetUp();
     }
 
-    virtual void TearDown()
+    void TearDown() override
     {
       super::TearDown();
     }

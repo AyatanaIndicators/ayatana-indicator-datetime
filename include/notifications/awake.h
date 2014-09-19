@@ -36,7 +36,7 @@ namespace notifications {
 class Awake
 {
 public:
-    Awake(const std::string& app_name);
+    explicit Awake(const std::string& app_name);
     ~Awake();
 
 private:

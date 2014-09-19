@@ -31,7 +31,7 @@ namespace datetime {
 class MockActions: public Actions
 {
 public:
-    MockActions(std::shared_ptr<State>& state_in): Actions(state_in) {}
+    explicit MockActions(const std::shared_ptr<State>& state_in): Actions(state_in) {}
     ~MockActions() =default;
 
     enum Action { DesktopOpenAlarmApp,

@@ -197,7 +197,7 @@ private:
         }
         else
         {
-            const char* s = NULL;
+            const char* s = nullptr;
             g_variant_get(ret, "(&s)", &s);
             g_debug("%s %s::requestWakeup() sent cookie %s",
                     G_STRLOC, BUS_POWERD_NAME, s);

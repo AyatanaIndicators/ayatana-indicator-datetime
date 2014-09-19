@@ -17,8 +17,8 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_ENGINE__H
-#define INDICATOR_DATETIME_ENGINE__H
+#ifndef INDICATOR_DATETIME_ENGINE_H
+#define INDICATOR_DATETIME_ENGINE_H
 
 #include <datetime/appointment.h>
 #include <datetime/date-time.h>
@@ -65,4 +65,4 @@ protected:
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_ENGINE__H
+#endif // INDICATOR_DATETIME_ENGINE_H
