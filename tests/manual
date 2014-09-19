@@ -40,6 +40,15 @@ Test-case indicator-datetime/new-alarm-wakeup
 		<dd>If the device supports haptic feedback, confirm the alarm vibrates.</dd>
 </dl>
 
+Test-case indicator-datetime/alarm-timezone
+<dl>
+	<dt>In ubuntu-system-settings, change your timezone to a zone you're not in</dt>
+	<dt>In ubuntu-clock-app, create and save an upcoming alarm</dt>
+		<dd>The indicator's menu should show the alarm to click at the specified time</dd>
+	<dt>In ubuntu-system-settings, change back to your correct timezone</dt>
+		<dd>The indicator's menu should still show the alarm to click at the specified time</dd>
+</dl>
+
 Test-case indicator-datetime/snooze
 <dl>
 	<dt>Create and save an upcoming alarm in ubuntu-clock-app</dt>

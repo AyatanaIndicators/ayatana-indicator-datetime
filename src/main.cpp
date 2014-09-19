@@ -63,20 +63,20 @@ namespace
     }
 
     std::shared_ptr<State> create_state(const std::shared_ptr<Engine>& engine,
-                                        const std::shared_ptr<Timezone>& tz)
+                                        const std::shared_ptr<Timezone>& timezone_)
     {
         // create the live objects
         auto live_settings = std::make_shared<LiveSettings>();
         auto live_timezones = std::make_shared<LiveTimezones>(live_settings, TIMEZONE_FILE);
-        auto live_clock = std::make_shared<LiveClock>(live_timezones);
+        auto live_clock = std::make_shared<LiveClock>(timezone_);
 
         // create a full-month planner currently pointing to the current month
         const auto now = live_clock->localtime();
-        auto range_planner = std::make_shared<SimpleRangePlanner>(engine, tz);
+        auto range_planner = std::make_shared<SimpleRangePlanner>(engine, timezone_);
         auto calendar_month = std::make_shared<MonthPlanner>(range_planner, now);
 
         // create an upcoming-events planner currently pointing to the current date
-        range_planner = std::make_shared<SimpleRangePlanner>(engine, tz);
+        range_planner = std::make_shared<SimpleRangePlanner>(engine, timezone_);
         auto calendar_upcoming = std::make_shared<UpcomingPlanner>(range_planner, now);
 
         // create the state
@@ -127,8 +127,8 @@ main(int /*argc*/, char** /*argv*/)
     textdomain(GETTEXT_PACKAGE);
 
     auto engine = create_engine();
-    auto timezone = std::make_shared<FileTimezone>(TIMEZONE_FILE);
-    auto state = create_state(engine, timezone);
+    auto timezone_ = std::make_shared<FileTimezone>(TIMEZONE_FILE);
+    auto state = create_state(engine, timezone_);
     auto actions = std::make_shared<LiveActions>(state);
     MenuFactory factory(actions, state);
 
@@ -136,7 +136,7 @@ main(int /*argc*/, char** /*argv*/)
     auto snooze_planner = std::make_shared<SnoozePlanner>(state->settings, state->clock);
     auto notification_engine = std::make_shared<uin::Engine>("indicator-datetime-service");
     std::unique_ptr<Snap> snap (new Snap(notification_engine, state->settings));
-    auto alarm_queue = create_simple_alarm_queue(state->clock, snooze_planner, engine, timezone);
+    auto alarm_queue = create_simple_alarm_queue(state->clock, snooze_planner, engine, timezone_);
     auto on_snooze = [snooze_planner](const Appointment& a) {snooze_planner->add(a);};
     auto on_ok = [](const Appointment&){};
     auto on_alarm_reached = [&snap, &on_snooze, &on_ok](const Appointment& a) {(*snap)(a, on_snooze, on_ok);};
