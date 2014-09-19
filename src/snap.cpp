@@ -91,8 +91,8 @@ public:
         b.set_body (appointment.summary);
         b.set_icon_name ("alarm-clock");
         b.add_hint (uin::Builder::HINT_SNAP);
-        b.add_hint (uin::Builder::HINT_TINT);
-        b.add_hint (uin::Builder::HINT_NONSHAPEDICON);
+        b.add_hint (uin::Builder::HINT_AFFIRMATIVE_HINT);
+        b.add_hint (uin::Builder::HINT_NONSHAPED_ICON);
 
         const char * timefmt;
         if (is_locale_12h()) {

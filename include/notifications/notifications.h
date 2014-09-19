@@ -59,8 +59,9 @@ public:
        These keys may be dependent on the notification server. */
     void add_hint (const std::string& name);
     static constexpr char const * HINT_SNAP {"x-canonical-snap-decisions"};
-    static constexpr char const * HINT_TINT {"x-canonical-private-button-tint"};
-    static constexpr char const * HINT_NONSHAPEDICON {"x-canonical-non-shaped-icon"};
+    static constexpr char const * HINT_NONSHAPED_ICON {"x-canonical-non-shaped-icon"};
+    static constexpr char const * HINT_AFFIRMATIVE_HINT {"x-canonical-private-affirmative-tint"};
+    static constexpr char const * HINT_REJECTION_TINT {"x-canonical-private-rejection-tint"};
 
     /* Add an action button.
        This may fail if the Engine doesn't support actions.
