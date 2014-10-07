@@ -79,6 +79,19 @@ Test-case indicator-datetime/tell-snap-decision-to-dismiss
 		<dd>Sound should stop at the same time, rather than playing til the end of the file.</dd>
 </dl>
 
+Test-case indicator-datetime/change-alarm-sound
+<dl>
+	<dt>Open the clock app</dt>
+	<dt>Swipe up from the bottom</dt>
+	<dt>Click on the + symbol</dt>
+	<dt>Save an alarm for a few minutes time leave everything on default settings</dt>
+	<dt>Click on save</dt>
+	<dt>Click on the alarm</dt>
+	<dt>Change the sound of the alarm</dt>
+	<dt>Click on save</dt>
+	<dt>Let the alarm go off</dt>
+		<dd>The newly-selected sound should play, rather than the previous sound.</dd>
+</dl>
 
 <strong>
     If all actions produce the expected results listed, please <a href="results#add_result">submit</a> a 'passed' result.
