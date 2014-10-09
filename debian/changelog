@@ -1,3 +1,11 @@
+indicator-datetime (13.10.0+14.10.20141009-0ubuntu1) utopic; urgency=low
+
+  [ Charles Kerr ]
+  * Fix appointment comparison function to include the audio_url field
+    in its test. (LP: #1364949)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 09 Oct 2014 13:35:53 +0000
+
 indicator-datetime (13.10.0+14.10.20141007-0ubuntu1) utopic; urgency=low
 
   [ Charles Kerr ]
