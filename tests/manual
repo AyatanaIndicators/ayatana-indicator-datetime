@@ -72,7 +72,7 @@ Test-case indicator-datetime/edited-alarm-wakeup
 
 Test-case indicator-datetime/tell-snap-decision-to-dismiss
 <dl>
-	<dt>Set an alarm and wait for it to arrive.</td>
+	<dt>Set an alarm and wait for it to arrive.</dt>
 		<dd>Alarm should go off at the specified time</dd>
 	<dt>Press the 'Dismiss' button in the alarm's snap decision popup before the sound stops.</dt>
 		<dd>Popup should disappear</dd>
