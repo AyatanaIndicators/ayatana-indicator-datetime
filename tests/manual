@@ -25,7 +25,7 @@ Test-case indicator-datetime/unity8-items-check
 Test-case indicator-datetime/timestamp-wakeup
 <dl>
         <dt>Unplug the phone from any USB connection and put it to sleep</dt>
-        <dd>Reawaken the device.</dt>
+        <dt>Reawaken the device.</dt>
                 <dd>The indicator should be showing the correct time.</dd>
 </dl>
 
@@ -33,9 +33,7 @@ Test-case indicator-datetime/new-alarm-wakeup
 <dl>
 	<dt>Create and save an upcoming alarm in ubuntu-clock-app</dt>
 	<dt>Unplug the phone from any USB connection and put it to sleep</dt>
-		<dd>Confirm that the alarm sounds on time even if the phone is asleep.
-		(Note: if in doubt about sleep you can see in the syslog whether the
-		device actually suspended or whether the suspend was aborted)</dd>
+		<dd>Confirm that the alarm sounds on time even if the phone is asleep.  (Note: if in doubt about sleep you can see in the syslog whether the device actually suspended or whether the suspend was aborted)</dd>
 		<dd>Confirm that the screen comes on when the alarm is triggered.<dd>
 		<dd>If the device supports haptic feedback, confirm the alarm vibrates.</dd>
 </dl>
@@ -53,8 +51,7 @@ Test-case indicator-datetime/snooze
 <dl>
 	<dt>Create and save an upcoming alarm in ubuntu-clock-app</dt>
 	<dt>When the alarm goes off, press the 'Snooze' button</dt>
-		<dd>The alarm should go away, then reappear N minutes later.
-		By default the N is 5 minutes but will be configurable from ubuntu-clock-app.</dd>
+		<dd>The alarm should go away, then reappear N minutes later. By default the N is 5 minutes but will be configurable from ubuntu-clock-app.</dd>
 	<dt>When the snoozed alarm reappears, press the 'OK' button</dt>
 		<dd>This time when the alarm is dismissed, it should not reappear.</dd>
 </dl>
@@ -63,16 +60,14 @@ Test-case indicator-datetime/edited-alarm-wakeup
 <dl>
 	<dt>Edit an alarm that's already passed. (see previous test)</dt>
 	<dt>Unplug the phone from any USB connection and put it to sleep</dt>
-		<dd>Confirm that the alarm sounds on time even if the phone is asleep.
-		(Note: if in doubt about sleep you can see in the syslog whether the
-		device actually suspended or whether the suspend was aborted)</dd>
+		<dd>Confirm that the alarm sounds on time even if the phone is asleep. (Note: if in doubt about sleep you can see in the syslog whether the device actually suspended or whether the suspend was aborted)</dd>
 		<dd>Confirm that the screen comes on when the alarm is triggered.<dd>
 		<dd>If the device supports haptic feedback, confirm the alarm vibrates.</dd>
 </dl>
 
 Test-case indicator-datetime/tell-snap-decision-to-dismiss
 <dl>
-	<dt>Set an alarm and wait for it to arrive.</td>
+	<dt>Set an alarm and wait for it to arrive.</dt>
 		<dd>Alarm should go off at the specified time</dd>
 	<dt>Press the 'Dismiss' button in the alarm's snap decision popup before the sound stops.</dt>
 		<dd>Popup should disappear</dd>
