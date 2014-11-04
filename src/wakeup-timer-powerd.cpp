@@ -192,6 +192,8 @@ private:
         ret = g_dbus_connection_call_finish(G_DBUS_CONNECTION(o), res, &error);
         if (ret == nullptr)
         {
+            /* powerd isn't on the desktop, but we don't need hardware wakeups there
+               anyway... so no need to warn on SERVICE_UNKNOWN */
             if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED) &&
                 !g_error_matches(error, G_DBUS_ERROR, G_DBUS_ERROR_SERVICE_UNKNOWN))
             {
