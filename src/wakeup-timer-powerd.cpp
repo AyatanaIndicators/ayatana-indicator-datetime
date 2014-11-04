@@ -192,8 +192,11 @@ private:
         ret = g_dbus_connection_call_finish(G_DBUS_CONNECTION(o), res, &error);
         if (ret == nullptr)
         {
-            if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+            if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED) &&
+                !g_error_matches(error, G_DBUS_ERROR, G_DBUS_ERROR_SERVICE_UNKNOWN))
+            {
                 g_warning("%s Could not set hardware wakeup: %s", G_STRLOC, error->message);
+            }
         }
         else
         {
