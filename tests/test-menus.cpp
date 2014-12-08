@@ -191,7 +191,7 @@ private:
         a1.summary = "Alarm";
         a1.summary = "http://www.example.com/";
         a1.uid = "example";
-        a1.has_alarms = true;
+        a1.type = Appointment::UBUNTU_ALARM;
         a1.begin = a1.end = tomorrow;
 
         Appointment a2; // a non-alarm appointment
@@ -199,7 +199,7 @@ private:
         a2.summary = "Other Text";
         a2.summary = "http://www.monkey.com/";
         a2.uid = "monkey";
-        a2.has_alarms = false;
+        a1.type = Appointment::EVENT;
         a2.begin = a2.end = tomorrow;
 
         return std::vector<Appointment>({a1, a2});
@@ -212,7 +212,7 @@ private:
         //  confirm it has the right x-canonical-type
         gchar * str = nullptr;
         g_menu_model_get_item_attribute(section, index, "x-canonical-type", "s", &str);
-        if (appt.has_alarms)
+        if (appt.is_ubuntu_alarm())
             EXPECT_STREQ("com.canonical.indicator.alarm", str);
         else
             EXPECT_STREQ("com.canonical.indicator.appointment", str);
@@ -245,7 +245,7 @@ private:
         g_clear_pointer(&str, g_free);
 
         // confirm that alarms have an icon
-        if (appt.has_alarms)
+        if (appt.is_ubuntu_alarm())
         {
             auto v = g_menu_model_get_item_attribute_value(section,
                                                            index,

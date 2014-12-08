@@ -316,7 +316,7 @@ private:
             g_menu_item_set_attribute (menu_item, "x-canonical-time", "x", unix_time);
             g_menu_item_set_attribute (menu_item, "x-canonical-time-format", "s", fmt.c_str());
 
-            if (appt.has_alarms)
+            if (appt.is_ubuntu_alarm())
             {
                 g_menu_item_set_attribute (menu_item, "x-canonical-type", "s", "com.canonical.indicator.alarm");
                 g_menu_item_set_attribute_value(menu_item, G_MENU_ATTRIBUTE_ICON, get_serialized_alarm_icon());
@@ -509,16 +509,16 @@ protected:
     GVariant* create_header_state()
     {
         // are there alarms?
-        bool has_alarms = false;
+        bool has_ubuntu_alarms = false;
         for(const auto& appointment : m_upcoming)
-            if((has_alarms = appointment.has_alarms))
+            if((has_ubuntu_alarms = appointment.is_ubuntu_alarm()))
                 break;
 
         GVariantBuilder b;
         g_variant_builder_init(&b, G_VARIANT_TYPE_VARDICT);
         g_variant_builder_add(&b, "{sv}", "title", g_variant_new_string (_("Time & Date")));
         g_variant_builder_add(&b, "{sv}", "visible", g_variant_new_boolean (TRUE));
-        if (has_alarms)
+        if (has_ubuntu_alarms)
         {
             auto label = m_formatter->header.get();
             auto a11y = g_strdup_printf(_("%s (has alarms)"), label.c_str());

@@ -39,7 +39,7 @@ class ActionsFixture: public StateFixture
         a1.summary = "Alarm";
         a1.summary = "http://www.example.com/";
         a1.uid = "example";
-        a1.has_alarms = true;
+        a1.type = Appointment::UBUNTU_ALARM;
         a1.begin = a1.end = tomorrow;
 
         Appointment a2; // a non-alarm appointment
@@ -47,7 +47,7 @@ class ActionsFixture: public StateFixture
         a2.summary = "Other Text";
         a2.summary = "http://www.monkey.com/";
         a2.uid = "monkey";
-        a2.has_alarms = false;
+        a1.type = Appointment::EVENT;
         a2.begin = a2.end = tomorrow;
 
         return std::vector<Appointment>({a1, a2});

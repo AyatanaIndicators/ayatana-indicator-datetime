@@ -108,7 +108,7 @@ protected:
     appt.summary = "Alarm";
     appt.url = "alarm:///hello-world";
     appt.uid = "D4B57D50247291478ED31DED17FF0A9838DED402";
-    appt.has_alarms = true;
+    appt.type = Appointment::EVENT;
     auto begin = g_date_time_new_local(2014,12,25,0,0,0);
     auto end = g_date_time_add_full(begin,0,0,1,0,0,-1);
     appt.begin = begin;

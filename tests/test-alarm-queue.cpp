@@ -80,7 +80,7 @@ protected:
         a1.summary = "Alarm";
         a1.summary = "http://www.example.com/";
         a1.uid = "example";
-        a1.has_alarms = true;
+        a1.type = Appointment::UBUNTU_ALARM;
         a1.begin = tomorrow_begin;
         a1.end = tomorrow_end;
 
@@ -92,7 +92,7 @@ protected:
         a2.summary = "Other Text";
         a2.summary = "http://www.monkey.com/";
         a2.uid = "monkey";
-        a2.has_alarms = false;
+        a1.type = Appointment::EVENT;
         a2.begin = ubermorgen_begin;
         a2.end = ubermorgen_end;
 

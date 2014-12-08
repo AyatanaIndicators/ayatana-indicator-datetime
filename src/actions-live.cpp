@@ -138,7 +138,7 @@ void LiveActions::phone_open_appointment(const Appointment& appt)
 {
     if (!appt.url.empty())
         dispatch_url(appt.url);
-    else if (appt.has_alarms)
+    else if (appt.is_ubuntu_alarm())
         phone_open_alarm_app();
     else
         phone_open_calendar_app(DateTime::NowLocal());

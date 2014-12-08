@@ -63,12 +63,6 @@ public:
                     appointment_func snooze,
                     appointment_func ok)
     {
-        if (!appointment.has_alarms)
-        {
-            ok(appointment);
-            return;
-        }
-
         // force the system to stay awake
         auto awake = std::make_shared<uin::Awake>(m_engine->app_name());
 

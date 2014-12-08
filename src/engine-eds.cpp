@@ -33,6 +33,9 @@ namespace unity {
 namespace indicator {
 namespace datetime {
 
+static constexpr char const * TAG_ALARM {"x-canonical-alarm"};
+static constexpr char const * TAG_DISABLED {"x-canonical-disabled"};
+
 /****
 *****
 ****/
@@ -375,8 +378,6 @@ private:
         static_cast<Impl*>(gself)->set_dirty_soon();
     }
 
-private:
-
     typedef std::function<void(const std::vector<Appointment>&)> appointment_func;
 
     struct Task
@@ -425,7 +426,22 @@ private:
                      uid,
                      (int)status);
 
+            // look for the in-house tags
+            bool disabled = false;
+            Appointment::Type type = Appointment::EVENT;
+            GSList * categ_list = nullptr;
+            e_cal_component_get_categories_list (component, &categ_list);
+            for (GSList * l=categ_list; l!=nullptr; l=l->next) {
+                auto tag = static_cast<const char*>(l->data);
+                if (!g_strcmp0(tag, TAG_ALARM))
+                    type = Appointment::UBUNTU_ALARM;
+                if (!g_strcmp0(tag, TAG_DISABLED))
+                    disabled = true;
+            }
+            e_cal_component_free_categories_list(categ_list);
+
             if ((uid != nullptr) &&
+                (!disabled) &&
                 (status != ICAL_STATUS_COMPLETED) &&
                 (status != ICAL_STATUS_CANCELLED))
             {
@@ -441,12 +457,12 @@ private:
                 appointment.end = end_dt;
                 appointment.color = subtask->color;
                 appointment.uid = uid;
+                appointment.type = type;
 
                 // Look through all of this component's alarms
                 // for DISPLAY or AUDIO url attachments.
                 // If we find any, use them for appointment.url and audio_sound
                 auto alarm_uids = e_cal_component_get_alarm_uids(component);
-                appointment.has_alarms = alarm_uids != nullptr;
                 for(auto walk=alarm_uids; appointment.url.empty() && walk!=nullptr; walk=walk->next)
                 {
                     auto alarm = e_cal_component_get_alarm(component, static_cast<const char*>(walk->data));
