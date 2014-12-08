@@ -48,6 +48,16 @@ Test-case indicator-datetime/disabled-alarms
 		<dd>When the alarm is enabled, the alarm icon should reappear.</dd>
 </dl>
 
+Test-case indicator-datetime/calendar-event-notification
+<dl>
+	<dt>In the calendar app, create and save a new upcoming calendar event that will occur in the next few minutes.</dt>
+		<dd>The datetime indicator's event list should update itself to show this new event.</dd>
+		<dd>Calendar events do not get the alarm icon, so no alarm icon should be shown in the header unless there is also an upcoming alarm set.</dd>
+	<dt>Wait for the event's time to be reached</dt>
+		<dd>The datetime indicator should pop up a non-interactive notification that plays a nonlooping sound.</dd>
+		<dd>The notification should disappear after a moment without requiring user intervention.</dd>
+</dl>
+
 Test-case indicator-datetime/alarm-timezone
 <dl>
 	<dt>In ubuntu-system-settings, change your timezone to a zone you're not in</dt>
