@@ -44,12 +44,15 @@ public:
     void get_appointments(const DateTime& /*begin*/,
                           const DateTime& /*end*/,
                           const Timezone& /*default_timezone*/,
-                          std::function<void(const std::vector<Appointment>&)> appointment_func) {
+                          std::function<void(const std::vector<Appointment>&)> appointment_func) override {
         appointment_func(m_appointments);
     }
 
-    core::Signal<>& changed() {
+    core::Signal<>& changed() override {
         return m_changed;
+    }
+
+    void disable_ubuntu_alarm(const Appointment&) override {
     }
 
 private:
