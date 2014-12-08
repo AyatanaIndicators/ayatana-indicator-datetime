@@ -51,9 +51,10 @@ public:
     void get_appointments(const DateTime& begin,
                           const DateTime& end,
                           const Timezone& default_timezone,
-                          std::function<void(const std::vector<Appointment>&)> appointment_func);
+                          std::function<void(const std::vector<Appointment>&)> appointment_func) override;
+    void disable_ubuntu_alarm(const Appointment&) override;
 
-    core::Signal<>& changed();
+    core::Signal<>& changed() override;
 
 private:
     class Impl;
