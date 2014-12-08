@@ -29,12 +29,12 @@ namespace datetime {
 
 bool Appointment::operator==(const Appointment& that) const
 {
-    return (color==that.color)
+    return (type==that.type)
+        && (uid==that.uid)
+        && (color==that.color)
         && (summary==that.summary)
         && (url==that.url)
         && (audio_url==that.audio_url)
-        && (uid==that.uid)
-        && (has_alarms==that.has_alarms)
         && (begin==that.begin)
         && (end==that.end);
 }

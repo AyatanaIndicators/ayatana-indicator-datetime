@@ -35,12 +35,15 @@ namespace datetime {
 struct Appointment
 {
 public:
+    enum Type { EVENT, UBUNTU_ALARM };
+    Type type = EVENT;
+    bool is_ubuntu_alarm() const { return type == UBUNTU_ALARM; }
+
     std::string color; 
     std::string summary;
     std::string url;
     std::string uid;
     std::string audio_url;
-    bool has_alarms = false;
     DateTime begin;
     DateTime end;
 

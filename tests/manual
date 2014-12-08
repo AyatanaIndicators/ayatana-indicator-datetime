@@ -38,6 +38,16 @@ Test-case indicator-datetime/new-alarm-wakeup
 		<dd>If the device supports haptic feedback, confirm the alarm vibrates.</dd>
 </dl>
 
+Test-case indicator-datetime/disabled-alarms
+<dl>
+	<dt>Create and save an upcoming alarm in ubuntu-clock-app</dt>
+		<dd>Confirm that the alarm icon appears next to the current time in unity's indicator display</dd>
+	<dt>Disable the alarm in ubuntu-clock-app</dt>
+		<dd>When all alarms are disabled or removed, the alarm icon should disappear.</dd>
+	<dt>Re-enable the alarm in ubuntu-clock-app</dt>
+		<dd>When the alarm is enabled, the alarm icon should reappear.</dd>
+</dl>
+
 Test-case indicator-datetime/alarm-timezone
 <dl>
 	<dt>In ubuntu-system-settings, change your timezone to a zone you're not in</dt>
