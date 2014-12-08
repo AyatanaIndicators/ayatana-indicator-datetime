@@ -1,3 +1,19 @@
+indicator-datetime (13.10.0+15.04.20141208-0ubuntu1) vivid; urgency=low
+
+  [ Charles Kerr ]
+  * Don't log an error if powerd isn't available on the system. (LP:
+    #1384714)
+  * Add support for x-canonical-alarm and x-canonical-disabled tags in
+    VTODO categories so that disabled alarms will not be displayed. (LP:
+    #1387231)
+  * Change notifications for calendar events s.t. the sound is
+    nonrepeating and the notification is temporary, not requiring user
+    interaction to disappear. (LP: #1320880)
+  * After a one-time Ubuntu alarm's notification is displayed, disable
+    the alarm. (LP: #1362341)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 08 Dec 2014 23:09:20 +0000
+
 indicator-datetime (13.10.0+15.04.20141103-0ubuntu1) vivid; urgency=low
 
   [ Ted Gould ]
