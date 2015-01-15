@@ -56,6 +56,12 @@ Test-case indicator-datetime/disable-one-time-alarms-after-notification
 		<dd>Confirm that the alarm notification is shown</dd>
 		<dd>Confirm that the alarm's sound is played while the alarm notification is present</dd>
 		<dd>Confirm that the one-time alarm is disabled after the notification is shown. NOTE: due to a refresh bug in clock-app you may need to refresh its alarms page (by swapping back to the main page, then the alarm page again, this is tracked in #1362341) in order to see the alarm change from enabled to disabled.</dd>
+	<dt>Create and save an upcoming repeating alarm in ubuntu-clock-app</dt>
+		<dd>Confirm that the alarm icon appears next to the current time in unity's indicator display</dd>
+	<dt>Wait until the alarm time is reached</dt>
+		<dd>Confirm that the alarm notification is shown</dd>
+		<dd>Confirm that the alarm's sound is played while the alarm notification is present</dd>
+		<dd>Confirm that the repeating alarm is not disabled after the notification is shown. NOTE: due to a refresh bug in clock-app you may need to refresh its alarms page (by swapping back to the main page, then the alarm page again, this is tracked in #1362341) in order to see the alarm change from enabled to disabled.</dd>
 </dl>
 
 Test-case indicator-datetime/calendar-event-notification

@@ -534,8 +534,11 @@ private:
         icalcomponent * icc = nullptr;
         if (e_cal_client_get_object_finish (E_CAL_CLIENT(client), result, &icc, nullptr))
         {
-            struct icaltimetype itt = icalcomponent_get_recurrenceid(icc);
-            if (icaltime_is_null_time(itt))
+            auto rrule_property = icalcomponent_get_first_property (icc, ICAL_RRULE_PROPERTY); // transfer none
+            auto rdate_property = icalcomponent_get_first_property (icc, ICAL_RDATE_PROPERTY); // transfer none
+            const bool is_nonrepeating = (rrule_property == nullptr) && (rdate_property == nullptr);
+
+            if (is_nonrepeating)
             {
                 g_debug("'%s' appears to be a one-time alarm... adding 'disabled' tag.",
                         icalcomponent_as_ical_string(icc));
