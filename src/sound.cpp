@@ -110,7 +110,7 @@ private:
                              GST_SEEK_TYPE_NONE,
                              (gint64)GST_CLOCK_TIME_NONE);
         }
-        else if ((GST_MESSAGE_TYPE(msg) == GST_MESSAGE_STREAM_START) && (self->m_loop))
+        else if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_STREAM_START)
         {
             /* Set the media role if audio sink is pulsesink */
             GstElement *audio_sink = nullptr;
