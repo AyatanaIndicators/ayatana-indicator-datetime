@@ -98,8 +98,9 @@ private:
     static gboolean bus_callback(GstBus*, GstMessage* msg, gpointer gself)
     {
         auto self = static_cast<Impl*>(gself);
+        const auto message_type = GST_MESSAGE_TYPE(msg);
 
-        if ((GST_MESSAGE_TYPE(msg) == GST_MESSAGE_EOS) && (self->m_loop))
+        if ((message_type == GST_MESSAGE_EOS) && (self->m_loop))
         {
             gst_element_seek(self->m_play,
                              1.0,
@@ -110,7 +111,7 @@ private:
                              GST_SEEK_TYPE_NONE,
                              (gint64)GST_CLOCK_TIME_NONE);
         }
-        else if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_STREAM_START)
+        else if (message_type == GST_MESSAGE_STREAM_START)
         {
             /* Set the media role if audio sink is pulsesink */
             GstElement *audio_sink = nullptr;
