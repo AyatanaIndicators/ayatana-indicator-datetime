@@ -118,6 +118,19 @@ Test-case indicator-datetime/change-alarm-sound
 		<dd>The newly-selected sound should play, rather than the previous sound.</dd>
 </dl>
 
+Test-case indicator-datetime/silent-mode
+<dl>
+	<dt>Set an alarm and wait for it to arrive.</dt>
+	<dt>From the sound indicator, turn on silent mode.</dt>
+		<dd>Alarm should go off at the specified time and play its sound regardless of silent mode.</dd>
+	<dt>From the sound indicator, turn on silent mode.</dt>
+	<dt>Create a calendar event from the calendar app and wait for it to arrive.</dt>
+		<dd>The calendar event notification should be silent.</dd>
+	<dt>From the sound indicator, turn off silent mode.</dt>
+	<dt>Create a calendar event from the calendar app and wait for it to arrive.</dt>
+		<dd>The calendar event notification should play a sound.</dd>
+</dl>
+
 <strong>
     If all actions produce the expected results listed, please <a href="results#add_result">submit</a> a 'passed' result.
     If an action fails, or produces an unexpected result, please <a href="results#add_result">submit</a> a 'failed' result and <a href="../../buginstructions">file a bug</a>. Please be sure to include the bug number when you <a href="results#add_result">submit</a> your result</strong>.
