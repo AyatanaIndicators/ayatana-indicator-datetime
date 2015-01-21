@@ -57,7 +57,7 @@ public:
       m_settings(settings),
       m_cancellable(g_cancellable_new())
     {
-        auto object_path = g_strdup_printf("/org/freedesktop/Accounts/User/%lu", (gulong)getuid());
+        auto object_path = g_strdup_printf("/org/freedesktop/Accounts/User%lu", (gulong)getuid());
         accounts_service_sound_proxy_new_for_bus(G_BUS_TYPE_SYSTEM,
                                                  G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES,
                                                  "org.freedesktop.Accounts",
@@ -91,11 +91,10 @@ public:
         // force the system to stay awake
         auto awake = std::make_shared<uin::Awake>(m_engine->app_name());
 
-        // create the sound.
         // calendar events are muted in silent mode; alarm clocks never are
         std::shared_ptr<uin::Sound> sound;
-        g_message("silent_mode is %d", (int)silent_mode());
         if (appointment.is_ubuntu_alarm() || !silent_mode()) {
+            // create the sound.
             const auto uri = get_alarm_uri(appointment, m_settings);
             const auto volume = m_settings->alarm_volume.get();
             const bool loop = interactive;
@@ -164,20 +163,20 @@ private:
         if (error != nullptr)
         {
             if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-                g_warning("%s Couldn't accounts service sound proxy: %s", G_STRLOC, error->message);
+                g_warning("%s Couldn't find accounts service sound proxy: %s", G_STRLOC, error->message);
+
+            g_clear_error(&error);
         }
         else
         {
             static_cast<Impl*>(gself)->m_accounts_service_sound_proxy = accounts_service_sound_proxy;
-            g_message("got accounts sound service proxy");
         }
     }
 
     bool silent_mode() const
     {
-        g_message("%s %s %p %d", G_STRLOC, G_STRFUNC, m_accounts_service_sound_proxy, (int)accounts_service_sound_get_silent_mode(m_accounts_service_sound_proxy));
         return (m_accounts_service_sound_proxy != nullptr)
-            && (!accounts_service_sound_get_silent_mode(m_accounts_service_sound_proxy));
+            && (accounts_service_sound_get_silent_mode(m_accounts_service_sound_proxy));
     }
 
     std::string get_alarm_uri(const Appointment& appointment,
