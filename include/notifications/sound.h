@@ -41,7 +41,7 @@ namespace notifications {
 class Sound
 {
 public:
-    Sound(const std::string& uri, unsigned int volume, bool loop);
+    Sound(const std::string& role, const std::string& uri, unsigned int volume, bool loop);
     ~Sound();
 
 private:
