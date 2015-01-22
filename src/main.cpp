@@ -46,6 +46,7 @@ namespace uin = unity::indicator::notifications;
 
 using namespace unity::indicator::datetime;
 
+
 namespace
 {
     std::shared_ptr<Engine> create_engine()
