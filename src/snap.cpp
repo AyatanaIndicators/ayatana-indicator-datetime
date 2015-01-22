@@ -159,7 +159,7 @@ private:
         GError * error;
 
         error = nullptr;
-        auto accounts_service_sound_proxy = accounts_service_sound_proxy_new_for_bus_finish (res, &error);
+        auto proxy = accounts_service_sound_proxy_new_for_bus_finish (res, &error);
         if (error != nullptr)
         {
             if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
@@ -169,7 +169,7 @@ private:
         }
         else
         {
-            static_cast<Impl*>(gself)->m_accounts_service_sound_proxy = accounts_service_sound_proxy;
+            static_cast<Impl*>(gself)->m_accounts_service_sound_proxy = proxy;
         }
     }
 
