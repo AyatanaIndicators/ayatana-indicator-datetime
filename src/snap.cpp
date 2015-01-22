@@ -95,10 +95,11 @@ public:
         std::shared_ptr<uin::Sound> sound;
         if (appointment.is_ubuntu_alarm() || !silent_mode()) {
             // create the sound.
+            const auto role = appointment.is_ubuntu_alarm() ? "alarm" : "alert";
             const auto uri = get_alarm_uri(appointment, m_settings);
             const auto volume = m_settings->alarm_volume.get();
             const bool loop = interactive;
-            sound = std::make_shared<uin::Sound>(uri, volume, loop);
+            sound = std::make_shared<uin::Sound>(role, uri, volume, loop);
         }
 
         // create the haptic feedback...
