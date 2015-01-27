@@ -1,3 +1,14 @@
+indicator-datetime (13.10.0+15.04.20150127-0ubuntu1) vivid; urgency=low
+
+  [ Charles Kerr ]
+  * Fix bug that misidentified repeating alarms as one-time alarms,
+    causing them to be disabled after triggering. (LP: #1411171)
+
+  [ Ubuntu daily release ]
+  * New rebuild forced
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 27 Jan 2015 00:24:00 +0000
+
 indicator-datetime (13.10.0+15.04.20141208-0ubuntu1) vivid; urgency=low
 
   [ Charles Kerr ]
