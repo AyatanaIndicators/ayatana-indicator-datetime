@@ -38,9 +38,11 @@ class Sound::Impl
 {
 public:
 
-    Impl(const std::string& uri,
+    Impl(const std::string& role,
+         const std::string& uri,
          unsigned int volume,
          bool loop):
+        m_role(role),
         m_uri(uri),
         m_volume(volume),
         m_loop(loop)
@@ -98,8 +100,9 @@ private:
     static gboolean bus_callback(GstBus*, GstMessage* msg, gpointer gself)
     {
         auto self = static_cast<Impl*>(gself);
+        const auto message_type = GST_MESSAGE_TYPE(msg);
 
-        if ((GST_MESSAGE_TYPE(msg) == GST_MESSAGE_EOS) && (self->m_loop))
+        if ((message_type == GST_MESSAGE_EOS) && (self->m_loop))
         {
             gst_element_seek(self->m_play,
                              1.0,
@@ -110,7 +113,7 @@ private:
                              GST_SEEK_TYPE_NONE,
                              (gint64)GST_CLOCK_TIME_NONE);
         }
-        else if ((GST_MESSAGE_TYPE(msg) == GST_MESSAGE_STREAM_START) && (self->m_loop))
+        else if (message_type == GST_MESSAGE_STREAM_START)
         {
             /* Set the media role if audio sink is pulsesink */
             GstElement *audio_sink = nullptr;
@@ -121,10 +124,11 @@ private:
                 feature = GST_PLUGIN_FEATURE_CAST(GST_ELEMENT_GET_CLASS(audio_sink)->elementfactory);
                 if (feature && g_strcmp0(gst_plugin_feature_get_name(feature), "pulsesink") == 0)
                 {
-                    std::string role_str("props,media.role=alarm");
-                    GstStructure *props = gst_structure_from_string(role_str.c_str(), nullptr);
+                    auto role_str = g_strdup_printf("props,media.role=%s", self->m_role.c_str());
+                    GstStructure *props = gst_structure_from_string(role_str, nullptr);
                     g_object_set(audio_sink, "stream-properties", props, nullptr);
                     gst_structure_free(props);
+                    g_free(role_str);
                 }
                 gst_object_unref(audio_sink);
             }
@@ -137,6 +141,7 @@ private:
     ****
     ***/
 
+    const std::string m_role;
     const std::string m_uri;
     const unsigned int m_volume;
     const bool m_loop;
@@ -144,8 +149,8 @@ private:
     GstElement* m_play = nullptr;
 };
 
-Sound::Sound(const std::string& uri, unsigned int volume, bool loop):
-  impl (new Impl(uri, volume, loop))
+Sound::Sound(const std::string& role, const std::string& uri, unsigned int volume, bool loop):
+  impl (new Impl(role, uri, volume, loop))
 {
 }
 

@@ -17,6 +17,8 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
+#include "dbus-accounts-sound.h"
+
 #include <datetime/snap.h>
 #include <datetime/utils.h> // is_locale_12h()
 
@@ -31,6 +33,9 @@
 #include <chrono>
 #include <set>
 #include <string>
+
+#include <unistd.h> // getuid()
+#include <sys/types.h> // getuid()
 
 namespace uin = unity::indicator::notifications;
 
@@ -49,12 +54,26 @@ public:
     Impl(const std::shared_ptr<unity::indicator::notifications::Engine>& engine,
          const std::shared_ptr<const Settings>& settings):
       m_engine(engine),
-      m_settings(settings)
+      m_settings(settings),
+      m_cancellable(g_cancellable_new())
     {
+        auto object_path = g_strdup_printf("/org/freedesktop/Accounts/User%lu", (gulong)getuid());
+        accounts_service_sound_proxy_new_for_bus(G_BUS_TYPE_SYSTEM,
+                                                 G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES,
+                                                 "org.freedesktop.Accounts",
+                                                 object_path,
+                                                 m_cancellable,
+                                                 on_sound_proxy_ready,
+                                                 this);
+        g_free(object_path);
     }
 
     ~Impl()
     {
+        g_cancellable_cancel(m_cancellable);
+        g_clear_object(&m_cancellable);
+        g_clear_object(&m_accounts_service_sound_proxy);
+
         for (const auto& key : m_notifications)
             m_engine->close (key);
     }
@@ -72,11 +91,16 @@ public:
         // force the system to stay awake
         auto awake = std::make_shared<uin::Awake>(m_engine->app_name());
 
-        // create the sound...
-        const auto uri = get_alarm_uri(appointment, m_settings);
-        const auto volume = m_settings->alarm_volume.get();
-        const bool loop = interactive;
-        auto sound = std::make_shared<uin::Sound>(uri, volume, loop);
+        // calendar events are muted in silent mode; alarm clocks never are
+        std::shared_ptr<uin::Sound> sound;
+        if (appointment.is_ubuntu_alarm() || !silent_mode()) {
+            // create the sound.
+            const auto role = appointment.is_ubuntu_alarm() ? "alarm" : "alert";
+            const auto uri = get_alarm_uri(appointment, m_settings);
+            const auto volume = m_settings->alarm_volume.get();
+            const bool loop = interactive;
+            sound = std::make_shared<uin::Sound>(role, uri, volume, loop);
+        }
 
         // create the haptic feedback...
         const auto haptic_mode = m_settings->alarm_haptic.get();
@@ -131,6 +155,31 @@ public:
 
 private:
 
+    static void on_sound_proxy_ready(GObject* /*source_object*/, GAsyncResult* res, gpointer gself)
+    {
+        GError * error;
+
+        error = nullptr;
+        auto proxy = accounts_service_sound_proxy_new_for_bus_finish (res, &error);
+        if (error != nullptr)
+        {
+            if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+                g_warning("%s Couldn't find accounts service sound proxy: %s", G_STRLOC, error->message);
+
+            g_clear_error(&error);
+        }
+        else
+        {
+            static_cast<Impl*>(gself)->m_accounts_service_sound_proxy = proxy;
+        }
+    }
+
+    bool silent_mode() const
+    {
+        return (m_accounts_service_sound_proxy != nullptr)
+            && (accounts_service_sound_get_silent_mode(m_accounts_service_sound_proxy));
+    }
+
     std::string get_alarm_uri(const Appointment& appointment,
                               const std::shared_ptr<const Settings>& settings) const
     {
@@ -167,6 +216,8 @@ private:
     const std::shared_ptr<unity::indicator::notifications::Engine> m_engine;
     const std::shared_ptr<const Settings> m_settings;
     std::set<int> m_notifications;
+    GCancellable * m_cancellable {nullptr};
+    AccountsServiceSound * m_accounts_service_sound_proxy {nullptr};
 };
 
 /***
