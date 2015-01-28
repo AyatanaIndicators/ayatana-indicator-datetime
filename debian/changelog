@@ -1,3 +1,11 @@
+indicator-datetime (13.10.0+15.04.20150128.1-0ubuntu1) vivid; urgency=low
+
+  [ Charles Kerr ]
+  * Don't play calendar alarm sounds if Silent Mode is enabled. Use the
+    alarm sound role for both clock and calendar alarms. (LP: #1410874)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 28 Jan 2015 19:16:10 +0000
+
 indicator-datetime (13.10.0+15.04.20150127-0ubuntu1) vivid; urgency=low
 
   [ Charles Kerr ]
