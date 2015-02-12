@@ -59,26 +59,7 @@ public:
         }
         else
         {
-            struct itimerspec timerval;
-            // set args to fire at the beginning of the next minute...
-            int flags = TFD_TIMER_ABSTIME;
-            auto now = g_date_time_new_now(m_gtimezone);
-            auto next = g_date_time_add_minutes(now, 1);
-            auto start_of_next = g_date_time_add_seconds(next, -g_date_time_get_seconds(next));
-            timerval.it_value.tv_sec = g_date_time_to_unix(start_of_next);
-            timerval.it_value.tv_nsec = 0;
-            g_date_time_unref(start_of_next);
-            g_date_time_unref(next);
-            g_date_time_unref(now);
-            // ...and also to fire at the beginning of every subsequent minute...
-            timerval.it_interval.tv_sec = 60;
-            timerval.it_interval.tv_nsec = 0;
-            // ...and also to fire if someone changes the time
-            // manually (eg toggling from manual<->ntp)
-            flags |= TFD_TIMER_CANCEL_ON_SET;
-
-            if (timerfd_settime(m_timerfd, flags, &timerval, NULL) == -1)
-                g_error("timerfd_settime failed: %s", g_strerror(errno));
+            reset_timer();
 
             m_timerfd_tag = g_unix_fd_add(m_timerfd,
                                           (GIOCondition)(G_IO_IN|G_IO_HUP|G_IO_ERR),
@@ -112,6 +93,30 @@ public:
 
 private:
 
+    void reset_timer()
+    {
+        struct itimerspec timerval;
+        // set args to fire at the beginning of the next minute...
+        int flags = TFD_TIMER_ABSTIME;
+        auto now = g_date_time_new_now(m_gtimezone);
+        auto next = g_date_time_add_minutes(now, 1);
+        auto start_of_next = g_date_time_add_seconds(next, -g_date_time_get_seconds(next));
+        timerval.it_value.tv_sec = g_date_time_to_unix(start_of_next);
+        timerval.it_value.tv_nsec = 0;
+        g_date_time_unref(start_of_next);
+        g_date_time_unref(next);
+        g_date_time_unref(now);
+        // ...and also to fire at the beginning of every subsequent minute...
+        timerval.it_interval.tv_sec = 60;
+        timerval.it_interval.tv_nsec = 0;
+        // ...and also to fire if someone changes the time
+        // manually (eg toggling from manual<->ntp)
+        flags |= TFD_TIMER_CANCEL_ON_SET;
+
+        if (timerfd_settime(m_timerfd, flags, &timerval, NULL) == -1)
+            g_error("timerfd_settime failed: %s", g_strerror(errno));
+    }
+
     static gboolean on_timerfd_cond (gint fd, GIOCondition cond G_GNUC_UNUSED, gpointer gself)
     {
         // let's see what triggered this event
@@ -127,6 +132,10 @@ private:
                 s, n_interrupts);
         g_free(now_str);
         g_date_time_unref(now);
+
+        // if we weren't triggered because of a timeout, then it may have
+        // happened due to time being set, so reset the timer
+        self->reset_timer();
   
         self->refresh();
         return G_SOURCE_CONTINUE;
