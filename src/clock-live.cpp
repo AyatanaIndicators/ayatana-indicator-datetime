@@ -117,25 +117,28 @@ private:
             g_error("timerfd_settime failed: %s", g_strerror(errno));
     }
 
-    static gboolean on_timerfd_cond (gint fd, GIOCondition cond G_GNUC_UNUSED, gpointer gself)
+    static gboolean on_timerfd_cond (gint fd, GIOCondition cond, gpointer gself)
     {
-        // let's see what triggered this event
         auto self = static_cast<Impl*>(gself);
+
+        int n_bytes = 0;
         uint64_t n_interrupts = 0;
-        auto s = read(fd, &n_interrupts, sizeof(uint64_t));
+        if (cond & G_IO_IN)
+            n_bytes = read(fd, &n_interrupts, sizeof(uint64_t));
 
-        // make a debug log of what just happened
-        auto now = g_date_time_new_now(self->m_gtimezone);
-        auto now_str = g_date_time_format(now, "%F %T");
-        g_debug("%s at %s (%f), read %zd bytes to get n_interrupts %zu",
-                G_STRFUNC, now_str, g_date_time_get_seconds(now),
-                s, n_interrupts);
-        g_free(now_str);
-        g_date_time_unref(now);
+        if ((n_interrupts==0) || (n_bytes!=sizeof(uint64_t)))
+        {
+            auto now = g_date_time_new_now(self->m_gtimezone);
+            auto now_str = g_date_time_format(now, "%F %T");
+            g_message("%s triggered at %s.%06d by GIOCondition %d, read %zd bytes, found %zu interrupts",
+                      G_STRFUNC, now_str, g_date_time_get_microsecond(now),
+                      (int)cond, n_bytes, n_interrupts);
+            g_free(now_str);
+            g_date_time_unref(now);
 
-        // if we weren't triggered because of a timeout, then it may have
-        // happened due to time being set, so reset the timer
-        self->reset_timer();
+            // reset the timer in case someone changed the system clock
+            self->reset_timer();
+        }
   
         self->refresh();
         return G_SOURCE_CONTINUE;
