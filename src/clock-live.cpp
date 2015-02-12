@@ -20,6 +20,15 @@
 #include <datetime/clock.h>
 #include <datetime/timezone.h>
 
+#include <glib-unix.h> // g_unix_fd_add()
+
+#include <sys/timerfd.h>
+#include <unistd.h> // close()
+
+#ifndef TFD_TIMER_CANCEL_ON_SET
+ #define TFD_TIMER_CANCEL_ON_SET (1 << 1)
+#endif
+
 namespace unity {
 namespace indicator {
 namespace datetime {
@@ -27,33 +36,6 @@ namespace datetime {
 /***
 ****
 ***/
-
-namespace
-{
-
-void clearTimer(guint& tag)
-{
-    if (tag)
-    {
-        g_source_remove(tag);
-        tag = 0;
-    }
-}
-
-guint calculate_milliseconds_until_next_minute(const DateTime& now)
-{
-    auto next = g_date_time_add_minutes(now.get(), 1);
-    auto start_of_next = g_date_time_add_seconds (next, -g_date_time_get_seconds(next));
-    const auto interval_usec = g_date_time_difference(start_of_next, now.get());
-    const guint interval_msec = (interval_usec + 999) / 1000;
-    g_date_time_unref(start_of_next);
-    g_date_time_unref(next);
-    g_assert (interval_msec <= 60000);
-    return interval_msec;
-}
-
-} // unnamed namespace
-
 
 class LiveClock::Impl
 {
@@ -70,12 +52,50 @@ public:
             setter(m_timezone->timezone.get());
         }
 
-        restart_minute_timer();
+        m_timerfd = timerfd_create(CLOCK_REALTIME, 0);
+        if (m_timerfd == -1)
+        {
+            g_warning("unable to create realtime timer: %s", g_strerror(errno));
+        }
+        else
+        {
+            struct itimerspec timerval;
+            // set args to fire at the beginning of the next minute...
+            int flags = TFD_TIMER_ABSTIME;
+            auto now = g_date_time_new_now(m_gtimezone);
+            auto next = g_date_time_add_minutes(now, 1);
+            auto start_of_next = g_date_time_add_seconds(next, -g_date_time_get_seconds(next));
+            timerval.it_value.tv_sec = g_date_time_to_unix(start_of_next);
+            timerval.it_value.tv_nsec = 0;
+            g_date_time_unref(start_of_next);
+            g_date_time_unref(next);
+            g_date_time_unref(now);
+            // ...and also to fire at the beginning of every subsequent minute...
+            timerval.it_interval.tv_sec = 60;
+            timerval.it_interval.tv_nsec = 0;
+            // ...and also to fire if someone changes the time
+            // manually (eg toggling from manual<->ntp)
+            flags |= TFD_TIMER_CANCEL_ON_SET;
+
+            if (timerfd_settime(m_timerfd, flags, &timerval, NULL) == -1)
+                g_error("timerfd_settime failed: %s", g_strerror(errno));
+
+            m_timerfd_tag = g_unix_fd_add(m_timerfd,
+                                          (GIOCondition)(G_IO_IN|G_IO_HUP|G_IO_ERR),
+                                          on_timerfd_cond,
+                                          this);
+        }
+
+        refresh();
     }
 
     ~Impl()
     {
-        clearTimer(m_timer);
+        if (m_timerfd_tag != 0)
+            g_source_remove(m_timerfd_tag);
+
+        if (m_timerfd != -1)
+            close(m_timerfd);
 
         g_clear_pointer(&m_gtimezone, g_time_zone_unref);
     }
@@ -92,6 +112,30 @@ public:
 
 private:
 
+    static gboolean on_timerfd_cond (gint fd, GIOCondition cond G_GNUC_UNUSED, gpointer gself)
+    {
+        // let's see what triggered this event
+        auto self = static_cast<Impl*>(gself);
+        uint64_t n_interrupts = 0;
+        auto s = read(fd, &n_interrupts, sizeof(uint64_t));
+
+        // make a debug log of what just happened
+        auto now = g_date_time_new_now(self->m_gtimezone);
+        auto now_str = g_date_time_format(now, "%F %T");
+        g_debug("%s at %s (%f), read %zd bytes to get n_interrupts %zu",
+                G_STRFUNC, now_str, g_date_time_get_seconds(now),
+                s, n_interrupts);
+        g_free(now_str);
+        g_date_time_unref(now);
+  
+        self->refresh();
+        return G_SOURCE_CONTINUE;
+    }
+
+    /***
+    ****
+    ***/
+
     void setTimezone(const std::string& str)
     {
         g_clear_pointer(&m_gtimezone, g_time_zone_unref);
@@ -103,33 +147,17 @@ private:
     ****
     ***/
 
-    void restart_minute_timer()
+    void refresh()
     {
-        clearTimer(m_timer);
+        const auto now = localtime();
 
         // maybe emit change signals
-        const auto now = localtime();
         if (!DateTime::is_same_minute(m_prev_datetime, now))
             m_owner.minute_changed();
         if (!DateTime::is_same_day(m_prev_datetime, now))
             m_owner.date_changed();
 
-        // queue up a timer to fire at the next minute
         m_prev_datetime = now;
-        auto interval_msec = calculate_milliseconds_until_next_minute(now);
-        interval_msec += 50; // add a small margin to ensure the callback
-                             // fires /after/ next is reached
-        m_timer = g_timeout_add_full(G_PRIORITY_HIGH,
-                                     interval_msec,
-                                     on_minute_timer_reached,
-                                     this,
-                                     nullptr);
-    }
-
-    static gboolean on_minute_timer_reached(gpointer gself)
-    {
-        static_cast<LiveClock::Impl*>(gself)->restart_minute_timer();
-        return G_SOURCE_REMOVE;
     }
 
 protected:
@@ -139,7 +167,8 @@ protected:
     std::shared_ptr<const Timezone> m_timezone;
 
     DateTime m_prev_datetime;
-    unsigned int m_timer = 0;
+    int m_timerfd = -1;
+    guint m_timerfd_tag = 0;
 };
 
 LiveClock::LiveClock(const std::shared_ptr<const Timezone>& timezone_):
