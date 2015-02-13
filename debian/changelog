@@ -1,3 +1,14 @@
+indicator-datetime (13.10.0+15.04.20150213.1-0ubuntu1) vivid; urgency=medium
+
+  [ Charles Kerr ]
+  * change the WallClock to detect time changes from
+    TFD_TIMER_CANCEL_ON_SET, e.g. when ntp<-->manual is toggled
+
+  [ CI Train Bot ]
+  * New rebuild forced.
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Fri, 13 Feb 2015 18:31:48 +0000
+
 indicator-datetime (13.10.0+15.04.20150128.1-0ubuntu1) vivid; urgency=low
 
   [ Charles Kerr ]
