@@ -137,6 +137,12 @@ Test-case indicator-datetime/silent-mode
 		<dd>The calendar event notification should play a sound.</dd>
 </dl>
 
+Test-case indicator-datetime/manual-time
+<dl>
+	<dt>In System Settings > Time & Date, manually change the time to an arbitrary time.</dt>
+		<dd>The indicator's timestamp should change right after the time manual time is set.</dd>
+</dl>
+
 <strong>
     If all actions produce the expected results listed, please <a href="results#add_result">submit</a> a 'passed' result.
     If an action fails, or produces an unexpected result, please <a href="results#add_result">submit</a> a 'failed' result and <a href="../../buginstructions">file a bug</a>. Please be sure to include the bug number when you <a href="results#add_result">submit</a> your result</strong>.
