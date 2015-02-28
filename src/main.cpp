@@ -118,9 +118,9 @@ namespace
 int
 main(int /*argc*/, char** /*argv*/)
 {
-    // Work around a deadlock in glib's type initialization.
-    // It can be removed when https://bugzilla.gnome.org/show_bug.cgi?id=674885 is fixed.
-    g_type_ensure(G_TYPE_DBUS_CONNECTION);
+    // These can be removed when https://bugzilla.gnome.org/show_bug.cgi?id=674885 is fixed
+    g_type_ensure(G_TYPE_DBUS_CONNECTION); // http://pad.lv/1239710
+    g_type_ensure(G_TYPE_DBUS_PROXY);      // http://pad.lv/1425297
 
     // boilerplate i18n
     setlocale(LC_ALL, "");
