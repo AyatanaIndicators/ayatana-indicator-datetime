@@ -52,31 +52,13 @@ public:
             setter(m_timezone->timezone.get());
         }
 
-        m_timerfd = timerfd_create(CLOCK_REALTIME, 0);
-        if (m_timerfd == -1)
-        {
-            g_warning("unable to create realtime timer: %s", g_strerror(errno));
-        }
-        else
-        {
-            reset_timer();
-
-            m_timerfd_tag = g_unix_fd_add(m_timerfd,
-                                          (GIOCondition)(G_IO_IN|G_IO_HUP|G_IO_ERR),
-                                          on_timerfd_cond,
-                                          this);
-        }
-
+        reset_timer();
         refresh();
     }
 
     ~Impl()
     {
-        if (m_timerfd_tag != 0)
-            g_source_remove(m_timerfd_tag);
-
-        if (m_timerfd != -1)
-            close(m_timerfd);
+        unset_timer();
 
         g_clear_pointer(&m_gtimezone, g_time_zone_unref);
     }
@@ -93,10 +75,33 @@ public:
 
 private:
 
+    void unset_timer()
+    {
+        if (m_timerfd_tag != 0)
+        {
+            g_source_remove(m_timerfd_tag);
+            m_timerfd_tag = 0;
+        }
+
+        if (m_timerfd != -1)
+        {
+            close(m_timerfd);
+            m_timerfd = -1;
+        }
+    }
+
     void reset_timer()
     {
-        struct itimerspec timerval;
+        // clear out any previous timer
+        unset_timer();
+
+        // create a new timer
+        m_timerfd = timerfd_create(CLOCK_REALTIME, 0);
+        if (m_timerfd == -1)
+            g_error("unable to create realtime timer: %s", g_strerror(errno));
+
         // set args to fire at the beginning of the next minute...
+        struct itimerspec timerval;
         int flags = TFD_TIMER_ABSTIME;
         auto now = g_date_time_new_now(m_gtimezone);
         auto next = g_date_time_add_minutes(now, 1);
@@ -115,6 +120,12 @@ private:
 
         if (timerfd_settime(m_timerfd, flags, &timerval, NULL) == -1)
             g_error("timerfd_settime failed: %s", g_strerror(errno));
+
+        // listen for the changes/timers
+        m_timerfd_tag = g_unix_fd_add(m_timerfd,
+                                      (GIOCondition)(G_IO_IN|G_IO_HUP|G_IO_ERR),
+                                      on_timerfd_cond,
+                                      this);
     }
 
     static gboolean on_timerfd_cond (gint fd, GIOCondition cond, gpointer gself)
@@ -130,9 +141,9 @@ private:
         {
             auto now = g_date_time_new_now(self->m_gtimezone);
             auto now_str = g_date_time_format(now, "%F %T");
-            g_message("%s triggered at %s.%06d by GIOCondition %d, read %zd bytes, found %zu interrupts",
-                      G_STRFUNC, now_str, g_date_time_get_microsecond(now),
-                      (int)cond, n_bytes, n_interrupts);
+            g_debug("%s triggered at %s.%06d by GIOCondition %d, read %zd bytes, found %zu interrupts",
+                    G_STRFUNC, now_str, g_date_time_get_microsecond(now),
+                    (int)cond, n_bytes, n_interrupts);
             g_free(now_str);
             g_date_time_unref(now);
 
