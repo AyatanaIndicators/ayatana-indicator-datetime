@@ -1,3 +1,14 @@
+indicator-datetime (13.10.0+15.04.20150301.1-0ubuntu1) vivid; urgency=medium
+
+  [ CI Train Bot ]
+  * New rebuild forced.
+
+  [ Charles Kerr ]
+  * create a new timerfd each time we need to call timerfd_settime().
+    (LP: #1424966)
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Sun, 01 Mar 2015 06:08:10 +0000
+
 indicator-datetime (13.10.0+15.04.20150301-0ubuntu1) vivid; urgency=medium
 
   [ CI Train Bot ]
