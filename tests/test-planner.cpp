@@ -39,30 +39,30 @@ typedef GlibFixture PlannerFixture;
 
 TEST_F(PlannerFixture, HelloWorld)
 {
-    auto halloween = g_date_time_new_local(2020, 10, 31, 18, 30, 59);
-    auto christmas = g_date_time_new_local(2020, 12, 25,  0,  0,  0);
+    auto halloween = DateTime::Local(2020, 10, 31, 18, 30, 59);
+    auto christmas = DateTime::Local(2020, 12, 25,  0,  0,  0);
 
     Appointment a;
     a.summary = "Test";
     a.begin = halloween;
-    a.end = g_date_time_add_hours(halloween, 1);
+    a.end = a.begin.add_full(0,0,0,1,0,0);
     const Appointment b = a;
     a.summary = "Foo";
 
     EXPECT_EQ(a.summary, "Foo");
     EXPECT_EQ(b.summary, "Test");
-    EXPECT_EQ(0, g_date_time_compare(a.begin(), b.begin()));
-    EXPECT_EQ(0, g_date_time_compare(a.end(), b.end()));
+    EXPECT_EQ(a.begin, b.begin);
+    EXPECT_EQ(a.end, b.end);
 
     Appointment c;
     c.begin = christmas;
-    c.end = g_date_time_add_hours(christmas, 1);
+    c.end = c.begin.add_days(1);
     Appointment d;
     d = c;
-    EXPECT_EQ(0, g_date_time_compare(c.begin(), d.begin()));
-    EXPECT_EQ(0, g_date_time_compare(c.end(), d.end()));
+    EXPECT_EQ(c.begin, d.begin);
+    EXPECT_EQ(c.end, d.end);
     a = d;
-    EXPECT_EQ(0, g_date_time_compare(d.begin(), a.begin()));
-    EXPECT_EQ(0, g_date_time_compare(d.end(), a.end()));
+    EXPECT_EQ(d.begin, a.begin);
+    EXPECT_EQ(d.end, a.end);
 }
 

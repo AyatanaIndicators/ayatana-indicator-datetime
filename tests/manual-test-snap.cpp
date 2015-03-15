@@ -70,12 +70,8 @@ int main(int argc, const char* argv[])
     a.url = "alarm:///hello-world";
     a.uid = "D4B57D50247291478ED31DED17FF0A9838DED402";
     a.type = Appointment::UBUNTU_ALARM;
-    auto begin = g_date_time_new_local(2014,12,25,0,0,0);
-    auto end = g_date_time_add_full(begin,0,0,1,0,0,-1);
-    a.begin = begin;
-    a.end = end;
-    g_date_time_unref(end);
-    g_date_time_unref(begin);
+    a.begin = DateTime::Local(2014, 12, 25, 0, 0, 0);
+    a.end = a.begin.add_full(0,0,1,0,0,-1);
 
     auto loop = g_main_loop_new(nullptr, false);
     auto on_snooze = [loop](const Appointment& appt){

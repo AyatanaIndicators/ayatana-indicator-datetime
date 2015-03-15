@@ -89,9 +89,8 @@ class FormatterFixture: public GlibFixture
  */
 TEST_F(FormatterFixture, TestPhoneHeader)
 {
-    auto now = g_date_time_new_local(2020, 10, 31, 18, 30, 59);
-    auto clock = std::make_shared<MockClock>(DateTime(now));
-    g_date_time_unref(now);
+    auto now = DateTime::Local(2020, 10, 31, 18, 30, 59);
+    auto clock = std::make_shared<MockClock>(now);
 
     // test the default value in a 24h locale
     if(Set24hLocale())
@@ -142,9 +141,8 @@ TEST_F(FormatterFixture, TestDesktopHeader)
     { true,  true,  true,  true,  "%a %b %e %Y" EM_SPACE "%l:%M %p" }
   };
 
-  auto now = g_date_time_new_local(2020, 10, 31, 18, 30, 59);
-  auto clock = std::make_shared<MockClock>(DateTime(now));
-  g_date_time_unref(now);
+  auto now = DateTime::Local(2020, 10, 31, 18, 30, 59);
+  auto clock = std::make_shared<MockClock>(now);
 
   for(const auto& test_case : test_cases)
     {
@@ -166,45 +164,40 @@ TEST_F(FormatterFixture, TestDesktopHeader)
  */
 TEST_F(FormatterFixture, TestUpcomingTimes)
 {
-    auto a = g_date_time_new_local(2020, 10, 31, 18, 30, 59);
+    auto a = DateTime::Local(2020, 10, 31, 18, 30, 59);
 
     struct {
         gboolean is_12h;
-        GDateTime* now;
-        GDateTime* then;
+        DateTime now;
+        DateTime then;
         const char* expected_format_string;
     } test_cases[] = {
-        { true, g_date_time_ref(a), g_date_time_ref(a), "%l:%M %p" }, // identical time
-        { true, g_date_time_ref(a), g_date_time_add_hours(a,1), "%l:%M %p" }, // later today
-        { true, g_date_time_ref(a), g_date_time_add_days(a,1), "Tomorrow" EM_SPACE "%l:%M %p" }, // tomorrow
-        { true, g_date_time_ref(a), g_date_time_add_days(a,2), "%a" EM_SPACE "%l:%M %p" },
-        { true, g_date_time_ref(a), g_date_time_add_days(a,6), "%a" EM_SPACE "%l:%M %p" },
-        { true, g_date_time_ref(a), g_date_time_add_days(a,7), "%a %d %b" EM_SPACE "%l:%M %p" }, // over one week away
+        { true, a, a, "%l:%M %p" }, // identical time
+        { true, a, a.add_full(0,0,0,1,0,0), "%l:%M %p" }, // later today
+        { true, a, a.add_days(1), "Tomorrow" EM_SPACE "%l:%M %p" }, // tomorrow
+        { true, a, a.add_days(2), "%a" EM_SPACE "%l:%M %p" },
+        { true, a, a.add_days(6), "%a" EM_SPACE "%l:%M %p" },
+        { true, a, a.add_days(7), "%a %d %b" EM_SPACE "%l:%M %p" }, // over one week away
 
-        { false, g_date_time_ref(a), g_date_time_ref(a), "%H:%M" }, // identical time
-        { false, g_date_time_ref(a), g_date_time_add_hours(a,1), "%H:%M" }, // later today
-        { false, g_date_time_ref(a), g_date_time_add_days(a,1), "Tomorrow" EM_SPACE "%H:%M" }, // tomorrow
-        { false, g_date_time_ref(a), g_date_time_add_days(a,2), "%a" EM_SPACE "%H:%M" },
-        { false, g_date_time_ref(a), g_date_time_add_days(a,6), "%a" EM_SPACE "%H:%M" },
-        { false, g_date_time_ref(a), g_date_time_add_days(a,7), "%a %d %b" EM_SPACE "%H:%M" } // over one week away
+        { false, a, a, "%H:%M" }, // identical time
+        { false, a, a.add_full(0,0,0,1,0,0), "%H:%M" }, // later today
+        { false, a, a.add_days(1), "Tomorrow" EM_SPACE "%H:%M" }, // tomorrow
+        { false, a, a.add_days(2), "%a" EM_SPACE "%H:%M" },
+        { false, a, a.add_days(6), "%a" EM_SPACE "%H:%M" },
+        { false, a, a.add_days(7), "%a %d %b" EM_SPACE "%H:%M" } // over one week away
     };
 
     for(const auto& test_case : test_cases)
     {
         if (test_case.is_12h ? Set12hLocale() : Set24hLocale())
         {
-            auto clock = std::make_shared<MockClock>(DateTime(test_case.now));
+            auto clock = std::make_shared<MockClock>(test_case.now);
             DesktopFormatter f(clock, m_settings);
         
-            const auto fmt = f.relative_format(test_case.then);
+            const auto fmt = f.relative_format(test_case.then.get());
             ASSERT_EQ(test_case.expected_format_string, fmt);
-
-            g_clear_pointer(&test_case.now, g_date_time_unref);
-            g_clear_pointer(&test_case.then, g_date_time_unref);
         }
     }
-
-    g_date_time_unref(a);
 }
 
 
@@ -213,44 +206,34 @@ TEST_F(FormatterFixture, TestUpcomingTimes)
  */
 TEST_F(FormatterFixture, TestEventTimes)
 {
-    auto day            = g_date_time_new_local(2013, 1, 1, 13, 0, 0);
-    auto day_begin      = g_date_time_new_local(2013, 1, 1, 13, 0, 0);
-    auto day_end        = g_date_time_add_days(day_begin, 1);
-    auto tomorrow_begin = g_date_time_add_days(day_begin, 1);
-    auto tomorrow_end   = g_date_time_add_days(tomorrow_begin, 1);
+    auto day            = DateTime::Local(2013, 1, 1, 13, 0, 0);
+    auto day_begin      = DateTime::Local(2013, 1, 1, 13, 0, 0);
+    auto day_end        = day_begin.add_days(1);
+    auto tomorrow_begin = day_begin.add_days(1);
+    auto tomorrow_end   = tomorrow_begin.add_days(1);
 
     struct {
         bool is_12h;
-        GDateTime* now;
-        GDateTime* then;
-        GDateTime* then_end;
+        DateTime now;
+        DateTime then;
+        DateTime then_end;
         const char* expected_format_string;
     } test_cases[] = {
-        { false, g_date_time_ref(day), g_date_time_ref(day_begin), g_date_time_ref(day_end), _("Today") },
-        { true, g_date_time_ref(day), g_date_time_ref(day_begin), g_date_time_ref(day_end), _("Today") },
-        { false, g_date_time_ref(day), g_date_time_ref(tomorrow_begin), g_date_time_ref(tomorrow_end), _("Tomorrow") },
-        { true, g_date_time_ref(day), g_date_time_ref(tomorrow_begin), g_date_time_ref(tomorrow_end), _("Tomorrow") }
+        { false, day, day_begin, day_end, _("Today") },
+        { true, day, day_begin, day_end, _("Today") },
+        { false, day, tomorrow_begin, tomorrow_end, _("Tomorrow") },
+        { true, day, tomorrow_begin, tomorrow_end, _("Tomorrow") }
     };
 
     for(const auto& test_case : test_cases)
     {
         if (test_case.is_12h ? Set12hLocale() : Set24hLocale())
         {
-            auto clock = std::make_shared<MockClock>(DateTime(test_case.now));
+            auto clock = std::make_shared<MockClock>(test_case.now);
             DesktopFormatter f(clock, m_settings);
           
-            const auto fmt = f.relative_format(test_case.then, test_case.then_end);
+            const auto fmt = f.relative_format(test_case.then.get(), test_case.then_end.get());
             ASSERT_STREQ(test_case.expected_format_string, fmt.c_str());
-
-            g_clear_pointer(&test_case.now, g_date_time_unref);
-            g_clear_pointer(&test_case.then, g_date_time_unref);
-            g_clear_pointer(&test_case.then_end, g_date_time_unref);
         }
     }
-
-    g_date_time_unref(tomorrow_end);
-    g_date_time_unref(tomorrow_begin);
-    g_date_time_unref(day_end);
-    g_date_time_unref(day_begin);
-    g_date_time_unref(day);
 }

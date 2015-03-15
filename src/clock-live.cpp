@@ -68,7 +68,7 @@ public:
         g_assert(m_gtimezone != nullptr);
 
         auto gdt = g_date_time_new_now(m_gtimezone);
-        DateTime ret(gdt);
+        DateTime ret(m_gtimezone, gdt);
         g_date_time_unref(gdt);
         return ret;
     }
