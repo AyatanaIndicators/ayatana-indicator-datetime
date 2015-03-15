@@ -30,9 +30,7 @@ class ActionsFixture: public StateFixture
     std::vector<Appointment> build_some_appointments()
     {
         const auto now = m_state->clock->localtime();
-        auto gdt_tomorrow = g_date_time_add_days(now.get(), 1);
-        const auto tomorrow = DateTime(gdt_tomorrow);
-        g_date_time_unref(gdt_tomorrow);
+        const auto tomorrow = now.add_days(1);
 
         Appointment a1; // an alarm clock appointment
         a1.color = "red";
@@ -255,9 +253,7 @@ TEST_F(ActionsFixture, SetCalendarDate)
     EXPECT_TRUE(g_action_group_has_action(action_group, action_name));
 
     // pick an arbitrary DateTime...
-    auto tmp = g_date_time_new_local(2010, 1, 2, 3, 4, 5);
-    const auto now = DateTime(tmp);
-    g_date_time_unref(tmp);
+    const auto now = DateTime::Local(2010, 1, 2, 3, 4, 5);
 
     // confirm that Planner.time gets changed to that date when we
     // activate the 'calendar' action with that date's time_t as the arg
@@ -280,16 +276,14 @@ TEST_F(ActionsFixture, ActivatingTheCalendarResetsItsDate)
 
     // move calendar-date a week into the future...
     const auto now = m_state->clock->localtime();
-    auto next_week = g_date_time_add_weeks(now.get(), 1);
-    const auto next_week_unix = g_date_time_to_unix(next_week);
+    const auto next_week = now.add_days(7);
+    const auto next_week_unix = next_week.to_unix();
     g_action_group_activate_action (action_group, "calendar", g_variant_new_int64(next_week_unix));
 
     // confirm the planner and calendar action state moved a week into the future
     // but that m_state->clock is unchanged
-    auto expected = g_date_time_add_full (next_week, 0, 0, 0, -g_date_time_get_hour(next_week),
-                                                              -g_date_time_get_minute(next_week),
-                                                              -g_date_time_get_seconds(next_week));
-    const auto expected_unix = g_date_time_to_unix(expected);
+    auto expected = next_week.start_of_day();
+    const auto expected_unix = expected.to_unix();
     EXPECT_EQ(expected_unix, m_state->calendar_month->month().get().to_unix());
     EXPECT_EQ(now, m_state->clock->localtime());
     auto calendar_state = g_action_group_get_action_state(action_group, "calendar");
@@ -300,9 +294,6 @@ TEST_F(ActionsFixture, ActivatingTheCalendarResetsItsDate)
     EXPECT_EQ(expected_unix, g_variant_get_int64(v));
     g_clear_pointer(&v, g_variant_unref);
     g_clear_pointer(&calendar_state, g_variant_unref);
-
-    g_date_time_unref(expected);
-    g_date_time_unref(next_week);
 
     ///
     /// Now the actual test.

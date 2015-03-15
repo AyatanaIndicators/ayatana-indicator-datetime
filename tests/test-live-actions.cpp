@@ -346,9 +346,7 @@ TEST_F(LiveActionsFixture, PhoneOpenSettingsApp)
 TEST_F(LiveActionsFixture, CalendarState)
 {
     // init the clock
-    auto tmp = g_date_time_new_local (2014, 1, 1, 0, 0, 0);
-    const DateTime now (tmp);
-    g_date_time_unref (tmp);
+    auto now = DateTime::Local(2014, 1, 1, 0, 0, 0);
     m_mock_state->mock_clock->set_localtime (now);
     m_state->calendar_month->month().set(now);
     //m_state->planner->time.set(now);
@@ -388,12 +386,8 @@ TEST_F(LiveActionsFixture, CalendarState)
     ///  Now add appointments to the planner and confirm that the state keeps in sync
     ///
 
-    auto tomorrow = g_date_time_add_days (now.get(), 1);
-    auto tomorrow_begin = g_date_time_add_full (tomorrow, 0, 0, 0,
-                                                -g_date_time_get_hour(tomorrow),
-                                                -g_date_time_get_minute(tomorrow),
-                                                -g_date_time_get_seconds(tomorrow));
-    auto tomorrow_end = g_date_time_add_full (tomorrow_begin, 0, 0, 1, 0, 0, -1);
+    auto tomorrow_begin = now.add_days(1).start_of_day();
+    auto tomorrow_end = tomorrow_begin.add_full(0,0,1,0,0,-1);
     Appointment a1;
     a1.color = "green";
     a1.summary = "write unit tests";
@@ -402,8 +396,8 @@ TEST_F(LiveActionsFixture, CalendarState)
     a1.begin = tomorrow_begin;
     a1.end = tomorrow_end;
 
-    auto next_begin = g_date_time_add_days (tomorrow_begin, 1);
-    auto next_end = g_date_time_add_full (next_begin, 0, 0, 1, 0, 0, -1);
+    auto next_begin = now.add_days(2).start_of_day();
+    auto next_end = next_begin.add_days(1);
     Appointment a2;
     a2.color = "orange";
     a2.summary = "code review";
@@ -424,18 +418,11 @@ TEST_F(LiveActionsFixture, CalendarState)
     EXPECT_TRUE (v != nullptr);
     int i;
     g_variant_get_child (v, 0, "i", &i);
-    EXPECT_EQ (g_date_time_get_day_of_month(a1.begin.get()), i);
+    EXPECT_EQ (a1.begin.day_of_month(), i);
     g_variant_get_child (v, 1, "i", &i);
-    EXPECT_EQ (g_date_time_get_day_of_month(a2.begin.get()), i);
+    EXPECT_EQ (a2.begin.day_of_month(), i);
     g_clear_pointer(&v, g_variant_unref);
     g_clear_pointer(&calendar_state, g_variant_unref);
-
-    // cleanup this step
-    g_date_time_unref (next_end);
-    g_date_time_unref (next_begin);
-    g_date_time_unref (tomorrow_end);
-    g_date_time_unref (tomorrow_begin);
-    g_date_time_unref (tomorrow);
 
     ///
     ///  Confirm that the action state's dictionary

@@ -143,9 +143,7 @@ void on_calendar_activated(GSimpleAction * /*action*/,
 
     g_return_if_fail(t != 0);
 
-    // the client gave us a date; remove the HMS component from the resulting DateTime
-    auto dt = DateTime(t);
-    dt = dt.add_full (0, 0, 0, -dt.hour(), -dt.minute(), -dt.seconds());
+    auto dt = DateTime(t).start_of_day();
     static_cast<Actions*>(gself)->set_calendar_date(dt);
 }
 

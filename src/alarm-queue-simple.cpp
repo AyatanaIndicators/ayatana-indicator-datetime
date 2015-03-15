@@ -102,7 +102,7 @@ bool SimpleAlarmQueue::find_next_alarm(Appointment& setme) const
     bool found = false;
     Appointment tmp;
     const auto now = m_clock->localtime();
-    const auto beginning_of_minute = now.add_full (0, 0, 0, 0, 0, -now.seconds());
+    const auto beginning_of_minute = now.start_of_minute();
 
     const auto appointments = m_planner->appointments().get();
     g_debug ("planner has %zu appointments in it", (size_t)appointments.size());

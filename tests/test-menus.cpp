@@ -151,9 +151,7 @@ protected:
 
         // now change the clock and see if the date label changes appropriately
 
-        auto gdt_tomorrow = g_date_time_add_days(now.get(), 1);
-        auto tomorrow = DateTime(gdt_tomorrow);
-        g_date_time_unref(gdt_tomorrow);
+        auto tomorrow = now.add_days(1).start_of_day();
         m_mock_state->mock_clock->set_localtime(tomorrow);
         wait_msec();
 
@@ -182,9 +180,7 @@ private:
     std::vector<Appointment> build_some_appointments()
     {
         const auto now = m_state->clock->localtime();
-        auto gdt_tomorrow = g_date_time_add_days(now.get(), 1);
-        const auto tomorrow = DateTime(gdt_tomorrow);
-        g_date_time_unref(gdt_tomorrow);
+        const auto tomorrow = now.add_days(1);
 
         Appointment a1; // an alarm clock appointment
         a1.color = "red";
