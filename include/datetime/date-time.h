@@ -38,13 +38,15 @@ public:
     static DateTime NowLocal();
     static DateTime Local(int years, int months, int days, int hours, int minutes, int seconds);
 
+    DateTime();
     explicit DateTime(time_t t);
-    explicit DateTime(GDateTime* in=nullptr);
-    DateTime& operator=(GDateTime* in);
+    DateTime(GTimeZone* tz, GDateTime* dt);
     DateTime& operator=(const DateTime& in);
     DateTime to_timezone(const std::string& zone) const;
+    DateTime start_of_day() const;
+    DateTime start_of_minute() const;
+    DateTime add_days(int days) const;
     DateTime add_full(int years, int months, int days, int hours, int minutes, double seconds) const;
-    void reset(GDateTime* in=nullptr);
 
     GDateTime* get() const;
     GDateTime* operator()() const {return get();}
@@ -69,6 +71,8 @@ public:
     bool is_set() const { return m_dt != nullptr; }
 
 private:
+    void reset(GTimeZone*, GDateTime*);
+    std::shared_ptr<GTimeZone> m_tz;
     std::shared_ptr<GDateTime> m_dt;
 };
 
