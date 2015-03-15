@@ -57,7 +57,7 @@ DateTime::DateTime(time_t t)
 DateTime DateTime::NowLocal()
 {
     auto gtz = g_time_zone_new_local();
-    auto gdt = g_date_time_new_now_local();
+    auto gdt = g_date_time_new_now(gtz);
     DateTime dt(gtz, gdt);
     g_time_zone_unref(gtz);
     g_date_time_unref(gdt);
@@ -67,7 +67,7 @@ DateTime DateTime::NowLocal()
 DateTime DateTime::Local(int year, int month, int day, int hour, int minute, int seconds)
 {
     auto gtz = g_time_zone_new_local();
-    auto gdt = g_date_time_new_local (year, month, day, hour, minute, seconds);
+    auto gdt = g_date_time_new(gtz, year, month, day, hour, minute, seconds);
     DateTime dt(gtz, gdt);
     g_time_zone_unref(gtz);
     g_date_time_unref(gdt);
