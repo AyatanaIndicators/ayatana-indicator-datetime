@@ -253,12 +253,24 @@ TEST_F(ActionsFixture, SetCalendarDate)
     EXPECT_TRUE(g_action_group_has_action(action_group, action_name));
 
     // pick an arbitrary DateTime...
-    const auto now = DateTime::Local(2010, 1, 2, 3, 4, 5);
+    auto now = DateTime::Local(2010, 1, 2, 3, 4, 5);
 
     // confirm that Planner.time gets changed to that date when we
     // activate the 'calendar' action with that date's time_t as the arg
     EXPECT_NE (now, m_state->calendar_month->month().get());
     auto v = g_variant_new_int64(now.to_unix());
+    g_action_group_activate_action (action_group, action_name, v);
+    EXPECT_TRUE(DateTime::is_same_day (now, m_state->calendar_month->month().get()));
+
+    // DST change in US
+    now = DateTime::Local(2015, 3, 8, 9, 0, 0); 
+    v = g_variant_new_int64(now.to_unix());
+    g_action_group_activate_action (action_group, action_name, v);
+    EXPECT_TRUE(DateTime::is_same_day (now, m_state->calendar_month->month().get()));
+
+    // DST change in Europe
+    now = DateTime::Local(2015, 3, 29, 9, 0, 0); 
+    v = g_variant_new_int64(now.to_unix());
     g_action_group_activate_action (action_group, action_name, v);
     EXPECT_TRUE(DateTime::is_same_day (now, m_state->calendar_month->month().get()));
 }
