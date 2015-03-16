@@ -88,7 +88,6 @@ DateTime DateTime::to_timezone(const std::string& zone) const
 DateTime DateTime::start_of_day() const
 {
     g_assert(is_set());
-    g_assert(m_tz.get() != nullptr);
 
     int y=0, m=0, d=0;
     ymd(y, m, d);
@@ -101,7 +100,6 @@ DateTime DateTime::start_of_day() const
 DateTime DateTime::start_of_minute() const
 {
     g_assert(is_set());
-    g_assert(m_tz.get() != nullptr);
 
     int y=0, m=0, d=0;
     ymd(y, m, d);

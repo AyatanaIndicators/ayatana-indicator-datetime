@@ -68,7 +68,7 @@ public:
     static bool is_same_day(const DateTime& a, const DateTime& b);
     static bool is_same_minute(const DateTime& a, const DateTime& b);
 
-    bool is_set() const { return m_dt != nullptr; }
+    bool is_set() const { return m_tz && m_dt; }
 
 private:
     void reset(GTimeZone*, GDateTime*);
