@@ -119,8 +119,8 @@ void LiveActions::desktop_open_appointment(const Appointment& appt)
 
 void LiveActions::desktop_open_calendar_app(const DateTime& dt)
 {
-    const auto gmt = dt.start_of_day().to_timezone("UTC");
-    auto cmd = gmt.format("evolution \"calendar:///?startdate=%Y%m%dT%H%M%SZ\"");
+    const auto utc = dt.start_of_day().to_timezone("UTC");
+    auto cmd = utc.format("evolution \"calendar:///?startdate=%Y%m%dT%H%M%SZ\"");
     execute_command(cmd.c_str());
 }
 
