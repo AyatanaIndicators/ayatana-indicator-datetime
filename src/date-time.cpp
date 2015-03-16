@@ -39,6 +39,15 @@ DateTime::DateTime(GTimeZone* gtz, GDateTime* gdt)
     reset(gtz, gdt);
 }
 
+DateTime::DateTime(GTimeZone* gtz, int year, int month, int day, int hour, int minute, double seconds)
+{
+    g_return_if_fail(gtz!=nullptr);
+
+    auto gdt = g_date_time_new(gtz, year, month, day, hour, minute, seconds);
+    reset(gtz, gdt);
+    g_date_time_unref(gdt);
+}
+
 DateTime& DateTime::operator=(const DateTime& that)
 {
     m_tz = that.m_tz;
@@ -65,13 +74,11 @@ DateTime DateTime::NowLocal()
     return dt;
 }
 
-DateTime DateTime::Local(int year, int month, int day, int hour, int minute, int seconds)
+DateTime DateTime::Local(int year, int month, int day, int hour, int minute, double seconds)
 {
     auto gtz = g_time_zone_new_local();
-    auto gdt = g_date_time_new(gtz, year, month, day, hour, minute, seconds);
-    DateTime dt(gtz, gdt);
+    DateTime dt(gtz, year, month, day, hour, minute, seconds);
     g_time_zone_unref(gtz);
-    g_date_time_unref(gdt);
     return dt;
 }
 
@@ -85,33 +92,50 @@ DateTime DateTime::to_timezone(const std::string& zone) const
     return dt;
 }
 
+DateTime DateTime::end_of_day() const
+{
+    g_assert(is_set());
+
+    return add_days(1).start_of_day().add_full(0,0,0,0,0,-1);
+}
+
+DateTime DateTime::end_of_month() const
+{
+    g_assert(is_set());
+
+    return add_full(0,1,0,0,0,0).start_of_month().add_full(0,0,0,0,0,-1);
+}
+
+DateTime DateTime::start_of_month() const
+{
+    g_assert(is_set());
+
+    int year=0, month=0, day=0;
+    ymd(year, month, day);
+    return DateTime(m_tz.get(), year, month, 1, 0, 0, 0);
+}
+
 DateTime DateTime::start_of_day() const
 {
     g_assert(is_set());
 
-    int y=0, m=0, d=0;
-    ymd(y, m, d);
-    auto gdt = g_date_time_new(m_tz.get(), y, m, d, 0, 0, 0);
-    DateTime dt(m_tz.get(), gdt);
-    g_date_time_unref(gdt);
-    return dt;
+    int year=0, month=0, day=0;
+    ymd(year, month, day);
+    return DateTime(m_tz.get(), year, month, day, 0, 0, 0);
 }
 
 DateTime DateTime::start_of_minute() const
 {
     g_assert(is_set());
 
-    int y=0, m=0, d=0;
-    ymd(y, m, d);
-    auto gdt = g_date_time_new(m_tz.get(), y, m, d, hour(), minute(), 0);
-    DateTime dt(m_tz.get(), gdt);
-    g_date_time_unref(gdt);
-    return dt;
+    int year=0, month=0, day=0;
+    ymd(year, month, day);
+    return DateTime(m_tz.get(), year, month, day, hour(), minute(), 0);
 }
 
-DateTime DateTime::add_full(int years, int months, int days, int hours, int minutes, double seconds) const
+DateTime DateTime::add_full(int year, int month, int day, int hour, int minute, double seconds) const
 {
-    auto gdt = g_date_time_add_full(get(), years, months, days, hours, minutes, seconds);
+    auto gdt = g_date_time_add_full(get(), year, month, day, hour, minute, seconds);
     DateTime dt(m_tz.get(), gdt);
     g_date_time_unref(gdt);
     return dt;

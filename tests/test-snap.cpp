@@ -109,10 +109,9 @@ protected:
     appt.url = "alarm:///hello-world";
     appt.uid = "D4B57D50247291478ED31DED17FF0A9838DED402";
     appt.type = Appointment::EVENT;
-    auto begin = DateTime::Local(2014,12,25,0,0,0);
-    auto end = begin.add_full(0,0,1,0,0,-1);
-    appt.begin = begin;
-    appt.end = end;
+    const auto christmas = DateTime::Local(2015,12,25,0,0,0);
+    appt.begin = christmas.start_of_day();
+    appt.end = christmas.end_of_day();
 
     service = dbus_test_service_new(nullptr);
 

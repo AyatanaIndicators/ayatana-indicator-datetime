@@ -386,8 +386,9 @@ TEST_F(LiveActionsFixture, CalendarState)
     ///  Now add appointments to the planner and confirm that the state keeps in sync
     ///
 
-    auto tomorrow_begin = now.add_days(1).start_of_day();
-    auto tomorrow_end = tomorrow_begin.add_full(0,0,1,0,0,-1);
+    auto tomorrow = now.add_days(1);
+    auto tomorrow_begin = tomorrow.start_of_day();
+    auto tomorrow_end = tomorrow.end_of_day();
     Appointment a1;
     a1.color = "green";
     a1.summary = "write unit tests";
@@ -396,15 +397,16 @@ TEST_F(LiveActionsFixture, CalendarState)
     a1.begin = tomorrow_begin;
     a1.end = tomorrow_end;
 
-    auto next_begin = now.add_days(2).start_of_day();
-    auto next_end = next_begin.add_days(1);
+    auto ubermorgen = now.add_days(2);
+    auto ubermorgen_begin = ubermorgen.start_of_day();
+    auto ubermorgen_end = ubermorgen.end_of_day();
     Appointment a2;
     a2.color = "orange";
     a2.summary = "code review";
     a2.url = "http://www.ubuntu.com/";
     a2.uid = "2756ff7de3745bbffd65d2e4779c37c7ca60d843";
-    a2.begin = next_begin;
-    a2.end = next_end;
+    a2.begin = ubermorgen_begin;
+    a2.end = ubermorgen_end;
 
     m_state->calendar_month->appointments().set(std::vector<Appointment>({a1, a2}));
 

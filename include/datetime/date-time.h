@@ -36,17 +36,21 @@ class DateTime
 {
 public:
     static DateTime NowLocal();
-    static DateTime Local(int years, int months, int days, int hours, int minutes, int seconds);
+    static DateTime Local(int year, int month, int day, int hour, int minute, double seconds);
 
     DateTime();
     explicit DateTime(time_t t);
     DateTime(GTimeZone* tz, GDateTime* dt);
+    DateTime(GTimeZone* tz, int year, int month, int day, int hour, int minute, double seconds);
     DateTime& operator=(const DateTime& in);
     DateTime to_timezone(const std::string& zone) const;
+    DateTime start_of_month() const;
     DateTime start_of_day() const;
     DateTime start_of_minute() const;
+    DateTime end_of_day() const;
+    DateTime end_of_month() const;
     DateTime add_days(int days) const;
-    DateTime add_full(int years, int months, int days, int hours, int minutes, double seconds) const;
+    DateTime add_full(int year, int month, int day, int hour, int minute, double seconds) const;
 
     GDateTime* get() const;
     GDateTime* operator()() const {return get();}

@@ -69,7 +69,7 @@ protected:
     {
         const auto now = m_state->clock->localtime();
         const auto tomorrow_begin = now.add_days(1).start_of_day();
-        const auto tomorrow_end = tomorrow_begin.add_full(0, 0, 1, 0, 0, -1);
+        const auto tomorrow_end = tomorrow_begin.end_of_day();
 
         Appointment a1; // an alarm clock appointment
         a1.color = "red";
@@ -81,7 +81,7 @@ protected:
         a1.end = tomorrow_end;
 
         const auto ubermorgen_begin = now.add_days(2).start_of_day();
-        const auto ubermorgen_end = ubermorgen_begin.add_full(0, 0, 1, 0, 0, -1);
+        const auto ubermorgen_end = ubermorgen_begin.end_of_day();
 
         Appointment a2; // a non-alarm appointment
         a2.color = "green";

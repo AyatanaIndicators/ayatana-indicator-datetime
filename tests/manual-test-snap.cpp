@@ -71,7 +71,7 @@ int main(int argc, const char* argv[])
     a.uid = "D4B57D50247291478ED31DED17FF0A9838DED402";
     a.type = Appointment::UBUNTU_ALARM;
     a.begin = DateTime::Local(2014, 12, 25, 0, 0, 0);
-    a.end = a.begin.add_full(0,0,1,0,0,-1);
+    a.end = a.begin.end_of_day();
 
     auto loop = g_main_loop_new(nullptr, false);
     auto on_snooze = [loop](const Appointment& appt){
