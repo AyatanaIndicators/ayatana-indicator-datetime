@@ -33,7 +33,8 @@ DateTime::DateTime()
 
 DateTime::DateTime(GTimeZone* gtz, GDateTime* gdt)
 {
-    g_return_if_fail((gtz==nullptr) == (gdt==nullptr));
+    g_return_if_fail(gtz!=nullptr);
+    g_return_if_fail(gdt!=nullptr);
 
     reset(gtz, gdt);
 }
@@ -175,29 +176,14 @@ int64_t DateTime::to_unix() const
 
 void DateTime::reset(GTimeZone* gtz, GDateTime* gdt)
 {
-    g_return_if_fail ((gdt==nullptr) == (gtz==nullptr)); // all or nothin'
+    g_return_if_fail (gdt!=nullptr);
+    g_return_if_fail (gtz!=nullptr);
 
-    if (gtz)
-    {
-        auto deleter = [](GTimeZone* tz){g_time_zone_unref(tz);};
-        m_tz = std::shared_ptr<GTimeZone>(g_time_zone_ref(gtz), deleter);
-        g_assert(m_tz);
-    }
-    else
-    {
-        m_tz.reset();
-    }
-    
-    if (gdt)
-    {
-        auto deleter = [](GDateTime* dt){g_date_time_unref(dt);};
-        m_dt = std::shared_ptr<GDateTime>(g_date_time_ref(gdt), deleter);
-        g_assert(m_dt);
-    }
-    else
-    {
-        m_dt.reset();
-    }
+    auto tz_deleter = [](GTimeZone* tz){g_time_zone_unref(tz);};
+    m_tz = std::shared_ptr<GTimeZone>(g_time_zone_ref(gtz), tz_deleter);
+
+    auto dt_deleter = [](GDateTime* dt){g_date_time_unref(dt);};
+    m_dt = std::shared_ptr<GDateTime>(g_date_time_ref(gdt), dt_deleter);
 }
 
 bool DateTime::operator<(const DateTime& that) const
