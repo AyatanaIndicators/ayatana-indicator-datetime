@@ -1,3 +1,11 @@
+indicator-datetime (13.10.0+15.04.20150317-0ubuntu1) vivid; urgency=medium
+
+  [ Charles Kerr ]
+  * Fix bug that prevented clicking on calendar days where DST sprang
+    forward. (LP: #1429388)
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Tue, 17 Mar 2015 15:23:52 +0000
+
 indicator-datetime (13.10.0+15.04.20150301.1-0ubuntu1) vivid; urgency=medium
 
   [ CI Train Bot ]
