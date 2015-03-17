@@ -32,13 +32,8 @@ MonthPlanner::MonthPlanner(const std::shared_ptr<RangePlanner>& range_planner,
     m_range_planner(range_planner)
 {
     month().changed().connect([this](const DateTime& m){
-        auto month_begin = m.add_full(0, // no years
-                                      0, // no months
-                                      -(m.day_of_month()-1),
-                                      -m.hour(),
-                                      -m.minute(),
-                                      -m.seconds());
-        auto month_end = month_begin.add_full(0, 1, 0, 0, 0, -0.1);
+        auto month_begin = m.start_of_month();
+        auto month_end = m.end_of_month();
         g_debug("PlannerMonth %p setting calendar month range: [%s..%s]", this, month_begin.format("%F %T").c_str(), month_end.format("%F %T").c_str());
         m_range_planner->range().set(std::pair<DateTime,DateTime>(month_begin,month_end));
     });

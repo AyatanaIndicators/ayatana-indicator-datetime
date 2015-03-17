@@ -152,9 +152,9 @@ protected:
         const auto now = m_state->clock->localtime();
         const auto calendar_day = m_state->calendar_month->month().get();
         if ((profile() == Desktop) && !DateTime::is_same_day(now, calendar_day))
-            begin = calendar_day.add_full (0, 0, 0, -calendar_day.hour(), -calendar_day.minute(), -calendar_day.seconds());
+            begin = calendar_day.start_of_day();
         else
-            begin = now.add_full (0, 0, 0, 0, 0, -now.seconds());
+            begin = now.start_of_minute();
 
         std::vector<Appointment> upcoming;
         for(const auto& a : m_state->calendar_upcoming->appointments().get())

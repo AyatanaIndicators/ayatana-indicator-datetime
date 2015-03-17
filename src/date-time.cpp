@@ -27,43 +27,58 @@ namespace datetime {
 ****
 ***/
 
-DateTime::DateTime(GDateTime* gdt)
+DateTime::DateTime()
 {
-    reset(gdt);
 }
 
-DateTime& DateTime::operator=(GDateTime* gdt)
+DateTime::DateTime(GTimeZone* gtz, GDateTime* gdt)
 {
-    reset(gdt);
-    return *this;
+    g_return_if_fail(gtz!=nullptr);
+    g_return_if_fail(gdt!=nullptr);
+
+    reset(gtz, gdt);
+}
+
+DateTime::DateTime(GTimeZone* gtz, int year, int month, int day, int hour, int minute, double seconds)
+{
+    g_return_if_fail(gtz!=nullptr);
+
+    auto gdt = g_date_time_new(gtz, year, month, day, hour, minute, seconds);
+    reset(gtz, gdt);
+    g_date_time_unref(gdt);
 }
 
 DateTime& DateTime::operator=(const DateTime& that)
 {
+    m_tz = that.m_tz;
     m_dt = that.m_dt;
     return *this;
 }
 
 DateTime::DateTime(time_t t)
 {
+    auto gtz = g_time_zone_new_local();
     auto gdt = g_date_time_new_from_unix_local(t);
-    reset(gdt);
+    reset(gtz, gdt);
+    g_time_zone_unref(gtz);
     g_date_time_unref(gdt);
 }
 
 DateTime DateTime::NowLocal()
 {
-    auto gdt = g_date_time_new_now_local();
-    DateTime dt(gdt);
+    auto gtz = g_time_zone_new_local();
+    auto gdt = g_date_time_new_now(gtz);
+    DateTime dt(gtz, gdt);
+    g_time_zone_unref(gtz);
     g_date_time_unref(gdt);
     return dt;
 }
 
-DateTime DateTime::Local(int year, int month, int day, int hour, int minute, int seconds)
+DateTime DateTime::Local(int year, int month, int day, int hour, int minute, double seconds)
 {
-    auto gdt = g_date_time_new_local (year, month, day, hour, minute, seconds);
-    DateTime dt(gdt);
-    g_date_time_unref(gdt);
+    auto gtz = g_time_zone_new_local();
+    DateTime dt(gtz, year, month, day, hour, minute, seconds);
+    g_time_zone_unref(gtz);
     return dt;
 }
 
@@ -71,18 +86,64 @@ DateTime DateTime::to_timezone(const std::string& zone) const
 {
     auto gtz = g_time_zone_new(zone.c_str());
     auto gdt = g_date_time_to_timezone(get(), gtz);
-    DateTime dt(gdt);
+    DateTime dt(gtz, gdt);
     g_time_zone_unref(gtz);
     g_date_time_unref(gdt);
     return dt;
 }
 
-DateTime DateTime::add_full(int years, int months, int days, int hours, int minutes, double seconds) const
+DateTime DateTime::end_of_day() const
 {
-    auto gdt = g_date_time_add_full(get(), years, months, days, hours, minutes, seconds);
-    DateTime dt(gdt);
+    g_assert(is_set());
+
+    return add_days(1).start_of_day().add_full(0,0,0,0,0,-1);
+}
+
+DateTime DateTime::end_of_month() const
+{
+    g_assert(is_set());
+
+    return add_full(0,1,0,0,0,0).start_of_month().add_full(0,0,0,0,0,-1);
+}
+
+DateTime DateTime::start_of_month() const
+{
+    g_assert(is_set());
+
+    int year=0, month=0, day=0;
+    ymd(year, month, day);
+    return DateTime(m_tz.get(), year, month, 1, 0, 0, 0);
+}
+
+DateTime DateTime::start_of_day() const
+{
+    g_assert(is_set());
+
+    int year=0, month=0, day=0;
+    ymd(year, month, day);
+    return DateTime(m_tz.get(), year, month, day, 0, 0, 0);
+}
+
+DateTime DateTime::start_of_minute() const
+{
+    g_assert(is_set());
+
+    int year=0, month=0, day=0;
+    ymd(year, month, day);
+    return DateTime(m_tz.get(), year, month, day, hour(), minute(), 0);
+}
+
+DateTime DateTime::add_full(int year, int month, int day, int hour, int minute, double seconds) const
+{
+    auto gdt = g_date_time_add_full(get(), year, month, day, hour, minute, seconds);
+    DateTime dt(m_tz.get(), gdt);
     g_date_time_unref(gdt);
     return dt;
+}
+
+DateTime DateTime::add_days(int days) const
+{
+    return add_full(0, 0, days, 0, 0, 0);
 }
 
 GDateTime* DateTime::get() const
@@ -135,18 +196,16 @@ int64_t DateTime::to_unix() const
     return g_date_time_to_unix(get());
 }
 
-void DateTime::reset(GDateTime* in)
+void DateTime::reset(GTimeZone* gtz, GDateTime* gdt)
 {
-    if (in)
-    {
-        auto deleter = [](GDateTime* dt){g_date_time_unref(dt);};
-        m_dt = std::shared_ptr<GDateTime>(g_date_time_ref(in), deleter);
-        g_assert(m_dt);
-    }
-    else
-    {
-        m_dt.reset();
-    }
+    g_return_if_fail (gdt!=nullptr);
+    g_return_if_fail (gtz!=nullptr);
+
+    auto tz_deleter = [](GTimeZone* tz){g_time_zone_unref(tz);};
+    m_tz = std::shared_ptr<GTimeZone>(g_time_zone_ref(gtz), tz_deleter);
+
+    auto dt_deleter = [](GDateTime* dt){g_date_time_unref(dt);};
+    m_dt = std::shared_ptr<GDateTime>(g_date_time_ref(gdt), dt_deleter);
 }
 
 bool DateTime::operator<(const DateTime& that) const

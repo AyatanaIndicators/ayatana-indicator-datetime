@@ -143,9 +143,7 @@ void on_calendar_activated(GSimpleAction * /*action*/,
 
     g_return_if_fail(t != 0);
 
-    // the client gave us a date; remove the HMS component from the resulting DateTime
-    auto dt = DateTime(t);
-    dt = dt.add_full (0, 0, 0, -dt.hour(), -dt.minute(), -dt.seconds());
+    auto dt = DateTime(t).start_of_day();
     static_cast<Actions*>(gself)->set_calendar_date(dt);
 }
 
@@ -225,18 +223,26 @@ Actions::Actions(const std::shared_ptr<State>& state):
     auto v = create_default_header_state();
     auto a = g_simple_action_new_stateful("desktop-header", nullptr, v);
     g_action_map_add_action(gam, G_ACTION(a));
+    g_object_unref(a);
+
     a = g_simple_action_new_stateful("desktop_greeter-header", nullptr, v);
     g_action_map_add_action(gam, G_ACTION(a));
+    g_object_unref(a);
+
     a = g_simple_action_new_stateful("phone-header", nullptr, v);
     g_action_map_add_action(gam, G_ACTION(a));
+    g_object_unref(a);
+
     a = g_simple_action_new_stateful("phone_greeter-header", nullptr, v);
     g_action_map_add_action(gam, G_ACTION(a));
+    g_object_unref(a);
 
     // add the calendar action
     v = create_calendar_state(state);
     a = g_simple_action_new_stateful("calendar", G_VARIANT_TYPE_INT64, v);
     g_action_map_add_action(gam, G_ACTION(a));
     g_signal_connect(a, "activate", G_CALLBACK(on_calendar_activated), this);
+    g_object_unref(a);
 
     ///
     ///  Keep our GActionGroup's action's states in sync with m_state

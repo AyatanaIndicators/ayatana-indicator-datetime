@@ -36,15 +36,21 @@ class DateTime
 {
 public:
     static DateTime NowLocal();
-    static DateTime Local(int years, int months, int days, int hours, int minutes, int seconds);
+    static DateTime Local(int year, int month, int day, int hour, int minute, double seconds);
 
+    DateTime();
     explicit DateTime(time_t t);
-    explicit DateTime(GDateTime* in=nullptr);
-    DateTime& operator=(GDateTime* in);
+    DateTime(GTimeZone* tz, GDateTime* dt);
+    DateTime(GTimeZone* tz, int year, int month, int day, int hour, int minute, double seconds);
     DateTime& operator=(const DateTime& in);
     DateTime to_timezone(const std::string& zone) const;
-    DateTime add_full(int years, int months, int days, int hours, int minutes, double seconds) const;
-    void reset(GDateTime* in=nullptr);
+    DateTime start_of_month() const;
+    DateTime start_of_day() const;
+    DateTime start_of_minute() const;
+    DateTime end_of_day() const;
+    DateTime end_of_month() const;
+    DateTime add_days(int days) const;
+    DateTime add_full(int year, int month, int day, int hour, int minute, double seconds) const;
 
     GDateTime* get() const;
     GDateTime* operator()() const {return get();}
@@ -66,9 +72,11 @@ public:
     static bool is_same_day(const DateTime& a, const DateTime& b);
     static bool is_same_minute(const DateTime& a, const DateTime& b);
 
-    bool is_set() const { return m_dt != nullptr; }
+    bool is_set() const { return m_tz && m_dt; }
 
 private:
+    void reset(GTimeZone*, GDateTime*);
+    std::shared_ptr<GTimeZone> m_tz;
     std::shared_ptr<GDateTime> m_dt;
 };
 

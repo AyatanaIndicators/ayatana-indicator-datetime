@@ -68,12 +68,8 @@ protected:
     std::vector<Appointment> build_some_appointments()
     {
         const auto now = m_state->clock->localtime();
-        auto tomorrow = g_date_time_add_days (now.get(), 1);
-        auto tomorrow_begin = g_date_time_add_full (tomorrow, 0, 0, 0,
-                                                    -g_date_time_get_hour(tomorrow),
-                                                    -g_date_time_get_minute(tomorrow),
-                                                    -g_date_time_get_seconds(tomorrow));
-        auto tomorrow_end = g_date_time_add_full (tomorrow_begin, 0, 0, 1, 0, 0, -1);
+        const auto tomorrow_begin = now.add_days(1).start_of_day();
+        const auto tomorrow_end = tomorrow_begin.end_of_day();
 
         Appointment a1; // an alarm clock appointment
         a1.color = "red";
@@ -84,8 +80,8 @@ protected:
         a1.begin = tomorrow_begin;
         a1.end = tomorrow_end;
 
-        auto ubermorgen_begin = g_date_time_add_days (tomorrow, 1);
-        auto ubermorgen_end = g_date_time_add_full (tomorrow_begin, 0, 0, 1, 0, 0, -1);
+        const auto ubermorgen_begin = now.add_days(2).start_of_day();
+        const auto ubermorgen_end = ubermorgen_begin.end_of_day();
 
         Appointment a2; // a non-alarm appointment
         a2.color = "green";
@@ -95,13 +91,6 @@ protected:
         a1.type = Appointment::EVENT;
         a2.begin = ubermorgen_begin;
         a2.end = ubermorgen_end;
-
-        // cleanup
-        g_date_time_unref(ubermorgen_end);
-        g_date_time_unref(ubermorgen_begin);
-        g_date_time_unref(tomorrow_end);
-        g_date_time_unref(tomorrow_begin);
-        g_date_time_unref(tomorrow);
 
         return std::vector<Appointment>({a1, a2});
     }
