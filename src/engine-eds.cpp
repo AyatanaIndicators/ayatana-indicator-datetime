@@ -33,10 +33,10 @@ namespace unity {
 namespace indicator {
 namespace datetime {
 
-static constexpr char const * TAG_ALARM      {"x-canonical-alarm"};
-static constexpr char const * TAG_DISABLED   {"x-canonical-disabled"};
+static constexpr char const * TAG_ALARM    {"x-canonical-alarm"};
+static constexpr char const * TAG_DISABLED {"x-canonical-disabled"};
 
-static constexpr char const * X_PROP_APP_URL {"x-canonical-app-url"};
+static constexpr char const * X_PROP_ACTIVATION_URL {"X-CANONICAL-ACTIVATION-URL"};
 
 /****
 *****
@@ -478,7 +478,7 @@ private:
                     while (icalprop)
                     {
                         const char * x_name = icalproperty_get_x_name(icalprop);
-                        if (!g_strcmp0(x_name, X_PROP_APP_URL))
+                        if ((x_name != nullptr) && !g_ascii_strcasecmp(x_name, X_PROP_ACTIVATION_URL))
                         {
                             const char * url = icalproperty_get_value_as_string(icalprop);
                             if ((url != nullptr) && appointment.url.empty())
