@@ -33,8 +33,10 @@ namespace unity {
 namespace indicator {
 namespace datetime {
 
-static constexpr char const * TAG_ALARM {"x-canonical-alarm"};
-static constexpr char const * TAG_DISABLED {"x-canonical-disabled"};
+static constexpr char const * TAG_ALARM      {"x-canonical-alarm"};
+static constexpr char const * TAG_DISABLED   {"x-canonical-disabled"};
+
+static constexpr char const * X_PROP_APP_URL {"x-canonical-app-url"};
 
 /****
 *****
@@ -468,6 +470,24 @@ private:
                 e_cal_component_get_summary(component, &text);
                 if (text.value)
                     appointment.summary = text.value;
+
+                auto icc = e_cal_component_get_icalcomponent(component); // component owns icc
+                if (icc)
+                {
+                    auto icalprop = icalcomponent_get_first_property(icc, ICAL_X_PROPERTY);
+                    while (icalprop)
+                    {
+                        const char * x_name = icalproperty_get_x_name(icalprop);
+                        if (!g_strcmp0(x_name, X_PROP_APP_URL))
+                        {
+                            const char * url = icalproperty_get_value_as_string(icalprop);
+                            if ((url != nullptr) && appointment.url.empty())
+                                appointment.url = url;
+                        }
+
+                        icalprop = icalcomponent_get_next_property(icc, ICAL_X_PROPERTY);
+                    }
+                }
 
                 appointment.begin = begin_dt;
                 appointment.end = end_dt;
