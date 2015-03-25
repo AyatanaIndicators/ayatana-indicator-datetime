@@ -39,6 +39,12 @@ public:
     explicit Awake(const std::string& app_name);
     ~Awake();
 
+    /** Whether or not the display is forced on */
+    bool display_forced() const;
+
+    /** Set the display force on/off */
+    void set_display_forced(bool forced);
+
 private:
     class Impl;
     std::unique_ptr<Impl> impl;

@@ -22,7 +22,7 @@
 
 #include <gio/gio.h>
 
-#include <limits>
+#include <set>
 
 namespace unity {
 namespace indicator {
@@ -54,6 +54,19 @@ public:
             unforce_screen ();
             g_object_unref (m_system_bus);
         } 
+    }
+
+    bool display_forced() const
+    {
+        return !m_screen_cookies.empty();
+    }
+
+    void set_display_forced(bool force)
+    {
+        if (force)
+            force_screen();
+        else if (!force)
+            unforce_screen();
     }
 
 private:
@@ -95,19 +108,7 @@ private:
                                     on_force_awake_response,
                                     self);
 
-            // ask unity-system-compositor to turn on the screen
-            g_dbus_connection_call (system_bus,
-                                    BUS_SCREEN_NAME,
-                                    BUS_SCREEN_PATH,
-                                    BUS_SCREEN_INTERFACE,
-                                    "keepDisplayOn",
-                                    nullptr,
-                                    G_VARIANT_TYPE("(i)"),
-                                    G_DBUS_CALL_FLAGS_NONE,
-                                    -1,
-                                    self->m_cancellable,
-                                    on_force_screen_response,
-                                    self);
+            self->force_screen();
 
             g_object_unref (system_bus);
         }
@@ -146,6 +147,53 @@ private:
         }
     }
 
+    void unforce_awake ()
+    {
+        g_return_if_fail (G_IS_DBUS_CONNECTION(m_system_bus));
+
+        if (m_awake_cookie != nullptr)
+        {
+            g_dbus_connection_call (m_system_bus,
+                                    BUS_POWERD_NAME,
+                                    BUS_POWERD_PATH,
+                                    BUS_POWERD_INTERFACE,
+                                    "clearSysState",
+                                    g_variant_new("(s)", m_awake_cookie),
+                                    nullptr,
+                                    G_DBUS_CALL_FLAGS_NONE,
+                                    -1,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+
+            g_clear_pointer (&m_awake_cookie, g_free);
+        }
+    }
+
+    /***
+    ****  FORCE DISPLAY ON
+    ***/
+
+    void force_screen()
+    {
+        g_return_if_fail (G_IS_DBUS_CONNECTION(m_system_bus));
+        g_return_if_fail (m_screen_cookies.empty());
+
+        // ask unity-system-compositor to turn on the screen
+        g_dbus_connection_call (m_system_bus,
+                                BUS_SCREEN_NAME,
+                                BUS_SCREEN_PATH,
+                                BUS_SCREEN_INTERFACE,
+                                "keepDisplayOn",
+                                nullptr,
+                                G_VARIANT_TYPE("(i)"),
+                                G_DBUS_CALL_FLAGS_NONE,
+                                -1,
+                                m_cancellable,
+                                on_force_screen_response,
+                                this);
+    }
+
     static void on_force_screen_response (GObject      * connection,
                                           GAsyncResult * res,
                                           gpointer       gself)
@@ -171,34 +219,11 @@ private:
         {
             auto self = static_cast<Impl*>(gself);
 
-            self->m_screen_cookie = NO_SCREEN_COOKIE;
-            g_variant_get (args, "(i)", &self->m_screen_cookie);
-            g_debug ("m_screen_cookie is now '%d'", self->m_screen_cookie);
- 
+            gint32 cookie = 0;
+            g_variant_get (args, "(i)", &cookie);
             g_variant_unref (args);
-        }
-    }
-
-    void unforce_awake ()
-    {
-        g_return_if_fail (G_IS_DBUS_CONNECTION(m_system_bus));
-
-        if (m_awake_cookie != nullptr)
-        {
-            g_dbus_connection_call (m_system_bus,
-                                    BUS_POWERD_NAME,
-                                    BUS_POWERD_PATH,
-                                    BUS_POWERD_INTERFACE,
-                                    "clearSysState",
-                                    g_variant_new("(s)", m_awake_cookie),
-                                    nullptr,
-                                    G_DBUS_CALL_FLAGS_NONE,
-                                    -1,
-                                    nullptr,
-                                    nullptr,
-                                    nullptr);
-
-            g_clear_pointer (&m_awake_cookie, g_free);
+            g_debug ("got screen_cookie '%d'", (int)cookie);
+            self->m_screen_cookies.insert (cookie);
         }
     }
 
@@ -206,32 +231,34 @@ private:
     {
         g_return_if_fail (G_IS_DBUS_CONNECTION(m_system_bus));
 
-        if (m_screen_cookie != NO_SCREEN_COOKIE)
+        for (auto cookie : m_screen_cookies)
         {
             g_dbus_connection_call (m_system_bus,
                                     BUS_SCREEN_NAME,
                                     BUS_SCREEN_PATH,
                                     BUS_SCREEN_INTERFACE,
                                     "removeDisplayOnRequest",
-                                    g_variant_new("(i)", m_screen_cookie),
+                                    g_variant_new("(i)", cookie),
                                     nullptr,
                                     G_DBUS_CALL_FLAGS_NONE,
                                     -1,
                                     nullptr,
                                     nullptr,
                                     nullptr);
-
-            m_screen_cookie = NO_SCREEN_COOKIE;
         }
+
+        m_screen_cookies.clear();
     }
 
     const std::string m_app_name;
     GCancellable * m_cancellable = nullptr;
     GDBusConnection * m_system_bus = nullptr;
     char * m_awake_cookie = nullptr;
-    int32_t m_screen_cookie = NO_SCREEN_COOKIE;
 
-    static constexpr int32_t NO_SCREEN_COOKIE { std::numeric_limits<int32_t>::min() };
+    // In general there will only be one cookie in this container...
+    // holding N cookies is a safeguard in case the client calls force_screen()
+    // while there's aleady a pending keepDisplayOn call on the bus.
+    std::set<int32_t> m_screen_cookies;
 };
 
 /***
@@ -246,6 +273,19 @@ Awake::Awake(const std::string& app_name):
 Awake::~Awake()
 {
 }
+
+bool
+Awake::display_forced() const
+{
+    return impl->display_forced();
+}
+
+void
+Awake::set_display_forced(bool forced)
+{
+    impl->set_display_forced(forced);
+}
+
 
 /***
 ****
