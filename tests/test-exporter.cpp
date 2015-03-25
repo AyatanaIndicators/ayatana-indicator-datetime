@@ -222,7 +222,7 @@ TEST_F(ExporterFixture, AlarmProperties)
     g_clear_pointer (&haptic, g_free);
 
     /***
-    **** Try chaning the DBus properties -- do the Settings change to match it?
+    **** Try changing the DBus properties -- do the Settings change to match it?
     ***/
 
     expected_volume = 100;
