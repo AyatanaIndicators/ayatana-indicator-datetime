@@ -88,9 +88,11 @@ public:
            intervention and shouldn't loop the sound. */
         const bool interactive = appointment.is_ubuntu_alarm() && m_engine->supports_actions();
 
-        // Force the system to stay awake.
-        // In a clean world this would be a shared_ptr, but we use it as a GSourceFunc arg...
-        auto awake = new uin::Awake(m_engine->app_name());
+        // keep the screen on for the first part of the alarm;
+        // keep the system awake for the duration of the alarm
+        constexpr unsigned int display_on_seconds = 60;
+        auto awake = std::make_shared<uin::Awake>(m_engine->app_name(),
+                                                  display_on_seconds);
 
         // calendar events are muted in silent mode; alarm clocks never are
         std::shared_ptr<uin::Sound> sound;
@@ -138,31 +140,15 @@ public:
             b.add_action ("snooze", _("Snooze"));
         }
 
-        // Don't keep the screen on forever.
-        // If the alarm keeps going on and on, release our screen-on lock
-        // after awhile to prevent unneccesary battery drain
-        constexpr int screen_awake_seconds { 60 };
-        auto awake_timeout_func = [](gpointer a){
-            static_cast<uin::Awake*>(a)->set_display_forced(false);
-            return G_SOURCE_REMOVE;
-        };
-        auto awake_timeout_tag = g_timeout_add_seconds (screen_awake_seconds,
-                                                        awake_timeout_func,
-                                                        awake);
-
         // add 'sound', 'haptic', and 'awake' objects to the capture so
         // they stay alive until the closed callback is called; i.e.,
         // for the lifespan of the notficiation
-        b.set_closed_callback([appointment, snooze, ok, sound, haptic,
-                               awake, awake_timeout_tag]
+        b.set_closed_callback([appointment, snooze, ok, sound, awake, haptic]
                               (const std::string& action){
             if (action == "snooze")
                 snooze(appointment);
             else
                 ok(appointment);
-
-            g_source_remove(awake_timeout_tag);
-            delete awake;
         });
 
         const auto key = m_engine->show(b);

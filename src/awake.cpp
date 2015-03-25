@@ -22,7 +22,7 @@
 
 #include <gio/gio.h>
 
-#include <set>
+#include <limits>
 
 namespace unity {
 namespace indicator {
@@ -36,9 +36,10 @@ class Awake::Impl
 {
 public:
 
-    Impl(const std::string& app_name):
+    Impl(const std::string& app_name, unsigned int display_on_seconds):
         m_app_name(app_name),
-        m_cancellable(g_cancellable_new())
+        m_cancellable(g_cancellable_new()),
+        m_display_on_seconds(display_on_seconds)
     {
         g_bus_get(G_BUS_TYPE_SYSTEM, m_cancellable, on_system_bus_ready, this);
     }
@@ -48,25 +49,18 @@ public:
         g_cancellable_cancel (m_cancellable);
         g_object_unref (m_cancellable);
 
+        if (m_display_on_timer)
+        {
+            g_source_remove (m_display_on_timer);
+            m_display_on_timer = 0;
+        }
+
         if (m_system_bus != nullptr)
         {
             unforce_awake ();
-            unforce_screen ();
+            remove_display_on_request ();
             g_object_unref (m_system_bus);
         } 
-    }
-
-    bool display_forced() const
-    {
-        return !m_screen_cookies.empty();
-    }
-
-    void set_display_forced(bool force)
-    {
-        if (force)
-            force_screen();
-        else if (!force)
-            unforce_screen();
     }
 
 private:
@@ -108,7 +102,19 @@ private:
                                     on_force_awake_response,
                                     self);
 
-            self->force_screen();
+            // ask unity-system-compositor to turn on the screen
+            g_dbus_connection_call (system_bus,
+                                    BUS_SCREEN_NAME,
+                                    BUS_SCREEN_PATH,
+                                    BUS_SCREEN_INTERFACE,
+                                    "keepDisplayOn",
+                                    nullptr,
+                                    G_VARIANT_TYPE("(i)"),
+                                    G_DBUS_CALL_FLAGS_NONE,
+                                    -1,
+                                    self->m_cancellable,
+                                    on_keep_display_on_response,
+                                    self);
 
             g_object_unref (system_bus);
         }
@@ -147,6 +153,54 @@ private:
         }
     }
 
+    static void on_keep_display_on_response (GObject      * connection,
+                                             GAsyncResult * res,
+                                             gpointer       gself)
+    {
+        GError * error;
+        GVariant * args;
+
+        error = nullptr;
+        args = g_dbus_connection_call_finish (G_DBUS_CONNECTION(connection),
+                                              res,
+                                              &error);
+        if (error != nullptr)
+        {
+            if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED) &&
+                !g_error_matches (error, G_DBUS_ERROR, G_DBUS_ERROR_SERVICE_UNKNOWN))
+            {
+                g_warning ("Unable to turn on the screen: %s", error->message);
+            }
+
+            g_error_free (error);
+        }
+        else
+        {
+            auto self = static_cast<Impl*>(gself);
+
+            self->m_display_on_cookie = NO_DISPLAY_ON_COOKIE;
+            g_variant_get (args, "(i)", &self->m_display_on_cookie);
+            g_debug ("m_display_on_cookie is now '%d'", self->m_display_on_cookie);
+
+            self->m_display_on_timer = g_timeout_add_seconds (self->m_display_on_seconds,
+                                                              on_display_on_timer,
+                                                              gself);
+ 
+            g_variant_unref (args);
+        }
+    }
+
+    static gboolean on_display_on_timer (gpointer gself)
+    {
+        auto self = static_cast<Impl*>(gself);
+
+        self->m_display_on_timer = 0;
+        self->remove_display_on_request();
+
+        return G_SOURCE_REMOVE;
+    }
+
+
     void unforce_awake ()
     {
         g_return_if_fail (G_IS_DBUS_CONNECTION(m_system_bus));
@@ -170,122 +224,52 @@ private:
         }
     }
 
-    /***
-    ****  FORCE DISPLAY ON
-    ***/
-
-    void force_screen()
-    {
-        g_return_if_fail (G_IS_DBUS_CONNECTION(m_system_bus));
-        g_return_if_fail (m_screen_cookies.empty());
-
-        // ask unity-system-compositor to turn on the screen
-        g_dbus_connection_call (m_system_bus,
-                                BUS_SCREEN_NAME,
-                                BUS_SCREEN_PATH,
-                                BUS_SCREEN_INTERFACE,
-                                "keepDisplayOn",
-                                nullptr,
-                                G_VARIANT_TYPE("(i)"),
-                                G_DBUS_CALL_FLAGS_NONE,
-                                -1,
-                                m_cancellable,
-                                on_force_screen_response,
-                                this);
-    }
-
-    static void on_force_screen_response (GObject      * connection,
-                                          GAsyncResult * res,
-                                          gpointer       gself)
-    {
-        GError * error;
-        GVariant * args;
-
-        error = nullptr;
-        args = g_dbus_connection_call_finish (G_DBUS_CONNECTION(connection),
-                                              res,
-                                              &error);
-        if (error != nullptr)
-        {
-            if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED) &&
-                !g_error_matches (error, G_DBUS_ERROR, G_DBUS_ERROR_SERVICE_UNKNOWN))
-            {
-                g_warning ("Unable to turn on the screen: %s", error->message);
-            }
-
-            g_error_free (error);
-        }
-        else
-        {
-            auto self = static_cast<Impl*>(gself);
-
-            gint32 cookie = 0;
-            g_variant_get (args, "(i)", &cookie);
-            g_variant_unref (args);
-            g_debug ("got screen_cookie '%d'", (int)cookie);
-            self->m_screen_cookies.insert (cookie);
-        }
-    }
-
-    void unforce_screen ()
+    void remove_display_on_request ()
     {
         g_return_if_fail (G_IS_DBUS_CONNECTION(m_system_bus));
 
-        for (auto cookie : m_screen_cookies)
+        if (m_display_on_cookie != NO_DISPLAY_ON_COOKIE)
         {
             g_dbus_connection_call (m_system_bus,
                                     BUS_SCREEN_NAME,
                                     BUS_SCREEN_PATH,
                                     BUS_SCREEN_INTERFACE,
                                     "removeDisplayOnRequest",
-                                    g_variant_new("(i)", cookie),
+                                    g_variant_new("(i)", m_display_on_cookie),
                                     nullptr,
                                     G_DBUS_CALL_FLAGS_NONE,
                                     -1,
                                     nullptr,
                                     nullptr,
                                     nullptr);
-        }
 
-        m_screen_cookies.clear();
+            m_display_on_cookie = NO_DISPLAY_ON_COOKIE;
+        }
     }
 
     const std::string m_app_name;
     GCancellable * m_cancellable = nullptr;
     GDBusConnection * m_system_bus = nullptr;
     char * m_awake_cookie = nullptr;
+    int32_t m_display_on_cookie = NO_DISPLAY_ON_COOKIE;
+    const guint m_display_on_seconds;
+    guint m_display_on_timer;
 
-    // In general there will only be one cookie in this container...
-    // holding N cookies is a safeguard in case the client calls force_screen()
-    // while there's aleady a pending keepDisplayOn call on the bus.
-    std::set<int32_t> m_screen_cookies;
+    static constexpr int32_t NO_DISPLAY_ON_COOKIE { std::numeric_limits<int32_t>::min() };
 };
 
 /***
 ****
 ***/
 
-Awake::Awake(const std::string& app_name):
-    impl(new Impl (app_name))
+Awake::Awake(const std::string& app_name, unsigned int display_on_seconds):
+    impl(new Impl (app_name, display_on_seconds))
 {
 }
 
 Awake::~Awake()
 {
 }
-
-bool
-Awake::display_forced() const
-{
-    return impl->display_forced();
-}
-
-void
-Awake::set_display_forced(bool forced)
-{
-    impl->set_display_forced(forced);
-}
-
 
 /***
 ****
