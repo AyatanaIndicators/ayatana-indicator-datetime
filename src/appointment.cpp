@@ -27,16 +27,23 @@ namespace datetime {
 *****
 ****/
 
+bool Alarm::operator==(const Alarm& that) const
+{
+  return (text==that.text)
+      && (audio_url==that.audio_url)
+      && (this->time==that.time)
+      && (duration==that.duration);
+}
+
 bool Appointment::operator==(const Appointment& that) const
 {
     return (type==that.type)
         && (uid==that.uid)
         && (color==that.color)
         && (summary==that.summary)
-        && (url==that.url)
-        && (audio_url==that.audio_url)
         && (begin==that.begin)
-        && (end==that.end);
+        && (end==that.end)
+        && (alarms==that.alarms);
 }
 
 /****

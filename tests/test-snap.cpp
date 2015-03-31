@@ -106,12 +106,12 @@ protected:
     // init the Appointment
     appt.color = "green";
     appt.summary = "Alarm";
-    appt.url = "alarm:///hello-world";
     appt.uid = "D4B57D50247291478ED31DED17FF0A9838DED402";
     appt.type = Appointment::EVENT;
     const auto christmas = DateTime::Local(2015,12,25,0,0,0);
     appt.begin = christmas.start_of_day();
     appt.end = christmas.end_of_day();
+    appt.alarms.push_back(Alarm{"Alarm Text", "", appt.begin, std::chrono::seconds::zero()});
 
     service = dbus_test_service_new(nullptr);
 
@@ -343,8 +343,8 @@ TEST_F(SnapFixture, InteractiveDuration)
   make_interactive();
 
   // call the Snap Decision
-  auto func = [this](const Appointment&){g_idle_add(quit_idle, loop);};
-  snap(appt, func, func);
+  auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
+  snap(appt, appt.alarms.front(), func, func);
 
   // confirm that Notify got called once
   guint len = 0;
@@ -393,8 +393,8 @@ TEST_F(SnapFixture, InhibitSleep)
   make_interactive();
 
   // invoke the notification
-  auto func = [this](const Appointment&){g_idle_add(quit_idle, loop);};
-  (*snap)(appt, func, func);
+  auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
+  (*snap)(appt, appt.alarms.front(), func, func);
 
   wait_msec(1000);
 
@@ -448,8 +448,8 @@ TEST_F(SnapFixture, ForceScreen)
   make_interactive();
 
   // invoke the notification
-  auto func = [this](const Appointment&){g_idle_add(quit_idle, loop);};
-  (*snap)(appt, func, func);
+  auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
+  (*snap)(appt, appt.alarms.front(), func, func);
 
   wait_msec(1000);
 
@@ -484,14 +484,14 @@ TEST_F(SnapFixture, HapticModes)
 {
   auto settings = std::make_shared<Settings>();
   auto ne = std::make_shared<unity::indicator::notifications::Engine>(APP_NAME);
-  auto func = [this](const Appointment&){g_idle_add(quit_idle, loop);};
+  auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
   GError * error = nullptr;
 
   // invoke a snap decision while haptic feedback is set to "pulse",
   // confirm that VibratePattern got called
   settings->alarm_haptic.set("pulse");
   auto snap = new Snap (ne, settings);
-  (*snap)(appt, func, func);
+  (*snap)(appt, appt.alarms.front(), func, func);
   wait_msec(100);
   EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (haptic_mock,
                                                              haptic_obj,
@@ -506,7 +506,7 @@ TEST_F(SnapFixture, HapticModes)
   dbus_test_dbus_mock_object_clear_method_calls (haptic_mock, haptic_obj, &error);
   settings->alarm_haptic.set("none");
   snap = new Snap (ne, settings);
-  (*snap)(appt, func, func);
+  (*snap)(appt, appt.alarms.front(), func, func);
   wait_msec(100);
   EXPECT_FALSE (dbus_test_dbus_mock_object_check_method_call (haptic_mock,
                                                               haptic_obj,

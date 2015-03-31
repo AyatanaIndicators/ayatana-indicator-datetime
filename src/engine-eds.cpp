@@ -126,12 +126,18 @@ public:
             auto extension = e_source_get_extension(source, E_SOURCE_EXTENSION_CALENDAR);
             const auto color = e_source_selectable_get_color(E_SOURCE_SELECTABLE(extension));
             g_debug("calling e_cal_client_generate_instances for %p", (void*)client);
+            auto subtask = new AppointmentSubtask(main_task,
+                                                  client,
+                                                  color,
+                                                  default_timezone,
+                                                  begin_timet,
+                                                  end_timet);
             e_cal_client_generate_instances(client,
                                             begin_timet,
                                             end_timet,
                                             m_cancellable,
                                             my_get_appointments_foreach,
-                                            new AppointmentSubtask (main_task, client, color),
+                                            subtask,
                                             [](gpointer g){delete static_cast<AppointmentSubtask*>(g);});
         }
     }
@@ -409,13 +415,70 @@ private:
         std::shared_ptr<Task> task;
         ECalClient* client;
         std::string color;
-        AppointmentSubtask(const std::shared_ptr<Task>& task_in, ECalClient* client_in, const char* color_in):
-            task(task_in), client(client_in)
+        icaltimezone* default_timezone;
+        time_t begin;
+        time_t end;
+
+        AppointmentSubtask(const std::shared_ptr<Task>& task_in,
+                           ECalClient* client_in,
+                           const char* color_in,
+                           icaltimezone* default_tz,
+                           time_t begin_,
+                           time_t end_):
+            task(task_in),
+            client(client_in),
+            default_timezone(default_tz),
+            begin(begin_),
+            end(end_)
         {
             if (color_in)
                 color = color_in;
         }
     };
+
+    static std::string get_alarm_text(ECalComponentAlarm * alarm)
+    {
+        std::string ret;
+
+        ECalComponentAlarmAction action;
+        e_cal_component_alarm_get_action(alarm, &action);
+        if (action == E_CAL_COMPONENT_ALARM_DISPLAY)
+        {
+            ECalComponentText text;
+            text.value = nullptr;
+            e_cal_component_alarm_get_description(alarm, &text);
+            if (text.value)
+                ret = text.value;
+        }
+
+        return ret;
+    }
+
+    static std::string get_alarm_sound_url(ECalComponentAlarm * alarm)
+    {
+        std::string ret;
+
+        ECalComponentAlarmAction action;
+        e_cal_component_alarm_get_action(alarm, &action);
+        if (action == E_CAL_COMPONENT_ALARM_AUDIO)
+        {
+            icalattach* attach = nullptr;
+            e_cal_component_alarm_get_attach(alarm, &attach);
+            if (attach != nullptr)
+            {
+                if (icalattach_get_is_url (attach))
+                {
+                    const char* url = icalattach_get_url(attach);
+                    if (url != nullptr)
+                        ret = url;
+                }
+
+                icalattach_unref(attach);
+            }
+        }
+
+        return ret;
+    }
 
     static gboolean
     my_get_appointments_foreach(ECalComponent* component,
@@ -461,6 +524,7 @@ private:
                 (status != ICAL_STATUS_COMPLETED) &&
                 (status != ICAL_STATUS_CANCELLED))
             {
+                ECalComponentAlarmAction omit[] = { (ECalComponentAlarmAction)-1 }; // list of action types to omit, terminated with -1
                 Appointment appointment;
 
                 ECalComponentText text;
@@ -475,47 +539,76 @@ private:
                 appointment.uid = uid;
                 appointment.type = type;
 
-                // Look through all of this component's alarms
-                // for DISPLAY or AUDIO url attachments.
-                // If we find any, use them for appointment.url and audio_sound
-                auto alarm_uids = e_cal_component_get_alarm_uids(component);
-                for(auto walk=alarm_uids; appointment.url.empty() && walk!=nullptr; walk=walk->next)
+                icalcomponent * icc = e_cal_component_get_icalcomponent(component);
+                g_debug("%s", icalcomponent_as_ical_string(icc)); // libical owns this string; no leak
+
+                auto e_alarms = e_cal_util_generate_alarms_for_comp(component,
+                                                                    subtask->begin,
+                                                                    subtask->end,
+                                                                    omit,
+                                                                    e_cal_client_resolve_tzid_cb,
+                                                                    subtask->client,
+                                                                    subtask->default_timezone);
+
+                std::map<DateTime,Alarm> alarms;
+
+                if (e_alarms != nullptr)
                 {
-                    auto alarm = e_cal_component_get_alarm(component, static_cast<const char*>(walk->data));
-
-                    ECalComponentAlarmAction action;
-                    e_cal_component_alarm_get_action(alarm, &action);
-                    if ((action == E_CAL_COMPONENT_ALARM_DISPLAY) || (action == E_CAL_COMPONENT_ALARM_AUDIO))
+                    for (auto l=e_alarms->alarms; l!=nullptr; l=l->next)
                     {
-                        icalattach* attach = nullptr;
-                        e_cal_component_alarm_get_attach(alarm, &attach);
-                        if (attach != nullptr)
-                        {
-                            if (icalattach_get_is_url (attach))
-                            {
-                                const char* url = icalattach_get_url(attach);
-                                if (url != nullptr)
-                                {
-                                    if ((action == E_CAL_COMPONENT_ALARM_DISPLAY) && appointment.url.empty())
-                                    {
-                                        appointment.url = url;
-                                    }
-                                    else if ((action == E_CAL_COMPONENT_ALARM_AUDIO) && appointment.audio_url.empty())
-                                    {
-                                        appointment.audio_url = url;
-                                    }
-                                }
-                            }
+                        auto ai = static_cast<ECalComponentAlarmInstance*>(l->data);
+                        auto a = e_cal_component_get_alarm(component, ai->auid);
 
-                            icalattach_unref(attach);
+                        if (a != nullptr)
+                        {
+                            const DateTime alarm_begin{ai->occur_start};
+                            auto& alarm = alarms[alarm_begin];
+
+                            if (alarm.text.empty())
+                                alarm.text = get_alarm_text(a);
+                            if (alarm.audio_url.empty())
+                                alarm.audio_url = get_alarm_sound_url(a);
+                            if (!alarm.time.is_set())
+                                alarm.time = alarm_begin;
+                            if (alarm.duration == std::chrono::seconds::zero())
+                                alarm.duration = std::chrono::seconds(ai->occur_end - ai->occur_start);
+
+                            e_cal_component_alarm_free(a);
                         }
                     }
 
-                    e_cal_component_alarm_free(alarm);
+                    e_cal_component_alarms_free(e_alarms);
                 }
-                cal_obj_uid_list_free(alarm_uids);
+                // hm, no trigger. if this came from ubuntu-clock-app,
+                // manually add a single trigger for the todo event's time
+                else if (appointment.is_ubuntu_alarm())
+                {
+                    Alarm tmp;
+                    tmp.time = appointment.begin;
 
-                g_debug("adding appointment '%s' '%s'", appointment.summary.c_str(), appointment.url.c_str());
+                    auto auids = e_cal_component_get_alarm_uids(component);
+                    for(auto l=auids; l!=nullptr; l=l->next)
+                    {
+                        const auto auid = static_cast<const char*>(l->data);
+                        auto a = e_cal_component_get_alarm(component, auid);
+                        if (a != nullptr)
+                        {
+                            if (tmp.text.empty())
+                                tmp.text = get_alarm_text(a);
+                            if (tmp.audio_url.empty())
+                                tmp.audio_url = get_alarm_sound_url(a);
+                            e_cal_component_alarm_free(a);
+                        }
+                    }
+                    cal_obj_uid_list_free(auids);
+
+                    alarms[tmp.time] = tmp;
+                }
+
+                appointment.alarms.reserve(alarms.size());
+                for (const auto& it : alarms)
+                    appointment.alarms.push_back(it.second);
+
                 subtask->task->appointments.push_back(appointment);
             }
         }

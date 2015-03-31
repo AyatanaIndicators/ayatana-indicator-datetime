@@ -135,12 +135,19 @@ void LiveActions::phone_open_alarm_app()
 
 void LiveActions::phone_open_appointment(const Appointment& appt)
 {
-    if (!appt.url.empty())
-        dispatch_url(appt.url);
-    else if (appt.is_ubuntu_alarm())
-        phone_open_alarm_app();
-    else
-        phone_open_calendar_app(DateTime::NowLocal());
+    if (!appt.activation_url.empty())
+    {
+        dispatch_url(appt.activation_url);
+    }
+    else switch (appt.type)
+    {
+        case Appointment::UBUNTU_ALARM:
+            phone_open_alarm_app();
+            break;
+
+        default:
+            phone_open_calendar_app(appt.begin);
+    }
 }
 
 void LiveActions::phone_open_calendar_app(const DateTime&)

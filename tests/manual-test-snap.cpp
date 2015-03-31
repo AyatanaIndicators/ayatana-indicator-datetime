@@ -67,18 +67,18 @@ int main(int argc, const char* argv[])
     Appointment a;
     a.color = "green";
     a.summary = "Alarm";
-    a.url = "alarm:///hello-world";
     a.uid = "D4B57D50247291478ED31DED17FF0A9838DED402";
     a.type = Appointment::UBUNTU_ALARM;
     a.begin = DateTime::Local(2014, 12, 25, 0, 0, 0);
     a.end = a.begin.end_of_day();
+    a.alarms.push_back(Alarm{"Alarm Text", "", a.begin, std::chrono::seconds::zero()});
 
     auto loop = g_main_loop_new(nullptr, false);
-    auto on_snooze = [loop](const Appointment& appt){
-        g_message("You clicked 'Snooze' for appt url '%s'", appt.url.c_str());
+    auto on_snooze = [loop](const Appointment& appt, const Alarm&){
+        g_message("You clicked 'Snooze' for appt url '%s'", appt.summary.c_str());
         g_idle_add(quit_idle, loop);
     };
-    auto on_ok = [loop](const Appointment&){
+    auto on_ok = [loop](const Appointment&, const Alarm&){
         g_message("You clicked 'OK'");
         g_idle_add(quit_idle, loop);
     };
@@ -93,7 +93,7 @@ int main(int argc, const char* argv[])
 
     auto notification_engine = std::make_shared<uin::Engine>("indicator-datetime-service");
     Snap snap (notification_engine, settings);
-    snap(a, on_snooze, on_ok);
+    snap(a, a.alarms.front(), on_snooze, on_ok);
     g_main_loop_run(loop);
 
     g_main_loop_unref(loop);
