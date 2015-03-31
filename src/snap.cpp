@@ -88,11 +88,8 @@ public:
            intervention and shouldn't loop the sound. */
         const bool interactive = appointment.is_ubuntu_alarm() && m_engine->supports_actions();
 
-        // keep the screen on for the first part of the alarm;
-        // keep the system awake for the duration of the alarm
-        constexpr unsigned int display_on_seconds = 60;
-        auto awake = std::make_shared<uin::Awake>(m_engine->app_name(),
-                                                  display_on_seconds);
+        // force the system to stay awake
+        auto awake = std::make_shared<uin::Awake>(m_engine->app_name());
 
         // calendar events are muted in silent mode; alarm clocks never are
         std::shared_ptr<uin::Sound> sound;

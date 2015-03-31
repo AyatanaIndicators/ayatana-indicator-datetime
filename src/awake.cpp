@@ -36,10 +36,9 @@ class Awake::Impl
 {
 public:
 
-    Impl(const std::string& app_name, unsigned int display_on_seconds):
+    Impl(const std::string& app_name):
         m_app_name(app_name),
-        m_cancellable(g_cancellable_new()),
-        m_display_on_seconds(display_on_seconds)
+        m_cancellable(g_cancellable_new())
     {
         g_bus_get(G_BUS_TYPE_SYSTEM, m_cancellable, on_system_bus_ready, this);
     }
@@ -251,9 +250,19 @@ private:
     GCancellable * m_cancellable = nullptr;
     GDBusConnection * m_system_bus = nullptr;
     char * m_awake_cookie = nullptr;
+
+    /**
+     * As described by bug #1434637, alarms should have the display turn on,
+     * dim, and turn off "just like it would if you'd woken it up yourself".
+     * USC may be adding an intent-based bus API to handle this use case,
+     * e.g. turnDisplayOnTemporarily(intent), but there's no timeframe for it.
+     *
+     * Until that's avaialble, we can get close to Design's specs by
+     * requesting a display-on cookie and then releasing the cookie
+     * a moment later. */
+    const guint m_display_on_seconds = 1;
+    guint m_display_on_timer = 0;
     int32_t m_display_on_cookie = NO_DISPLAY_ON_COOKIE;
-    const guint m_display_on_seconds;
-    guint m_display_on_timer;
 
     static constexpr int32_t NO_DISPLAY_ON_COOKIE { std::numeric_limits<int32_t>::min() };
 };
@@ -262,8 +271,8 @@ private:
 ****
 ***/
 
-Awake::Awake(const std::string& app_name, unsigned int display_on_seconds):
-    impl(new Impl (app_name, display_on_seconds))
+Awake::Awake(const std::string& app_name):
+    impl(new Impl(app_name))
 {
 }
 
