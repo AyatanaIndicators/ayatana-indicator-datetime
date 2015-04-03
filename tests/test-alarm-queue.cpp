@@ -48,7 +48,7 @@ protected:
         m_range_planner.reset(new MockRangePlanner);
         m_upcoming.reset(new UpcomingPlanner(m_range_planner, m_state->clock->localtime()));
         m_watcher.reset(new SimpleAlarmQueue(m_state->clock, m_upcoming, m_wakeup_timer));
-        m_watcher->alarm_reached().connect([this](const Appointment& appt){
+        m_watcher->alarm_reached().connect([this](const Appointment& appt, const Alarm& /*alarm*/){
             m_triggered.push_back(appt.uid);
         });
 
@@ -71,7 +71,7 @@ protected:
         const auto tomorrow_begin = now.add_days(1).start_of_day();
         const auto tomorrow_end = tomorrow_begin.end_of_day();
 
-        Appointment a1; // an alarm clock appointment
+        Appointment a1; // an ubuntu alarm
         a1.color = "red";
         a1.summary = "Alarm";
         a1.summary = "http://www.example.com/";
@@ -79,18 +79,20 @@ protected:
         a1.type = Appointment::UBUNTU_ALARM;
         a1.begin = tomorrow_begin;
         a1.end = tomorrow_end;
+        a1.alarms.push_back(Alarm{"Alarm Text", "", a1.begin, std::chrono::seconds::zero()});
 
         const auto ubermorgen_begin = now.add_days(2).start_of_day();
         const auto ubermorgen_end = ubermorgen_begin.end_of_day();
 
-        Appointment a2; // a non-alarm appointment
+        Appointment a2; // something else
         a2.color = "green";
         a2.summary = "Other Text";
         a2.summary = "http://www.monkey.com/";
         a2.uid = "monkey";
-        a1.type = Appointment::EVENT;
+        a2.type = Appointment::EVENT;
         a2.begin = ubermorgen_begin;
         a2.end = ubermorgen_end;
+        a2.alarms.push_back(Alarm{"Alarm Text", "", a2.begin, std::chrono::seconds::zero()});
 
         return std::vector<Appointment>({a1, a2});
     }
@@ -105,7 +107,7 @@ TEST_F(AlarmQueueFixture, AppointmentsChanged)
     // Add some appointments to the planner.
     // One of these matches our state's localtime, so that should get triggered.
     std::vector<Appointment> a = build_some_appointments();
-    a[0].begin = m_state->clock->localtime();
+    a[0].begin = a[0].alarms.front().time = m_state->clock->localtime();
     m_range_planner->appointments().set(a);
 
     // Confirm that it got fired
@@ -135,7 +137,8 @@ TEST_F(AlarmQueueFixture, MoreThanOne)
 {
     const auto now = m_state->clock->localtime();
     std::vector<Appointment> a = build_some_appointments();
-    a[0].begin = a[1].begin = now;
+    a[0].alarms.front().time = now;
+    a[1].alarms.front().time = now;
     m_range_planner->appointments().set(a);
 
     ASSERT_EQ(2, m_triggered.size());
@@ -151,7 +154,7 @@ TEST_F(AlarmQueueFixture, NoDuplicates)
     const std::vector<Appointment> appointments = build_some_appointments();
     std::vector<Appointment> a;
     a.push_back(appointments[0]);
-    a[0].begin = now;
+    a[0].alarms.front().time = now;
     m_range_planner->appointments().set(a);
     ASSERT_EQ(1, m_triggered.size());
     EXPECT_EQ(a[0].uid, m_triggered[0]);

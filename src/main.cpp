@@ -138,11 +138,11 @@ main(int /*argc*/, char** /*argv*/)
     auto notification_engine = std::make_shared<uin::Engine>("indicator-datetime-service");
     std::unique_ptr<Snap> snap (new Snap(notification_engine, state->settings));
     auto alarm_queue = create_simple_alarm_queue(state->clock, snooze_planner, engine, timezone_);
-    auto on_snooze = [snooze_planner](const Appointment& appointment, const Alarm&) {snooze_planner->add(appointment);};
+    auto on_snooze = [snooze_planner](const Appointment& appointment, const Alarm& alarm) {
+        snooze_planner->add(appointment, alarm);
+    };
     auto on_ok = [](const Appointment&, const Alarm&){};
-    auto on_alarm_reached = [&engine, &snap, &on_snooze, &on_ok](const Appointment& appointment) {
-#warning placeholder; next step is to have AlarmQueue pass an appointment and alarm
-        Alarm alarm;
+    auto on_alarm_reached = [&engine, &snap, &on_snooze, &on_ok](const Appointment& appointment, const Alarm& alarm) {
         (*snap)(appointment, alarm, on_snooze, on_ok);
         engine->disable_ubuntu_alarm(appointment);
     };
