@@ -41,7 +41,7 @@ public:
     WakeupTimer() =default;
     virtual ~WakeupTimer() =default;
     virtual void set_wakeup_time (const DateTime&) =0;
-    virtual core::Signal<>& timeout() = 0;
+    virtual core::Signal<>& timeout() =0;
 };
 
 /***
