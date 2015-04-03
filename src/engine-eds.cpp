@@ -444,8 +444,7 @@ private:
         e_cal_component_alarm_get_action(alarm, &action);
         if (action == E_CAL_COMPONENT_ALARM_DISPLAY)
         {
-            ECalComponentText text;
-            text.value = nullptr;
+            ECalComponentText text {};
             e_cal_component_alarm_get_description(alarm, &text);
             if (text.value)
                 ret = text.value;
@@ -527,8 +526,7 @@ private:
                 ECalComponentAlarmAction omit[] = { (ECalComponentAlarmAction)-1 }; // list of action types to omit, terminated with -1
                 Appointment appointment;
 
-                ECalComponentText text;
-                text.value = nullptr;
+                ECalComponentText text {};
                 e_cal_component_get_summary(component, &text);
                 if (text.value)
                     appointment.summary = text.value;
@@ -579,8 +577,8 @@ private:
 
                     e_cal_component_alarms_free(e_alarms);
                 }
-                // hm, no trigger. if this came from ubuntu-clock-app,
-                // manually add a single trigger for the todo event's time
+                // hm, no alarms? if this came from ubuntu-clock-app,
+                // manually add a single alarm for the todo event's time
                 else if (appointment.is_ubuntu_alarm())
                 {
                     Alarm tmp;
@@ -684,10 +682,10 @@ private:
     std::set<ESource*> m_sources;
     std::map<ESource*,ECalClient*> m_clients;
     std::map<ESource*,ECalClientView*> m_views;
-    GCancellable* m_cancellable = nullptr;
-    ESourceRegistry* m_source_registry = nullptr;
-    guint m_rebuild_tag = 0;
-    time_t m_rebuild_deadline = 0;
+    GCancellable* m_cancellable {};
+    ESourceRegistry* m_source_registry {};
+    guint m_rebuild_tag {};
+    time_t m_rebuild_deadline {};
 };
 
 /***
