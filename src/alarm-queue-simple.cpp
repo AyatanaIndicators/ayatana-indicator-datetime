@@ -110,14 +110,14 @@ private:
         const auto now = m_clock->localtime();
         const auto beginning_of_minute = now.start_of_minute();
 
-        const auto appointments = m_planner->appointments().get();
+        const auto& appointments = m_planner->appointments().get();
         g_debug ("planner has %zu appointments in it", (size_t)appointments.size());
 
         for(const auto& appointment : appointments)
         {
             for(const auto& alarm : appointment.alarms)
             {
-                const std::pair<std::string,DateTime> trig{appointment.uid, alarm.time};
+                const std::pair<const std::string&,const DateTime&> trig{appointment.uid, alarm.time};
                 if (m_triggered.count(trig))
                     continue;
 
@@ -145,7 +145,7 @@ private:
 
         for (const auto& alarm : appointment.alarms)
         {
-            const auto trig = std::make_pair(appointment.uid, alarm.time);
+            const std::pair<const std::string&,const DateTime&> trig{appointment.uid, alarm.time};
             if (m_triggered.count(trig)) // did we already use this one?
                 continue;
 
