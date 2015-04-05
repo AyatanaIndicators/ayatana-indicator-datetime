@@ -559,7 +559,7 @@ private:
 
                         if (a != nullptr)
                         {
-                            const DateTime alarm_begin{ai->occur_start};
+                            const DateTime alarm_begin{ai->trigger};
                             auto& alarm = alarms[alarm_begin];
 
                             if (alarm.text.empty())
@@ -568,8 +568,6 @@ private:
                                 alarm.audio_url = get_alarm_sound_url(a);
                             if (!alarm.time.is_set())
                                 alarm.time = alarm_begin;
-                            if (alarm.duration == std::chrono::seconds::zero())
-                                alarm.duration = std::chrono::seconds(ai->occur_end - ai->occur_start);
 
                             e_cal_component_alarm_free(a);
                         }

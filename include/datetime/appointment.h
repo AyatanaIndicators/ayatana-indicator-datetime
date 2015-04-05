@@ -39,7 +39,6 @@ struct Alarm
     std::string text;
     std::string audio_url;
     DateTime time;
-    std::chrono::seconds duration;
 
     bool operator== (const Alarm& that) const;
 };

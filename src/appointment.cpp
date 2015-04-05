@@ -31,8 +31,7 @@ bool Alarm::operator==(const Alarm& that) const
 {
   return (text==that.text)
       && (audio_url==that.audio_url)
-      && (this->time==that.time)
-      && (duration==that.duration);
+      && (this->time==that.time);
 }
 
 bool Appointment::operator==(const Appointment& that) const

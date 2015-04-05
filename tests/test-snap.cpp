@@ -111,7 +111,7 @@ protected:
     const auto christmas = DateTime::Local(2015,12,25,0,0,0);
     appt.begin = christmas.start_of_day();
     appt.end = christmas.end_of_day();
-    appt.alarms.push_back(Alarm{"Alarm Text", "", appt.begin, std::chrono::seconds::zero()});
+    appt.alarms.push_back(Alarm{"Alarm Text", "", appt.begin});
 
     service = dbus_test_service_new(nullptr);
 
