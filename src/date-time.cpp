@@ -254,10 +254,12 @@ bool DateTime::is_same_day(const DateTime& a, const DateTime& b)
     if (!a.m_dt || !b.m_dt)
         return false;
 
-    const auto adt = a.get();
-    const auto bdt = b.get();
-    return (g_date_time_get_year(adt) == g_date_time_get_year(bdt))
-        && (g_date_time_get_day_of_year(adt) == g_date_time_get_day_of_year(bdt));
+    int ay, am, ad;
+    int by, bm, bd;
+    g_date_time_get_ymd(a.get(), &ay, &am, &ad);
+    g_date_time_get_ymd(b.get(), &by, &bm, &bd);
+
+    return (ay==by) && (am==bm) && (ad==bd);
 }
 
 bool DateTime::is_same_minute(const DateTime& a, const DateTime& b)
