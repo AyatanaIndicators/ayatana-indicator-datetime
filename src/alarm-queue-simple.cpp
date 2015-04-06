@@ -103,6 +103,12 @@ private:
         }
     }
 
+    bool already_triggered (const Appointment& appt, const Alarm& alarm) const
+    {
+        const std::pair<const std::string&,const DateTime&> key{appt.uid, alarm.time};
+        return m_triggered.count(key) != 0;
+    }
+
     // return the next Alarm (if any) that will kick now or in the future
     const Alarm* find_next_alarm(const std::vector<Appointment>& appointments) const
     {
@@ -116,8 +122,7 @@ private:
         {
             for(const auto& alarm : appointment.alarms)
             {
-                const std::pair<const std::string&,const DateTime&> trig{appointment.uid, alarm.time};
-                if (m_triggered.count(trig))
+                if (already_triggered(appointment, alarm))
                     continue;
 
                 if (alarm.time < beginning_of_minute) // has this one already passed?
@@ -139,14 +144,8 @@ private:
         const auto now = m_clock->localtime();
 
         for (const auto& alarm : appointment.alarms)
-        {
-            const std::pair<const std::string&,const DateTime&> trig{appointment.uid, alarm.time};
-            if (m_triggered.count(trig)) // did we already use this one?
-                continue;
-
-            if (DateTime::is_same_minute(now, alarm.time))
+            if (!already_triggered(appointment, alarm) && DateTime::is_same_minute(now, alarm.time))
                 return &alarm;
-        }
 
         return nullptr;
     }
