@@ -11,8 +11,7 @@ echo ARG7=$7 # full executable path of gvfs
 echo ARG8=$8 # config files
 
 # set up the tmpdir and tell the shell to purge it when we exit
-export TEST_TMP_DIR=$(mktemp -p "${TMPDIR:-.}" -d $3-XXXXXXXXXX) || exit 1
-trap 'rm -rf $TEST_TMP_DIR' EXIT
+export TEST_TMP_DIR=$(mktemp -p "${TMPDIR:-/tmp}" -d $3-XXXXXXXXXX) || exit 1
 echo "running test '$3' in ${TEST_TMP_DIR}"
 
 # set up the environment variables
@@ -48,4 +47,11 @@ $1 --keep-env --max-wait=90 \
 --task $4 --task-name "evolution" --wait-until-complete -r
 #--task $6 --task-name "source-registry" --wait-for=org.gtk.vfs.Daemon -r \
 #--task $7 --task-name "gvfsd" -r
-return $?
+rv=$?
+
+# if the test passed, blow away the tmpdir
+if [ $rv -eq 0 ]; then
+    rm -rf $TEST_TMP_DIR
+fi
+
+return $rv
