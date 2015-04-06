@@ -10,10 +10,12 @@ echo ARG6=$6 # full exectuable path of evolution-source-registry
 echo ARG7=$7 # full executable path of gvfs
 echo ARG8=$8 # config files
 
+# set up the tmpdir and tell the shell to purge it when we exit
 export TEST_TMP_DIR=$(mktemp -p "${TMPDIR:-.}" -d $3-XXXXXXXXXX) || exit 1
 trap 'rm -rf $TEST_TMP_DIR' EXIT
 echo "running test '$3' in ${TEST_TMP_DIR}"
 
+# set up the environment variables
 export QT_QPA_PLATFORM=minimal
 export HOME=${TEST_TMP_DIR}
 export XDG_RUNTIME_DIR=${TEST_TMP_DIR}
@@ -40,6 +42,7 @@ if [ -d $8 ]; then
   cp --verbose --archive $8/. $HOME
 fi
 
+# run dbus-test-runner
 $1 --keep-env --max-wait=90 \
 --task $2 --task-name $3 --wait-until-complete --wait-for=org.gnome.evolution.dataserver.Calendar4 \
 --task $4 --task-name "evolution" --wait-until-complete -r
