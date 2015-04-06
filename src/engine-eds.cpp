@@ -581,8 +581,10 @@ private:
 
                     e_cal_component_alarms_free(e_alarms);
                 }
-                // hm, no alarms? if this came from ubuntu-clock-app,
-                // manually add a single alarm for the todo event's time
+                // Hm, no alarm triggers? 
+                // That's a bug in alarms created by some versions of ubuntu-ui-toolkit.
+                // If that's what's happening here, let's handle those alarms anyway
+                // by effectively injecting a TRIGGER;VALUE=DURATION;RELATED=START:PT0S
                 else if (appointment.is_ubuntu_alarm())
                 {
                     Alarm tmp;
