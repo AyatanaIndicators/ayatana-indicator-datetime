@@ -25,6 +25,7 @@
 #include <libedataserver/libedataserver.h>
 
 #include <algorithm> // std::sort()
+#include <array>
 #include <ctime> // time()
 #include <map>
 #include <set>
@@ -523,7 +524,7 @@ private:
                 (status != ICAL_STATUS_COMPLETED) &&
                 (status != ICAL_STATUS_CANCELLED))
             {
-                ECalComponentAlarmAction omit[] = { (ECalComponentAlarmAction)-1 }; // list of action types to omit, terminated with -1
+                std::array<ECalComponentAlarmAction,1> omit = { (ECalComponentAlarmAction)-1 }; // list of action types to omit, terminated with -1
                 Appointment appointment;
 
                 ECalComponentText text {};
@@ -543,7 +544,7 @@ private:
                 auto e_alarms = e_cal_util_generate_alarms_for_comp(component,
                                                                     subtask->begin,
                                                                     subtask->end,
-                                                                    omit,
+                                                                    omit.data(),
                                                                     e_cal_client_resolve_tzid_cb,
                                                                     subtask->client,
                                                                     subtask->default_timezone);
