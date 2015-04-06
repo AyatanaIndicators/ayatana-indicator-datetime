@@ -79,38 +79,37 @@ private:
 
     void requeue()
     {
+        const auto appointments = m_planner->appointments().get();
+        const Alarm* alarm;
+
         // kick any current alarms
-        for (const auto& appointment : m_planner->appointments().get())
+        for (const auto& appointment : appointments)
         {
-            Alarm alarm;
-            if (appointment_get_current_alarm(appointment, alarm))
+            if ((alarm = appointment_get_current_alarm(appointment)))
             {
-                m_triggered.insert(std::make_pair(appointment.uid, alarm.time));
-                m_alarm_reached(appointment, alarm);
+                m_triggered.insert(std::make_pair(appointment.uid, alarm->time));
+                m_alarm_reached(appointment, *alarm);
             }
         }
 
         // idle until the next alarm
-        Alarm next;
-        if (find_next_alarm(next))
+        if ((alarm = find_next_alarm(appointments)))
         {
             g_debug ("setting timer to wake up for next appointment '%s' at %s", 
-                     next.text.c_str(),
-                     next.time.format("%F %T").c_str());
+                     alarm->text.c_str(),
+                     alarm->time.format("%F %T").c_str());
 
-            m_timer->set_wakeup_time(next.time);
+            m_timer->set_wakeup_time(alarm->time);
         }
     }
 
-    // find the next alarm that will kick now or in the future
-    bool find_next_alarm(Alarm& setme) const
+    // return the next Alarm (if any) that will kick now or in the future
+    const Alarm* find_next_alarm(const std::vector<Appointment>& appointments) const
     {
-        bool found = false;
-        Alarm best;
+        const Alarm* best {};
         const auto now = m_clock->localtime();
         const auto beginning_of_minute = now.start_of_minute();
 
-        const auto& appointments = m_planner->appointments().get();
         g_debug ("planner has %zu appointments in it", (size_t)appointments.size());
 
         for(const auto& appointment : appointments)
@@ -124,22 +123,18 @@ private:
                 if (alarm.time < beginning_of_minute) // has this one already passed?
                     continue;
 
-                if (found && (best.time < alarm.time)) // do we already have a better match?
+                if (best && (best->time < alarm.time)) // do we already have a better match?
                     continue;
 
-                best = alarm;
-                found = true;
+                best = &alarm;
             }
         }
 
-        if (found)
-          setme = best;
-
-        return found;
+        return best;
     }
 
-
-    bool appointment_get_current_alarm(const Appointment& appointment, Alarm& setme) const
+    // return the Appointment's current Alarm (if any)
+    const Alarm* appointment_get_current_alarm(const Appointment& appointment) const
     {
         const auto now = m_clock->localtime();
 
@@ -150,13 +145,10 @@ private:
                 continue;
 
             if (DateTime::is_same_minute(now, alarm.time))
-            {
-                setme = alarm;
-                return true;
-            }
+                return &alarm;
         }
 
-        return false;
+        return nullptr;
     }
 
 
