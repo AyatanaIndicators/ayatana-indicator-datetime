@@ -47,7 +47,7 @@ public:
             requeue();
         });
 
-        m_clock->minute_changed.connect([=]{
+        m_clock->minute_changed.connect([this]{
             const auto now = m_clock->localtime();
             constexpr auto skew_threshold_usec = int64_t{90} * G_USEC_PER_SEC;
             const bool clock_jumped = std::abs(now - m_datetime) > skew_threshold_usec;
