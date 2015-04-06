@@ -43,18 +43,22 @@ TEST_F(VAlarmFixture, MultipleAppointments)
     // start the EDS engine
     auto engine = std::make_shared<EdsEngine>();
 
+    // we need a consistent timezone for the planner and our local DateTimes
+    constexpr char const * zone_str {"America/Chicago"};
+    auto tz = std::make_shared<MockTimezone>(zone_str);
+    auto gtz = g_time_zone_new(zone_str);
+
     // make a planner that looks at the first half of 2015 in EDS
-    auto tz = std::make_shared<MockTimezone>("America/Chicago");
     auto planner = std::make_shared<SimpleRangePlanner>(engine, tz);
-    const auto range_begin = DateTime::Local(2015,1, 1, 0, 0, 0.0);
-    const auto range_end   = DateTime::Local(2015,6,31,23,59,59.5);
+    const DateTime range_begin {gtz, 2015,1, 1, 0, 0, 0.0};
+    const DateTime range_end   {gtz, 2015,6,31,23,59,59.5};
     planner->range().set(std::make_pair(range_begin, range_end));
 
     // give EDS a moment to load
     if (planner->appointments().get().empty()) {
-        g_debug("waiting a moment for EDS to load...");
+        g_message("waiting a moment for EDS to load...");
         auto on_appointments_changed = [this](const std::vector<Appointment>& appointments){
-            g_debug("ah, they loaded");
+            g_message("ah, they loaded");
             if (!appointments.empty())
                 g_main_loop_quit(loop);
         };
@@ -68,14 +72,14 @@ TEST_F(VAlarmFixture, MultipleAppointments)
     ASSERT_EQ(1, appts.size());
     const auto& appt = appts.front();
     ASSERT_EQ(8, appt.alarms.size());
-    EXPECT_EQ(Alarm({"Time to pack!",      "", DateTime::Local(2015,4,23,13,35,0)}), appt.alarms[0]);
-    EXPECT_EQ(Alarm({"Time to pack!",      "", DateTime::Local(2015,4,23,13,37,0)}), appt.alarms[1]);
-    EXPECT_EQ(Alarm({"Time to pack!",      "", DateTime::Local(2015,4,23,13,39,0)}), appt.alarms[2]);
-    EXPECT_EQ(Alarm({"Time to pack!",      "", DateTime::Local(2015,4,23,13,41,0)}), appt.alarms[3]);
-    EXPECT_EQ(Alarm({"Go to the airport!", "", DateTime::Local(2015,4,24,10,35,0)}), appt.alarms[4]);
-    EXPECT_EQ(Alarm({"Go to the airport!", "", DateTime::Local(2015,4,24,10,37,0)}), appt.alarms[5]);
-    EXPECT_EQ(Alarm({"Go to the airport!", "", DateTime::Local(2015,4,24,10,39,0)}), appt.alarms[6]);
-    EXPECT_EQ(Alarm({"Go to the airport!", "", DateTime::Local(2015,4,24,10,41,0)}), appt.alarms[7]);
+    EXPECT_EQ(Alarm({"Time to pack!",      "", DateTime(gtz,2015,4,23,13,35,0)}), appt.alarms[0]);
+    EXPECT_EQ(Alarm({"Time to pack!",      "", DateTime(gtz,2015,4,23,13,37,0)}), appt.alarms[1]);
+    EXPECT_EQ(Alarm({"Time to pack!",      "", DateTime(gtz,2015,4,23,13,39,0)}), appt.alarms[2]);
+    EXPECT_EQ(Alarm({"Time to pack!",      "", DateTime(gtz,2015,4,23,13,41,0)}), appt.alarms[3]);
+    EXPECT_EQ(Alarm({"Go to the airport!", "", DateTime(gtz,2015,4,24,10,35,0)}), appt.alarms[4]);
+    EXPECT_EQ(Alarm({"Go to the airport!", "", DateTime(gtz,2015,4,24,10,37,0)}), appt.alarms[5]);
+    EXPECT_EQ(Alarm({"Go to the airport!", "", DateTime(gtz,2015,4,24,10,39,0)}), appt.alarms[6]);
+    EXPECT_EQ(Alarm({"Go to the airport!", "", DateTime(gtz,2015,4,24,10,41,0)}), appt.alarms[7]);
 
     // now let's try this out with AlarmQueue...
     // hook the planner up to a SimpleAlarmQueue and confirm that it triggers for each of the reminders
@@ -91,4 +95,7 @@ TEST_F(VAlarmFixture, MultipleAppointments)
     for (auto now=range_begin; now<range_end; now+=std::chrono::minutes{1})
       mock_clock->set_localtime(now);
     EXPECT_EQ(appt.alarms.size(), triggered_count);
+
+    // cleanup
+    g_time_zone_unref(gtz);
 }
