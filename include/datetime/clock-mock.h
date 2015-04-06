@@ -39,7 +39,7 @@ public:
     explicit MockClock(const DateTime& dt): m_localtime(dt) {}
     ~MockClock() =default;
 
-    DateTime localtime() const { return m_localtime; }
+    DateTime localtime() const override { return m_localtime; }
 
     void set_localtime(const DateTime& dt)
     {

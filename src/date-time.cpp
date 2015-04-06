@@ -55,19 +55,39 @@ DateTime& DateTime::operator=(const DateTime& that)
     return *this;
 }
 
-DateTime::DateTime(time_t t)
+DateTime& DateTime::operator+=(const std::chrono::minutes& minutes)
 {
-    auto gtz = g_time_zone_new_local();
-    auto gdt = g_date_time_new_from_unix_local(t);
+    return (*this = add_full(0, 0, 0, 0, minutes.count(), 0));
+}
+
+DateTime& DateTime::operator+=(const std::chrono::seconds& seconds)
+{
+    return (*this = add_full(0, 0, 0, 0, 0, seconds.count()));
+}
+
+DateTime::DateTime(GTimeZone* gtz, time_t t)
+{
+    auto utc = g_date_time_new_from_unix_utc(t);
+    auto gdt = g_date_time_to_timezone (utc, gtz);
     reset(gtz, gdt);
-    g_time_zone_unref(gtz);
     g_date_time_unref(gdt);
+    g_date_time_unref(utc);
 }
 
 DateTime DateTime::NowLocal()
 {
     auto gtz = g_time_zone_new_local();
     auto gdt = g_date_time_new_now(gtz);
+    DateTime dt(gtz, gdt);
+    g_time_zone_unref(gtz);
+    g_date_time_unref(gdt);
+    return dt;
+}
+
+DateTime DateTime::Local(time_t t)
+{
+    auto gtz = g_time_zone_new_local();
+    auto gdt = g_date_time_new_from_unix_local(t);
     DateTime dt(gtz, gdt);
     g_time_zone_unref(gtz);
     g_date_time_unref(gdt);
@@ -244,10 +264,12 @@ bool DateTime::is_same_day(const DateTime& a, const DateTime& b)
     if (!a.m_dt || !b.m_dt)
         return false;
 
-    const auto adt = a.get();
-    const auto bdt = b.get();
-    return (g_date_time_get_year(adt) == g_date_time_get_year(bdt))
-        && (g_date_time_get_day_of_year(adt) == g_date_time_get_day_of_year(bdt));
+    int ay, am, ad;
+    int by, bm, bd;
+    g_date_time_get_ymd(a.get(), &ay, &am, &ad);
+    g_date_time_get_ymd(b.get(), &by, &bm, &bd);
+
+    return (ay==by) && (am==bm) && (ad==bd);
 }
 
 bool DateTime::is_same_minute(const DateTime& a, const DateTime& b)

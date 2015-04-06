@@ -41,8 +41,8 @@ class MainloopWakeupTimer: public WakeupTimer
 public:
     explicit MainloopWakeupTimer(const std::shared_ptr<Clock>&);
     ~MainloopWakeupTimer();
-    void set_wakeup_time (const DateTime&);
-    core::Signal<>& timeout();
+    void set_wakeup_time (const DateTime&) override;
+    core::Signal<>& timeout() override;
 
 private:
     MainloopWakeupTimer(const MainloopWakeupTimer&) =delete;

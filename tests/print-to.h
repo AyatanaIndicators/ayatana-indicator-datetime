@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2015 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -17,38 +17,29 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
+#ifndef INDICATOR_DATETIME_TESTS_PRINT_TO
+#define INDICATOR_DATETIME_TESTS_PRINT_TO
+
+#include <algorithm>
+
 #include <datetime/appointment.h>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
-/****
-*****
-****/
+/***
+**** PrintTo() functions for GTest to represent objects as strings
+***/
 
-bool Alarm::operator==(const Alarm& that) const
+void
+PrintTo(const Alarm& alarm, std::ostream* os)
 {
-  return (text==that.text)
-      && (audio_url==that.audio_url)
-      && (this->time==that.time);
+    *os << "{text:'" << alarm.text << "', audio_url:'" << alarm.audio_url << "', time:'"<<alarm.time.format("%F %T")<<"'}";
 }
-
-bool Appointment::operator==(const Appointment& that) const
-{
-    return (type==that.type)
-        && (uid==that.uid)
-        && (color==that.color)
-        && (summary==that.summary)
-        && (begin==that.begin)
-        && (end==that.end)
-        && (alarms==that.alarms);
-}
-
-/****
-*****
-****/
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
+
+#endif

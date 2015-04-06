@@ -45,7 +45,7 @@ class AlarmQueue
 public:
     AlarmQueue() =default;
     virtual ~AlarmQueue() =default;
-    virtual core::Signal<const Appointment&>& alarm_reached() = 0;
+    virtual core::Signal<const Appointment&, const Alarm&>& alarm_reached() =0;
 };
 
 /***

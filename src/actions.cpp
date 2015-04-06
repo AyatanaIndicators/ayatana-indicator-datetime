@@ -43,7 +43,7 @@ DateTime datetime_from_timet_variant(GVariant* v)
             t = g_variant_get_int64(v);
 
     if (t != 0)
-        return DateTime(t);
+        return DateTime::Local(t);
     else
         return DateTime::NowLocal();
 }
@@ -143,7 +143,7 @@ void on_calendar_activated(GSimpleAction * /*action*/,
 
     g_return_if_fail(t != 0);
 
-    auto dt = DateTime(t).start_of_day();
+    auto dt = DateTime::Local(t).start_of_day();
     static_cast<Actions*>(gself)->set_calendar_date(dt);
 }
 

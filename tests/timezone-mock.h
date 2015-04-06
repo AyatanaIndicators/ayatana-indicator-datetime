@@ -30,6 +30,7 @@ class MockTimezone: public Timezone
 {
 public:
     MockTimezone() =default;
+    explicit MockTimezone(const std::string& zone) {timezone.set(zone);}
     ~MockTimezone() =default;
 };
 
