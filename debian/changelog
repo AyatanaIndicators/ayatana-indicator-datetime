@@ -1,3 +1,11 @@
+indicator-datetime (13.10.0+15.04.20150406-0ubuntu1) vivid; urgency=medium
+
+  [ Charles Kerr ]
+  * Improve valarm support to honor calendar events' valarm triggers.
+    (LP: #1419001)
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Mon, 06 Apr 2015 23:35:46 +0000
+
 indicator-datetime (13.10.0+15.04.20150331-0ubuntu1) vivid; urgency=medium
 
   [ Charles Kerr ]
