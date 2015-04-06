@@ -19,8 +19,6 @@
 
 #include <algorithm>
 
-#include <core/connection.h>
-
 #include <datetime/alarm-queue-simple.h>
 #include <datetime/clock-mock.h>
 #include <datetime/engine-eds.h>
@@ -32,27 +30,8 @@
 #include "timezone-mock.h"
 #include "wakeup-timer-mock.h"
 
-
 using namespace unity::indicator::datetime;
-
-class VAlarmFixture: public GlibFixture
-{
-private:
-
-    typedef GlibFixture super;
-
-protected:
-
-    void SetUp()
-    {
-        super::SetUp();
-    }
-
-    void TearDown()
-    {
-        super::TearDown();
-    }
-};
+using VAlarmFixture = GlibFixture;
 
 /***
 ****
@@ -83,6 +62,7 @@ TEST_F(VAlarmFixture, MultipleAppointments)
         wait_msec(max_wait_sec * G_TIME_SPAN_MILLISECOND);
     }
 
+    // the planner should match what we've got in the calendar.ics file
     const auto appts = planner->appointments().get();
     ASSERT_EQ(1, appts.size());
     const auto& appt = appts.front();
