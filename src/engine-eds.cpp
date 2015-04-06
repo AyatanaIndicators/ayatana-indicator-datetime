@@ -497,11 +497,16 @@ private:
             auto status = ICAL_STATUS_NONE;
             e_cal_component_get_status(component, &status);
 
-            const auto begin_dt = DateTime(begin);
-            const auto end_dt = DateTime(end);
+            // get the timezone we want to use for generated Appointments/Alarms
+            const char * location = icaltimezone_get_location(subtask->default_timezone);
+            auto gtz = g_time_zone_new(location);
+            g_debug("timezone abbreviation is %s", g_time_zone_get_abbreviation (gtz, 0));
+
+            const DateTime begin_dt { gtz, begin };
+            const DateTime end_dt { gtz, end };
             g_debug ("got appointment from %s to %s, uid %s status %d",
-                     begin_dt.format("%F %T").c_str(),
-                     end_dt.format("%F %T").c_str(),
+                     begin_dt.format("%F %T %z").c_str(),
+                     end_dt.format("%F %T %z").c_str(),
                      uid,
                      (int)status);
 
@@ -560,7 +565,7 @@ private:
 
                         if (a != nullptr)
                         {
-                            const DateTime alarm_begin{ai->trigger};
+                            const DateTime alarm_begin{gtz, ai->trigger};
                             auto& alarm = alarms[alarm_begin];
 
                             if (alarm.text.empty())
@@ -608,6 +613,8 @@ private:
 
                 subtask->task->appointments.push_back(appointment);
             }
+
+            g_time_zone_unref(gtz);
         }
  
         return G_SOURCE_CONTINUE;
