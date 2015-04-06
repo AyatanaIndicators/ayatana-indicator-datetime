@@ -37,10 +37,11 @@ class DateTime
 {
 public:
     static DateTime NowLocal();
+    static DateTime Local(time_t);
     static DateTime Local(int year, int month, int day, int hour, int minute, double seconds);
 
     DateTime();
-    explicit DateTime(time_t t);
+    DateTime(GTimeZone* tz, time_t t);
     DateTime(GTimeZone* tz, GDateTime* dt);
     DateTime(GTimeZone* tz, int year, int month, int day, int hour, int minute, double seconds);
     DateTime& operator=(const DateTime& in);

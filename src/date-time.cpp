@@ -65,19 +65,29 @@ DateTime& DateTime::operator+=(const std::chrono::seconds& seconds)
     return (*this = add_full(0, 0, 0, 0, 0, seconds.count()));
 }
 
-DateTime::DateTime(time_t t)
+DateTime::DateTime(GTimeZone* gtz, time_t t)
 {
-    auto gtz = g_time_zone_new_local();
-    auto gdt = g_date_time_new_from_unix_local(t);
+    auto utc = g_date_time_new_from_unix_utc(t);
+    auto gdt = g_date_time_to_timezone (utc, gtz);
     reset(gtz, gdt);
-    g_time_zone_unref(gtz);
     g_date_time_unref(gdt);
+    g_date_time_unref(utc);
 }
 
 DateTime DateTime::NowLocal()
 {
     auto gtz = g_time_zone_new_local();
     auto gdt = g_date_time_new_now(gtz);
+    DateTime dt(gtz, gdt);
+    g_time_zone_unref(gtz);
+    g_date_time_unref(gdt);
+    return dt;
+}
+
+DateTime DateTime::Local(time_t t)
+{
+    auto gtz = g_time_zone_new_local();
+    auto gdt = g_date_time_new_from_unix_local(t);
     DateTime dt(gtz, gdt);
     g_time_zone_unref(gtz);
     g_date_time_unref(gdt);
