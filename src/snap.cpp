@@ -79,6 +79,7 @@ public:
     }
 
     void operator()(const Appointment& appointment,
+                    const Alarm& alarm,
                     appointment_func snooze,
                     appointment_func ok)
     {
@@ -96,7 +97,7 @@ public:
         if (appointment.is_ubuntu_alarm() || !silent_mode()) {
             // create the sound.
             const auto role = appointment.is_ubuntu_alarm() ? "alarm" : "alert";
-            const auto uri = get_alarm_uri(appointment, m_settings);
+            const auto uri = get_alarm_uri(alarm, m_settings);
             const auto volume = m_settings->alarm_volume.get();
             const bool loop = interactive;
             sound = std::make_shared<uin::Sound>(role, uri, volume, loop);
@@ -140,12 +141,12 @@ public:
         // add 'sound', 'haptic', and 'awake' objects to the capture so
         // they stay alive until the closed callback is called; i.e.,
         // for the lifespan of the notficiation
-        b.set_closed_callback([appointment, snooze, ok, sound, awake, haptic]
+        b.set_closed_callback([appointment, alarm, snooze, ok, sound, awake, haptic]
                               (const std::string& action){
             if (action == "snooze")
-                snooze(appointment);
+                snooze(appointment, alarm);
             else
-                ok(appointment);
+                ok(appointment, alarm);
         });
 
         const auto key = m_engine->show(b);
@@ -180,12 +181,12 @@ private:
             && (accounts_service_sound_get_silent_mode(m_accounts_service_sound_proxy));
     }
 
-    std::string get_alarm_uri(const Appointment& appointment,
+    std::string get_alarm_uri(const Alarm& alarm,
                               const std::shared_ptr<const Settings>& settings) const
     {
         const char* FALLBACK {"/usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg"};
 
-        const std::string candidates[] = { appointment.audio_url,
+        const std::string candidates[] = { alarm.audio_url,
                                            settings->alarm_sound.get(),
                                            FALLBACK };
 
@@ -236,10 +237,11 @@ Snap::~Snap()
 
 void
 Snap::operator()(const Appointment& appointment,
+                 const Alarm& alarm,
                  appointment_func show,
                  appointment_func ok)
 {
-  (*impl)(appointment, show, ok);
+  (*impl)(appointment, alarm, show, ok);
 }
 
 /***

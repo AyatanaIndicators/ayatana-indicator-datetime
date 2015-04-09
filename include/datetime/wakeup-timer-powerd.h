@@ -41,8 +41,8 @@ class PowerdWakeupTimer: public WakeupTimer
 public:
     explicit PowerdWakeupTimer(const std::shared_ptr<Clock>&);
     ~PowerdWakeupTimer();
-    void set_wakeup_time(const DateTime&);
-    core::Signal<>& timeout();
+    void set_wakeup_time(const DateTime&) override;
+    core::Signal<>& timeout() override;
 
 private:
     PowerdWakeupTimer(const PowerdWakeupTimer&) =delete;

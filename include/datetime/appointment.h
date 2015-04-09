@@ -21,14 +21,28 @@
 #define INDICATOR_DATETIME_APPOINTMENT_H
 
 #include <datetime/date-time.h>
+
 #include <string>
+#include <vector>
 
 namespace unity {
 namespace indicator {
 namespace datetime {
 
 /**
- * \brief Plain Old Data Structure that represents a calendar appointment.
+ * \brief Basic information required to raise a notification about some Appointment.
+ */
+struct Alarm
+{
+    std::string text;
+    std::string audio_url;
+    DateTime time;
+
+    bool operator== (const Alarm& that) const;
+};
+
+/**
+ * \brief An instance of an appointment; e.g. a calendar event or clock-app alarm
  *
  * @see Planner
  */
@@ -39,13 +53,14 @@ public:
     Type type = EVENT;
     bool is_ubuntu_alarm() const { return type == UBUNTU_ALARM; }
 
+    std::string uid;
     std::string color; 
     std::string summary;
-    std::string url;
-    std::string uid;
-    std::string audio_url;
+    std::string activation_url;
     DateTime begin;
     DateTime end;
+
+    std::vector<Alarm> alarms;
 
     bool operator== (const Appointment& that) const;
 };

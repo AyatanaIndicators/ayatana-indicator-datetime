@@ -1,3 +1,20 @@
+indicator-datetime (13.10.0+15.04.20150406-0ubuntu1) vivid; urgency=medium
+
+  [ Charles Kerr ]
+  * Improve valarm support to honor calendar events' valarm triggers.
+    (LP: #1419001)
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Mon, 06 Apr 2015 23:35:46 +0000
+
+indicator-datetime (13.10.0+15.04.20150331-0ubuntu1) vivid; urgency=medium
+
+  [ Charles Kerr ]
+  * Reduce the forced screen-on time for alarms to reduce battery
+    consumption. Also, lower the default alarm duration from 30 minutes
+    to 10 minutes. (LP: #1434637)
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Tue, 31 Mar 2015 20:25:38 +0000
+
 indicator-datetime (13.10.0+15.04.20150317-0ubuntu1) vivid; urgency=medium
 
   [ Charles Kerr ]

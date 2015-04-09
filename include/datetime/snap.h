@@ -42,8 +42,9 @@ public:
          const std::shared_ptr<const Settings>& settings);
     virtual ~Snap();
 
-    typedef std::function<void(const Appointment&)> appointment_func;
+    typedef std::function<void(const Appointment&, const Alarm&)> appointment_func;
     void operator()(const Appointment& appointment,
+                    const Alarm& alarm,
                     appointment_func snooze,
                     appointment_func ok);
 

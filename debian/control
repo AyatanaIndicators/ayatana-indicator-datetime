@@ -2,18 +2,10 @@ Source: indicator-datetime
 Section: misc
 Priority: optional
 Maintainer: Ubuntu Desktop Team <ubuntu-desktop@lists.ubuntu.com>
-# g++-4.9: since we use c++11 features, explicitly select a g++ version
-#          to protect from ABI breaks in libstdc++
-# language-pack-en-base: needed so unit tests can use 12h and 24h locales
 Build-Depends: cmake,
-               g++-4.9,
                dbus,
-               dbus-test-runner,
-               python3-dbusmock,
                debhelper (>= 9), 
                dh-translations,
-               language-pack-touch-en | language-pack-en-base,
-               libgtest-dev,
                libglib2.0-dev (>= 2.35.4),
                libnotify-dev (>= 0.7.6),
                libgstreamer1.0-dev,
@@ -22,8 +14,19 @@ Build-Depends: cmake,
                libedataserver1.2-dev (>= 3.5),
                liburl-dispatcher1-dev,
                libproperties-cpp-dev,
+# for safeguarding against ABI breaks in libstdc++, explicitly select a g++ version
+               g++-4.9,
+# for the test harness:
+               libgtest-dev,
                libdbustest1-dev,
+               dbus-test-runner,
+               python3-dbusmock,
+# for 12h/24h locale unit tests:
                locales,
+               language-pack-touch-en | language-pack-en-base,
+# for running live EDS tests:
+               evolution-data-server,
+               gvfs-daemons,
 Standards-Version: 3.9.3
 Homepage: https://launchpad.net/indicator-datetime
 # If you aren't a member of ~indicator-applet-developers but need to upload
