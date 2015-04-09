@@ -542,6 +542,8 @@ private:
                 auto icc = e_cal_component_get_icalcomponent(component); // component owns icc
                 if (icc)
                 {
+                    g_debug("%s", icalcomponent_as_ical_string(icc)); // libical owns this string; no leak
+
                     auto icalprop = icalcomponent_get_first_property(icc, ICAL_X_PROPERTY);
                     while (icalprop)
                     {
@@ -549,8 +551,8 @@ private:
                         if ((x_name != nullptr) && !g_ascii_strcasecmp(x_name, X_PROP_ACTIVATION_URL))
                         {
                             const char * url = icalproperty_get_value_as_string(icalprop);
-                            if ((url != nullptr) && appointment.url.empty())
-                                appointment.url = url;
+                            if ((url != nullptr) && appointment.activation_url.empty())
+                                appointment.activation_url = url;
                         }
 
                         icalprop = icalcomponent_get_next_property(icc, ICAL_X_PROPERTY);
@@ -562,9 +564,6 @@ private:
                 appointment.color = subtask->color;
                 appointment.uid = uid;
                 appointment.type = type;
-
-                icalcomponent * icc = e_cal_component_get_icalcomponent(component);
-                g_debug("%s", icalcomponent_as_ical_string(icc)); // libical owns this string; no leak
 
                 auto e_alarms = e_cal_util_generate_alarms_for_comp(component,
                                                                     subtask->begin,
