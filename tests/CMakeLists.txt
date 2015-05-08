@@ -93,6 +93,7 @@ function(add_eds_test_by_name name)
             ${GVFSD}                                               # arg7: gvfsd exec
             ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}-config-files) # arg8: canned config files
 endfunction()
+add_eds_test_by_name(test-eds-tasks)
 add_eds_test_by_name(test-eds-valarms)
 
 
