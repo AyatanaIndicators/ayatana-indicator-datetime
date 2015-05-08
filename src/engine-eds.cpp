@@ -34,8 +34,10 @@ namespace unity {
 namespace indicator {
 namespace datetime {
 
-static constexpr char const * TAG_ALARM {"x-canonical-alarm"};
+static constexpr char const * TAG_ALARM    {"x-canonical-alarm"};
 static constexpr char const * TAG_DISABLED {"x-canonical-disabled"};
+
+static constexpr char const * X_PROP_ACTIVATION_URL {"X-CANONICAL-ACTIVATION-URL"};
 
 /****
 *****
@@ -537,14 +539,31 @@ private:
                 if (text.value)
                     appointment.summary = text.value;
 
+                auto icc = e_cal_component_get_icalcomponent(component); // component owns icc
+                if (icc)
+                {
+                    g_debug("%s", icalcomponent_as_ical_string(icc)); // libical owns this string; no leak
+
+                    auto icalprop = icalcomponent_get_first_property(icc, ICAL_X_PROPERTY);
+                    while (icalprop)
+                    {
+                        const char * x_name = icalproperty_get_x_name(icalprop);
+                        if ((x_name != nullptr) && !g_ascii_strcasecmp(x_name, X_PROP_ACTIVATION_URL))
+                        {
+                            const char * url = icalproperty_get_value_as_string(icalprop);
+                            if ((url != nullptr) && appointment.activation_url.empty())
+                                appointment.activation_url = url;
+                        }
+
+                        icalprop = icalcomponent_get_next_property(icc, ICAL_X_PROPERTY);
+                    }
+                }
+
                 appointment.begin = begin_dt;
                 appointment.end = end_dt;
                 appointment.color = subtask->color;
                 appointment.uid = uid;
                 appointment.type = type;
-
-                icalcomponent * icc = e_cal_component_get_icalcomponent(component);
-                g_debug("%s", icalcomponent_as_ical_string(icc)); // libical owns this string; no leak
 
                 auto e_alarms = e_cal_util_generate_alarms_for_comp(component,
                                                                     subtask->begin,
@@ -552,7 +571,7 @@ private:
                                                                     const_cast<ECalComponentAlarmAction*>(omit.data()),
                                                                     e_cal_client_resolve_tzid_cb,
                                                                     subtask->client,
-                                                                    subtask->default_timezone);
+                                                                    nullptr);
 
                 std::map<DateTime,Alarm> alarms;
 
