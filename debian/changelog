@@ -1,3 +1,14 @@
+indicator-datetime (13.10.0+15.04.20150508.2-0ubuntu1) vivid; urgency=medium
+
+  [ CI Train Bot ]
+  * New rebuild forced.
+
+  [ Charles Kerr ]
+  * If the "X-CANONICAL-ACTIVATION-URL" x-prop is defined in the VTODO
+    or VEVENT, use it for url delegation. (LP: #1426519)
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Fri, 08 May 2015 20:01:09 +0000
+
 indicator-datetime (13.10.0+15.04.20150406-0ubuntu1) vivid; urgency=medium
 
   [ Charles Kerr ]
