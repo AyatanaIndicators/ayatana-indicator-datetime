@@ -1,3 +1,11 @@
+indicator-datetime (13.10.0+15.10.20150515-0ubuntu1) wily; urgency=medium
+
+  [ Charles Kerr ]
+  * Honor the 'other vibrations' setting to enable/disable vibrations
+    when alarm notifications are shown.
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Fri, 15 May 2015 16:41:41 +0000
+
 indicator-datetime (13.10.0+15.04.20150406-0ubuntu1) vivid; urgency=medium
 
   [ Charles Kerr ]
