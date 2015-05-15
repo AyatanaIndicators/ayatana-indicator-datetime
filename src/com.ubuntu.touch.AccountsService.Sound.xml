@@ -34,6 +34,11 @@
             <annotation name="org.freedesktop.Accounts.DefaultValue" value="true"/>
         </property>
 
+        <!-- "Other vibrations" should cover all vibrations except for those relating to phone calls and messages -->
+        <property name="OtherVibrate" type="b" access="readwrite">
+            <annotation name="org.freedesktop.Accounts.DefaultValue" value="true"/>
+        </property>
+
         <property name="DialpadSoundsEnabled" type="b" access="readwrite">
             <annotation name="org.freedesktop.Accounts.DefaultValue" value="true"/>
         </property>

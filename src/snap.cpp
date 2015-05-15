@@ -104,10 +104,12 @@ public:
         }
 
         // create the haptic feedback...
-        const auto haptic_mode = m_settings->alarm_haptic.get();
         std::shared_ptr<uin::Haptic> haptic;
-        if (haptic_mode == "pulse")
-            haptic = std::make_shared<uin::Haptic>(uin::Haptic::MODE_PULSE);
+        if (should_vibrate()) {
+            const auto haptic_mode = m_settings->alarm_haptic.get();
+            if (haptic_mode == "pulse")
+                haptic = std::make_shared<uin::Haptic>(uin::Haptic::MODE_PULSE);
+        }
 
         // show a notification...
         const auto minutes = std::chrono::minutes(m_settings->alarm_duration.get());
@@ -179,6 +181,12 @@ private:
     {
         return (m_accounts_service_sound_proxy != nullptr)
             && (accounts_service_sound_get_silent_mode(m_accounts_service_sound_proxy));
+    }
+
+    bool should_vibrate() const
+    {
+        return (m_accounts_service_sound_proxy != nullptr)
+            && (accounts_service_sound_get_other_vibrate(m_accounts_service_sound_proxy));
     }
 
     std::string get_alarm_uri(const Alarm& alarm,

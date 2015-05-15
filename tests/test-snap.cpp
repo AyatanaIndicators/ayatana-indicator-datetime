@@ -29,6 +29,9 @@
 
 #include <glib.h>
 
+#include <unistd.h> // getuid()
+#include <sys/types.h> // getuid()
+
 using namespace unity::indicator::datetime;
 
 #include "glib-fixture.h"
@@ -83,14 +86,21 @@ protected:
 
   static constexpr char const * HINT_TIMEOUT {"x-canonical-snap-decisions-timeout"};
 
+  static constexpr char const * AS_BUSNAME            {"org.freedesktop.Accounts"};
+  static constexpr char const * AS_INTERFACE          {"com.ubuntu.touch.AccountsService.Sound"};
+  static constexpr char const * PROP_OTHER_VIBRATIONS {"OtherVibrate"};
+  static constexpr char const * PROP_SILENT_MODE      {"SilentMode"};
+
   Appointment appt;
   GDBusConnection * system_bus = nullptr;
   GDBusConnection * session_bus = nullptr;
   DbusTestService * service = nullptr;
+  DbusTestDbusMock * as_mock = nullptr;
   DbusTestDbusMock * notify_mock = nullptr;
   DbusTestDbusMock * powerd_mock = nullptr;
   DbusTestDbusMock * screen_mock = nullptr;
   DbusTestDbusMock * haptic_mock = nullptr;
+  DbusTestDbusMockObject * as_obj = nullptr;
   DbusTestDbusMockObject * notify_obj = nullptr;
   DbusTestDbusMockObject * powerd_obj = nullptr;
   DbusTestDbusMockObject * screen_obj = nullptr;
@@ -114,6 +124,38 @@ protected:
     appt.alarms.push_back(Alarm{"Alarm Text", "", appt.begin});
 
     service = dbus_test_service_new(nullptr);
+
+    ///
+    ///  Add the AccountsService mock
+    ///
+
+    as_mock = dbus_test_dbus_mock_new(AS_BUSNAME);
+    auto as_path = g_strdup_printf("/org/freedesktop/Accounts/User%lu", (gulong)getuid());
+    as_obj = dbus_test_dbus_mock_get_object(as_mock,
+                                            as_path,
+                                            AS_INTERFACE,
+                                            &error);
+    g_free(as_path);
+    g_assert_no_error(error);
+
+    // PROP_SILENT_MODE
+    dbus_test_dbus_mock_object_add_property(as_mock,
+                                            as_obj,
+                                            PROP_SILENT_MODE,
+                                            G_VARIANT_TYPE_BOOLEAN,
+                                            g_variant_new_boolean(false),
+                                            &error);
+    g_assert_no_error(error);
+
+    // PROP_OTHER_VIBRATIONS
+    dbus_test_dbus_mock_object_add_property(as_mock,
+                                            as_obj,
+                                            PROP_OTHER_VIBRATIONS,
+                                            G_VARIANT_TYPE_BOOLEAN,
+                                            g_variant_new_boolean(true),
+                                            &error);
+    g_assert_no_error(error);
+    dbus_test_service_add_task(service, DBUS_TEST_TASK(as_mock));
 
     ///
     ///  Add the Notifications mock
@@ -283,6 +325,7 @@ protected:
     g_clear_object(&screen_mock);
     g_clear_object(&powerd_mock);
     g_clear_object(&notify_mock);
+    g_clear_object(&as_mock);
     g_clear_object(&service);
     g_object_unref(session_bus);
     g_object_unref(system_bus);
@@ -480,40 +523,50 @@ TEST_F(SnapFixture, ForceScreen)
 ****
 ***/
 
-TEST_F(SnapFixture, HapticModes)
+TEST_F(SnapFixture,Vibrate)
 {
   auto settings = std::make_shared<Settings>();
   auto ne = std::make_shared<unity::indicator::notifications::Engine>(APP_NAME);
   auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
   GError * error = nullptr;
 
-  // invoke a snap decision while haptic feedback is set to "pulse",
-  // confirm that VibratePattern got called
-  settings->alarm_haptic.set("pulse");
-  auto snap = new Snap (ne, settings);
-  (*snap)(appt, appt.alarms.front(), func, func);
-  wait_msec(100);
-  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (haptic_mock,
-                                                             haptic_obj,
-                                                             HAPTIC_METHOD_VIBRATE_PATTERN,
-                                                             nullptr,
-                                                             &error));
-  delete snap;
+  struct {
+      bool other_vibrations; // the com.ubuntu.touch.AccountsService.Sound "other vibrations" setting
+      const char* haptic_mode;  // supported values: "none", "pulse"
+      bool expected_vibrate_called; // do we expect the phone to vibrate?
+  } test_cases[] = {
+      { false, "none",  false },
+      { true,  "none",  false },
+      { false, "pulse", false },
+      { true,  "pulse", true  }
+  };
 
-  // invoke a snap decision while haptic feedback is set to "none",
-  // confirm that VibratePattern =didn't= get called
-  wait_msec(100);
-  dbus_test_dbus_mock_object_clear_method_calls (haptic_mock, haptic_obj, &error);
-  settings->alarm_haptic.set("none");
-  snap = new Snap (ne, settings);
-  (*snap)(appt, appt.alarms.front(), func, func);
-  wait_msec(100);
-  EXPECT_FALSE (dbus_test_dbus_mock_object_check_method_call (haptic_mock,
-                                                              haptic_obj,
-                                                              HAPTIC_METHOD_VIBRATE_PATTERN,
-                                                              nullptr,
-                                                              &error));
-  delete snap;
+  auto snap = std::make_shared<Snap>(ne, settings);
 
-  g_assert_no_error (error);
+  for(const auto& test_case : test_cases)
+  {
+    // clear out any previous iterations' noise
+    dbus_test_dbus_mock_object_clear_method_calls(haptic_mock, haptic_obj, &error);
+
+    // set the properties to match the test case
+    settings->alarm_haptic.set(test_case.haptic_mode);
+    dbus_test_dbus_mock_object_update_property(as_mock,
+                                               as_obj,
+                                               PROP_OTHER_VIBRATIONS,
+                                               g_variant_new_boolean(test_case.other_vibrations),
+                                               &error);
+    g_assert_no_error(error);
+    wait_msec(100);
+
+    // run the test
+    (*snap)(appt, appt.alarms.front(), func, func);
+    wait_msec(100);
+    const bool vibrate_called = dbus_test_dbus_mock_object_check_method_call(haptic_mock,
+                                                                             haptic_obj,
+                                                                             HAPTIC_METHOD_VIBRATE_PATTERN,
+                                                                             nullptr,
+                                                                             &error);
+    g_assert_no_error(error);
+    EXPECT_EQ(test_case.expected_vibrate_called, vibrate_called);
+  }
 }
