@@ -571,7 +571,7 @@ private:
                                                                     const_cast<ECalComponentAlarmAction*>(omit.data()),
                                                                     e_cal_client_resolve_tzid_cb,
                                                                     subtask->client,
-                                                                    nullptr);
+                                                                    subtask->default_timezone);
 
                 std::map<DateTime,Alarm> alarms;
 
