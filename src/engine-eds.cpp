@@ -501,19 +501,38 @@ private:
                          gpointer       gsubtask)
     {
         GError * error = NULL;
-        GSList * comps = NULL;
+        GSList * comps_slist = NULL;
 
-        //if (e_cal_client_get_object_list_finish (E_CAL_CLIENT(oclient), res, &icalcomps, &error))
-        if (e_cal_client_get_object_list_as_comps_finish (E_CAL_CLIENT(oclient), res, &comps, &error))
+        if (e_cal_client_get_object_list_as_comps_finish (E_CAL_CLIENT(oclient), res, &comps_slist, &error))
         {
+            // _generate_alarms takes a GList, so make a shallow copy of the comps GSList
+            GList * comps_list = nullptr;
+            for (auto l=comps_slist; l!=nullptr; l=l->next)
+                comps_list = g_list_prepend(comps_list, l->data);
+
+            constexpr std::array<ECalComponentAlarmAction,1> omit = { (ECalComponentAlarmAction)-1 }; // list of action types to omit, terminated with -1
+            GSList * comp_alarms = nullptr;
             auto subtask = static_cast<AppointmentSubtask*>(gsubtask);
+            e_cal_util_generate_alarms_for_list(comps_list,
+                                                subtask->begin.to_unix(),
+                                                subtask->end.to_unix(),
+                                                const_cast<ECalComponentAlarmAction*>(omit.data()),
+                                                &comp_alarms,
+                                                e_cal_client_resolve_tzid_cb,
+                                                oclient,
+                                                subtask->default_timezone);
 
-            GSList * l;
-            for (l=comps; l!=nullptr; l=l->next)
-                add_component_to_task(subtask, static_cast<ECalComponent*>(l->data));
+            // walk the alarms & add them
+            const char * location = icaltimezone_get_location(subtask->default_timezone);
+            auto gtz = g_time_zone_new(location);
+            for (auto l=comp_alarms; l!=nullptr; l=l->next)
+                add_alarms_to_subtask(static_cast<ECalComponentAlarms*>(l->data), subtask, gtz);
+            g_time_zone_unref(gtz);
 
-            e_cal_client_free_ecalcomp_slist(comps);
-            delete subtask;
+            // cleanup
+            e_cal_free_alarms(comp_alarms);
+            g_list_free(comps_list);
+            e_cal_client_free_ecalcomp_slist(comps_slist);
         }
         else if (error != nullptr)
         {
@@ -618,37 +637,34 @@ private:
     }
 
     static void
-    add_component_to_task(AppointmentSubtask * subtask,
-                          ECalComponent      * component)
+    add_alarms_to_subtask (ECalComponentAlarms * comp_alarms,
+                           AppointmentSubtask  * subtask,
+                           GTimeZone           * gtz)
     {
         // we only want calendar events and vtodos
-        const auto vtype = e_cal_component_get_vtype(component);
+        const auto vtype = e_cal_component_get_vtype(comp_alarms->comp);
         if ((vtype != E_CAL_COMPONENT_EVENT) && (vtype != E_CAL_COMPONENT_TODO))
             return;
 
         // FIXME: leaks
-        g_message("%s --> %s", G_STRLOC, e_cal_component_get_as_string (component));
+        g_message("%s --> %s", G_STRLOC, e_cal_component_get_as_string (comp_alarms->comp));
 
         // get uid
         const gchar* uid = nullptr;
-        e_cal_component_get_uid(component, &uid);
+        e_cal_component_get_uid(comp_alarms->comp, &uid);
 
         // get status
         auto status = ICAL_STATUS_NONE;
-        e_cal_component_get_status(component, &status);
-
-        // get default timezone 
-        const char * location = icaltimezone_get_location(subtask->default_timezone);
-        auto gtz = g_time_zone_new(location);
+        e_cal_component_get_status(comp_alarms->comp, &status);
 
         // get dtstart as a DateTime
         ECalComponentDateTime eccdt_tmp;
-        e_cal_component_get_dtstart(component, &eccdt_tmp);
+        e_cal_component_get_dtstart(comp_alarms->comp, &eccdt_tmp);
         const auto begin = datetime_from_component_date_time(eccdt_tmp, gtz);
         e_cal_component_free_datetime(&eccdt_tmp);
 
         // get dtend as a DateTime
-        e_cal_component_get_dtend(component, &eccdt_tmp);
+        e_cal_component_get_dtend(comp_alarms->comp, &eccdt_tmp);
         DateTime end = eccdt_tmp.value != nullptr ? datetime_from_component_date_time(eccdt_tmp, gtz) : begin;
         e_cal_component_free_datetime(&eccdt_tmp);
 
@@ -658,42 +674,29 @@ private:
                 uid,
                 (int)status);
 
-        constexpr std::array<ECalComponentAlarmAction,1> omit = { (ECalComponentAlarmAction)-1 }; // list of action types to omit, terminated with -1
-        auto e_alarms = e_cal_util_generate_alarms_for_comp (component,
-                                                           subtask->begin.to_unix(),
-                                                           subtask->end.to_unix(),
-                                                           const_cast<ECalComponentAlarmAction*>(omit.data()),
-                                                           e_cal_client_resolve_tzid_cb,
-                                                           subtask->client,
-                                                           subtask->default_timezone);
-        if (e_alarms != nullptr)
+        for (auto l=comp_alarms->alarms; l!=nullptr; l=l->next)
         {
-            for (auto l=e_alarms->alarms; l!=nullptr; l=l->next)
-            {
-                auto ai = static_cast<ECalComponentAlarmInstance*>(l->data);
-                auto a = e_cal_component_get_alarm(component, ai->auid);
+            auto ai = static_cast<ECalComponentAlarmInstance*>(l->data);
+            auto a = e_cal_component_get_alarm(comp_alarms->comp, ai->auid);
 
-                if (a != nullptr)
-                {
+            if (a != nullptr)
+            {
 g_message("%s creating alarm_begin from ai->trigger %zu", G_STRLOC, (size_t)ai->trigger);
-                    const DateTime alarm_begin{gtz, ai->trigger};
+                const DateTime alarm_begin{gtz, ai->trigger};
 g_message("%s alarm_begin is %s", alarm_begin.format("%F %T %z").c_str());
 #if 0
-                    auto& alarm = alarms[alarm_begin];
+                auto& alarm = alarms[alarm_begin];
 
-                    if (alarm.text.empty())
-                                alarm.text = get_alarm_text(a);
-                    if (alarm.audio_url.empty())
-                                alarm.audio_url = get_alarm_sound_url(a);
-                    if (!alarm.time.is_set())
-                                alarm.time = alarm_begin;
+                if (alarm.text.empty())
+                    alarm.text = get_alarm_text(a);
+                if (alarm.audio_url.empty())
+                    alarm.audio_url = get_alarm_sound_url(a);
+                if (!alarm.time.is_set())
+                    alarm.time = alarm_begin;
 #endif
 
-                    e_cal_component_alarm_free(a);
-                }
+                e_cal_component_alarm_free(a);
             }
-
-            e_cal_component_alarms_free(e_alarms);
         }
 
 #if 0
