@@ -686,6 +686,13 @@ private:
                if (trigger_time.is_set())
                {
                    g_debug("%s whoo got trigger time! %s", G_STRLOC, trigger_time.format("%F %T %z").c_str());
+
+                   auto duration_property = icalcomponent_get_first_property(valarm, ICAL_DURATION_PROPERTY);
+                   auto repeat_property = icalcomponent_get_first_property(valarm, ICAL_DURATION_PROPERTY);
+                   if ((duration_property != nullptr) && (repeat_property != nullptr))
+                   {
+                       // FIXME: implement repeat
+                   }
                }
                valarm = icalcomponent_get_next_component(instance, ICAL_VALARM_COMPONENT);
            }
