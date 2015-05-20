@@ -533,6 +533,7 @@ private:
             e_cal_free_alarms(comp_alarms);
             g_list_free(comps_list);
             e_cal_client_free_ecalcomp_slist(comps_slist);
+            delete subtask;
         }
         else if (error != nullptr)
         {
@@ -641,123 +642,29 @@ private:
                            AppointmentSubtask  * subtask,
                            GTimeZone           * gtz)
     {
+        /**
+        ***  Filter out components that we're not interested in
+        **/
+        
+        auto& component = comp_alarms->comp;
+
         // we only want calendar events and vtodos
-        const auto vtype = e_cal_component_get_vtype(comp_alarms->comp);
+        const auto vtype = e_cal_component_get_vtype(component);
         if ((vtype != E_CAL_COMPONENT_EVENT) && (vtype != E_CAL_COMPONENT_TODO))
             return;
 
-        // FIXME: leaks
-        g_message("%s --> %s", G_STRLOC, e_cal_component_get_as_string (comp_alarms->comp));
-
-        // get uid
-        const gchar* uid = nullptr;
-        e_cal_component_get_uid(comp_alarms->comp, &uid);
-
-        // get status
+        // we're not interested in completed or cancelled components
         auto status = ICAL_STATUS_NONE;
-        e_cal_component_get_status(comp_alarms->comp, &status);
+        e_cal_component_get_status(component, &status);
+        if ((status == ICAL_STATUS_COMPLETED) || (status == ICAL_STATUS_CANCELLED))
+            return;
 
-        // get dtstart as a DateTime
-        ECalComponentDateTime eccdt_tmp;
-        e_cal_component_get_dtstart(comp_alarms->comp, &eccdt_tmp);
-        const auto begin = datetime_from_component_date_time(eccdt_tmp, gtz);
-        e_cal_component_free_datetime(&eccdt_tmp);
+        const gchar* uid = nullptr;
+        e_cal_component_get_uid(component, &uid);
+        if (uid == nullptr)
+            return;
 
-        // get dtend as a DateTime
-        e_cal_component_get_dtend(comp_alarms->comp, &eccdt_tmp);
-        DateTime end = eccdt_tmp.value != nullptr ? datetime_from_component_date_time(eccdt_tmp, gtz) : begin;
-        e_cal_component_free_datetime(&eccdt_tmp);
-
-        g_debug("got appointment from %s to %s, uid %s status %d",
-                begin.format("%F %T %z").c_str(),
-                end.format("%F %T %z").c_str(),
-                uid,
-                (int)status);
-
-        for (auto l=comp_alarms->alarms; l!=nullptr; l=l->next)
-        {
-            auto ai = static_cast<ECalComponentAlarmInstance*>(l->data);
-            auto a = e_cal_component_get_alarm(comp_alarms->comp, ai->auid);
-
-            if (a != nullptr)
-            {
-g_message("%s creating alarm_begin from ai->trigger %zu", G_STRLOC, (size_t)ai->trigger);
-                const DateTime alarm_begin{gtz, ai->trigger};
-g_message("%s alarm_begin is %s", alarm_begin.format("%F %T %z").c_str());
-#if 0
-                auto& alarm = alarms[alarm_begin];
-
-                if (alarm.text.empty())
-                    alarm.text = get_alarm_text(a);
-                if (alarm.audio_url.empty())
-                    alarm.audio_url = get_alarm_sound_url(a);
-                if (!alarm.time.is_set())
-                    alarm.time = alarm_begin;
-#endif
-
-                e_cal_component_alarm_free(a);
-            }
-        }
-
-#if 0
-        auto instance_callback = [](icalcomponent *comp, struct icaltime_span *span, void *vsubtask) {
-            auto instance = icalcomponent_new_clone(comp);
-            auto subtask = static_cast<AppointmentSubtask*>(vsubtask);
-            icalcomponent_set_dtstart(instance, icaltime_from_timet(span->start, false));
-            icalcomponent_set_dtend(instance, icaltime_from_timet(span->end, false));
-            g_debug("instance %s", icalcomponent_as_ical_string(instance));
-
-           auto valarm = icalcomponent_get_first_component(instance, ICAL_VALARM_COMPONENT);
-           while (valarm != nullptr) {
-               g_debug("valarm %s", icalcomponent_as_ical_string(valarm));
-               auto trigger_property = icalcomponent_get_first_property(valarm, ICAL_TRIGGER_PROPERTY);
-               if (trigger_property != nullptr)
-               {
-                   auto trigger = icalproperty_get_trigger(trigger_property);
-                   g_debug("%s found a trigger", G_STRLOC);
-                   g_debug("%s trigger time is %s", G_STRLOC, icaltime_as_ical_string(trigger.time));
-                   g_debug("%s trigger duration is %s", G_STRLOC, icaldurationtype_as_ical_string(trigger.duration));
-                   if(!icaltime_is_null_time(trigger.time))
-                       g_debug("value=DATE-TIME:%s\n", icaltime_as_ical_string(trigger.time));
-                   else
-                       g_debug("value=DURATION:%s\n", icaldurationtype_as_ical_string(trigger.duration));
-               }
-               g_debug("%s %p", G_STRLOC, subtask->gtz);
-               auto trigger_time = get_trigger_time (instance, valarm, subtask->gtz);
-               g_debug("%s", G_STRLOC);
-               if (trigger_time.is_set())
-               {
-                   g_debug("%s whoo got trigger time! %s", G_STRLOC, trigger_time.format("%F %T %z").c_str());
-
-                   auto duration_property = icalcomponent_get_first_property(valarm, ICAL_DURATION_PROPERTY);
-                   auto repeat_property = icalcomponent_get_first_property(valarm, ICAL_DURATION_PROPERTY);
-                   if ((duration_property != nullptr) && (repeat_property != nullptr))
-                   {
-                       // FIXME: implement repeat
-                   }
-               }
-               valarm = icalcomponent_get_next_component(instance, ICAL_VALARM_COMPONENT);
-           }
-
-/*
-(process:28936): Indicator-Datetime-DEBUG: valarm BEGIN:VALARM^M 
-X-EVOLUTION-ALARM-UID:20150519T235024Z-22031-1000-21745-12@ghidorah^M 
-DESCRIPTION:Summary^M 
-ACTION:DISPLAY^M 
-TRIGGER;VALUE=DURATION;RELATED=START:-PT15M^M 
-END:VALARM^M
-*/
-        };
-
-        auto rbegin = icaltimetype_from_datetime(subtask->begin, subtask->default_timezone);
-        auto rend = icaltimetype_from_datetime(subtask->end, subtask->default_timezone);
-        auto icc = e_cal_component_get_icalcomponent(component); // component owns icc
-        g_debug("calling foreach-recurrence... [%s...%s]", icaltime_as_ical_string(rbegin), icaltime_as_ical_string(rend));
-        icalcomponent_foreach_recurrence(icc, rbegin, rend, instance_callback, subtask);
-#endif
-
-#if 0
-        // look for the in-house tags
+        // walk through the cattegories list to look for our in-house tags
         bool disabled = false;
         Appointment::Type type = Appointment::EVENT;
         GSList * categ_list = nullptr;
@@ -770,118 +677,95 @@ END:VALARM^M
                 disabled = true;
         }
         e_cal_component_free_categories_list(categ_list);
+        if (disabled) // don't notify users about disabled alarms...
+            return;
 
-        if ((uid != nullptr) &&
-            (!disabled) &&
-            (status != ICAL_STATUS_COMPLETED) &&
-            (status != ICAL_STATUS_CANCELLED))
+        /**
+        ***  This looks like a component that we should notify users about.
+        ***  Let's add it.
+        **/
+
+        Appointment appointment;
+        appointment.uid = uid;
+        appointment.color = subtask->color;
+        appointment.type = type;
+
+        // get appointment.summary
+        ECalComponentText text {};
+        e_cal_component_get_summary(component, &text);
+        if (text.value)
+            appointment.summary = text.value;
+
+        // get dtstart as a DateTime
+        ECalComponentDateTime eccdt_tmp;
+        e_cal_component_get_dtstart(component, &eccdt_tmp);
+        //const auto begin = datetime_from_component_date_time(eccdt_tmp, gtz);
+        appointment.begin = datetime_from_component_date_time(eccdt_tmp, gtz);
+        e_cal_component_free_datetime(&eccdt_tmp);
+
+        // get dtend as a DateTime
+        e_cal_component_get_dtend(component, &eccdt_tmp);
+        //DateTime end = eccdt_tmp.value != nullptr ? datetime_from_component_date_time(eccdt_tmp, gtz) : begin;
+        appointment.end = eccdt_tmp.value != nullptr ? datetime_from_component_date_time(eccdt_tmp, gtz) : appointment.begin;
+        e_cal_component_free_datetime(&eccdt_tmp);
+
+        g_debug("got appointment from %s to %s, uid %s status %d",
+                appointment.begin.format("%F %T %z").c_str(),
+                appointment.end.format("%F %T %z").c_str(),
+                uid,
+                (int)status);
+
+        // build our Alarm map from the comp_alarms
+        std::map<DateTime,Alarm> alarms;
+        for (auto l=comp_alarms->alarms; l!=nullptr; l=l->next)
         {
-            constexpr std::array<ECalComponentAlarmAction,1> omit = { (ECalComponentAlarmAction)-1 }; // list of action types to omit, terminated with -1
-            Appointment appointment;
+            auto ai = static_cast<ECalComponentAlarmInstance*>(l->data);
+            auto a = e_cal_component_get_alarm(component, ai->auid);
 
-            ECalComponentText text {};
-            e_cal_component_get_summary(component, &text);
-            if (text.value)
-                appointment.summary = text.value;
-
-            auto icc = e_cal_component_get_icalcomponent(component); // component owns icc
-            if (icc)
+            if (a != nullptr)
             {
-                g_debug("%s", icalcomponent_as_ical_string(icc)); // libical owns this string; no leak
+g_message("%s creating alarm_begin from ai->trigger %zu", G_STRLOC, (size_t)ai->trigger);
+                const DateTime alarm_begin{gtz, ai->trigger};
+g_message("%s alarm_begin is %s", G_STRLOC, alarm_begin.format("%F %T %z").c_str());
+                auto& alarm = alarms[alarm_begin];
 
-                auto icalprop = icalcomponent_get_first_property(icc, ICAL_X_PROPERTY);
-                while (icalprop)
-                {
-                    const char * x_name = icalproperty_get_x_name(icalprop);
-                    if ((x_name != nullptr) && !g_ascii_strcasecmp(x_name, X_PROP_ACTIVATION_URL))
-                    {
-                        const char * url = icalproperty_get_value_as_string(icalprop);
-                        if ((url != nullptr) && appointment.activation_url.empty())
-                            appointment.activation_url = url;
-                    }
+                if (alarm.text.empty())
+                    alarm.text = get_alarm_text(a);
+                if (alarm.audio_url.empty())
+                    alarm.audio_url = get_alarm_sound_url(a);
+                if (!alarm.time.is_set())
+                    alarm.time = alarm_begin;
 
-                    icalprop = icalcomponent_get_next_property(icc, ICAL_X_PROPERTY);
-                }
+                e_cal_component_alarm_free(a);
             }
-
-            appointment.begin = begin;
-            appointment.end = end;
-            appointment.color = subtask->color;
-            appointment.uid = uid;
-            appointment.type = type;
-
-            auto e_alarms = e_cal_util_generate_alarms_for_comp(component,
-                                                                begin.to_unix(),
-                                                                end.to_unix(),
-                                                                const_cast<ECalComponentAlarmAction*>(omit.data()),
-                                                                e_cal_client_resolve_tzid_cb,
-                                                                subtask->client,
-                                                                nullptr);
-
-            std::map<DateTime,Alarm> alarms;
-
-            if (e_alarms != nullptr)
-            {
-                for (auto l=e_alarms->alarms; l!=nullptr; l=l->next)
-                {
-                    auto ai = static_cast<ECalComponentAlarmInstance*>(l->data);
-                    auto a = e_cal_component_get_alarm(component, ai->auid);
-
-                    if (a != nullptr)
-                    {
-                        const DateTime alarm_begin{gtz, ai->trigger};
-                        auto& alarm = alarms[alarm_begin];
-
-                        if (alarm.text.empty())
-                            alarm.text = get_alarm_text(a);
-                        if (alarm.audio_url.empty())
-                            alarm.audio_url = get_alarm_sound_url(a);
-                        if (!alarm.time.is_set())
-                            alarm.time = alarm_begin;
-
-                        e_cal_component_alarm_free(a);
-                    }
-                }
-
-                e_cal_component_alarms_free(e_alarms);
-            }
-            // Hm, no alarm triggers? 
-            // That's a bug in alarms created by some versions of ubuntu-ui-toolkit.
-            // If that's what's happening here, let's handle those alarms anyway
-            // by effectively injecting a TRIGGER;VALUE=DURATION;RELATED=START:PT0S
-            else if (appointment.is_ubuntu_alarm())
-            {
-                Alarm tmp;
-                tmp.time = appointment.begin;
-
-                auto auids = e_cal_component_get_alarm_uids(component);
-                for(auto l=auids; l!=nullptr; l=l->next)
-                {
-                    const auto auid = static_cast<const char*>(l->data);
-                    auto a = e_cal_component_get_alarm(component, auid);
-                    if (a != nullptr)
-                    {
-                        if (tmp.text.empty())
-                            tmp.text = get_alarm_text(a);
-                        if (tmp.audio_url.empty())
-                            tmp.audio_url = get_alarm_sound_url(a);
-                        e_cal_component_alarm_free(a);
-                    }
-                }
-                cal_obj_uid_list_free(auids);
-
-                alarms[tmp.time] = tmp;
-            }
-
-            appointment.alarms.reserve(alarms.size());
-            for (const auto& it : alarms)
-                appointment.alarms.push_back(it.second);
-
-            subtask->task->appointments.push_back(appointment);
         }
 
-        g_time_zone_unref(gtz);
-#endif
+        // look for our recognized e-props
+        auto icc = e_cal_component_get_icalcomponent(component); // icc owned by component
+        if (icc != nullptr)
+        {
+            g_debug("%s", icalcomponent_as_ical_string(icc)); // libical owns this string; no leak
+
+            auto icalprop = icalcomponent_get_first_property(icc, ICAL_X_PROPERTY);
+            while (icalprop)
+            {
+                const char * x_name = icalproperty_get_x_name(icalprop);
+                if ((x_name != nullptr) && !g_ascii_strcasecmp(x_name, X_PROP_ACTIVATION_URL))
+                {
+                    const char * url = icalproperty_get_value_as_string(icalprop);
+                    if ((url != nullptr) && appointment.activation_url.empty())
+                        appointment.activation_url = url;
+                }
+
+                icalprop = icalcomponent_get_next_property(icc, ICAL_X_PROPERTY);
+            }
+        }
+
+        appointment.alarms.reserve(alarms.size());
+        for (const auto& it : alarms)
+            appointment.alarms.push_back(it.second);
+
+        subtask->task->appointments.push_back(appointment);
     }
 
 

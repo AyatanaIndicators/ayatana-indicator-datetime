@@ -85,16 +85,15 @@ TEST_F(VAlarmFixture, MultipleAppointments)
 
     // compare it to what we actually loaded...
     const auto appts = planner->appointments().get();
-    EXPECT_EQ(expected_alarms.size(), appts.size());
-    for (size_t i=0, n=expected_alarms.size(); i<n; i++) {
-        const auto& appt = appts[i];
-        EXPECT_EQ(expected_appt.uid, appt.uid);
-        EXPECT_EQ(expected_appt.color, appt.color);
-        EXPECT_EQ(expected_appt.summary, appt.summary);
-        EXPECT_EQ(1, appt.alarms.size());
-        EXPECT_EQ(expected_alarms[i], appt.alarms[0]);
-    }
-    
+    ASSERT_GT(appts.size(), 0);
+    EXPECT_EQ(1, appts.size());
+    const auto& appt = appts[0];
+    EXPECT_EQ(expected_appt.uid, appt.uid);
+    EXPECT_EQ(expected_appt.color, appt.color);
+    EXPECT_EQ(expected_appt.summary, appt.summary);
+    EXPECT_EQ(expected_alarms.size(), appt.alarms.size());
+    for (size_t i=0, n=expected_alarms.size(); i<n; i++)
+        EXPECT_EQ(expected_alarms[i], appt.alarms[i]);
 
     // cleanup
     g_time_zone_unref(gtz);
