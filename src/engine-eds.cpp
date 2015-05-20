@@ -141,10 +141,10 @@ public:
             g_message("%s sexp is %s", G_STRLOC, sexp);
             //e_cal_client_get_object_list(client,
             e_cal_client_get_object_list_as_comps(client,
-                                         sexp,
-                                         m_cancellable,
-                                         on_object_list_ready,
-                                         subtask);
+                                                  sexp,
+                                                  m_cancellable,
+                                                  on_object_list_ready,
+                                                  subtask);
             g_free(begin_str);
             g_free(end_str);
             g_free(sexp);
@@ -658,6 +658,45 @@ private:
                 uid,
                 (int)status);
 
+        constexpr std::array<ECalComponentAlarmAction,1> omit = { (ECalComponentAlarmAction)-1 }; // list of action types to omit, terminated with -1
+        auto e_alarms = e_cal_util_generate_alarms_for_comp (component,
+                                                           subtask->begin.to_unix(),
+                                                           subtask->end.to_unix(),
+                                                           const_cast<ECalComponentAlarmAction*>(omit.data()),
+                                                           e_cal_client_resolve_tzid_cb,
+                                                           subtask->client,
+                                                           subtask->default_timezone);
+        if (e_alarms != nullptr)
+        {
+            for (auto l=e_alarms->alarms; l!=nullptr; l=l->next)
+            {
+                auto ai = static_cast<ECalComponentAlarmInstance*>(l->data);
+                auto a = e_cal_component_get_alarm(component, ai->auid);
+
+                if (a != nullptr)
+                {
+g_message("%s creating alarm_begin from ai->trigger %zu", G_STRLOC, (size_t)ai->trigger);
+                    const DateTime alarm_begin{gtz, ai->trigger};
+g_message("%s alarm_begin is %s", alarm_begin.format("%F %T %z").c_str());
+#if 0
+                    auto& alarm = alarms[alarm_begin];
+
+                    if (alarm.text.empty())
+                                alarm.text = get_alarm_text(a);
+                    if (alarm.audio_url.empty())
+                                alarm.audio_url = get_alarm_sound_url(a);
+                    if (!alarm.time.is_set())
+                                alarm.time = alarm_begin;
+#endif
+
+                    e_cal_component_alarm_free(a);
+                }
+            }
+
+            e_cal_component_alarms_free(e_alarms);
+        }
+
+#if 0
         auto instance_callback = [](icalcomponent *comp, struct icaltime_span *span, void *vsubtask) {
             auto instance = icalcomponent_new_clone(comp);
             auto subtask = static_cast<AppointmentSubtask*>(vsubtask);
@@ -712,6 +751,8 @@ END:VALARM^M
         auto icc = e_cal_component_get_icalcomponent(component); // component owns icc
         g_debug("calling foreach-recurrence... [%s...%s]", icaltime_as_ical_string(rbegin), icaltime_as_ical_string(rend));
         icalcomponent_foreach_recurrence(icc, rbegin, rend, instance_callback, subtask);
+#endif
+
 #if 0
         // look for the in-house tags
         bool disabled = false;
