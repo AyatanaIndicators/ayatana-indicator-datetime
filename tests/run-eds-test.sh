@@ -32,6 +32,9 @@ export XDG_VIDEOS_DIR=${TEST_TMP_DIR}
 export QORGANIZER_EDS_DEBUG=On
 export GIO_USE_VFS=local # needed to ensure GVFS shuts down cleanly after the test is over
 
+export G_MESSAGES_DEBUG=all
+export G_DBUS_DEBUG=messages
+
 echo HOMEDIR=${HOME}
 rm -rf ${XDG_DATA_HOME}
 

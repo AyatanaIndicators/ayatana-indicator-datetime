@@ -506,11 +506,23 @@ private:
 
             const DateTime begin_dt { gtz, begin };
             const DateTime end_dt { gtz, end };
-            g_debug ("got appointment from %s to %s, uid %s status %d",
-                     begin_dt.format("%F %T %z").c_str(),
-                     end_dt.format("%F %T %z").c_str(),
+            g_debug ("got appointment from %zu (%s) to %zu (%s), uid %s status %d",
+                     begin, begin_dt.format("%F %T %z").c_str(),
+                     end, end_dt.format("%F %T %z").c_str(),
                      uid,
                      (int)status);
+
+e_cal_component_commit_sequence(component);
+g_debug("%s e_cal_component_commit_sequence: %s", G_STRLOC, e_cal_component_get_as_string(component)); // FIXME leaks
+ECalComponentDateTime eccdt;
+e_cal_component_get_dtstart(component, &eccdt);
+const bool is_floating_time = eccdt.tzid == nullptr;
+g_debug("%s is_floating_time is %d", G_STRLOC, (int)is_floating_time);
+g_debug("%s dtstart is %s", G_STRLOC, icaltime_as_ical_string(*(eccdt.value)));
+g_debug("%s icaltime_as_timet(dtstart) is %zu", G_STRLOC, icaltime_as_timet(*eccdt.value));
+g_debug("%s icaltime_as_timet_with_zone(dtstart, %s) is %zu", G_STRLOC, location, icaltime_as_timet_with_zone(*eccdt.value, subtask->default_timezone));
+g_debug("%s dtstart as a DateTime is %s", G_STRLOC, DateTime(gtz, icaltime_as_timet(*eccdt.value)).format("%F %T %z").c_str());
+
 
             // look for the in-house tags
             bool disabled = false;
@@ -542,7 +554,7 @@ private:
                 auto icc = e_cal_component_get_icalcomponent(component); // component owns icc
                 if (icc)
                 {
-                    g_debug("%s", icalcomponent_as_ical_string(icc)); // libical owns this string; no leak
+                    g_debug("%s icalcomponent_as_ical_string: %s", G_STRLOC, icalcomponent_as_ical_string(icc)); // libical owns this string; no leak
 
                     auto icalprop = icalcomponent_get_first_property(icc, ICAL_X_PROPERTY);
                     while (icalprop)
@@ -571,7 +583,7 @@ private:
                                                                     const_cast<ECalComponentAlarmAction*>(omit.data()),
                                                                     e_cal_client_resolve_tzid_cb,
                                                                     subtask->client,
-                                                                    subtask->default_timezone);
+                                                                    is_floating_time ? nullptr : subtask->default_timezone);
 
                 std::map<DateTime,Alarm> alarms;
 
@@ -581,6 +593,12 @@ private:
                     {
                         auto ai = static_cast<ECalComponentAlarmInstance*>(l->data);
                         auto a = e_cal_component_get_alarm(component, ai->auid);
+
+g_debug("%s auid(%s), trigger(%zu), occur_start(%zu), occur_end(%zu)", G_STRLOC, ai->auid, ai->trigger, ai->occur_start, ai->occur_end);
+g_debug("%s trigger as a DateTime('%s',%zu) is %s", G_STRLOC, location, ai->trigger, DateTime(gtz, ai->trigger).format("%F %T %z").c_str());
+auto local = DateTime::Local(ai->trigger);
+g_debug("%s trigger as a DateTime::Local(%zu) is %s", G_STRLOC, ai->trigger, local.format("%F %T %z").c_str());
+g_debug("%s ..and then to_timezone('%s') is %s", G_STRLOC, location, local.to_timezone(location).format("%F %T %z").c_str());
 
                         if (a != nullptr)
                         {
