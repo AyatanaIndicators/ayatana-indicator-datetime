@@ -94,6 +94,7 @@ function(add_eds_ics_test_by_name name)
             ${CMAKE_CURRENT_SOURCE_DIR}/test-eds-ics-config-files     # arg8: base directory for config file template
             ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.ics)             # arg9: the ical file for this test
 endfunction()
+add_eds_ics_test_by_name(test-eds-ics-all-day-events)
 add_eds_ics_test_by_name(test-eds-ics-repeating-events)
 add_eds_ics_test_by_name(test-eds-ics-nonrepeating-events)
 add_eds_ics_test_by_name(test-eds-ics-repeating-valarms)
