@@ -139,7 +139,6 @@ public:
             auto end_str = isodate_from_time_t(end_timet);
             auto sexp = g_strdup_printf("(has-alarms-in-range? (make-time \"%s\") (make-time \"%s\"))", begin_str, end_str);
             g_debug("%s sexp is %s", G_STRLOC, sexp);
-            //e_cal_client_get_object_list(client,
             e_cal_client_get_object_list_as_comps(client,
                                                   sexp,
                                                   m_cancellable,
@@ -425,7 +424,6 @@ private:
         ECalClient* client;
         std::string color;
         icaltimezone* default_timezone;
-        GTimeZone * gtz;
         DateTime begin;
         DateTime end;
 
@@ -438,17 +436,11 @@ private:
             task(task_in),
             client(client_in),
             default_timezone(default_tz),
-            gtz(g_time_zone_new(icaltimezone_get_location(default_tz))),
             begin(begin_),
             end(end_)
         {
             if (color_in)
                 color = color_in;
-        }
-
-        ~AppointmentSubtask()
-        {
-            g_clear_pointer(&gtz, g_time_zone_unref);
         }
     };
 
