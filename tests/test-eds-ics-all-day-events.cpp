@@ -69,32 +69,22 @@ TEST_F(VAlarmFixture, MultipleAppointments)
    
     // what we expect to get...
     Appointment expected_appt;
-    expected_appt.uid = "20150507T211449Z-4262-32011-1418-1@ubuntu-phablet";
+    expected_appt.uid = "20150521T111538Z-7449-1000-3572-0@ghidorah";
     expected_appt.color = "#becedd";
-    expected_appt.summary = "Alarm";
-    std::array<Alarm,8> expected_alarms = {
-        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg", DateTime(gtz,2015,5, 8,16,40,0)}),
-        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg", DateTime(gtz,2015,5,15,16,40,0)}),
-        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg", DateTime(gtz,2015,5,22,16,40,0)}),
-        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg", DateTime(gtz,2015,5,29,16,40,0)}),
-        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg", DateTime(gtz,2015,6, 5,16,40,0)}),
-        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg", DateTime(gtz,2015,6,12,16,40,0)}),
-        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg", DateTime(gtz,2015,6,19,16,40,0)}),
-        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg", DateTime(gtz,2015,6,26,16,40,0)})
-    };
+    expected_appt.summary = "Memorial Day";
+    expected_appt.begin = DateTime{gtz,2015,5,25,0,0,0};
+    expected_appt.end = DateTime{gtz,2015,5,26,0,0,0};
 
     // compare it to what we actually loaded...
     const auto appts = planner->appointments().get();
-    EXPECT_EQ(expected_alarms.size(), appts.size());
-    for (size_t i=0, n=expected_alarms.size(); i<n; i++) {
-        const auto& appt = appts[i];
-        EXPECT_EQ(expected_appt.uid, appt.uid);
-        EXPECT_EQ(expected_appt.color, appt.color);
-        EXPECT_EQ(expected_appt.summary, appt.summary);
-        EXPECT_EQ(1, appt.alarms.size());
-        EXPECT_EQ(expected_alarms[i], appt.alarms[0]);
-    }
-    
+    ASSERT_EQ(1, appts.size());
+    const auto& appt = appts[0];
+    EXPECT_EQ(expected_appt.begin, appt.begin);
+    EXPECT_EQ(expected_appt.end, appt.end);
+    EXPECT_EQ(expected_appt.uid, appt.uid);
+    EXPECT_EQ(expected_appt.color, appt.color);
+    EXPECT_EQ(expected_appt.summary, appt.summary);
+    EXPECT_EQ(0, appt.alarms.size());
 
     // cleanup
     g_time_zone_unref(gtz);

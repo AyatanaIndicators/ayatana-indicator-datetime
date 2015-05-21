@@ -33,9 +33,18 @@ namespace datetime {
 ***/
 
 void
+PrintTo(const DateTime& datetime, std::ostream* os)
+{
+    *os << "{time:'" << datetime.format("%F %T %z") << '}';
+}
+
+void
 PrintTo(const Alarm& alarm, std::ostream* os)
 {
-    *os << "{text:'" << alarm.text << "', audio_url:'" << alarm.audio_url << "', time:'"<<alarm.time.format("%F %T")<<"'}";
+    *os << '{';
+    *os << "{text:" << alarm.text << '}';
+    PrintTo(alarm.time, os);
+    *os << '}';
 }
 
 } // namespace datetime
