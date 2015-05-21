@@ -48,7 +48,7 @@ fi
 # if there's a specific ics file to test, copy it on top of the canned confilg files
 if [ -e $9 ]; then
   echo "copying $9 into $HOME"
-  cp --verbose --archive $9 $HOME/.local/share/evolution/tasks/system/tasks.ics
+  cp --verbose --archive $9 ${XDG_DATA_HOME}/evolution/tasks/system/tasks.ics
 fi
 
 # run dbus-test-runner
