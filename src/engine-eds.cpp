@@ -135,17 +135,19 @@ public:
 
             const auto begin_timet = begin.to_unix();
             const auto end_timet = end.to_unix();
+
             auto begin_str = isodate_from_time_t(begin_timet);
             auto end_str = isodate_from_time_t(end_timet);
             auto sexp = g_strdup_printf("(has-alarms-in-range? (make-time \"%s\") (make-time \"%s\"))", begin_str, end_str);
+            g_clear_pointer(&begin_str, g_free);
+            g_clear_pointer(&end_str, g_free);
+
             g_debug("%s sexp is %s", G_STRLOC, sexp);
             e_cal_client_get_object_list_as_comps(client,
                                                   sexp,
                                                   m_cancellable,
                                                   on_object_list_ready,
                                                   subtask);
-            g_free(begin_str);
-            g_free(end_str);
             g_free(sexp);
         }
     }
