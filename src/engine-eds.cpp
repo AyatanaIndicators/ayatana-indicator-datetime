@@ -503,28 +503,33 @@ private:
         GError * error = NULL;
         GSList * comps_slist = NULL;
 
-        if (e_cal_client_get_object_list_as_comps_finish (E_CAL_CLIENT(oclient), res, &comps_slist, &error))
+        if (e_cal_client_get_object_list_as_comps_finish(E_CAL_CLIENT(oclient),
+                                                         res,
+                                                         &comps_slist,
+                                                         &error))
         {
-            // _generate_alarms takes a GList, so make a shallow copy of the comps GSList
+            // _generate_alarms takes a GList, so make a shallow one
             GList * comps_list = nullptr;
             for (auto l=comps_slist; l!=nullptr; l=l->next)
                 comps_list = g_list_prepend(comps_list, l->data);
 
-            constexpr std::array<ECalComponentAlarmAction,1> omit = { (ECalComponentAlarmAction)-1 }; // list of action types to omit, terminated with -1
+            constexpr std::array<ECalComponentAlarmAction,1> omit = {
+                (ECalComponentAlarmAction)-1
+            }; // list of action types to omit, terminated with -1
             GSList * comp_alarms = nullptr;
             auto subtask = static_cast<AppointmentSubtask*>(gsubtask);
-            e_cal_util_generate_alarms_for_list(comps_list,
-                                                subtask->begin.to_unix(),
-                                                subtask->end.to_unix(),
-                                                const_cast<ECalComponentAlarmAction*>(omit.data()),
-                                                &comp_alarms,
-                                                e_cal_client_resolve_tzid_cb,
-                                                oclient,
-                                                subtask->default_timezone);
+            e_cal_util_generate_alarms_for_list(
+                comps_list,
+                subtask->begin.to_unix(),
+                subtask->end.to_unix(),
+                const_cast<ECalComponentAlarmAction*>(omit.data()),
+                &comp_alarms,
+                e_cal_client_resolve_tzid_cb,
+                oclient,
+                subtask->default_timezone);
 
             // walk the alarms & add them
-            const char * location = icaltimezone_get_location(subtask->default_timezone);
-            auto gtz = g_time_zone_new(location);
+            auto gtz = g_time_zone_new(icaltimezone_get_location(subtask->default_timezone));
             for (auto l=comp_alarms; l!=nullptr; l=l->next)
                 add_alarms_to_subtask(static_cast<ECalComponentAlarms*>(l->data), subtask, gtz);
             g_time_zone_unref(gtz);
@@ -538,7 +543,7 @@ private:
         else if (error != nullptr)
         {
             if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-                g_warning("indicator-datetime cannot mark one-time alarm as disabled: %s", error->message);
+                g_warning("can't get ecalcomponent list: %s", error->message);
 
             g_error_free(error);
         }
@@ -578,13 +583,15 @@ private:
 
         // we only want calendar events and vtodos
         const auto vtype = e_cal_component_get_vtype(component);
-        if ((vtype != E_CAL_COMPONENT_EVENT) && (vtype != E_CAL_COMPONENT_TODO))
+        if ((vtype != E_CAL_COMPONENT_EVENT) &&
+                (vtype != E_CAL_COMPONENT_TODO))
             return;
 
         // we're not interested in completed or cancelled components
         auto status = ICAL_STATUS_NONE;
         e_cal_component_get_status(component, &status);
-        if ((status == ICAL_STATUS_COMPLETED) || (status == ICAL_STATUS_CANCELLED))
+        if ((status == ICAL_STATUS_COMPLETED) ||
+                (status == ICAL_STATUS_CANCELLED))
             return;
 
         // walk through the categories list to look for our in-house tags
@@ -605,36 +612,36 @@ private:
 
         /**
         ***  this looks like an appointment we can use...
-        ***  populate reference_appointment from the component fields/props
+        ***  populate baseline from the component fields/props
         **/
 
-        Appointment reference_appointment;
-        reference_appointment.color = subtask->color;
-        reference_appointment.type = type;
+        Appointment baseline;
+        baseline.color = subtask->color;
+        baseline.type = type;
 
         // get appointment.uid
         const gchar* uid = nullptr;
         e_cal_component_get_uid(component, &uid);
         if (uid != nullptr)
-            reference_appointment.uid = uid;
+            baseline.uid = uid;
 
         // get appointment.summary
         ECalComponentText text {};
         e_cal_component_get_summary(component, &text);
         if (text.value)
-            reference_appointment.summary = text.value;
+            baseline.summary = text.value;
 
         // get appointment.begin
         ECalComponentDateTime eccdt_tmp {};
         e_cal_component_get_dtstart(component, &eccdt_tmp);
-        reference_appointment.begin = datetime_from_component_date_time(eccdt_tmp, gtz);
+        baseline.begin = datetime_from_component_date_time(eccdt_tmp, gtz);
         e_cal_component_free_datetime(&eccdt_tmp);
 
         // get appointment.end
         e_cal_component_get_dtend(component, &eccdt_tmp);
-        reference_appointment.end = eccdt_tmp.value != nullptr
+        baseline.end = eccdt_tmp.value != nullptr
                                   ? datetime_from_component_date_time(eccdt_tmp, gtz)
-                                  : reference_appointment.begin;
+                                  : baseline.begin;
         e_cal_component_free_datetime(&eccdt_tmp);
 
         // get appointment.activation_url from x-props
@@ -644,15 +651,15 @@ private:
             const char * x_name = icalproperty_get_x_name(icalprop);
             if ((x_name != nullptr) && !g_ascii_strcasecmp(x_name, X_PROP_ACTIVATION_URL)) {
                 const char * url = icalproperty_get_value_as_string(icalprop);
-                if ((url != nullptr) && reference_appointment.activation_url.empty())
-                    reference_appointment.activation_url = url;
+                if ((url != nullptr) && baseline.activation_url.empty())
+                    baseline.activation_url = url;
             }
             icalprop = icalcomponent_get_next_property(icc, ICAL_X_PROPERTY);
         }
 
         g_debug("%s got appointment from %s to %s, status %d: %s", G_STRLOC,
-                reference_appointment.begin.format("%F %T %z").c_str(),
-                reference_appointment.end.format("%F %T %z").c_str(),
+                baseline.begin.format("%F %T %z").c_str(),
+                baseline.end.format("%F %T %z").c_str(),
                 (int)status,
                 icalcomponent_as_ical_string(icc) /* string owned by ical */);
 
@@ -681,9 +688,9 @@ private:
             if (a == nullptr)
                 continue;
 
-            const auto instance_time = std::make_pair(DateTime{gtz, ai->occur_start},
-                                                      DateTime{gtz, ai->occur_end});
-            const auto trigger_time = DateTime{gtz, ai->trigger};
+            auto instance_time = std::make_pair(DateTime{gtz, ai->occur_start},
+                                                DateTime{gtz, ai->occur_end});
+            auto trigger_time = DateTime{gtz, ai->trigger};
 
             auto& alarm = alarms[instance_time][trigger_time];
 
@@ -699,7 +706,7 @@ private:
 
         for (auto& i : alarms)
         {
-            Appointment appointment = reference_appointment;
+            Appointment appointment = baseline;
             appointment.begin = i.first.first;
             appointment.end = i.first.second;
             appointment.alarms.reserve(i.second.size());
