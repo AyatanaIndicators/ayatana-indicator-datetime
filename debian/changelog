@@ -1,3 +1,11 @@
+indicator-datetime (13.10.0+15.04.20150521-0ubuntu1) vivid; urgency=medium
+
+  [ Charles Kerr ]
+  * Fix regression that caused nonrepeating alarms to go off at the
+    wrong time. (LP: #1456281)
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Thu, 21 May 2015 15:24:31 +0000
+
 indicator-datetime (13.10.0+15.04.20150515-0ubuntu1) vivid; urgency=medium
 
   [ Charles Kerr ]
