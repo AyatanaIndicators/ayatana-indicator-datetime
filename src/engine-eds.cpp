@@ -496,6 +496,7 @@ private:
     {
         GError * error = NULL;
         GSList * comps_slist = NULL;
+        auto subtask = static_cast<AppointmentSubtask*>(gsubtask);
 
         if (e_cal_client_get_object_list_as_comps_finish(E_CAL_CLIENT(oclient),
                                                          res,
@@ -511,7 +512,6 @@ private:
                 (ECalComponentAlarmAction)-1
             }; // list of action types to omit, terminated with -1
             GSList * comp_alarms = nullptr;
-            auto subtask = static_cast<AppointmentSubtask*>(gsubtask);
             e_cal_util_generate_alarms_for_list(
                 comps_list,
                 subtask->begin.to_unix(),
@@ -532,7 +532,6 @@ private:
             e_cal_free_alarms(comp_alarms);
             g_list_free(comps_list);
             e_cal_client_free_ecalcomp_slist(comps_slist);
-            delete subtask;
         }
         else if (error != nullptr)
         {
@@ -541,6 +540,8 @@ private:
 
             g_error_free(error);
         }
+
+        delete subtask;
     }
 
     static DateTime
