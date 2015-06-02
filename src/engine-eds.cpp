@@ -263,6 +263,7 @@ private:
             g_debug("%s connecting a client to source %s", G_STRFUNC, source_uid);
             e_cal_client_connect(source,
                                  source_type,
+                                 -1,
                                  self->m_cancellable,
                                  on_client_connected,
                                  gself);
