@@ -1,3 +1,10 @@
+indicator-datetime (13.10.0+15.04.20150618-0ubuntu1) vivid; urgency=medium
+
+  [ Charles Kerr ]
+  * Fix invalid valarms in older clock-app alarms. (LP: #1465806)
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Thu, 18 Jun 2015 19:25:41 +0000
+
 indicator-datetime (13.10.0+15.04.20150521-0ubuntu1) vivid; urgency=medium
 
   [ Charles Kerr ]
