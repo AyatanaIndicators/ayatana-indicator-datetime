@@ -297,10 +297,14 @@ private:
             // add the client to our collection
             auto self = static_cast<Impl*>(gself);
             g_debug("got a client for %s", e_cal_client_get_local_attachment_store(E_CAL_CLIENT(client)));
-            self->m_clients[e_client_get_source(client)] = E_CAL_CLIENT(client);
+            auto source = e_client_get_source(client);
+            auto ecc = E_CAL_CLIENT(client);
+            self->m_clients[source] = ecc;
+
+            self->ensure_client_alarms_have_triggers(ecc);
 
             // now create a view for it so that we can listen for changes
-            e_cal_client_get_view (E_CAL_CLIENT(client),
+            e_cal_client_get_view (ecc,
                                    "#t", // match all
                                    self->m_cancellable,
                                    on_client_view_ready,
@@ -408,6 +412,135 @@ private:
         g_debug("source changed; calling set_dirty_soon()");
         static_cast<Impl*>(gself)->set_dirty_soon();
     }
+
+    /***
+    ****
+    ***/
+
+    // old ubuntu-clock-app alarms created VTODO VALARMS without the
+    // required 'TRIGGER' property... http://pad.lv/1465806
+
+    void ensure_client_alarms_have_triggers(ECalClient* client)
+    {
+        // ask the EDS server for all the ubuntu-clock-app alarms...
+
+        auto sexp = g_strdup_printf("has-categories? '%s'", TAG_ALARM);
+
+        e_cal_client_get_object_list_as_comps(
+            client,
+            sexp,
+            m_cancellable,
+            ensure_client_alarms_have_triggers_async_cb,
+            this);
+
+        g_clear_pointer(&sexp, g_free);
+    }
+
+    static void ensure_client_alarms_have_triggers_async_cb(
+        GObject      * oclient,
+        GAsyncResult * res,
+        gpointer       gself)
+    {
+        ECalClient * client = E_CAL_CLIENT(oclient);
+        GError * error = nullptr;
+        GSList * components = nullptr;
+
+        if (e_cal_client_get_object_list_as_comps_finish(client,
+                                                         res,
+                                                         &components,
+                                                         &error))
+        {
+            auto self = static_cast<Impl*>(gself);
+            self->ensure_canonical_alarms_have_triggers(client, components);
+            e_cal_client_free_ecalcomp_slist(components);
+        }
+        else if (error != nullptr)
+        {
+            if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+                g_warning("can't get clock-app alarm list: %s", error->message);
+
+            g_error_free(error);
+        }
+    }
+
+    void ensure_canonical_alarms_have_triggers(ECalClient * client,
+                                               GSList     * components)
+    {
+        GSList * modify_slist = nullptr;
+
+        // for each component..
+        for (auto l=components; l!=nullptr; l=l->next)
+        {
+            bool changed = false;
+
+            // for each alarm...
+            auto component = E_CAL_COMPONENT(l->data);
+            auto auids = e_cal_component_get_alarm_uids(component);
+            for(auto l=auids; l!=nullptr; l=l->next)
+            {
+                auto auid = static_cast<const char*>(l->data);
+                auto alarm = e_cal_component_get_alarm(component, auid);
+                if (alarm == nullptr)
+                    continue;
+
+                // if the alarm has no trigger, add one.
+                ECalComponentAlarmTrigger trigger;
+                e_cal_component_alarm_get_trigger(alarm, &trigger);
+                if (trigger.type == E_CAL_COMPONENT_ALARM_TRIGGER_NONE)
+                {
+                    trigger.type = E_CAL_COMPONENT_ALARM_TRIGGER_RELATIVE_START;
+                    trigger.u.rel_duration = icaldurationtype_from_int(0);
+                    e_cal_component_alarm_set_trigger (alarm, trigger);
+                    changed = true;
+                }
+
+                g_clear_pointer(&alarm, e_cal_component_alarm_free);
+            }
+            g_clear_pointer(&auids, cal_obj_uid_list_free);
+
+            if (changed)
+            {
+                auto icc = e_cal_component_get_icalcomponent(component); // icc owned by ecc
+                modify_slist = g_slist_prepend(modify_slist, icc);
+            }
+        }
+
+        if (modify_slist != nullptr)
+        {
+            e_cal_client_modify_objects(client,
+                                        modify_slist,
+                                        E_CAL_OBJ_MOD_ALL,
+                                        m_cancellable,
+                                        ensure_canonical_alarms_have_triggers_async_cb,
+                                        this);
+
+            g_clear_pointer(&modify_slist, g_slist_free);
+        }
+    }
+
+    // log a warning if e_cal_client_modify_objects() failed
+    static void ensure_canonical_alarms_have_triggers_async_cb(
+        GObject      * oclient,
+        GAsyncResult * res,
+        gpointer       /*gself*/)
+    {
+        GError * error = nullptr;
+
+        e_cal_client_modify_objects_finish (E_CAL_CLIENT(oclient), res, &error);
+
+        if (error != nullptr)
+        {
+            if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+                g_warning("couldn't add alarm triggers: %s", error->message);
+
+            g_error_free(error);
+        }
+    }
+
+    /***
+    ****
+    ***/
+
 
     typedef std::function<void(const std::vector<Appointment>&)> appointment_func;
 
