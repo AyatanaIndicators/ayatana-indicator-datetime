@@ -98,6 +98,7 @@ add_eds_ics_test_by_name(test-eds-ics-all-day-events)
 add_eds_ics_test_by_name(test-eds-ics-repeating-events)
 add_eds_ics_test_by_name(test-eds-ics-nonrepeating-events)
 add_eds_ics_test_by_name(test-eds-ics-repeating-valarms)
+add_eds_ics_test_by_name(test-eds-ics-missing-trigger)
 
 
 # disabling the timezone unit tests because they require
