@@ -47,6 +47,30 @@ PrintTo(const Alarm& alarm, std::ostream* os)
     *os << '}';
 }
 
+void
+PrintTo(const Appointment& appointment, std::ostream* os)
+{
+    *os << '{';
+
+    *os << "{uid:'" << appointment.uid << "'}"
+        << "{color:'" << appointment.color << "'}"
+        << "{summary:'" << appointment.summary << "'}"
+        << "{activation_url:'" << appointment.activation_url << "'}";
+
+    *os << "{begin:";
+    PrintTo(appointment.begin, os);
+    *os << '}';
+
+    *os << "{end:";
+    PrintTo(appointment.end, os);
+    *os << '}';
+
+    for(const auto& alarm : appointment.alarms)
+        PrintTo(alarm, os);
+
+    *os << '}';
+}
+
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
