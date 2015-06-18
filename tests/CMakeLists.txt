@@ -75,7 +75,7 @@ find_program(EVOLUTION_SOURCE_REGISTRY evolution-source-registry PATHS /usr/lib/
 find_program(GVFSD gvfsd PATHS /usr/lib/gvfs/)
 OPTION(EVOLUTION_SOURCE_SERVICE_NAME "DBus name for source registry")
 if(NOT EVOLUTION_SOURCE_SERVICE_NAME)
-    set(EVOLUTION_SOURCE_SERVICE_NAME "org.gnome.evolution.dataserver.Sources3")
+    set(EVOLUTION_SOURCE_SERVICE_NAME "org.gnome.evolution.dataserver.Sources4")
 endif()
 
 function(add_eds_test_by_name name)
