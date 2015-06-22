@@ -78,24 +78,27 @@ if(NOT EVOLUTION_SOURCE_SERVICE_NAME)
     set(EVOLUTION_SOURCE_SERVICE_NAME "org.gnome.evolution.dataserver.Sources3")
 endif()
 
-function(add_eds_test_by_name name)
+function(add_eds_ics_test_by_name name)
   set (TEST_NAME ${name})
   add_executable(${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
   target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
   add_test (${TEST_NAME}
-            ${CMAKE_CURRENT_SOURCE_DIR}/run-eds-test.sh
-            ${DBUS_RUNNER}                                         # arg1: dbus-test-runner exec
-            ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}               # arg2: test executable path
-            ${TEST_NAME}                                           # arg3: test name
-            ${EVOLUTION_CALENDAR_FACTORY}                          # arg4: evolution-calendar-factory exec
-            ${EVOLUTION_SOURCE_SERVICE_NAME}                       # arg5: dbus name for source registry 
-            ${EVOLUTION_SOURCE_REGISTRY}                           # arg6: evolution-source-registry exec
-            ${GVFSD}                                               # arg7: gvfsd exec
-            ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}-config-files) # arg8: canned config files
+            ${CMAKE_CURRENT_SOURCE_DIR}/run-eds-ics-test.sh
+            ${DBUS_RUNNER}                                            # arg1: dbus-test-runner exec
+            ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}                  # arg2: test executable path
+            ${TEST_NAME}                                              # arg3: test name
+            ${EVOLUTION_CALENDAR_FACTORY}                             # arg4: evolution-calendar-factory exec
+            ${EVOLUTION_SOURCE_SERVICE_NAME}                          # arg5: dbus name for source registry 
+            ${EVOLUTION_SOURCE_REGISTRY}                              # arg6: evolution-source-registry exec
+            ${GVFSD}                                                  # arg7: gvfsd exec
+            ${CMAKE_CURRENT_SOURCE_DIR}/test-eds-ics-config-files     # arg8: base directory for config file template
+            ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.ics)             # arg9: the ical file for this test
 endfunction()
-add_eds_test_by_name(test-eds-valarms)
-
-
+add_eds_ics_test_by_name(test-eds-ics-all-day-events)
+add_eds_ics_test_by_name(test-eds-ics-repeating-events)
+add_eds_ics_test_by_name(test-eds-ics-nonrepeating-events)
+add_eds_ics_test_by_name(test-eds-ics-repeating-valarms)
+add_eds_ics_test_by_name(test-eds-ics-missing-trigger)
 
 
 # disabling the timezone unit tests because they require

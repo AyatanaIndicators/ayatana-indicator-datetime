@@ -9,6 +9,7 @@ echo ARG5=$5 # bus service name of calendar factory
 echo ARG6=$6 # full exectuable path of evolution-source-registry
 echo ARG7=$7 # full executable path of gvfs
 echo ARG8=$8 # config files
+echo ARG8=$9 # ics file
 
 # set up the tmpdir and tell the shell to purge it when we exit
 export TEST_TMP_DIR=$(mktemp -p "${TMPDIR:-/tmp}" -d $3-XXXXXXXXXX) || exit 1
@@ -32,6 +33,9 @@ export XDG_VIDEOS_DIR=${TEST_TMP_DIR}
 export QORGANIZER_EDS_DEBUG=On
 export GIO_USE_VFS=local # needed to ensure GVFS shuts down cleanly after the test is over
 
+export G_MESSAGES_DEBUG=all
+export G_DBUS_DEBUG=messages
+
 echo HOMEDIR=${HOME}
 rm -rf ${XDG_DATA_HOME}
 
@@ -39,6 +43,12 @@ rm -rf ${XDG_DATA_HOME}
 if [ -d $8 ]; then
   echo "copying files from $8 to $HOME"
   cp --verbose --archive $8/. $HOME
+fi
+
+# if there's a specific ics file to test, copy it on top of the canned confilg files
+if [ -e $9 ]; then
+  echo "copying $9 into $HOME"
+  cp --verbose --archive $9 ${XDG_DATA_HOME}/evolution/tasks/system/tasks.ics
 fi
 
 # run dbus-test-runner
