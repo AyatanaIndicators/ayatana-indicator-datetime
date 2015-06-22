@@ -1,3 +1,11 @@
+indicator-datetime (13.10.0+15.10.20150622-0ubuntu1) wily; urgency=medium
+
+  [ Charles Kerr ]
+  * Fix bugs relating to timezones and triggers from clock-app alarms.
+    (LP: #1456281, #1465806)
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Mon, 22 Jun 2015 18:03:38 +0000
+
 indicator-datetime (13.10.0+15.10.20150515-0ubuntu1) wily; urgency=medium
 
   [ Charles Kerr ]
