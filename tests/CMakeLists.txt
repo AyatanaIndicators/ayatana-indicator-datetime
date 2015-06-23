@@ -70,13 +70,6 @@ target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEP
 ## 
 
 find_program(DBUS_RUNNER dbus-test-runner)
-find_program(EVOLUTION_CALENDAR_FACTORY evolution-calendar-factory PATHS /usr/lib/evolution/)
-find_program(EVOLUTION_SOURCE_REGISTRY evolution-source-registry PATHS /usr/lib/evolution/)
-find_program(GVFSD gvfsd PATHS /usr/lib/gvfs/)
-OPTION(EVOLUTION_SOURCE_SERVICE_NAME "DBus name for source registry")
-if(NOT EVOLUTION_SOURCE_SERVICE_NAME)
-    set(EVOLUTION_SOURCE_SERVICE_NAME "org.gnome.evolution.dataserver.Sources3")
-endif()
 
 function(add_eds_ics_test_by_name name)
   set (TEST_NAME ${name})
@@ -84,15 +77,11 @@ function(add_eds_ics_test_by_name name)
   target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
   add_test (${TEST_NAME}
             ${CMAKE_CURRENT_SOURCE_DIR}/run-eds-ics-test.sh
-            ${DBUS_RUNNER}                                            # arg1: dbus-test-runner exec
-            ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}                  # arg2: test executable path
-            ${TEST_NAME}                                              # arg3: test name
-            ${EVOLUTION_CALENDAR_FACTORY}                             # arg4: evolution-calendar-factory exec
-            ${EVOLUTION_SOURCE_SERVICE_NAME}                          # arg5: dbus name for source registry 
-            ${EVOLUTION_SOURCE_REGISTRY}                              # arg6: evolution-source-registry exec
-            ${GVFSD}                                                  # arg7: gvfsd exec
-            ${CMAKE_CURRENT_SOURCE_DIR}/test-eds-ics-config-files     # arg8: base directory for config file template
-            ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.ics)             # arg9: the ical file for this test
+            ${DBUS_RUNNER}                                         # arg1: dbus-test-runner exec
+            ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}               # arg2: test executable path
+            ${TEST_NAME}                                           # arg3: test name
+            ${CMAKE_CURRENT_SOURCE_DIR}/test-eds-ics-config-files  # arg4: base directory for config file template
+            ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.ics)          # arg5: the ical file for this test
 endfunction()
 add_eds_ics_test_by_name(test-eds-ics-all-day-events)
 add_eds_ics_test_by_name(test-eds-ics-repeating-events)
