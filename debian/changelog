@@ -1,3 +1,10 @@
+indicator-datetime (13.10.0+15.10.20150624-0ubuntu1) wily; urgency=medium
+
+  [ Charles Kerr ]
+  * Speedups/cleanups to the EDS regression tests
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Wed, 24 Jun 2015 12:51:27 +0000
+
 indicator-datetime (13.10.0+15.10.20150622-0ubuntu1) wily; urgency=medium
 
   [ Charles Kerr ]
