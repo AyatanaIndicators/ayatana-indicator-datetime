@@ -739,19 +739,24 @@ private:
         GTimeZone * gtz {};
         if (in.tzid != nullptr)
         {
-            const char * tzid {};
-            icaltimezone * itz {};
-
-            itz = icaltimezone_get_builtin_timezone_from_tzid(in.tzid); // usually works
+            auto itz = icaltimezone_get_builtin_timezone_from_tzid(in.tzid); // usually works
 
             if (itz == nullptr) // fallback
                 itz = icaltimezone_get_builtin_timezone(in.tzid);
 
-            if (itz == nullptr) // ok, I give up... make a round trip on the bus to ask EDS to look it up in VTIMEZONES
+            if (itz == nullptr) // ok we have a strange tzid... ask EDS to look it up in VTIMEZONES
                 e_cal_client_get_timezone_sync(client, in.tzid, &itz, cancellable.get(), nullptr);
 
+            const char * tzid;
             if (itz != nullptr)
+            {
                 tzid = icaltimezone_get_location(itz);
+            }
+            else
+            {
+                g_warning("Unrecognized TZID: '%s'", in.tzid);
+                tzid = nullptr;
+            }
 
             gtz = g_time_zone_new(tzid);
             g_debug("%s eccdt.tzid -> offset is %d", G_STRLOC, in.tzid, (int)g_time_zone_get_offset(gtz,0));
