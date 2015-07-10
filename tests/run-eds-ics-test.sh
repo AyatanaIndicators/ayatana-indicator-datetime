@@ -1,19 +1,22 @@
 #!/bin/sh
 
-echo ARG0=$0 # this script
-echo ARG1=$1 # full executable path of dbus-test-runner
-echo ARG2=$2 # full executable path of test app
-echo ARG3=$3 # test name
-echo ARG4=$4 # full executable path of evolution-calendar-factory
-echo ARG5=$5 # bus service name of calendar factory
-echo ARG6=$6 # full exectuable path of evolution-source-registry
-echo ARG7=$7 # full executable path of gvfs
-echo ARG8=$8 # config files
-echo ARG8=$9 # ics file
+SELF=$0        # this script
+TEST_RUNNER=$1 # full executable path of dbus-test-runner
+TEST_EXEC=$2   # full executable path of test app
+TEST_NAME=$3   # test name
+CONFIG_DIR=$4  # config files
+ICS_FILE=$5    # ical file holding test data
 
-# set up the tmpdir and tell the shell to purge it when we exit
-export TEST_TMP_DIR=$(mktemp -p "${TMPDIR:-/tmp}" -d $3-XXXXXXXXXX) || exit 1
-echo "running test '$3' in ${TEST_TMP_DIR}"
+echo "this script: ${SELF}"
+echo "test-runner: ${TEST_RUNNER}"
+echo "test-exec: ${TEST_EXEC}"
+echo "test-name: ${TEST_NAME}"
+echo "config-dir: ${CONFIG_DIR}"
+echo "ics-file: ${ICS_FILE}"
+
+# set up the tmpdir
+export TEST_TMP_DIR=$(mktemp -p "${TMPDIR:-/tmp}" -d ${TEST_NAME}-XXXXXXXXXX) || exit 1
+echo "running test '${TEST_NAME}' in ${TEST_TMP_DIR}"
 
 # set up the environment variables
 export QT_QPA_PLATFORM=minimal
@@ -40,23 +43,19 @@ echo HOMEDIR=${HOME}
 rm -rf ${XDG_DATA_HOME}
 
 # if there are canned config files for this test, move them into place now
-if [ -d $8 ]; then
-  echo "copying files from $8 to $HOME"
-  cp --verbose --archive $8/. $HOME
+if [ -d ${CONFIG_DIR} ]; then
+  echo "copying files from ${CONFIG_DIR} to $HOME"
+  cp --verbose --archive ${CONFIG_DIR}/. $HOME
 fi
 
-# if there's a specific ics file to test, copy it on top of the canned confilg files
-if [ -e $9 ]; then
-  echo "copying $9 into $HOME"
-  cp --verbose --archive $9 ${XDG_DATA_HOME}/evolution/tasks/system/tasks.ics
+# if there's a specific ics file to test, copy it on top of the canned config files
+if [ -e ${ICS_FILE} ]; then
+  echo "copying ${ICS_FILE} into $HOME"
+  cp --verbose --archive ${ICS_FILE} ${XDG_DATA_HOME}/evolution/tasks/system/tasks.ics
 fi
 
-# run dbus-test-runner
-$1 --keep-env --max-wait=90 \
---task $2 --task-name $3 --wait-until-complete --wait-for=org.gnome.evolution.dataserver.Calendar4 \
---task $4 --task-name "evolution" --wait-until-complete -r
-#--task $6 --task-name "source-registry" --wait-for=org.gtk.vfs.Daemon -r \
-#--task $7 --task-name "gvfsd" -r
+# run the test
+${TEST_RUNNER} --keep-env --max-wait=90 --task ${TEST_EXEC} --task-name ${TEST_NAME} --wait-until-complete 
 rv=$?
 
 # if the test passed, blow away the tmpdir
