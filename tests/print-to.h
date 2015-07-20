@@ -33,9 +33,42 @@ namespace datetime {
 ***/
 
 void
+PrintTo(const DateTime& datetime, std::ostream* os)
+{
+    *os << "{time:'" << datetime.format("%F %T %z") << '}';
+}
+
+void
 PrintTo(const Alarm& alarm, std::ostream* os)
 {
-    *os << "{text:'" << alarm.text << "', audio_url:'" << alarm.audio_url << "', time:'"<<alarm.time.format("%F %T")<<"'}";
+    *os << '{';
+    *os << "{text:" << alarm.text << '}';
+    PrintTo(alarm.time, os);
+    *os << '}';
+}
+
+void
+PrintTo(const Appointment& appointment, std::ostream* os)
+{
+    *os << '{';
+
+    *os << "{uid:'" << appointment.uid << "'}"
+        << "{color:'" << appointment.color << "'}"
+        << "{summary:'" << appointment.summary << "'}"
+        << "{activation_url:'" << appointment.activation_url << "'}";
+
+    *os << "{begin:";
+    PrintTo(appointment.begin, os);
+    *os << '}';
+
+    *os << "{end:";
+    PrintTo(appointment.end, os);
+    *os << '}';
+
+    for(const auto& alarm : appointment.alarms)
+        PrintTo(alarm, os);
+
+    *os << '}';
 }
 
 } // namespace datetime
