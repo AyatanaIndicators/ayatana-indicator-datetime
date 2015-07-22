@@ -1,3 +1,9 @@
+indicator-datetime (13.10.0+15.10.20150710.1-0ubuntu1) wily; urgency=medium
+
+  * New rebuild forced.
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Fri, 10 Jul 2015 20:35:47 +0000
+
 indicator-datetime (13.10.0+15.10.20150624-0ubuntu1) wily; urgency=medium
 
   [ Charles Kerr ]
@@ -20,6 +26,13 @@ indicator-datetime (13.10.0+15.10.20150515-0ubuntu1) wily; urgency=medium
     when alarm notifications are shown.
 
  -- CI Train Bot <ci-train-bot@canonical.com>  Fri, 15 May 2015 16:41:41 +0000
+
+indicator-datetime (13.10.0+15.04.20150618-0ubuntu1) vivid; urgency=medium
+
+  [ Charles Kerr ]
+  * Fix invalid valarms in older clock-app alarms. (LP: #1465806)
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Thu, 18 Jun 2015 19:25:41 +0000
 
 indicator-datetime (13.10.0+15.04.20150406-0ubuntu1) vivid; urgency=medium
 
