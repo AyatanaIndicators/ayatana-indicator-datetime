@@ -47,16 +47,21 @@ class EdsEngine::Impl
 {
 public:
 
-    Impl():
-        m_cancellable(g_cancellable_new())
+    Impl()
     {
-        e_source_registry_new(m_cancellable, on_source_registry_ready, this);
+        auto cancellable_deleter = [](GCancellable * c) {
+            g_cancellable_cancel(c);
+            g_clear_object(&c);
+        };
+
+        m_cancellable = std::shared_ptr<GCancellable>(g_cancellable_new(), cancellable_deleter);
+
+        e_source_registry_new(m_cancellable.get(), on_source_registry_ready, this);
     }
 
     ~Impl()
     {
-        g_cancellable_cancel(m_cancellable);
-        g_clear_object(&m_cancellable);
+        m_cancellable.reset();
 
         while(!m_sources.empty())
             remove_source(*m_sources.begin());
@@ -131,9 +136,9 @@ public:
             e_cal_client_get_object_list_as_comps(
                 client,
                 sexp,
-                m_cancellable,
+                m_cancellable.get(),
                 on_alarm_component_list_ready,
-                new ClientSubtask(main_task, client, color));
+                new ClientSubtask(main_task, client, m_cancellable, color));
             g_clear_pointer(&sexp, g_free);
 
             // ask EDS about events that occur in this window...
@@ -142,9 +147,9 @@ public:
             e_cal_client_get_object_list_as_comps(
                 client,
                 sexp,
-                m_cancellable,
+                m_cancellable.get(),
                 on_event_component_list_ready,
-                new ClientSubtask(main_task, client, color));
+                new ClientSubtask(main_task, client, m_cancellable, color));
             g_clear_pointer(&sexp, g_free);
 
             g_clear_pointer(&sexp_fmt, g_free);
@@ -160,7 +165,7 @@ public:
                 e_cal_client_get_object(kv.second,
                                         appointment.uid.c_str(),
                                         nullptr,
-                                        m_cancellable,
+                                        m_cancellable.get(),
                                         on_object_ready_for_disable,
                                         this);
             }
@@ -271,7 +276,8 @@ private:
             g_debug("%s connecting a client to source %s", G_STRFUNC, source_uid);
             e_cal_client_connect(source,
                                  source_type,
-                                 self->m_cancellable,
+                                 -1,
+                                 self->m_cancellable.get(),
                                  on_client_connected,
                                  gself);
         }
@@ -306,7 +312,7 @@ private:
             // now create a view for it so that we can listen for changes
             e_cal_client_get_view (ecc,
                                    "#t", // match all
-                                   self->m_cancellable,
+                                   self->m_cancellable.get(),
                                    on_client_view_ready,
                                    self);
 
@@ -429,7 +435,7 @@ private:
         e_cal_client_get_object_list_as_comps(
             client,
             sexp,
-            m_cancellable,
+            m_cancellable.get(),
             ensure_client_alarms_have_triggers_async_cb,
             this);
 
@@ -510,7 +516,7 @@ private:
             e_cal_client_modify_objects(client,
                                         modify_slist,
                                         E_CAL_OBJ_MOD_ALL,
-                                        m_cancellable,
+                                        m_cancellable.get(),
                                         ensure_canonical_alarms_have_triggers_async_cb,
                                         this);
 
@@ -580,13 +586,16 @@ private:
     {
         std::shared_ptr<Task> task;
         ECalClient* client;
+        std::shared_ptr<GCancellable> cancellable;
         std::string color;
 
         ClientSubtask(const std::shared_ptr<Task>& task_in,
                       ECalClient* client_in,
+                      const std::shared_ptr<GCancellable>& cancellable_in,
                       const char* color_in):
             task(task_in),
-            client(client_in)
+            client(client_in),
+            cancellable(cancellable_in)
         {
             if (color_in)
                 color = color_in;
@@ -720,15 +729,44 @@ private:
     }
 
     static DateTime
-    datetime_from_component_date_time(const ECalComponentDateTime & in,
-                                      GTimeZone                   * default_timezone)
+    datetime_from_component_date_time(ECalClient                     * client,
+                                      std::shared_ptr<GCancellable>  & cancellable,
+                                      const ECalComponentDateTime    & in,
+                                      GTimeZone                      * default_timezone)
     {
         DateTime out;
-
         g_return_val_if_fail(in.value != nullptr, out);
 
-        auto gtz = in.tzid == nullptr ? g_time_zone_ref(default_timezone)
-                                      : g_time_zone_new(in.tzid);
+        GTimeZone * gtz {};
+        if (in.tzid != nullptr)
+        {
+            auto itz = icaltimezone_get_builtin_timezone_from_tzid(in.tzid); // usually works
+
+            if (itz == nullptr) // fallback
+                itz = icaltimezone_get_builtin_timezone(in.tzid);
+
+            if (itz == nullptr) // ok we have a strange tzid... ask EDS to look it up in VTIMEZONES
+                e_cal_client_get_timezone_sync(client, in.tzid, &itz, cancellable.get(), nullptr);
+
+            const char * tzid;
+            if (itz != nullptr)
+            {
+                tzid = icaltimezone_get_location(itz);
+            }
+            else
+            {
+                g_warning("Unrecognized TZID: '%s'", in.tzid);
+                tzid = nullptr;
+            }
+
+            gtz = g_time_zone_new(tzid);
+            g_debug("%s eccdt.tzid -> offset is %d", G_STRLOC, in.tzid, (int)g_time_zone_get_offset(gtz,0));
+        }
+        else
+        {
+            gtz = g_time_zone_ref(default_timezone);
+        }
+
         out = DateTime(gtz,
                        in.value->year,
                        in.value->month,
@@ -773,7 +811,10 @@ private:
     }
 
     static Appointment
-    get_appointment(ECalComponent * component, GTimeZone * gtz)
+    get_appointment(ECalClient                    * client,
+                    std::shared_ptr<GCancellable> & cancellable,
+                    ECalComponent                 * component,
+                    GTimeZone                     * gtz)
     {
         Appointment baseline;
 
@@ -792,13 +833,13 @@ private:
         // get appointment.begin
         ECalComponentDateTime eccdt_tmp {};
         e_cal_component_get_dtstart(component, &eccdt_tmp);
-        baseline.begin = datetime_from_component_date_time(eccdt_tmp, gtz);
+        baseline.begin = datetime_from_component_date_time(client, cancellable, eccdt_tmp, gtz);
         e_cal_component_free_datetime(&eccdt_tmp);
 
         // get appointment.end
         e_cal_component_get_dtend(component, &eccdt_tmp);
         baseline.end = eccdt_tmp.value != nullptr
-                                  ? datetime_from_component_date_time(eccdt_tmp, gtz)
+                                  ? datetime_from_component_date_time(client, cancellable, eccdt_tmp, gtz)
                                   : baseline.begin;
         e_cal_component_free_datetime(&eccdt_tmp);
 
@@ -839,7 +880,7 @@ private:
                          ClientSubtask * subtask,
                          GTimeZone     * gtz)
     {
-        // events with alarms are covered by add_alarm_to_subtask(),
+        // events with alarms are covered by add_alarms_to_subtask(),
         // so skip them here
         auto auids = e_cal_component_get_alarm_uids(component);
         const bool has_alarms = auids != nullptr;
@@ -850,7 +891,7 @@ private:
         // add it. simple, eh?
         if (is_component_interesting(component))
         {
-            Appointment appointment = get_appointment(component, gtz);
+            Appointment appointment = get_appointment(subtask->client, subtask->cancellable, component, gtz);
             appointment.color = subtask->color;
             subtask->task->appointments.push_back(appointment);
         }
@@ -866,7 +907,7 @@ private:
         if (!is_component_interesting(component))
             return;
 
-        Appointment baseline = get_appointment(component, gtz);
+        Appointment baseline = get_appointment(subtask->client, subtask->cancellable, component, gtz);
         baseline.color = subtask->color;
 
         /**
@@ -958,7 +999,7 @@ private:
                     e_cal_client_modify_object(E_CAL_CLIENT(client),
                                                e_cal_component_get_icalcomponent(ecc),
                                                E_CAL_OBJ_MOD_THIS,
-                                               static_cast<Impl*>(gself)->m_cancellable,
+                                               static_cast<Impl*>(gself)->m_cancellable.get(),
                                                on_disable_done,
                                                nullptr);
 
@@ -990,7 +1031,7 @@ private:
     std::set<ESource*> m_sources;
     std::map<ESource*,ECalClient*> m_clients;
     std::map<ESource*,ECalClientView*> m_views;
-    GCancellable* m_cancellable {};
+    std::shared_ptr<GCancellable> m_cancellable;
     ESourceRegistry* m_source_registry {};
     guint m_rebuild_tag {};
     time_t m_rebuild_deadline {};
