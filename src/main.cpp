@@ -68,7 +68,7 @@ namespace
     {
         // create the live objects
         auto live_settings = std::make_shared<LiveSettings>();
-        auto live_timezones = std::make_shared<LiveTimezones>(live_settings, TIMEZONE_FILE);
+        auto live_timezones = std::make_shared<LiveTimezones>(live_settings);
         auto live_clock = std::make_shared<LiveClock>(timezone_);
 
         // create a full-month planner currently pointing to the current month
@@ -128,7 +128,7 @@ main(int /*argc*/, char** /*argv*/)
     textdomain(GETTEXT_PACKAGE);
 
     auto engine = create_engine();
-    auto timezone_ = std::make_shared<FileTimezone>(TIMEZONE_FILE);
+    auto timezone_ = std::make_shared<FileTimezone>();
     auto state = create_state(engine, timezone_);
     auto actions = std::make_shared<LiveActions>(state);
     MenuFactory factory(actions, state);

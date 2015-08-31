@@ -38,7 +38,7 @@ namespace datetime {
 class LiveTimezones: public Timezones
 {
 public:
-    LiveTimezones(const std::shared_ptr<const Settings>& settings, const std::string& filename);
+    LiveTimezones(const std::shared_ptr<const Settings>& settings);
 
 private:
     void update_geolocation();
