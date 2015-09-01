@@ -58,7 +58,7 @@ add_test_by_name(test-locations)
 add_test_by_name(test-menus)
 add_test_by_name(test-planner)
 add_test_by_name(test-settings)
-add_test_by_name(test-timezone-file)
+add_test_by_name(test-timezone-timedated)
 add_test_by_name(test-utils)
 
 set (TEST_NAME manual-test-snap)

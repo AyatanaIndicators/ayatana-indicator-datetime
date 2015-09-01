@@ -33,9 +33,9 @@ set (SERVICE_CXX_SOURCES
      settings-live.cpp
      snap.cpp
      sound.cpp
-     timezone-file.cpp
      timezone-geoclue.cpp
      timezones-live.cpp
+     timezone-timedated.cpp
      utils.c
      wakeup-timer-mainloop.cpp
      wakeup-timer-powerd.cpp)

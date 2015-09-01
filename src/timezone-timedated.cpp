@@ -17,7 +17,7 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#include <datetime/timezone-file.h>
+#include <datetime/timezone-timedated.h>
 
 #include <gio/gio.h>
 
@@ -32,11 +32,11 @@ namespace datetime {
 ****
 ***/
 
-class FileTimezone::Impl
+class TimedatedTimezone::Impl
 {
 public:
 
-    Impl(FileTimezone& owner):
+    Impl(TimedatedTimezone& owner):
         m_owner(owner),
         m_loop(g_main_loop_new(nullptr, FALSE))
     {
@@ -208,7 +208,7 @@ out:
     ****
     ***/
 
-    FileTimezone & m_owner;
+    TimedatedTimezone & m_owner;
     unsigned long m_properties_changed_id = 0;
     unsigned long m_bus_watch_id = 0;
     unsigned long m_timeout_id = 0;
@@ -220,12 +220,12 @@ out:
 ****
 ***/
 
-FileTimezone::FileTimezone():
+TimedatedTimezone::TimedatedTimezone():
     impl(new Impl{*this})
 {
 }
 
-FileTimezone::~FileTimezone()
+TimedatedTimezone::~TimedatedTimezone()
 {
 }
 

@@ -31,8 +31,8 @@
 #include <datetime/settings-live.h>
 #include <datetime/snap.h>
 #include <datetime/state.h>
-#include <datetime/timezone-file.h>
 #include <datetime/timezones-live.h>
+#include <datetime/timezone-timedated.h>
 #include <datetime/wakeup-timer-powerd.h>
 #include <notifications/notifications.h>
 
@@ -128,7 +128,7 @@ main(int /*argc*/, char** /*argv*/)
     textdomain(GETTEXT_PACKAGE);
 
     auto engine = create_engine();
-    auto timezone_ = std::make_shared<FileTimezone>();
+    auto timezone_ = std::make_shared<TimedatedTimezone>();
     auto state = create_state(engine, timezone_);
     auto actions = std::make_shared<LiveActions>(state);
     MenuFactory factory(actions, state);

@@ -17,8 +17,8 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef INDICATOR_DATETIME_FILE_TIMEZONE_H
-#define INDICATOR_DATETIME_FILE_TIMEZONE_H
+#ifndef INDICATOR_DATETIME_TIMEDATED_TIMEZONE_H
+#define INDICATOR_DATETIME_TIMEDATED_TIMEZONE_H
 
 #include <datetime/timezone.h> // base class
 
@@ -31,11 +31,11 @@ namespace datetime {
 /**
  * \brief A #Timezone that gets its information from monitoring a file, such as /etc/timezone
  */
-class FileTimezone: public Timezone
+class TimedatedTimezone: public Timezone
 {
 public:
-    FileTimezone();
-    ~FileTimezone();
+    TimedatedTimezone();
+    ~TimedatedTimezone();
 
 private:
     class Impl;
@@ -43,12 +43,12 @@ private:
     std::unique_ptr<Impl> impl;
 
     // we have pointers in here, so disable copying
-    FileTimezone(const FileTimezone&) =delete;
-    FileTimezone& operator=(const FileTimezone&) =delete;
+    TimedatedTimezone(const TimedatedTimezone&) =delete;
+    TimedatedTimezone& operator=(const TimedatedTimezone&) =delete;
 };
 
 } // namespace datetime
 } // namespace indicator
 } // namespace unity
 
-#endif // INDICATOR_DATETIME_FILE_TIMEZONE_H
+#endif // INDICATOR_DATETIME_TIMEDATED_TIMEZONE_H

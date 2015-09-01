@@ -20,13 +20,13 @@
 
 #include "timedated-fixture.h"
 
-#include <datetime/timezone-file.h>
+#include <datetime/timezone-timedated.h>
 
 #include <cstdio> // fopen()
 //#include <sys/stat.h> // chmod()
 #include <unistd.h> // sync()
 
-using unity::indicator::datetime::FileTimezone;
+using unity::indicator::datetime::TimedatedTimezone;
 
 /**
  * Test that timezone-file picks up the initial value
@@ -35,7 +35,7 @@ TEST_F(TimedateFixture, InitialValue)
 {
   const std::string expected_timezone = "America/Chicago";
   set_timezone(expected_timezone);
-  FileTimezone tz;
+  TimedatedTimezone tz;
   ASSERT_EQ(expected_timezone, tz.timezone.get());
 }
 
@@ -50,7 +50,7 @@ TEST_F(TimedateFixture, ChangedValue)
 
   set_timezone(initial_timezone);
 
-  FileTimezone tz;
+  TimedatedTimezone tz;
   ASSERT_EQ(initial_timezone, tz.timezone.get());
 
   bool changed = false;
