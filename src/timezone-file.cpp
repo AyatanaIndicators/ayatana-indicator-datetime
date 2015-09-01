@@ -64,6 +64,12 @@ private:
             m_properties_changed_id = 0;
         }
 
+        if (m_timeout_id)
+        {
+            g_source_remove(m_timeout_id);
+            m_timeout_id = 0;
+        }
+
         g_clear_object(&m_proxy);
         g_clear_pointer(&m_loop, g_main_loop_unref);
     }
@@ -124,6 +130,12 @@ out:
         g_clear_pointer(&prop, g_variant_unref);
         if (self->m_loop && g_main_loop_is_running(self->m_loop))
             g_main_loop_quit(self->m_loop);
+
+        if (self->m_timeout_id)
+        {
+            g_source_remove(self->m_timeout_id);
+            self->m_timeout_id = 0;
+        }
     }
 
     static void on_name_appeared(GDBusConnection *connection,
@@ -141,6 +153,20 @@ out:
                 nullptr,
                 on_proxy_ready,
                 gself);
+    }
+
+    static gboolean quit_loop(gpointer gself)
+    {
+        auto self = static_cast<Impl*>(gself);
+
+        g_warning("Timed out when getting initial value of timezone, defaulting to UTC");
+        self->notify_timezone("Etc/Utc");
+
+        g_main_loop_quit(self->m_loop);
+
+        self->m_timeout_id = 0;
+
+        return G_SOURCE_REMOVE;
     }
 
     static void on_name_vanished(GDBusConnection *connection G_GNUC_UNUSED,
@@ -167,6 +193,8 @@ out:
                 this,
                 nullptr);
 
+        /* Incase something breaks, we don't want to hang */
+        m_timeout_id = g_timeout_add(500, quit_loop, this);
         g_main_loop_run(m_loop);
     }
 
@@ -183,6 +211,7 @@ out:
     FileTimezone & m_owner;
     unsigned long m_properties_changed_id = 0;
     unsigned long m_bus_watch_id = 0;
+    unsigned long m_timeout_id = 0;
     GDBusProxy *m_proxy = nullptr;
     GMainLoop *m_loop = nullptr;
 };
