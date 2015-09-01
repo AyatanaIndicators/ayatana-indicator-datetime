@@ -195,6 +195,8 @@ out:
 
         /* Incase something breaks, we don't want to hang */
         m_timeout_id = g_timeout_add(500, quit_loop, this);
+
+        /* We need to block until we've read the tz once */
         g_main_loop_run(m_loop);
     }
 

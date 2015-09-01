@@ -80,9 +80,9 @@ private:
         auto self = static_cast<TimedateFixture*>(gself);
         g_debug("bus acquired: %s, connection is %p", name, conn);
 
-        // Set up a mock GSD.
-        // All it really does is wait for calls to GetDevice and
-        // returns the get_devices_retval variant
+        /* Set up a fake timedated which handles setting and getting the
+         ** timezone
+         */
         static const GDBusInterfaceVTable vtable = {
             timedate1_handle_method_call,
             timedate1_get_properties, /* GetProperty */
