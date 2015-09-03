@@ -53,112 +53,42 @@ private:
 
     void clear()
     {
-        if (m_bus_watch_id)
+        if (m_connection && m_signal_subscription_id)
         {
-            g_bus_unwatch_name (m_bus_watch_id);
-            m_bus_watch_id = 0;
+            g_dbus_connection_signal_unsubscribe (m_connection, m_signal_subscription_id);
+            m_signal_subscription_id = 0;
         }
 
-        if (m_properties_changed_id)
-        {
-            g_signal_handler_disconnect(m_proxy, m_properties_changed_id);
-            m_properties_changed_id = 0;
-        }
-
-        g_clear_object(&m_proxy);
+        g_clear_object(&m_connection);
     }
 
-    static void on_properties_changed(GDBusProxy *proxy G_GNUC_UNUSED,
-            GVariant *changed_properties /* a{sv} */,
-            GStrv invalidated_properties G_GNUC_UNUSED,
+    static void on_properties_changed (GDBusConnection *connection G_GNUC_UNUSED,
+            const gchar *sender_name G_GNUC_UNUSED,
+            const gchar *object_path G_GNUC_UNUSED,
+            const gchar *interface_name G_GNUC_UNUSED,
+            const gchar *signal_name G_GNUC_UNUSED,
+            GVariant *parameters,
             gpointer gself)
     {
         auto self = static_cast<Impl*>(gself);
-        char *tz;
+        const char *tz;
+        GVariant *changed_properties;
+        gchar **invalidated_properties;
 
-        if (g_variant_lookup(changed_properties, "Timezone", "s", &tz, NULL))
-        {
-            g_debug("on_properties_changed: got timezone '%s'", tz);
+        g_variant_get (parameters, "(s@a{sv}^as)", NULL, &changed_properties, &invalidated_properties);
+
+        if (g_variant_lookup(changed_properties, "Timezone", "&s", &tz, NULL))
             self->notify_timezone(tz);
-            g_free (tz);
-        }
-    }
+        else if (g_strv_contains (invalidated_properties, "Timezone"))
+            self->notify_timezone(self->get_timezone_from_file(self->m_filename));
 
-    static void on_proxy_ready(GObject *object G_GNUC_UNUSED,
-            GAsyncResult *res,
-            gpointer gself)
-    {
-        auto self = static_cast<Impl*>(gself);
-        GError *error = nullptr;
-        self->m_proxy = g_dbus_proxy_new_finish(res, &error);
-
-        if (error)
-        {
-            g_warning ("Couldn't create proxy to read timezone: %s", error->message);
-            goto out;
-        }
-
-        /* Read the property */
-        GVariant *prop;
-        prop = g_dbus_proxy_get_cached_property(self->m_proxy, "Timezone");
-
-        if (!prop || !g_variant_is_of_type(prop, G_VARIANT_TYPE_STRING))
-        {
-            g_warning("Couldn't read the Timezone property, defaulting to Etc/Utc");
-            self->notify_timezone("Etc/Utc");
-            goto out;
-        }
-
-        const gchar *tz;
-        tz = g_variant_get_string(prop, nullptr);
-
-        self->notify_timezone(tz);
-
-        self->m_properties_changed_id = g_signal_connect(self->m_proxy,
-                "g-properties-changed",
-                (GCallback) on_properties_changed,
-                gself);
-
-out:
-        g_clear_pointer(&error, g_error_free);
-        g_clear_pointer(&prop, g_variant_unref);
-    }
-
-    static void on_name_appeared(GDBusConnection *connection,
-            const gchar *name,
-            const gchar *name_owner G_GNUC_UNUSED,
-            gpointer gself G_GNUC_UNUSED)
-    {
-        g_debug ("timedate1 appeared");
-        g_dbus_proxy_new(connection,
-                G_DBUS_PROXY_FLAGS_NONE,
-                NULL,
-                name,
-                "/org/freedesktop/timedate1",
-                "org.freedesktop.timedate1",
-                nullptr,
-                on_proxy_ready,
-                gself);
-    }
-
-    static void on_name_vanished(GDBusConnection *connection G_GNUC_UNUSED,
-            const gchar *name G_GNUC_UNUSED,
-            gpointer gself)
-    {
-        auto self = static_cast<Impl*>(gself);
-        g_debug ("timedate1 vanished");
-
-        g_signal_handler_disconnect(self->m_proxy,
-                self->m_properties_changed_id);
-        self->m_properties_changed_id = 0;
-        g_clear_object(&self->m_proxy);
-        g_clear_pointer(&self->m_proxy, g_main_loop_unref);
+        g_variant_unref (changed_properties);
+        g_strfreev (invalidated_properties);
     }
 
     void monitor_timezone_property()
     {
         GError *err = nullptr;
-        GDBusConnection *conn;
 
         /*
          * There is an unlikely race which happens if there is an activation
@@ -170,7 +100,7 @@ out:
          * Make sure the bus is around at least until we add the match rules,
          * otherwise things (tests) are sad.
          */
-        conn = g_bus_get_sync(G_BUS_TYPE_SYSTEM,
+        m_connection = g_bus_get_sync(G_BUS_TYPE_SYSTEM,
                 nullptr,
                 &err);
 
@@ -181,15 +111,14 @@ out:
             return;
         }
 
-        m_bus_watch_id = g_bus_watch_name_on_connection(conn,
+        m_signal_subscription_id = g_dbus_connection_signal_subscribe(m_connection,
                 "org.freedesktop.timedate1",
-                G_BUS_NAME_WATCHER_FLAGS_NONE,
-                on_name_appeared,
-                on_name_vanished,
-                this,
-                nullptr);
-
-        g_object_unref (conn);
+                "org.freedesktop.DBus.Properties",
+                "PropertiesChanged",
+                "/org/freedesktop/timedate1",
+                NULL, G_DBUS_SIGNAL_FLAGS_NONE,
+                on_properties_changed,
+                this, nullptr);
     }
 
     void notify_timezone(std::string new_timezone)
@@ -256,9 +185,8 @@ out:
     ***/
 
     TimedatedTimezone & m_owner;
-    unsigned long m_properties_changed_id = 0;
-    unsigned long m_bus_watch_id = 0;
-    GDBusProxy *m_proxy = nullptr;
+    GDBusConnection *m_connection = nullptr;
+    unsigned long m_signal_subscription_id = 0;
     std::string m_filename;
 };
 
