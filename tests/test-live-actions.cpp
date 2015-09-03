@@ -37,6 +37,10 @@ TEST_F(TimedateFixture, SetLocation)
     EXPECT_NE(expected, m_state->settings->timezone_name.get());
 
     m_actions->set_location(tzid, name);
+    m_state->settings->timezone_name.changed().connect(
+          [this](const std::string&){
+            g_main_loop_quit(loop);
+            });
     g_main_loop_run(loop);
     EXPECT_EQ(attempted_tzid, tzid);
     wait_msec();
