@@ -183,8 +183,6 @@ private:
                                        &local_error);
         g_assert_no_error (local_error);
         g_variant_unref(child);
-
-        g_main_loop_quit(self->loop);
     }
 
 protected:
@@ -215,6 +213,7 @@ protected:
         node_info = nullptr;
         object_register_id = 0;
         own_name = 0;
+        proxy = nullptr;
 
         // bring up the test bus
         bus = g_test_dbus_new(G_TEST_DBUS_NONE);

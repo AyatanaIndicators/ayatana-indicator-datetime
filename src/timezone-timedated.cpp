@@ -36,10 +36,11 @@ class TimedatedTimezone::Impl
 {
 public:
 
-    Impl(TimedatedTimezone& owner):
+    Impl(TimedatedTimezone& owner, std::string filename):
         m_owner(owner),
-        m_loop(g_main_loop_new(nullptr, FALSE))
+        m_filename(filename)
     {
+        g_debug("Filename is '%s'", filename.c_str());
         monitor_timezone_property();
     }
 
@@ -64,14 +65,7 @@ private:
             m_properties_changed_id = 0;
         }
 
-        if (m_timeout_id)
-        {
-            g_source_remove(m_timeout_id);
-            m_timeout_id = 0;
-        }
-
         g_clear_object(&m_proxy);
-        g_clear_pointer(&m_loop, g_main_loop_unref);
     }
 
     static void on_properties_changed(GDBusProxy *proxy G_GNUC_UNUSED,
@@ -128,14 +122,6 @@ private:
 out:
         g_clear_pointer(&error, g_error_free);
         g_clear_pointer(&prop, g_variant_unref);
-        if (self->m_loop && g_main_loop_is_running(self->m_loop))
-            g_main_loop_quit(self->m_loop);
-
-        if (self->m_timeout_id)
-        {
-            g_source_remove(self->m_timeout_id);
-            self->m_timeout_id = 0;
-        }
     }
 
     static void on_name_appeared(GDBusConnection *connection,
@@ -155,20 +141,6 @@ out:
                 gself);
     }
 
-    static gboolean quit_loop(gpointer gself)
-    {
-        auto self = static_cast<Impl*>(gself);
-
-        g_warning("Timed out when getting initial value of timezone, defaulting to UTC");
-        self->notify_timezone("Etc/Utc");
-
-        g_main_loop_quit(self->m_loop);
-
-        self->m_timeout_id = 0;
-
-        return G_SOURCE_REMOVE;
-    }
-
     static void on_name_vanished(GDBusConnection *connection G_GNUC_UNUSED,
             const gchar *name G_GNUC_UNUSED,
             gpointer gself)
@@ -185,25 +157,98 @@ out:
 
     void monitor_timezone_property()
     {
-        m_bus_watch_id = g_bus_watch_name (G_BUS_TYPE_SYSTEM,
+        GError *err = nullptr;
+        GDBusConnection *conn;
+
+        /*
+         * There is an unlikely race which happens if there is an activation
+         * and timezone change before our match rule is added.
+         */
+        notify_timezone(get_timezone_from_file(m_filename));
+
+        /*
+         * Make sure the bus is around at least until we add the match rules,
+         * otherwise things (tests) are sad.
+         */
+        conn = g_bus_get_sync(G_BUS_TYPE_SYSTEM,
+                nullptr,
+                &err);
+
+        if (err)
+        {
+            g_warning("Couldn't get bus connection: '%s'", err->message);
+            g_error_free(err);
+            return;
+        }
+
+        m_bus_watch_id = g_bus_watch_name_on_connection(conn,
                 "org.freedesktop.timedate1",
-                G_BUS_NAME_WATCHER_FLAGS_AUTO_START,
+                G_BUS_NAME_WATCHER_FLAGS_NONE,
                 on_name_appeared,
                 on_name_vanished,
                 this,
                 nullptr);
 
-        /* Incase something breaks, we don't want to hang */
-        m_timeout_id = g_timeout_add(500, quit_loop, this);
-
-        /* We need to block until we've read the tz once */
-        g_main_loop_run(m_loop);
+        g_object_unref (conn);
     }
 
     void notify_timezone(std::string new_timezone)
     {
+        g_debug("notify_timezone '%s'", new_timezone.c_str());
         if (!new_timezone.empty())
             m_owner.timezone.set(new_timezone);
+    }
+
+    std::string get_timezone_from_file(const std::string& filename)
+    {
+        GError * error;
+        GIOChannel * io_channel;
+        std::string ret;
+
+        // read through filename line-by-line until we fine a nonempty non-comment line
+        error = nullptr;
+        io_channel = g_io_channel_new_file(filename.c_str(), "r", &error);
+        if (error == nullptr)
+        {
+            auto line = g_string_new(nullptr);
+
+            while(ret.empty())
+            {
+                const auto io_status = g_io_channel_read_line_string(io_channel, line, nullptr, &error);
+                if ((io_status == G_IO_STATUS_EOF) || (io_status == G_IO_STATUS_ERROR))
+                    break;
+                if (error != nullptr)
+                    break;
+
+                g_strstrip(line->str);
+
+                if (!line->len) // skip empty lines
+                    continue;
+
+                if (*line->str=='#') // skip comments
+                    continue;
+
+                ret = line->str;
+            }
+
+            g_string_free(line, true);
+        } else
+            /* Default to UTC */
+            ret = "Etc/Utc";
+
+        if (io_channel != nullptr)
+        {
+            g_io_channel_shutdown(io_channel, false, nullptr);
+            g_io_channel_unref(io_channel);
+        }
+
+        if (error != nullptr)
+        {
+            g_warning("%s Unable to read timezone file '%s': %s", G_STRLOC, filename.c_str(), error->message);
+            g_error_free(error);
+        }
+
+        return ret;
     }
 
     /***
@@ -213,17 +258,16 @@ out:
     TimedatedTimezone & m_owner;
     unsigned long m_properties_changed_id = 0;
     unsigned long m_bus_watch_id = 0;
-    unsigned long m_timeout_id = 0;
     GDBusProxy *m_proxy = nullptr;
-    GMainLoop *m_loop = nullptr;
+    std::string m_filename;
 };
 
 /***
 ****
 ***/
 
-TimedatedTimezone::TimedatedTimezone():
-    impl(new Impl{*this})
+TimedatedTimezone::TimedatedTimezone(std::string filename):
+    impl(new Impl{*this, filename})
 {
 }
 

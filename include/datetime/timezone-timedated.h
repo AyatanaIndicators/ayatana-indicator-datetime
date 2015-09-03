@@ -20,6 +20,8 @@
 #ifndef INDICATOR_DATETIME_TIMEDATED_TIMEZONE_H
 #define INDICATOR_DATETIME_TIMEDATED_TIMEZONE_H
 
+#define DEFAULT_FILENAME "/etc/timezone"
+
 #include <datetime/timezone.h> // base class
 
 #include <string> // std::string
@@ -34,7 +36,7 @@ namespace datetime {
 class TimedatedTimezone: public Timezone
 {
 public:
-    TimedatedTimezone();
+    TimedatedTimezone(std::string filename = DEFAULT_FILENAME);
     ~TimedatedTimezone();
 
 private:
