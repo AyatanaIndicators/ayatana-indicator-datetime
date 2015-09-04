@@ -73,7 +73,7 @@ TEST_F(VAlarmFixture, MultipleAppointments)
     expected_appt.color = "#becedd";
     expected_appt.summary = "Alarm";
     std::array<Alarm,1> expected_alarms = {
-        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg", DateTime(gtz,2015,5,20,20,00,0)})
+        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Alarm clock.ogg", DateTime(gtz,2015,5,20,20,00,0)})
     };
 
     // compare it to what we actually loaded...
