@@ -36,34 +36,6 @@ class GlibFixture : public ::testing::Test
 
     virtual ~GlibFixture() =default;
 
-  private:
-
-    //GLogFunc realLogHandler;
-
-  protected:
-
-    std::map<GLogLevelFlags,int> logCounts;
-
-    void testLogCount(GLogLevelFlags log_level, int /*expected*/)
-    {
-#if 0
-      EXPECT_EQ(expected, logCounts[log_level]);
-#endif
-
-      logCounts.erase(log_level);
-    }
-
-  private:
-
-    static void default_log_handler(const gchar    * log_domain,
-                                    GLogLevelFlags   log_level,
-                                    const gchar    * message,
-                                    gpointer         self)
-    {
-      g_print("%s - %d - %s\n", log_domain, (int)log_level, message);
-      static_cast<GlibFixture*>(self)->logCounts[log_level]++;
-    }
-
   protected:
 
     virtual void SetUp() override
@@ -72,12 +44,13 @@ class GlibFixture : public ::testing::Test
 
       loop = g_main_loop_new(nullptr, false);
 
-      //g_log_set_default_handler(default_log_handler, this);
-
       // only use local, temporary settings
       g_assert(g_setenv("GSETTINGS_SCHEMA_DIR", SCHEMA_DIR, true));
       g_assert(g_setenv("GSETTINGS_BACKEND", "memory", true));
       g_debug("SCHEMA_DIR is %s", SCHEMA_DIR);
+
+      // fail on unexpected messages from this domain
+      g_log_set_fatal_mask(G_LOG_DOMAIN, G_LOG_LEVEL_WARNING);
 
       g_unsetenv("DISPLAY");
 
@@ -85,19 +58,14 @@ class GlibFixture : public ::testing::Test
 
     virtual void TearDown() override
     {
-#if 0
-      // confirm there aren't any unexpected log messages
-      EXPECT_EQ(0, logCounts[G_LOG_LEVEL_ERROR]);
-      EXPECT_EQ(0, logCounts[G_LOG_LEVEL_CRITICAL]);
-      EXPECT_EQ(0, logCounts[G_LOG_LEVEL_WARNING]);
-      EXPECT_EQ(0, logCounts[G_LOG_LEVEL_MESSAGE]);
-      EXPECT_EQ(0, logCounts[G_LOG_LEVEL_INFO]);
-#endif
-
-      // revert to glib's log handler
-      //g_log_set_default_handler(realLogHandler, this);
+      g_test_assert_expected_messages ();
 
       g_clear_pointer(&loop, g_main_loop_unref);
+    }
+
+    void expectLogMessage (const gchar *domain, GLogLevelFlags level, const gchar *pattern)
+    {
+      g_test_expect_message (domain, level, pattern);
     }
 
   private:

@@ -1,8 +1,7 @@
 set (SERVICE_LIB "indicatordatetimeservice")
 set (SERVICE_EXEC "indicator-datetime-service")
 
-add_definitions (-DTIMEZONE_FILE="/etc/timezone"
-                 -DG_LOG_DOMAIN="Indicator-Datetime")
+add_definitions (-DG_LOG_DOMAIN="Indicator-Datetime")
 
 # handwritten sources
 set (SERVICE_C_SOURCES
@@ -34,9 +33,9 @@ set (SERVICE_CXX_SOURCES
      settings-live.cpp
      snap.cpp
      sound.cpp
-     timezone-file.cpp
      timezone-geoclue.cpp
      timezones-live.cpp
+     timezone-timedated.cpp
      utils.c
      wakeup-timer-mainloop.cpp
      wakeup-timer-powerd.cpp)

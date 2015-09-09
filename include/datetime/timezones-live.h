@@ -22,8 +22,8 @@
 
 #include <datetime/settings.h>
 #include <datetime/timezones.h>
-#include <datetime/timezone-file.h>
 #include <datetime/timezone-geoclue.h>
+#include <datetime/timezone-timedated.h>
 
 #include <memory> // shared_ptr<>
 
@@ -32,19 +32,19 @@ namespace indicator {
 namespace datetime {
 
 /**
- * \brief #Timezones object that uses a #FileTimezone and #GeoclueTimezone
+ * \brief #Timezones object that uses a #TimedatedTimezone and #GeoclueTimezone
  *        to detect what timezone we're in
  */
 class LiveTimezones: public Timezones
 {
 public:
-    LiveTimezones(const std::shared_ptr<const Settings>& settings, const std::string& filename);
+    LiveTimezones(const std::shared_ptr<const Settings>& settings);
 
 private:
     void update_geolocation();
     void update_timezones();
 
-    FileTimezone m_file;
+    TimedatedTimezone m_file;
     std::shared_ptr<const Settings> m_settings;
     std::shared_ptr<GeoclueTimezone> m_geo;
 };

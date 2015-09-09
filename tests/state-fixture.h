@@ -20,7 +20,7 @@
 #ifndef INDICATOR_DATETIME_TESTS_STATE_FIXTURE_H
 #define INDICATOR_DATETIME_TESTS_STATE_FIXTURE_H
 
-#include "glib-fixture.h"
+#include "test-dbus-fixture.h"
 
 #include "actions-mock.h"
 #include "state-mock.h"
@@ -33,10 +33,10 @@ namespace datetime {
 ****
 ***/
 
-class StateFixture: public GlibFixture
+class StateFixture: public TestDBusFixture
 {
 private:
-    typedef GlibFixture super;
+    typedef TestDBusFixture super;
 
 public:
     virtual ~StateFixture() =default;

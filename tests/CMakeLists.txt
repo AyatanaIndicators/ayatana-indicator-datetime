@@ -38,6 +38,7 @@ include_directories (${DBUSTEST_INCLUDE_DIRS})
 
 
 add_definitions (-DSANDBOX="${CMAKE_CURRENT_BINARY_DIR}")
+add_definitions (-DG_LOG_DOMAIN="Indicator-Datetime")
 
 function(add_test_by_name name)
   set (TEST_NAME ${name})
@@ -58,7 +59,7 @@ add_test_by_name(test-locations)
 add_test_by_name(test-menus)
 add_test_by_name(test-planner)
 add_test_by_name(test-settings)
-add_test_by_name(test-timezone-file)
+add_test_by_name(test-timezone-timedated)
 add_test_by_name(test-utils)
 
 set (TEST_NAME manual-test-snap)
