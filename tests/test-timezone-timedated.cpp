@@ -69,8 +69,8 @@ TEST_F(TimezoneFixture, NoFile)
   remove(TIMEZONE_FILE);
   ASSERT_FALSE(g_file_test(TIMEZONE_FILE, G_FILE_TEST_EXISTS));
 
+  expectLogMessage(G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, "*No such file or directory*");
   TimedatedTimezone tz(TIMEZONE_FILE);
-  testLogCount(G_LOG_LEVEL_WARNING, 1);
 }
 
 /**
@@ -82,6 +82,7 @@ TEST_F(TimezoneFixture, DefaultValueNoFile)
   remove(TIMEZONE_FILE);
   ASSERT_FALSE(g_file_test(TIMEZONE_FILE, G_FILE_TEST_EXISTS));
 
+  expectLogMessage(G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, "*No such file or directory*");
   TimedatedTimezone tz(TIMEZONE_FILE);
   ASSERT_EQ(expected_timezone, tz.timezone.get());
 }
