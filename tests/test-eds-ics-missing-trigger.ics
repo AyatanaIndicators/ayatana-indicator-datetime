@@ -14,7 +14,7 @@ LAST-MODIFIED:20150617T211838Z
 BEGIN:VALARM
 X-EVOLUTION-ALARM-UID:20150617T211838Z-6217-32011-2036-2@ubuntu-phablet
 ACTION:AUDIO
-ATTACH:file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg
+ATTACH:file:///usr/share/sounds/ubuntu/ringtones/Alarm clock.ogg
 END:VALARM
 BEGIN:VALARM
 X-EVOLUTION-ALARM-UID:20150617T211838Z-6217-32011-2036-3@ubuntu-phablet
@@ -34,7 +34,7 @@ LAST-MODIFIED:20150617T211913Z
 BEGIN:VALARM
 X-EVOLUTION-ALARM-UID:20150617T211913Z-6217-32011-2036-6@ubuntu-phablet
 ACTION:AUDIO
-ATTACH:file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg
+ATTACH:file:///usr/share/sounds/ubuntu/ringtones/Alarm clock.ogg
 END:VALARM
 BEGIN:VALARM
 X-EVOLUTION-ALARM-UID:20150617T211913Z-6217-32011-2036-7@ubuntu-phablet

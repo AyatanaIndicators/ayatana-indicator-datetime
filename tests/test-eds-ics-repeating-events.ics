@@ -15,7 +15,7 @@ LAST-MODIFIED:20150507T211449Z
 BEGIN:VALARM
 X-EVOLUTION-ALARM-UID:20150507T211449Z-4262-32011-1418-2@ubuntu-phablet
 ACTION:AUDIO
-ATTACH:file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg
+ATTACH:file:///usr/share/sounds/ubuntu/ringtones/Alarm clock.ogg
 TRIGGER;VALUE=DURATION;RELATED=START:PT0S
 END:VALARM
 BEGIN:VALARM

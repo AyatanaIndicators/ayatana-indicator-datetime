@@ -77,7 +77,7 @@ TEST_F(VAlarmFixture, MissingTriggers)
     a.begin = DateTime { gtz, 2015, 6, 18, 10, 0, 0};
     a.end = a.begin;
     a.alarms.resize(1);
-    a.alarms[0].audio_url = "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg";
+    a.alarms[0].audio_url = "file:///usr/share/sounds/ubuntu/ringtones/Alarm clock.ogg";
     a.alarms[0].time = a.begin;
     a.alarms[0].text = a.summary;
     expected.push_back(a);

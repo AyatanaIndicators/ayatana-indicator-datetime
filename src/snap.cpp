@@ -192,7 +192,7 @@ private:
     std::string get_alarm_uri(const Alarm& alarm,
                               const std::shared_ptr<const Settings>& settings) const
     {
-        const char* FALLBACK {"/usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg"};
+        const char* FALLBACK {"/usr/share/sounds/ubuntu/ringtones/Alarm clock.ogg"};
 
         const std::string candidates[] = { alarm.audio_url,
                                            settings->alarm_sound.get(),

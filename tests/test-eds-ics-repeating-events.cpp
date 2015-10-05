@@ -73,14 +73,14 @@ TEST_F(VAlarmFixture, MultipleAppointments)
     expected_appt.color = "#becedd";
     expected_appt.summary = "Alarm";
     std::array<Alarm,8> expected_alarms = {
-        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg", DateTime(gtz,2015,5, 8,16,40,0)}),
-        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg", DateTime(gtz,2015,5,15,16,40,0)}),
-        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg", DateTime(gtz,2015,5,22,16,40,0)}),
-        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg", DateTime(gtz,2015,5,29,16,40,0)}),
-        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg", DateTime(gtz,2015,6, 5,16,40,0)}),
-        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg", DateTime(gtz,2015,6,12,16,40,0)}),
-        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg", DateTime(gtz,2015,6,19,16,40,0)}),
-        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Suru arpeggio.ogg", DateTime(gtz,2015,6,26,16,40,0)})
+        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Alarm clock.ogg", DateTime(gtz,2015,5, 8,16,40,0)}),
+        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Alarm clock.ogg", DateTime(gtz,2015,5,15,16,40,0)}),
+        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Alarm clock.ogg", DateTime(gtz,2015,5,22,16,40,0)}),
+        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Alarm clock.ogg", DateTime(gtz,2015,5,29,16,40,0)}),
+        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Alarm clock.ogg", DateTime(gtz,2015,6, 5,16,40,0)}),
+        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Alarm clock.ogg", DateTime(gtz,2015,6,12,16,40,0)}),
+        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Alarm clock.ogg", DateTime(gtz,2015,6,19,16,40,0)}),
+        Alarm({"Alarm", "file:///usr/share/sounds/ubuntu/ringtones/Alarm clock.ogg", DateTime(gtz,2015,6,26,16,40,0)})
     };
 
     // compare it to what we actually loaded...
