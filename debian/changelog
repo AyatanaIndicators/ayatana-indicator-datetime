@@ -1,3 +1,41 @@
+indicator-datetime (13.10.0+15.10.20150909-0ubuntu1) wily; urgency=medium
+
+  [ CI Train Bot ]
+  * New rebuild forced.
+
+  [ Iain Lane ]
+  * Remove warnings from test logs. Swallow the ones that are expected
+    and fail the test if they don't show up. In addition, fail tests if
+    unexpected warnings show up again.
+
+  [ Lars Uebernickel ]
+  * Remove warnings from test logs. Swallow the ones that are expected
+    and fail the test if they don't show up. In addition, fail tests if
+    unexpected warnings show up again.
+
+  [ Sebastien Bacher ]
+  * under unity8 start system-settings instead unity-control-center,
+    don't special case u-c-c by looking for the binary, Unity
+    installations come with it installed (LP: #1489481)
+
+ -- Iain Lane <iain@orangesquash.org.uk>  Wed, 09 Sep 2015 16:40:52 +0000
+
+indicator-datetime (13.10.0+15.10.20150728-0ubuntu1) wily; urgency=medium
+
+  * 
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Tue, 28 Jul 2015 08:42:27 +0000
+
+indicator-datetime (13.10.0+15.10.20150727-0ubuntu1) wily; urgency=medium
+
+  [ CI Train Bot ]
+  * New rebuild forced.
+
+  [ Charles Kerr ]
+  * drop build-dependency on g++-4.9 (LP: #1452319)
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Mon, 27 Jul 2015 18:06:18 +0000
+
 indicator-datetime (13.10.0+15.10.20150710.1-0ubuntu1) wily; urgency=medium
 
   * New rebuild forced.

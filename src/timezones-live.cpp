@@ -25,9 +25,8 @@ namespace unity {
 namespace indicator {
 namespace datetime {
 
-LiveTimezones::LiveTimezones(const std::shared_ptr<const Settings>& settings,
-                             const std::string& filename):
-    m_file(filename),
+LiveTimezones::LiveTimezones(const std::shared_ptr<const Settings>& settings):
+    m_file(),
     m_settings(settings)
 {
     m_file.timezone.changed().connect([this](const std::string&){update_timezones();});

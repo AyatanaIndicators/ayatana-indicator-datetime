@@ -61,18 +61,18 @@ void LiveActions::dispatch_url(const std::string& url)
 
 void LiveActions::desktop_open_settings_app()
 {
-    auto path = g_find_program_in_path("unity-control-center");
-
-    if ((path != nullptr) && (g_strcmp0 (g_getenv ("XDG_CURRENT_DESKTOP"), "Unity") == 0))
+    if (g_getenv ("MIR_SOCKET") != nullptr)
     {
-        execute_command("unity-control-center datetime");       
+        dispatch_url("settings:///system/time-date");
+    }
+    else if ((g_strcmp0 (g_getenv ("XDG_CURRENT_DESKTOP"), "Unity") == 0))
+    {
+        execute_command("unity-control-center datetime");
     }
     else
     {
         execute_command("gnome-control-center datetime");
     }
-
-    g_free (path);
 }
 
 bool LiveActions::desktop_has_calendar_app() const
