@@ -1,3 +1,10 @@
+indicator-datetime (13.10.0+15.10.20151005-0ubuntu1) wily; urgency=medium
+
+  * Change the default alarm sound from "Suru arpeggio.ogg" to "Alarm
+    clock.ogg" (LP: #1489037)
+
+ -- Charles Kerr <charles.kerr@canonical.com>  Mon, 05 Oct 2015 18:18:01 +0000
+
 indicator-datetime (13.10.0+15.10.20150909-0ubuntu1) wily; urgency=medium
 
   [ CI Train Bot ]
