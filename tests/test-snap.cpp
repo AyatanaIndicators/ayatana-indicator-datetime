@@ -92,6 +92,7 @@ protected:
   static constexpr char const * PROP_SILENT_MODE      {"SilentMode"};
 
   Appointment appt;
+  Appointment ualarm;
   GDBusConnection * system_bus = nullptr;
   GDBusConnection * session_bus = nullptr;
   DbusTestService * service = nullptr;
@@ -113,15 +114,25 @@ protected:
 
     super::SetUp();
 
-    // init the Appointment
+    // init an Appointment
     appt.color = "green";
-    appt.summary = "Alarm";
+    appt.summary = "Christmas";
     appt.uid = "D4B57D50247291478ED31DED17FF0A9838DED402";
     appt.type = Appointment::EVENT;
     const auto christmas = DateTime::Local(2015,12,25,0,0,0);
     appt.begin = christmas.start_of_day();
     appt.end = christmas.end_of_day();
-    appt.alarms.push_back(Alarm{"Alarm Text", "", appt.begin});
+    appt.alarms.push_back(Alarm{"Ho Ho Ho!", "", appt.begin});
+
+    // init an Ubuntu Alarm
+    ualarm.color = "red";
+    ualarm.summary = "Wakeup";
+    ualarm.uid = "E4B57D50247291478ED31DED17FF0A9838DED403";
+    ualarm.type = Appointment::UBUNTU_ALARM;
+    const auto tomorrow = DateTime::NowLocal().add_days(1);
+    ualarm.begin = tomorrow;
+    ualarm.end = tomorrow;
+    ualarm.alarms.push_back(Alarm{"It's Tomorrow!", "", appt.begin});
 
     service = dbus_test_service_new(nullptr);
 
