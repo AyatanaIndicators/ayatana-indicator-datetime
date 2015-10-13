@@ -534,8 +534,7 @@ TEST_F(SnapFixture, ForceScreen)
 ****
 ***/
 
-#if 0
-TEST_F(SnapFixture,Vibrate)
+TEST_F(SnapFixture,DISABLED_Vibrate)
 {
   auto settings = std::make_shared<Settings>();
   auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
@@ -582,4 +581,3 @@ TEST_F(SnapFixture,Vibrate)
     EXPECT_EQ(test_case.expected_vibrate_called, vibrate_called);
   }
 }
-#endif
