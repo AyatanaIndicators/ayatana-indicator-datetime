@@ -534,6 +534,7 @@ TEST_F(SnapFixture, ForceScreen)
 ****
 ***/
 
+#if 0
 TEST_F(SnapFixture,Vibrate)
 {
   auto settings = std::make_shared<Settings>();
@@ -581,3 +582,4 @@ TEST_F(SnapFixture,Vibrate)
     EXPECT_EQ(test_case.expected_vibrate_called, vibrate_called);
   }
 }
+#endif
