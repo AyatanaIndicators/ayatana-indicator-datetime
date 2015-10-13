@@ -1,3 +1,9 @@
+indicator-datetime (15.10) wily; urgency=medium
+
+  * Bump version to match the branch
+
+ -- Charles Kerr <charles.kerr@canonical.com>  Tue, 13 Oct 2015 13:43:19 -0500
+
 indicator-datetime (13.10.0+15.10.20151005-0ubuntu1) wily; urgency=medium
 
   * Change the default alarm sound from "Suru arpeggio.ogg" to "Alarm
