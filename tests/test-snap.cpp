@@ -34,6 +34,8 @@
 
 using namespace ayatana::indicator::datetime;
 
+namespace uin = ayatana::indicator::notifications;
+
 #include "glib-fixture.h"
 
 /***
@@ -371,6 +373,15 @@ protected:
                                           &error);
     g_assert_no_error (error);
   }
+
+  std::shared_ptr<Snap> create_snap(const std::shared_ptr<uin::Engine>& ne,
+                                    const std::shared_ptr<uin::SoundBuilder>& sb,
+                                    const std::shared_ptr<Settings>& settings)
+  {
+    auto snap = std::make_shared<Snap>(ne, sb, settings);
+    wait_msec(100); // wait a moment for the Snap to finish its async dbus bootstrapping
+    return snap;
+  }
 };
 
 /***
@@ -392,13 +403,14 @@ TEST_F(SnapFixture, InteractiveDuration)
   auto settings = std::make_shared<Settings>();
   settings->alarm_duration.set(duration_minutes);
   auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
-  Snap snap (ne, settings);
+  auto sb = std::make_shared<ayatana::indicator::notifications::DefaultSoundBuilder>();
+  auto snap = create_snap(ne, sb, settings);
 
   make_interactive();
 
   // call the Snap Decision
   auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
-  snap(appt, appt.alarms.front(), func, func);
+  (*snap)(appt, appt.alarms.front(), func, func);
 
   // confirm that Notify got called once
   guint len = 0;
@@ -442,7 +454,8 @@ TEST_F(SnapFixture, InhibitSleep)
 {
   auto settings = std::make_shared<Settings>();
   auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
-  auto snap = new Snap (ne, settings);
+  auto sb = std::make_shared<ayatana::indicator::notifications::DefaultSoundBuilder>();
+  auto snap = create_snap(ne, sb, settings);
 
   make_interactive();
 
@@ -469,7 +482,7 @@ TEST_F(SnapFixture, InhibitSleep)
 
   // force-close the snap
   wait_msec(100);
-  delete snap;
+  snap.reset();
   wait_msec(100);
 
   // confirm that sleep got uninhibted
@@ -497,7 +510,8 @@ TEST_F(SnapFixture, ForceScreen)
 {
   auto settings = std::make_shared<Settings>();
   auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
-  auto snap = new Snap (ne, settings);
+  auto sb = std::make_shared<ayatana::indicator::notifications::DefaultSoundBuilder>();
+  auto snap = create_snap(ne, sb, settings);
 
   make_interactive();
 
@@ -518,7 +532,7 @@ TEST_F(SnapFixture, ForceScreen)
 
   // force-close the snap
   wait_msec(100);
-  delete snap;
+  snap.reset();
   wait_msec(100);
 
   // confirm that sleep got uninhibted
@@ -552,7 +566,7 @@ TEST_F(SnapFixture,DISABLED_Vibrate)
       { true,  "pulse", true  }
   };
 
-  auto snap = std::make_shared<Snap>(ne, settings);
+  auto snap = create_snap(ne, sb, settings);
 
   for(const auto& test_case : test_cases)
   {
