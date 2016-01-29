@@ -102,7 +102,7 @@ protected:
         else
             expected_action = nullptr;
 
-        const auto calendar_expected = ((profile == Menu::Desktop) || (profile == Menu::DesktopGreeter))
+        const auto calendar_expected = ((profile == Menu::Desktop) || (profile == Menu::DesktopGreeter) || (profile == Menu::Phone))
                                     && (m_state->settings->show_calendar.get());
 
         // get the calendar section
@@ -420,7 +420,7 @@ protected:
 
     void InspectLocations(GMenuModel* menu_model, Menu::Profile profile)
     {
-        const bool locations_expected = profile == Menu::Desktop;
+        const bool locations_expected = (profile == Menu::Desktop) || (profile == Menu::Phone);
 
         // when there aren't any locations, confirm the menu is empty
         const std::vector<Location> empty;
