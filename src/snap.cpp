@@ -84,6 +84,12 @@ public:
                     appointment_func snooze,
                     appointment_func ok)
     {
+        // If calendar notifications are muted, don't show them
+        if (!appointment.is_ubuntu_alarm() && calendar_events_are_muted()) {
+            g_debug("Skipping muted calendar event '%s' notification", appointment.summary.c_str());
+            return;
+        }
+
         /* Alarms and calendar events are treated differently.
            Alarms should require manual intervention to dismiss.
            Calendar events are less urgent and shouldn't require manual
@@ -158,6 +164,17 @@ public:
     }
 
 private:
+
+    bool calendar_events_are_muted() const
+    {
+        for(const auto& app : m_settings->muted_apps.get()) {
+            if (app.first == "com.ubuntu.calendar") {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     static void on_sound_proxy_ready(GObject* /*source_object*/, GAsyncResult* res, gpointer gself)
     {
