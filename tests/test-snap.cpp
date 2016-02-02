@@ -548,50 +548,119 @@ TEST_F(SnapFixture, ForceScreen)
 ****
 ***/
 
-TEST_F(SnapFixture,Vibrate)
+TEST_F(SnapFixture,Notification)
 {
   auto settings = std::make_shared<Settings>();
   auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
+  auto sb = std::make_shared<ayatana::indicator::notifications::DefaultSoundBuilder>();
   auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
-  GError * error = nullptr;
 
   struct {
-      bool other_vibrations; // the com.ubuntu.touch.AccountsService.Sound "other vibrations" setting
-      const char* haptic_mode;  // supported values: "none", "pulse"
-      bool expected_vibrate_called; // do we expect the phone to vibrate?
-  } test_cases[] = {
-      { false, "none",  false },
-      { true,  "none",  false },
-      { false, "pulse", false },
-      { true,  "pulse", true  }
+    Appointment appt;
+    bool expected_notify_called;
+    bool expected_vibrate_called;
+  } test_appts[] = {
+    { appt, true, true },
+    { ualarm, true, true }
   };
 
+  struct {
+    const char* haptic_mode;
+    bool expected_notify_called;
+    bool expected_vibrate_called;
+  } test_haptics[] = {
+    { "none", true, false },
+    { "pulse", true, true }
+  };
+
+  struct {
+    bool other_vibrations; // the com.lomiri.touch.AccountsService.Sound "other vibrations" setting
+    bool expected_notify_called;
+    bool expected_vibrate_called;
+  } test_other_vibrations[] = {
+    { true, true, true },
+    { false, true, false }
+  };
+
+  const std::set<std::pair<std::string,std::string>> blacklist_calendar { std::make_pair(std::string{"com.lomiri.calendar"}, std::string{"calendar-app"}) };
+  const std::set<std::pair<std::string,std::string>> blacklist_empty;
+  struct {
+    std::set<std::pair<std::string,std::string>> muted_apps; // apps that should not trigger notifications
+    bool expected_notify_called; // do we expect the notification tho show?
+    bool expected_vibrate_called; // do we expect the phone to vibrate?
+  } test_muted_apps[] = {
+    { blacklist_calendar, false, false },
+    { blacklist_empty, true, true }
+  };
+
+  for (const auto& test_appt : test_appts)
+  {
+  for (const auto& test_haptic : test_haptics)
+  {
+  for (const auto& test_vibes : test_other_vibrations)
+  {
+  for (const auto& test_muted : test_muted_apps)
+  {
   auto snap = create_snap(ne, sb, settings);
 
-  for(const auto& test_case : test_cases)
-  {
+    const bool expected_notify_called = test_appt.expected_notify_called
+                                     && test_vibes.expected_notify_called
+                                     && test_muted.expected_notify_called
+                                     && test_haptic.expected_notify_called;
+
+    const bool expected_vibrate_called = test_appt.expected_vibrate_called
+                                      && test_vibes.expected_vibrate_called
+                                      && test_muted.expected_vibrate_called
+                                      && test_haptic.expected_vibrate_called;
+
+g_message("appt:%s", test_appt.appt.summary.c_str());
+g_message("haptic_mode:%s", test_haptic.haptic_mode);
+g_message("other_vibrations:%d", (int)test_vibes.other_vibrations);
+g_message("muted_apps.size():%d", (int)test_muted.muted_apps.size());
+g_message("expected_notify_called %d (%d %d %d %d)", (int)expected_notify_called, (int)test_appt.expected_notify_called, (int)test_vibes.expected_notify_called, (int)test_muted.expected_notify_called, (int)test_haptic.expected_notify_called);
+g_message("expected_vibrate_called %d (%d %d %d %d)", (int)expected_vibrate_called, (int)test_appt.expected_vibrate_called, (int)test_vibes.expected_vibrate_called, (int)test_muted.expected_vibrate_called, (int)test_haptic.expected_vibrate_called);
+
     // clear out any previous iterations' noise
+    GError * error = nullptr;
     dbus_test_dbus_mock_object_clear_method_calls(haptic_mock, haptic_obj, &error);
+    g_assert_no_error(error);
+    dbus_test_dbus_mock_object_clear_method_calls(notify_mock, notify_obj, &error);
+    g_assert_no_error(error);
 
     // set the properties to match the test case
-    settings->alarm_haptic.set(test_case.haptic_mode);
+    settings->muted_apps.set(test_muted.muted_apps);
+    settings->alarm_haptic.set(test_haptic.haptic_mode);
     dbus_test_dbus_mock_object_update_property(as_mock,
                                                as_obj,
                                                PROP_OTHER_VIBRATIONS,
-                                               g_variant_new_boolean(test_case.other_vibrations),
+                                               g_variant_new_boolean(test_vibes.other_vibrations),
                                                &error);
     g_assert_no_error(error);
-    wait_msec(100);
+    wait_msec(200);
 
     // run the test
     (*snap)(appt, appt.alarms.front(), func, func);
-    wait_msec(100);
+    wait_msec(200);
+
+    // test that the notification was as expected
+    const bool notify_called = dbus_test_dbus_mock_object_check_method_call(notify_mock,
+                                                                            notify_obj,
+                                                                            METHOD_NOTIFY,
+                                                                            nullptr,
+                                                                            &error);
+    g_assert_no_error(error);
+    EXPECT_EQ(expected_notify_called, notify_called);
+
+    // test that the vibration was as expected
     const bool vibrate_called = dbus_test_dbus_mock_object_check_method_call(haptic_mock,
                                                                              haptic_obj,
                                                                              HAPTIC_METHOD_VIBRATE_PATTERN,
                                                                              nullptr,
                                                                              &error);
     g_assert_no_error(error);
-    EXPECT_EQ(test_case.expected_vibrate_called, vibrate_called);
+    EXPECT_EQ(expected_vibrate_called, vibrate_called);
+  }
+  }
+  }
   }
 }
