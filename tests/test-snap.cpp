@@ -621,11 +621,16 @@ TEST_F(SnapFixture,DefaultSounds)
 
 TEST_F(SnapFixture,Notification)
 {
+  // Feed different combinations of system settings,
+  // indicator-datetime settings, and event types,
+  // then see if notifications and haptic feedback behave as expected.
+
   auto settings = std::make_shared<Settings>();
   auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
   auto sb = std::make_shared<ayatana::indicator::notifications::DefaultSoundBuilder>();
   auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
 
+  // combinatorial factor #1: event type
   struct {
     Appointment appt;
     bool expected_notify_called;
@@ -635,6 +640,7 @@ TEST_F(SnapFixture,Notification)
     { ualarm, true, true }
   };
 
+  // combinatorial factor #2: indicator-datetime's haptic mode
   struct {
     const char* haptic_mode;
     bool expected_notify_called;
@@ -644,8 +650,9 @@ TEST_F(SnapFixture,Notification)
     { "pulse", true, true }
   };
 
+  // combinatorial factor #3: system settings' "other vibrations" enabled
   struct {
-    bool other_vibrations; // the com.lomiri.touch.AccountsService.Sound "other vibrations" setting
+    bool other_vibrations;
     bool expected_notify_called;
     bool expected_vibrate_called;
   } test_other_vibrations[] = {
@@ -653,6 +660,7 @@ TEST_F(SnapFixture,Notification)
     { false, true, false }
   };
 
+  // combinatorial factor #4: system settings' notifications app blacklist
   const std::set<std::pair<std::string,std::string>> blacklist_calendar { std::make_pair(std::string{"com.lomiri.calendar"}, std::string{"calendar-app"}) };
   const std::set<std::pair<std::string,std::string>> blacklist_empty;
   struct {
@@ -684,13 +692,6 @@ TEST_F(SnapFixture,Notification)
                                       && test_muted.expected_vibrate_called
                                       && test_haptic.expected_vibrate_called;
 
-g_message("appt:%s", test_appt.appt.summary.c_str());
-g_message("haptic_mode:%s", test_haptic.haptic_mode);
-g_message("other_vibrations:%d", (int)test_vibes.other_vibrations);
-g_message("muted_apps.size():%d", (int)test_muted.muted_apps.size());
-g_message("expected_notify_called %d (%d %d %d %d)", (int)expected_notify_called, (int)test_appt.expected_notify_called, (int)test_vibes.expected_notify_called, (int)test_muted.expected_notify_called, (int)test_haptic.expected_notify_called);
-g_message("expected_vibrate_called %d (%d %d %d %d)", (int)expected_vibrate_called, (int)test_appt.expected_vibrate_called, (int)test_vibes.expected_vibrate_called, (int)test_muted.expected_vibrate_called, (int)test_haptic.expected_vibrate_called);
-
     // clear out any previous iterations' noise
     GError * error = nullptr;
     dbus_test_dbus_mock_object_clear_method_calls(haptic_mock, haptic_obj, &error);
@@ -707,11 +708,11 @@ g_message("expected_vibrate_called %d (%d %d %d %d)", (int)expected_vibrate_call
                                                g_variant_new_boolean(test_vibes.other_vibrations),
                                                &error);
     g_assert_no_error(error);
-    wait_msec(200);
+    wait_msec(100);
 
     // run the test
     (*snap)(appt, appt.alarms.front(), func, func);
-    wait_msec(200);
+    wait_msec(100);
 
     // test that the notification was as expected
     const bool notify_called = dbus_test_dbus_mock_object_check_method_call(notify_mock,
