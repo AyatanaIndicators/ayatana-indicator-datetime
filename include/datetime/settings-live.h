@@ -38,8 +38,10 @@ public:
     virtual ~LiveSettings();
 
 private:
-    static void on_changed(GSettings*, gchar*, gpointer);
-    void update_key(const std::string& key);
+    static void on_changed_ccid(GSettings*, gchar*, gpointer);
+    static void on_changed_cunh(GSettings*, gchar*, gpointer);
+    void update_key_ccid(const std::string& key);
+    void update_key_cunh(const std::string& key);
 
     void update_custom_time_format();
     void update_locations();
@@ -60,8 +62,10 @@ private:
     void update_alarm_duration();
     void update_alarm_haptic();
     void update_snooze_duration();
+    void update_muted_apps();
 
     GSettings* m_settings;
+    GSettings* m_settings_cunh;
 
     // we've got a raw pointer here, so disable copying
     LiveSettings(const LiveSettings&) =delete;
