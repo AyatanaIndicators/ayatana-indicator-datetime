@@ -22,6 +22,11 @@
 #include <datetime/settings-live.h>
 #include <datetime/settings-shared.h>
 
+extern "C"
+{
+    #include <ayatana/common/utils.h>
+}
+
 using namespace ayatana::indicator::datetime;
 
 /***
@@ -38,18 +43,26 @@ protected:
     std::shared_ptr<LiveSettings> m_live;
     std::shared_ptr<Settings> m_settings;
     GSettings * m_gsettings;
+    GSettings * m_gsettings_cunh;
 
     void SetUp() override
     {
         super::SetUp();
 
         m_gsettings = g_settings_new(SETTINGS_INTERFACE);
+
+        if (ayatana_common_utils_is_lomiri())
+        {
+            m_gsettings_cunh = g_settings_new(SETTINGS_CUNH_SCHEMA_ID);
+        }
+
         m_live.reset(new LiveSettings);
         m_settings = std::dynamic_pointer_cast<Settings>(m_live);
     }
 
     void TearDown() override
     {
+        g_clear_object(&m_gsettings_cunh);
         g_clear_object(&m_gsettings);
         m_settings.reset();
         m_live.reset();
@@ -220,4 +233,40 @@ TEST_F(SettingsFixture, Locations)
     vtmp = strv_to_vector((const gchar**)tmp);
     g_strfreev(tmp);
     EXPECT_EQ(bv, vtmp);
+}
+
+TEST_F(SettingsFixture, MutedApps)
+{
+    const auto key = SETTINGS_CUNH_BLACKLIST_S;
+
+    struct {
+        std::string pkgname;
+        std::string appname;
+    } apps[] = {
+        { "", "lomiri-system-settings" },
+        { "com.lomiri.calendar", "calendar" },
+        { "com.lomiri.developer.webapps.webapp-facebook", "webapp-facebook" },
+        { "com.lomiri.reminders", "reminders" }
+    };
+    std::set<std::pair<std::string,std::string>> apps_set;
+    for (const auto& app : apps)
+        apps_set.insert(std::make_pair(app.pkgname, app.appname));
+
+    // test that changing Settings is reflected in the schema
+    m_settings->muted_apps.set(apps_set);
+    auto v = g_settings_get_value(m_gsettings_cunh, key);
+    auto str = g_variant_print(v, true);
+    EXPECT_STREQ("[('', 'lomiri-system-settings'), ('com.lomiri.calendar', 'calendar'), ('com.lomiri.developer.webapps.webapp-facebook', 'webapp-facebook'), ('com.lomiri.reminders', 'reminders')]", str);
+    g_clear_pointer(&str, g_free);
+
+    // test that clearing the schema clears the settings
+    g_settings_reset(m_gsettings_cunh, key);
+    EXPECT_EQ(0, m_settings->muted_apps.get().size());
+
+    // test thst setting the schema updates the settings
+    g_settings_set_value(m_gsettings_cunh, key, v);
+    EXPECT_EQ(apps_set, m_settings->muted_apps.get());
+
+    // cleanup
+    g_clear_pointer(&v, g_variant_unref);
 }
