@@ -51,4 +51,7 @@ TimeFormatMode;
 #define SETTINGS_ALARM_HAPTIC_S         "alarm-haptic-feedback"
 #define SETTINGS_SNOOZE_DURATION_S      "snooze-duration-minutes"
 
+#define SETTINGS_CUNH_SCHEMA_ID         "com.lomiri.notifications.hub"
+#define SETTINGS_CUNH_BLACKLIST_S       "blacklist"
+
 #endif // INDICATOR_DATETIME_SETTINGS_SHARED
