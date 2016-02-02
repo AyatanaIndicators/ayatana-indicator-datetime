@@ -84,7 +84,6 @@ protected:
 
   ayatana::indicator::datetime::Appointment appt;
   ayatana::indicator::datetime::Appointment ualarm;
-
   DbusTestDbusMock * as_mock = nullptr;
   DbusTestDbusMock * notify_mock = nullptr;
   DbusTestDbusMock * powerd_mock = nullptr;
@@ -287,7 +286,6 @@ protected:
                                                 BUS_HAPTIC_PATH,
                                                 BUS_HAPTIC_INTERFACE,
                                                 &error);
-
     dbus_test_dbus_mock_object_add_method(haptic_mock,
                                           haptic_obj,
                                           HAPTIC_METHOD_VIBRATE_PATTERN,
