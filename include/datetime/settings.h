@@ -61,6 +61,7 @@ public:
     core::Property<unsigned int> alarm_volume;
     core::Property<unsigned int> alarm_duration;
     core::Property<unsigned int> snooze_duration;
+    core::Property<std::set<std::pair<std::string,std::string>>> muted_apps;
 };
 
 } // namespace datetime
