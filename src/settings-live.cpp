@@ -82,8 +82,8 @@ LiveSettings::LiveSettings(): m_settings(g_settings_new(SETTINGS_INTERFACE))
             GVariantBuilder builder;
             g_variant_builder_init(&builder, G_VARIANT_TYPE("a(ss)"));
             for(const auto& app : value){
-                const auto& pkgname {app.first};
-                const auto& appname {app.second};
+                const std::string& pkgname {app.first};
+                const std::string& appname {app.second};
                 g_variant_builder_add(&builder, "(ss)", pkgname.c_str(), appname.c_str());
             }
             g_settings_set_value(m_settings_cunh, SETTINGS_CUNH_BLACKLIST_S, g_variant_builder_end(&builder));
