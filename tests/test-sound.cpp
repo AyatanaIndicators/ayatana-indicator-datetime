@@ -85,7 +85,7 @@ TEST_F(NotificationFixture, InteractiveDuration)
 
   // confirm that the icon passed to Notify was "alarm-clock"
   g_variant_get_child (params, 2, "&s", &str);
-  ASSERT_STREQ("alarm-clock", str);
+  ASSERT_STREQ("reminder", str);
 
   // confirm that the hints passed to Notify included a timeout matching duration_minutes
   int32_t i32;
