@@ -306,20 +306,6 @@ protected:
     g_clear_object(&powerd_mock);
     g_clear_object(&notify_mock);
     g_clear_object(&as_mock);
-    g_clear_object(&service);
-    g_object_unref(session_bus);
-    g_object_unref(system_bus);
-
-    // wait a little while for the scaffolding to shut down,
-    // but don't block on it forever...
-    unsigned int cleartry = 0;
-    while (((system_bus != nullptr) || (session_bus != nullptr)) && (cleartry < 50))
-      {
-        g_usleep(100000);
-        while (g_main_context_pending(nullptr))
-          g_main_context_iteration(nullptr, true);
-        cleartry++;
-      }
 
     super::TearDown();
   }
