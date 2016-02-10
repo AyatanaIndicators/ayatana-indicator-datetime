@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "glib-fixture.h"
+#include "libdbusmock-fixture.h"
 
 #include <datetime/appointment.h>
 #include <datetime/dbus-shared.h>
@@ -38,23 +38,17 @@
 ****
 ***/
 
-//using namespace ayatana::indicator::datetime;
-
-class NotificationFixture: public GlibFixture
+class NotificationFixture: public LibdbusmockFixture
 {
 private:
 
-  typedef GlibFixture super;
+  typedef LibdbusmockFixture super;
+
+protected:
 
   static constexpr char const * NOTIFY_BUSNAME   {"org.freedesktop.Notifications"};
   static constexpr char const * NOTIFY_INTERFACE {"org.freedesktop.Notifications"};
   static constexpr char const * NOTIFY_PATH      {"/org/freedesktop/Notifications"};
-
-  //namespace uin = ayatana::indicator::notifications;
-
-  //using namespace ayatana::indicator::datetime;
-
-protected:
 
   static constexpr char const * HAPTIC_METHOD_VIBRATE_PATTERN {"VibratePattern"};
 
@@ -90,9 +84,7 @@ protected:
 
   ayatana::indicator::datetime::Appointment appt;
   ayatana::indicator::datetime::Appointment ualarm;
-  GDBusConnection * system_bus = nullptr;
-  GDBusConnection * session_bus = nullptr;
-  DbusTestService * service = nullptr;
+
   DbusTestDbusMock * as_mock = nullptr;
   DbusTestDbusMock * notify_mock = nullptr;
   DbusTestDbusMock * powerd_mock = nullptr;
@@ -130,8 +122,6 @@ protected:
     ualarm.begin = tomorrow;
     ualarm.end = tomorrow;
     ualarm.alarms.push_back(ayatana::indicator::datetime::Alarm{"It's Tomorrow!", "", appt.begin});
-
-    service = dbus_test_service_new(nullptr);
 
     ///
     ///  Add the AccountsService mock
@@ -308,23 +298,7 @@ protected:
     g_assert_no_error (error);
     dbus_test_service_add_task(service, DBUS_TEST_TASK(haptic_mock));
 
-
-    // start 'em up.
-    // make the system bus work off the mock bus too, since that's
-    // where the upower and screen are on the system bus...
-
-    dbus_test_service_start_tasks(service);
-    g_setenv("DBUS_SYSTEM_BUS_ADDRESS", g_getenv("DBUS_SESSION_BUS_ADDRESS"), TRUE);
-
-    session_bus = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, nullptr);
-    ASSERT_NE(nullptr, session_bus);
-    g_dbus_connection_set_exit_on_close(session_bus, false);
-    g_object_add_weak_pointer(G_OBJECT(session_bus), (gpointer *)&session_bus);
-
-    system_bus = g_bus_get_sync(G_BUS_TYPE_SYSTEM, nullptr, nullptr);
-    ASSERT_NE(nullptr, system_bus);
-    g_dbus_connection_set_exit_on_close(system_bus, FALSE);
-    g_object_add_weak_pointer(G_OBJECT(system_bus), (gpointer *)&system_bus);
+    startDbusMock();
   }
 
   void TearDown() override
@@ -334,20 +308,6 @@ protected:
     g_clear_object(&powerd_mock);
     g_clear_object(&notify_mock);
     g_clear_object(&as_mock);
-    g_clear_object(&service);
-    g_object_unref(session_bus);
-    g_object_unref(system_bus);
-
-    // wait a little while for the scaffolding to shut down,
-    // but don't block on it forever...
-    unsigned int cleartry = 0;
-    while (((system_bus != nullptr) || (session_bus != nullptr)) && (cleartry < 50))
-      {
-        g_usleep(100000);
-        while (g_main_pending())
-          g_main_iteration(true);
-        cleartry++;
-      }
 
     super::TearDown();
   }
