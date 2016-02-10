@@ -37,7 +37,18 @@ namespace
   {
     g_main_loop_quit(static_cast<GMainLoop*>(gloop));
     return G_SOURCE_REMOVE;
-  };
+  }
+
+  void on_dbus_signal(GDBusConnection* /*connection*/,
+                      const gchar* /*sender_name*/,
+                      const gchar* /*object_path*/,
+                      const gchar* /*interface_name*/,
+                      const gchar* /*signal_name*/,
+                      GVariant* /*parameters*/,
+                      gpointer gloop)
+  {
+    g_main_loop_quit(static_cast<GMainLoop*>(gloop));
+  }
 }
 
 /***
@@ -122,28 +133,58 @@ TEST_F(NotificationFixture,Notification)
                                       && test_haptic.expected_vibrate_called;
 
     // clear out any previous iterations' noise
-    GError * error = nullptr;
+    GError * error {};
     dbus_test_dbus_mock_object_clear_method_calls(haptic_mock, haptic_obj, &error);
-    g_assert_no_error(error);
     dbus_test_dbus_mock_object_clear_method_calls(notify_mock, notify_obj, &error);
     g_assert_no_error(error);
 
-    // set the properties to match the test case
+
+    // set test case properties: blacklist
     settings->muted_apps.set(test_muted.muted_apps);
+
+    // set test case properties: haptic mode
     settings->alarm_haptic.set(test_haptic.haptic_mode);
+
+    // set test case properties: other-vibrations flag
+    // (and wait for the PropertiesChanged signal so we know the dbusmock got it)
+    ASSERT_NAME_OWNED_EVENTUALLY(system_bus, AS_BUSNAME);
+    const auto subscription_id = g_dbus_connection_signal_subscribe(system_bus,
+                                                                    AS_BUSNAME,
+                                                                    "org.freedesktop.DBus.Properties",
+                                                                    "PropertiesChanged",
+                                                                    nullptr, /* object_path */
+                                                                    "com.lomiri.touch.AccountsService.Sound",
+                                                                    G_DBUS_SIGNAL_FLAGS_NONE,
+                                                                    on_dbus_signal,
+                                                                    loop,
+                                                                    nullptr /*user_data_free_func*/);
     dbus_test_dbus_mock_object_update_property(as_mock,
                                                as_obj,
                                                PROP_OTHER_VIBRATIONS,
                                                g_variant_new_boolean(test_vibes.other_vibrations),
                                                &error);
     g_assert_no_error(error);
-    wait_msec(100);
+    g_main_loop_run(loop);
+    g_dbus_connection_signal_unsubscribe(system_bus, subscription_id);
 
     // run the test
     (*snap)(test_appt.appt, appt.alarms.front(), func, func);
-    wait_msec(100);
 
-    // test that the notification was as expected
+    // confirm that the notification was as expected
+    if (expected_notify_called) {
+      EXPECT_METHOD_CALLED_EVENTUALLY(notify_mock, notify_obj, METHOD_NOTIFY);
+    } else {
+      EXPECT_METHOD_NOT_CALLED_EVENTUALLY(notify_mock, notify_obj, METHOD_NOTIFY);
+    }
+
+    // confirm that the vibration was as expected
+    if (expected_vibrate_called) {
+      EXPECT_METHOD_CALLED_EVENTUALLY(haptic_mock, haptic_obj, HAPTIC_METHOD_VIBRATE_PATTERN);
+    } else {
+      EXPECT_METHOD_NOT_CALLED_EVENTUALLY(haptic_mock, haptic_obj, HAPTIC_METHOD_VIBRATE_PATTERN);
+    }
+
+    // confirm that the notification was as expected
     guint num_notify_calls = 0;
     const auto notify_calls = dbus_test_dbus_mock_object_get_method_calls(notify_mock,
                                                                           notify_obj,
@@ -151,7 +192,6 @@ TEST_F(NotificationFixture,Notification)
                                                                           &num_notify_calls,
                                                                           &error);
     g_assert_no_error(error);
-    EXPECT_EQ((expected_notify_called?1:0), num_notify_calls);
     if (num_notify_calls > 0)
     {
         // test that Notify was called with the app_name
@@ -174,15 +214,6 @@ TEST_F(NotificationFixture,Notification)
         g_variant_get_child(notify_calls[0].params, 4, "&s", &body);
         ASSERT_STREQ(test_appt.appt.summary.c_str(), body);
     }
-
-    // test that the vibration was as expected
-    const bool vibrate_called = dbus_test_dbus_mock_object_check_method_call(haptic_mock,
-                                                                             haptic_obj,
-                                                                             HAPTIC_METHOD_VIBRATE_PATTERN,
-                                                                             nullptr,
-                                                                             &error);
-    g_assert_no_error(error);
-    EXPECT_EQ(expected_vibrate_called, vibrate_called);
   }
   }
   }

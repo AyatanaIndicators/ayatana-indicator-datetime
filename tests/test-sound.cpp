@@ -103,104 +103,6 @@ TEST_F(NotificationFixture, InteractiveDuration)
 ****
 ***/
 
-TEST_F(NotificationFixture, InhibitSleep)
-{
-  auto settings = std::make_shared<Settings>();
-  auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
-  auto sb = std::make_shared<ayatana::indicator::notifications::DefaultSoundBuilder>();
-  auto snap = create_snap(ne, sb, settings);
-
-  make_interactive();
-
-  // invoke the notification
-  auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
-  (*snap)(appt, appt.alarms.front(), func, func);
-
-  wait_msec(1000);
-
-  // confirm that sleep got inhibited
-  GError * error = nullptr;
-  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (powerd_mock,
-                                                             powerd_obj,
-                                                             POWERD_METHOD_REQUEST_SYS_STATE,
-                                                             g_variant_new("(si)", APP_NAME, POWERD_SYS_STATE_ACTIVE),
-                                                             &error));
-
-  // confirm that the screen got forced on
-  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (screen_mock,
-                                                             screen_obj,
-                                                             SCREEN_METHOD_KEEP_DISPLAY_ON,
-                                                             nullptr,
-                                                             &error));
-
-  // force-close the snap
-  wait_msec(100);
-  snap.reset();
-  wait_msec(100);
-
-  // confirm that sleep got uninhibted
-  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (powerd_mock,
-                                                             powerd_obj,
-                                                             POWERD_METHOD_CLEAR_SYS_STATE,
-                                                             g_variant_new("(s)", POWERD_COOKIE),
-                                                             &error));
-
-  // confirm that the screen's no longer forced on
-  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (screen_mock,
-                                                             screen_obj,
-                                                             SCREEN_METHOD_REMOVE_DISPLAY_ON_REQUEST,
-                                                             g_variant_new("(i)", SCREEN_COOKIE),
-                                                             &error));
-
-  g_assert_no_error (error);
-}
-
-/***
-****
-***/
-
-TEST_F(NotificationFixture, ForceScreen)
-{
-  auto settings = std::make_shared<Settings>();
-  auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
-  auto sb = std::make_shared<ayatana::indicator::notifications::DefaultSoundBuilder>();
-  auto snap = create_snap(ne, sb, settings);
-
-  make_interactive();
-
-  // invoke the notification
-  auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
-  (*snap)(appt, appt.alarms.front(), func, func);
-
-  wait_msec(1000);
-
-  // confirm that sleep got inhibited
-  GError * error = nullptr;
-  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (powerd_mock,
-                                                             powerd_obj,
-                                                             POWERD_METHOD_REQUEST_SYS_STATE,
-                                                             g_variant_new("(si)", APP_NAME, POWERD_SYS_STATE_ACTIVE),
-                                                             &error));
-  g_assert_no_error(error);
-
-  // force-close the snap
-  wait_msec(100);
-  snap.reset();
-  wait_msec(100);
-
-  // confirm that sleep got uninhibted
-  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (powerd_mock,
-                                                             powerd_obj,
-                                                             POWERD_METHOD_CLEAR_SYS_STATE,
-                                                             g_variant_new("(s)", POWERD_COOKIE),
-                                                             &error));
-  g_assert_no_error(error);
-}
-
-/***
-****
-***/
-
 /**
  * A DefaultSoundBuilder wrapper which remembers the parameters of the last sound created.
  */
@@ -258,11 +160,9 @@ TEST_F(NotificationFixture,DefaultSounds)
   };
 
   auto snap = create_snap(ne, sb, settings);
-
   for(const auto& test_case : test_cases)
   {
     (*snap)(test_case.appointment, test_case.appointment.alarms.front(), func, func);
-    wait_msec(100);
     EXPECT_EQ(test_case.expected_uri, sb->uri());
     EXPECT_EQ(test_case.expected_role, sb->role());
   }
