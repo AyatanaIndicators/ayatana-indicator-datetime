@@ -38,17 +38,6 @@ namespace
     g_main_loop_quit(static_cast<GMainLoop*>(gloop));
     return G_SOURCE_REMOVE;
   }
-
-  void on_dbus_signal(GDBusConnection* /*connection*/,
-                      const gchar* /*sender_name*/,
-                      const gchar* /*object_path*/,
-                      const gchar* /*interface_name*/,
-                      const gchar* /*signal_name*/,
-                      GVariant* /*parameters*/,
-                      gpointer gloop)
-  {
-    g_main_loop_quit(static_cast<GMainLoop*>(gloop));
-  }
 }
 
 /***
@@ -147,25 +136,13 @@ TEST_F(NotificationFixture,Notification)
 
     // set test case properties: other-vibrations flag
     // (and wait for the PropertiesChanged signal so we know the dbusmock got it)
-    ASSERT_NAME_OWNED_EVENTUALLY(system_bus, AS_BUSNAME);
-    const auto subscription_id = g_dbus_connection_signal_subscribe(system_bus,
-                                                                    AS_BUSNAME,
-                                                                    "org.freedesktop.DBus.Properties",
-                                                                    "PropertiesChanged",
-                                                                    nullptr, /* object_path */
-                                                                    "com.lomiri.touch.AccountsService.Sound",
-                                                                    G_DBUS_SIGNAL_FLAGS_NONE,
-                                                                    on_dbus_signal,
-                                                                    loop,
-                                                                    nullptr /*user_data_free_func*/);
     dbus_test_dbus_mock_object_update_property(as_mock,
                                                as_obj,
                                                PROP_OTHER_VIBRATIONS,
                                                g_variant_new_boolean(test_vibes.other_vibrations),
                                                &error);
     g_assert_no_error(error);
-    g_main_loop_run(loop);
-    g_dbus_connection_signal_unsubscribe(system_bus, subscription_id);
+    wait_msec(100);
 
     // run the test
     (*snap)(test_appt.appt, appt.alarms.front(), func, func);
