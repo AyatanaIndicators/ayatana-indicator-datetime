@@ -109,8 +109,6 @@ TEST_F(NotificationFixture,Notification)
   {
   for (const auto& test_muted : test_muted_apps)
   {
-    auto snap = create_snap(ne, sb, settings);
-
     const bool expected_notify_called = test_appt.expected_notify_called
                                      && test_vibes.expected_notify_called
                                      && (test_muted.expected_notify_called.count(test_appt.appt.type) > 0)
@@ -121,13 +119,6 @@ TEST_F(NotificationFixture,Notification)
                                       && (test_muted.expected_vibrate_called.count(test_appt.appt.type) > 0)
                                       && test_haptic.expected_vibrate_called;
 
-    // clear out any previous iterations' noise
-    GError * error {};
-    dbus_test_dbus_mock_object_clear_method_calls(haptic_mock, haptic_obj, &error);
-    dbus_test_dbus_mock_object_clear_method_calls(notify_mock, notify_obj, &error);
-    g_assert_no_error(error);
-
-
     // set test case properties: blacklist
     settings->muted_apps.set(test_muted.muted_apps);
 
@@ -136,15 +127,22 @@ TEST_F(NotificationFixture,Notification)
 
     // set test case properties: other-vibrations flag
     // (and wait for the PropertiesChanged signal so we know the dbusmock got it)
+    GError * error {};
     dbus_test_dbus_mock_object_update_property(as_mock,
                                                as_obj,
                                                PROP_OTHER_VIBRATIONS,
                                                g_variant_new_boolean(test_vibes.other_vibrations),
                                                &error);
     g_assert_no_error(error);
-    wait_msec(100);
+
+    // wait for previous iterations' bus noise to finish and reset the counters
+    wait_msec(500);
+    dbus_test_dbus_mock_object_clear_method_calls(haptic_mock, haptic_obj, &error);
+    dbus_test_dbus_mock_object_clear_method_calls(notify_mock, notify_obj, &error);
+    g_assert_no_error(error);
 
     // run the test
+    auto snap = create_snap(ne, sb, settings);
     (*snap)(test_appt.appt, appt.alarms.front(), func, func);
 
     // confirm that the notification was as expected
