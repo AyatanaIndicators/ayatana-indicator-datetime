@@ -90,8 +90,6 @@ TEST_F(TimedateFixture, DesktopOpenSettingsApp)
 namespace
 {
     const std::string clock_app_url = "appid://com.ubuntu.clock/clock/current-user-version";
-
-    const std::string calendar_app_url = "appid://com.ubuntu.calendar/calendar/current-user-version";
 }
 
 TEST_F(TimedateFixture, PhoneOpenAlarmApp)
@@ -104,11 +102,13 @@ TEST_F(TimedateFixture, PhoneOpenAppointment)
 {
     Appointment a;
 
-    a.uid = "some-uid";
+    a.uid = "event-uid";
+    a.source_uid = "source-uid";
     a.begin = DateTime::NowLocal();
     a.type = Appointment::EVENT;
     m_actions->phone_open_appointment(a);
-    EXPECT_EQ(calendar_app_url, m_live_actions->last_url);
+    const std::string appointment_app_url =  "calendar://eventid=source-uid/event-uid";
+    EXPECT_EQ(appointment_app_url, m_live_actions->last_url);
 
     a.type = Appointment::UBUNTU_ALARM;
     m_actions->phone_open_appointment(a);
@@ -117,10 +117,12 @@ TEST_F(TimedateFixture, PhoneOpenAppointment)
 
 TEST_F(TimedateFixture, PhoneOpenCalendarApp)
 {
-    m_actions->phone_open_calendar_app(DateTime::NowLocal());
-    const std::string expected = "appid://com.ubuntu.calendar/calendar/current-user-version";
+    auto now = DateTime::NowLocal();
+    m_actions->phone_open_calendar_app(now);
+    const std::string expected =  now.format("calendar:///?startdate=%Y%m%dT%H%M%SZ");
     EXPECT_EQ(expected, m_live_actions->last_url);
 }
+
 
 TEST_F(TimedateFixture, PhoneOpenSettingsApp)
 {
