@@ -21,6 +21,7 @@
 #define INDICATOR_DATETIME_MENU_H
 
 #include <datetime/actions.h>
+#include <datetime/appointment.h>
 #include <datetime/state.h>
 
 #include <memory> // std::shared_ptr
@@ -48,6 +49,11 @@ public:
     const std::string& name() const;
     Profile profile() const;
     GMenuModel* menu_model();
+
+    static std::vector<Appointment> get_display_appointments(
+        const std::vector<Appointment>&,
+        const DateTime& start,
+        unsigned int max_items=5);
 
 protected:
     Menu (Profile profile_in, const std::string& name_in);
