@@ -162,25 +162,16 @@ void LiveActions::phone_open_appointment(const Appointment& appt)
             break;
 
         case Appointment::EVENT:
-            if (!appt.source_uid.empty() && !appt.uid.empty())
-            {
-                std::stringstream cmd;
-                // event-id format: <source-id>/<event-id>
-                cmd << "calendar://eventid="
-                    << appt.source_uid
-                    << "/"
-                    << appt.uid;
-                dispatch_url(cmd.str());
-                break;
-            }
         default:
             phone_open_calendar_app(appt.begin);
+            break;
     }
 }
 
 void LiveActions::phone_open_calendar_app(const DateTime& dt)
 {
-    auto cmd = dt.format("calendar:///?startdate=%Y%m%dT%H%M%SZ");
+    const auto utc = dt.to_timezone("UTC");
+    auto cmd = utc.format("calendar://startdate=%Y-%m-%dT%H:%M:%S+00:00");
     dispatch_url(cmd);
 }
 
