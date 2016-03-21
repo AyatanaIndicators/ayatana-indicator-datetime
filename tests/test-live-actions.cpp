@@ -64,7 +64,7 @@ TEST_F(TimedateFixture, DesktopOpenAppointment)
     Appointment a;
     a.uid = "some-uid";
     a.begin = DateTime::NowLocal();
-    m_actions->desktop_open_appointment(a);
+    m_actions->desktop_open_appointment(a, a.begin);
     const std::string expected_substr = "evolution \"calendar:///?startdate=";
     EXPECT_NE(m_live_actions->last_cmd.find(expected_substr), std::string::npos);
 }
@@ -106,12 +106,13 @@ TEST_F(TimedateFixture, PhoneOpenAppointment)
     a.source_uid = "source-uid";
     a.begin = DateTime::NowLocal();
     a.type = Appointment::EVENT;
-    m_actions->phone_open_appointment(a);
-    const std::string appointment_app_url =  "calendar://eventid=source-uid/event-uid";
+    auto ocurrenceDate = DateTime::Local(2014, 1, 1, 0, 0, 0);
+    m_actions->phone_open_appointment(a, ocurrenceDate);
+    const std::string appointment_app_url =  ocurrenceDate.to_timezone("UTC").format("calendar://startdate=%Y-%m-%dT%H:%M:%S+00:00");
     EXPECT_EQ(appointment_app_url, m_live_actions->last_url);
 
     a.type = Appointment::UBUNTU_ALARM;
-    m_actions->phone_open_appointment(a);
+    m_actions->phone_open_appointment(a, a.begin);
     EXPECT_EQ(clock_app_url, m_live_actions->last_url);
 }
 
@@ -119,7 +120,7 @@ TEST_F(TimedateFixture, PhoneOpenCalendarApp)
 {
     auto now = DateTime::NowLocal();
     m_actions->phone_open_calendar_app(now);
-    const std::string expected =  now.format("calendar:///?startdate=%Y%m%dT%H%M%SZ");
+    const std::string expected =  now.to_timezone("UTC").format("calendar://startdate=%Y-%m-%dT%H:%M:%S+00:00");
     EXPECT_EQ(expected, m_live_actions->last_url);
 }
 

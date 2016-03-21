@@ -41,12 +41,12 @@ public:
 
     bool desktop_has_calendar_app() const override;
     void desktop_open_alarm_app() override;
-    void desktop_open_appointment(const Appointment&) override;
+    void desktop_open_appointment(const Appointment&, const DateTime&) override;
     void desktop_open_calendar_app(const DateTime&) override;
     void desktop_open_settings_app() override;
 
     void phone_open_alarm_app() override;
-    void phone_open_appointment(const Appointment&) override;
+    void phone_open_appointment(const Appointment&, const DateTime &) override;
     void phone_open_calendar_app(const DateTime&) override;
     void phone_open_settings_app() override;
 

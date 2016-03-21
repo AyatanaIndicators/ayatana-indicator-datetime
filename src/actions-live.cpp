@@ -127,9 +127,9 @@ void LiveActions::desktop_open_alarm_app()
     execute_command("evolution -c calendar");
 }
 
-void LiveActions::desktop_open_appointment(const Appointment& appt)
+void LiveActions::desktop_open_appointment(const Appointment&, const DateTime& date)
 {
-    desktop_open_calendar_app(appt.begin);
+    desktop_open_calendar_app(date);
 }
 
 void LiveActions::desktop_open_calendar_app(const DateTime& dt)
@@ -148,7 +148,7 @@ void LiveActions::phone_open_alarm_app()
     dispatch_url("appid://com.ubuntu.clock/clock/current-user-version");
 }
 
-void LiveActions::phone_open_appointment(const Appointment& appt)
+void LiveActions::phone_open_appointment(const Appointment& appt, const DateTime& date)
 {
 
     if (!appt.activation_url.empty())
@@ -163,7 +163,7 @@ void LiveActions::phone_open_appointment(const Appointment& appt)
 
         case Appointment::EVENT:
         default:
-            phone_open_calendar_app(appt.begin);
+            phone_open_calendar_app(date);
             break;
     }
 }
