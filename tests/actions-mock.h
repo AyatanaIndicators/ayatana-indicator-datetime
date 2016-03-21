@@ -57,8 +57,9 @@ public:
     void desktop_open_alarm_app() {
         m_history.push_back(DesktopOpenAlarmApp);
     }
-    void desktop_open_appointment(const Appointment& appt) {
+    void desktop_open_appointment(const Appointment& appt, const DateTime& dt) {
         m_appt = appt;
+        m_date_time = dt;
         m_history.push_back(DesktopOpenAppt);
     }
     void desktop_open_calendar_app(const DateTime& dt) {
@@ -72,8 +73,9 @@ public:
     void phone_open_alarm_app() {
         m_history.push_back(PhoneOpenAlarmApp);
     }
-    void phone_open_appointment(const Appointment& appt) {
+    void phone_open_appointment(const Appointment& appt, const DateTime& dt) {
         m_appt = appt;
+        m_date_time = dt;
         m_history.push_back(PhoneOpenAppt);
     }
     void phone_open_calendar_app(const DateTime& dt) {

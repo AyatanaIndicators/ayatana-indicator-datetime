@@ -414,9 +414,12 @@ private:
             if (!appt.color.empty())
                 g_menu_item_set_attribute (menu_item, "x-ayatana-color", "s", appt.color.c_str());
 
-            if (action_name != nullptr)
+            if (action_name != nullptr) {
                 g_menu_item_set_action_and_target_value (menu_item, action_name,
-                                                         g_variant_new_string (appt.uid.c_str()));
+                                                         g_variant_new ("(sx)",
+                                                                        appt.uid.c_str(),
+                                                                        unix_time));
+            }
 
             g_menu_append_item (menu, menu_item);
             g_object_unref (menu_item);

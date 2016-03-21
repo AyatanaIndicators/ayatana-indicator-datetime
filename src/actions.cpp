@@ -48,13 +48,8 @@ DateTime datetime_from_timet_variant(GVariant* v)
         return DateTime::NowLocal();
 }
 
-bool lookup_appointment_by_uid_variant(const std::shared_ptr<State>& state, GVariant* vuid, Appointment& setme)
+bool lookup_appointment_by_uid(const std::shared_ptr<State>& state, const gchar* uid, Appointment& setme)
 {
-    g_return_val_if_fail(vuid != nullptr, false);
-    g_return_val_if_fail(g_variant_type_equal(G_VARIANT_TYPE_STRING,g_variant_get_type(vuid)), false);
-    const auto uid = g_variant_get_string(vuid, nullptr);
-    g_return_val_if_fail(uid && *uid, false);
-
     for(const auto& appt : state->calendar_upcoming->appointments().get())
     {
         if (appt.uid == uid)
@@ -67,12 +62,15 @@ bool lookup_appointment_by_uid_variant(const std::shared_ptr<State>& state, GVar
     return false;
 }
 
-void on_desktop_appointment_activated (GSimpleAction*, GVariant *vuid, gpointer gself)
+void on_desktop_appointment_activated (GSimpleAction*, GVariant *vdata, gpointer gself)
 {
     auto self = static_cast<Actions*>(gself);
     Appointment appt;
-    if (lookup_appointment_by_uid_variant(self->state(), vuid, appt))
-        self->desktop_open_appointment(appt);
+    const gchar* uid = nullptr;
+    gint64 time = 0;
+    g_variant_get(vdata, "(&sx)", &uid, &time);
+    if (lookup_appointment_by_uid(self->state(), uid, appt))
+        self->desktop_open_appointment(appt, DateTime::Local(time));
 }
 void on_desktop_alarm_activated (GSimpleAction*, GVariant*, gpointer gself)
 {
@@ -88,12 +86,15 @@ void on_desktop_settings_activated (GSimpleAction*, GVariant*, gpointer gself)
     static_cast<Actions*>(gself)->desktop_open_settings_app();
 }
 
-void on_phone_appointment_activated (GSimpleAction*, GVariant *vuid, gpointer gself)
+void on_phone_appointment_activated (GSimpleAction*, GVariant *vdata, gpointer gself)
 {
     auto self = static_cast<Actions*>(gself);
     Appointment appt;
-    if (lookup_appointment_by_uid_variant(self->state(), vuid, appt))
-        self->phone_open_appointment(appt);
+    const gchar* uid = nullptr;
+    gint64 time = 0;
+    g_variant_get(vdata, "(&sx)", &uid, &time);
+    if (lookup_appointment_by_uid(self->state(), uid, appt))
+        self->phone_open_appointment(appt, DateTime::Local(time));
 }
 void on_phone_alarm_activated (GSimpleAction*, GVariant*, gpointer gself)
 {
@@ -198,12 +199,12 @@ Actions::Actions(const std::shared_ptr<State>& state):
 {
     GActionEntry entries[] = {
 
-        { "desktop.open-appointment",  on_desktop_appointment_activated, "s", nullptr },
+        { "desktop.open-appointment",  on_desktop_appointment_activated, "(sx)", nullptr },
         { "desktop.open-alarm-app",    on_desktop_alarm_activated },
         { "desktop.open-calendar-app", on_desktop_calendar_activated, "x", nullptr },
         { "desktop.open-settings-app", on_desktop_settings_activated },
 
-        { "phone.open-appointment",    on_phone_appointment_activated, "s", nullptr },
+        { "phone.open-appointment",    on_phone_appointment_activated, "(sx)", nullptr },
         { "phone.open-alarm-app",      on_phone_alarm_activated },
         { "phone.open-calendar-app",   on_phone_calendar_activated, "x", nullptr },
         { "phone.open-settings-app",   on_phone_settings_activated },
