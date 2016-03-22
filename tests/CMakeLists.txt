@@ -99,6 +99,7 @@ add_eds_ics_test_by_name(test-eds-ics-repeating-valarms)
 add_eds_ics_test_by_name(test-eds-ics-missing-trigger)
 add_eds_ics_test_by_name(test-eds-ics-tzids)
 add_eds_ics_test_by_name(test-eds-ics-tzids-2)
+add_eds_ics_test_by_name(test-eds-ics-tzids-utc)
 
 # disabling the timezone unit tests because they require
 # https://code.launchpad.net/~ted/dbus-test-runner/multi-interface-test/+merge/199724
