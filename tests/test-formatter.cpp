@@ -87,7 +87,7 @@ class FormatterFixture: public GlibFixture
 /**
  * Test the phone header format
  */
-TEST_F(FormatterFixture, TestPhoneHeader)
+TEST_F(FormatterFixture, DISABLED_TestPhoneHeader)
 {
     auto now = DateTime::Local(2020, 10, 31, 18, 30, 59);
     auto clock = std::make_shared<MockClock>(now);
@@ -114,7 +114,7 @@ TEST_F(FormatterFixture, TestPhoneHeader)
 /**
  * Test the default values of the desktop header format
  */
-TEST_F(FormatterFixture, TestDesktopHeader)
+TEST_F(FormatterFixture, DISABLED_TestDesktopHeader)
 {
   struct {
     bool is_12h;
@@ -168,7 +168,7 @@ TEST_F(FormatterFixture, TestDesktopHeader)
 /**
  * Test the default values of the desktop header format
  */
-TEST_F(FormatterFixture, TestUpcomingTimes)
+TEST_F(FormatterFixture, DISABLED_TestUpcomingTimes)
 {
     auto a = DateTime::Local(2020, 10, 31, 18, 30, 59);
 
@@ -210,7 +210,7 @@ TEST_F(FormatterFixture, TestUpcomingTimes)
 /**
  * Test the default values of the desktop header format
  */
-TEST_F(FormatterFixture, TestEventTimes)
+TEST_F(FormatterFixture, DISABLED_TestEventTimes)
 {
     auto day            = DateTime::Local(2013, 1, 1, 13, 0, 0);
     auto day_begin      = DateTime::Local(2013, 1, 1, 13, 0, 0);
