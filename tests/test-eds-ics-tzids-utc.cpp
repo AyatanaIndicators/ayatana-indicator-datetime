@@ -83,7 +83,7 @@ TEST_F(VAlarmFixture, UTCAppointments)
     appt->uid = "20160322T132738Z";
     appt->color = "#becedd";
     appt->summary = "UTC event";
-    appt->begin = DateTime{gtz,2016,2,22,15,0,0};
+    appt->begin = DateTime{gtz,2016,3,22,15,0,0};
     appt->end = DateTime{gtz,2016,3,22,16,0,0};
 
     // compare it to what we actually loaded...
