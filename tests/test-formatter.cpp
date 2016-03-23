@@ -66,15 +66,14 @@ class FormatterFixture: public GlibFixture
 
     bool SetLocale(const char* expected_locale, const char* name)
     {
-      setlocale(LC_TIME, expected_locale);
-      const auto actual_locale = setlocale(LC_TIME, nullptr);
-      if (!g_strcmp0(expected_locale, actual_locale))
+      if (setlocale(LC_TIME, expected_locale) != nullptr)
         {
           return true;
         }
       else
         {
-          g_message("Unable to set locale to %s, actual locale is %s; skipping %s locale tests.", expected_locale, actual_locale, name);
+          g_warning("Unable to set locale to %s; skipping %s locale tests. (Current LC_TIME: %s)",
+                    expected_locale, name, setlocale(LC_TIME, nullptr));
           return false;
         }
     }
@@ -168,7 +167,7 @@ TEST_F(FormatterFixture, DISABLED_TestDesktopHeader)
 /**
  * Test the default values of the desktop header format
  */
-TEST_F(FormatterFixture, DISABLED_TestUpcomingTimes)
+TEST_F(FormatterFixture, TestUpcomingTimes)
 {
     auto a = DateTime::Local(2020, 10, 31, 18, 30, 59);
 
@@ -210,7 +209,7 @@ TEST_F(FormatterFixture, DISABLED_TestUpcomingTimes)
 /**
  * Test the default values of the desktop header format
  */
-TEST_F(FormatterFixture, DISABLED_TestEventTimes)
+TEST_F(FormatterFixture, TestEventTimes)
 {
     auto day            = DateTime::Local(2013, 1, 1, 13, 0, 0);
     auto day_begin      = DateTime::Local(2013, 1, 1, 13, 0, 0);
