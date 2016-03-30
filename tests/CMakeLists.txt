@@ -90,7 +90,8 @@ function(add_eds_ics_test_by_name name)
             ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}               # arg2: test executable path
             ${TEST_NAME}                                           # arg3: test name
             ${CMAKE_CURRENT_SOURCE_DIR}/test-eds-ics-config-files  # arg4: base directory for config file template
-            ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.ics)          # arg5: the ical file for this test
+            ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.ics           # arg5: the ical file for this test
+            ${CMAKE_CURRENT_SOURCE_DIR}/accounts.db)               # arg6: online accounts database
 endfunction()
 add_eds_ics_test_by_name(test-eds-ics-all-day-events)
 add_eds_ics_test_by_name(test-eds-ics-repeating-events)
@@ -100,6 +101,7 @@ add_eds_ics_test_by_name(test-eds-ics-missing-trigger)
 add_eds_ics_test_by_name(test-eds-ics-tzids)
 add_eds_ics_test_by_name(test-eds-ics-tzids-2)
 add_eds_ics_test_by_name(test-eds-ics-tzids-utc)
+add_eds_ics_test_by_name(test-eds-ics-non-attending-alarms)
 
 # disabling the timezone unit tests because they require
 # https://code.launchpad.net/~ted/dbus-test-runner/multi-interface-test/+merge/199724
