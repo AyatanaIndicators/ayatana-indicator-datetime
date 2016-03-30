@@ -227,6 +227,10 @@ private:
 
         std::string uri;
 
+        // does not play any sound if alarm is not set as sound
+        if (!is_alarm && !(alarm.type & Alarm::SOUND))
+            return uri;
+
         for(const auto& candidate : candidates)
         {
             if (gst_uri_is_valid (candidate.c_str()))

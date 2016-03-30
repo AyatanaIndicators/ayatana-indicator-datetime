@@ -34,9 +34,15 @@ namespace datetime {
  */
 struct Alarm
 {
+    enum Type {
+        EMAIL = 0x001,
+        SOUND  = 0x010,
+        TEXT = 0x100
+    };
     std::string text;
     std::string audio_url;
     DateTime time;
+    int type;
 
     bool operator== (const Alarm& that) const;
     bool has_sound() const;
