@@ -634,7 +634,6 @@ private:
         auto action = e_cal_component_alarm_get_action(alarm);
         if (action == E_CAL_COMPONENT_ALARM_AUDIO)
         {
-            ret = default_sound;
             ICalAttach *attach = nullptr;
             auto attachments = e_cal_component_alarm_get_attachments(alarm);
 
@@ -650,6 +649,8 @@ private:
                         ret = url;
                 }
             }
+            if (ret.empty())
+                ret = default_sound;
         }
 
         return ret;
@@ -1141,8 +1142,9 @@ private:
                 alarm.text = get_alarm_text(a);
 
             if (alarm.audio_url.empty())
-                alarm.audio_url = get_alarm_sound_url(a, baseline.is_ubuntu_alarm() ?
-                                                          ALARM_DEFAULT_SOUND : CALENDAR_DEFAULT_SOUND);
+                alarm.audio_url = get_alarm_sound_url(a,  (baseline.is_ubuntu_alarm() ?
+                                                         "file://" ALARM_DEFAULT_SOUND :
+                                                         "file://" ALARM_DEFAULT_SOUND));
 
             if (!alarm.time.is_set())
                 alarm.time = trigger_time;
@@ -1158,7 +1160,7 @@ private:
             appointment.alarms.reserve(i.second.size());
             for (auto& j : i.second)
             {
-                if (j.second.has_text() || (j.second.has_sound()))
+                if (j.second.has_text() || j.second.has_sound())
                     appointment.alarms.push_back(j.second);
             }
             subtask->task->appointments.push_back(appointment);

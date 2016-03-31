@@ -111,7 +111,7 @@ protected:
     const auto christmas = ayatana::indicator::datetime::DateTime::Local(2015,12,25,0,0,0);
     appt.begin = christmas.start_of_day();
     appt.end = christmas.end_of_day();
-    appt.alarms.push_back(ayatana::indicator::datetime::Alarm{"Ho Ho Ho!", "", appt.begin });
+    appt.alarms.push_back(ayatana::indicator::datetime::Alarm{"Ho Ho Ho!", "", appt.begin});
 
     // init a Lomiri Alarm
     ualarm.color = "red";
