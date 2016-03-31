@@ -27,22 +27,22 @@ namespace datetime {
 *****
 ****/
 
+Alarm::Alarm()
+    : type(Alarm::None)
+{
+}
+
+Alarm::Alarm(int type_, const std::string &text_, const std::string& audio_url_, const DateTime &time_)
+    :  type(type_), text(text_), audio_url(audio_url_), time(time_)
+{
+}
+
 bool Alarm::operator==(const Alarm& that) const
 {
   return (type==that.type)
       && (text==that.text)
       && (audio_url==that.audio_url)
           && (this->time==that.time);
-}
-
-bool Alarm::has_sound() const
-{
-    return !audio_url.empty();
-}
-
-bool Alarm::has_text() const
-{
-    return !text.empty();
 }
 
 bool Appointment::operator==(const Appointment& that) const

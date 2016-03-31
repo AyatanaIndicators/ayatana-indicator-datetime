@@ -35,20 +35,20 @@ namespace datetime {
 struct Alarm
 {
     enum Type {
+        None = 0,
         EMAIL = 0x001,
         SOUND  = 0x010,
         TEXT = 0x100
     };
+    int type;
     std::string text;
     std::string audio_url;
     DateTime time;
-    int type : SOUND;
 
     bool operator== (const Alarm& that) const;
-    bool has_sound() const;
-    bool has_text() const;
+    Alarm();
+    Alarm(int type_, const std::string &text_, const std::string& audio_url_, const DateTime &time_);
 };
-
 
 /**
  * \brief An instance of an appointment; e.g. a calendar event or clock-app alarm

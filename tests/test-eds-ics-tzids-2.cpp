@@ -86,7 +86,7 @@ TEST_F(VAlarmFixture, MultipleAppointments)
     appt->summary = "National Incubator Initiative for Clean Energy (NIICE) FOA: Pre-Concept Paper Informational Webinar";
     appt->begin = DateTime{gtz,2014,1,21,11,0,0};
     appt->end = DateTime{gtz,2014,1,21,13,0,0};
-    appt->alarms = std::vector<Alarm>{ Alarm({"Reminder", "", DateTime(gtz,2014,1,21,10,45,0)}) };
+    appt->alarms = std::vector<Alarm>{ Alarm({Alarm::TEXT, "Reminder", "", DateTime(gtz,2014,1,21,10,45,0)}) };
 
     // compare it to what we actually loaded...
     const auto appts = planner->appointments().get();
