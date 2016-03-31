@@ -29,7 +29,8 @@ namespace datetime {
 
 bool Alarm::operator==(const Alarm& that) const
 {
-  return (text==that.text)
+  return (type==that.type)
+      && (text==that.text)
       && (audio_url==that.audio_url)
           && (this->time==that.time);
 }

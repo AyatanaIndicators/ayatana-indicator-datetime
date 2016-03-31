@@ -42,7 +42,14 @@ struct Alarm
     std::string text;
     std::string audio_url;
     DateTime time;
-    int type;
+    int type = TEXT;
+
+    Alarm(const std::string  &text_, const std::string &audio_url_, const DateTime & time_, int type_ = TEXT)
+        : text(text_), audio_url(audio_url_), time(time_), type(type_)
+    {}
+
+    Alarm()
+    {}
 
     bool operator== (const Alarm& that) const;
     bool has_sound() const;
