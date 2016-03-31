@@ -91,6 +91,7 @@ TEST_F(VAlarmFixture, MissingTriggers)
     a.alarms[0].audio_url = "file://" ALARM_DEFAULT_SOUND;
     a.alarms[0].time = a.begin;
     a.alarms[0].text = a.summary;
+    a.alarms[0].type = Alarm::SOUND | Alarm::TEXT;
     expected.push_back(a);
 
     // build expected: recurring alarm

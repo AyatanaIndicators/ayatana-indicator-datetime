@@ -80,11 +80,11 @@ TEST_F(VAlarmFixture, MultipleAppointments)
 
     // what we expect to get...
     Appointment expected_appt;
-    expected_appt.uid = "20150520T000726Z-3878-32011-1770-81@ubuntu-phablet";
+    expected_appt.uid = "20150520T000726Z-3878-32011-1770-81@lomiri-phablet";
     expected_appt.color = "#becedd";
     expected_appt.summary = "Alarm";
     std::array<Alarm,1> expected_alarms = {
-        Alarm({"Alarm", "file://" ALARM_DEFAULT_SOUND, DateTime(gtz,2015,5,20,20,00,0)})
+        Alarm({Alarm::SOUND | Alarm::TEXT, "Alarm", "file://" ALARM_DEFAULT_SOUND, DateTime(gtz,2015,5,20,20,00,0)})
     };
 
     // compare it to what we actually loaded...
