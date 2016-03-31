@@ -41,8 +41,7 @@ Myself::Myself()
 
 bool Myself::isMyEmail(const std::string &email)
 {
-    auto emails = m_emails.get();
-    return (std::find(emails.begin(), emails.end(), email) != emails.end());
+    return m_emails.get().count(email) > 0;
 }
 
 void Myself::on_accounts_changed(AgManager *, guint, Myself *self)
@@ -52,15 +51,19 @@ void Myself::on_accounts_changed(AgManager *, guint, Myself *self)
 
 void Myself::reloadEmails()
 {
-    std::vector<std::string> emails;
+    std::set<std::string> emails;
 
     auto manager = m_accounts_manager.get();
     auto ids = ag_manager_list(manager);
     for (auto l=ids; l!=nullptr; l=l->next)
     {
         auto acc = ag_manager_get_account(manager, GPOINTER_TO_UINT(l->data));
-        auto account_name = ag_account_get_display_name(acc);
-        emails.push_back(account_name);
+        if (acc) {
+            auto account_name = ag_account_get_display_name(acc);
+            if (account_name != nullptr)
+                emails.insert(account_name);
+            g_object_unref(acc);
+        }
     }
     ag_manager_list_free(ids);
 

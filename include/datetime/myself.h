@@ -20,13 +20,14 @@
 #ifndef INDICATOR_DATETIME_MYSELF_H
 #define INDICATOR_DATETIME_MYSELF_H
 
-#include <libaccounts-glib.h>
-
 #include <core/property.h>
 
 #include <string>
 #include <vector>
 #include <memory.h>
+#include <glib.h>
+
+typedef struct _AgManager AgManager;
 
 namespace ayatana {
 namespace indicator {
@@ -37,7 +38,7 @@ class Myself
 public:
      Myself();
 
-     core::Property<std::vector<std::string>>& emails()
+     const core::Property<std::set<std::string>>& emails()
      {
          return m_emails;
      }
@@ -46,7 +47,7 @@ public:
 
 private:
      std::shared_ptr<AgManager> m_accounts_manager;
-     core::Property<std::vector<std::string> > m_emails;
+     core::Property<std::set<std::string> > m_emails;
 
      static void on_accounts_changed(AgManager*, guint, Myself*);
      void reloadEmails();

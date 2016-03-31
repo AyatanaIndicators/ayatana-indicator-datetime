@@ -50,7 +50,8 @@ class EdsEngine::Impl
 {
 public:
 
-    Impl(const std::unique_ptr<Myself> &myself)
+    Impl(const std::shared_ptr<Myself> &myself)
+        : m_myself(myself)
     {
         auto cancellable_deleter = [](GCancellable * c) {
             g_cancellable_cancel(c);
@@ -59,9 +60,7 @@ public:
 
         m_cancellable = std::shared_ptr<GCancellable>(g_cancellable_new(), cancellable_deleter);
         e_source_registry_new(m_cancellable.get(), on_source_registry_ready, this);
-
-        m_myself = std::unique_ptr<Myself>(new Myself());
-        m_myself->emails().changed().connect([this](std::vector<std::string>) {
+        m_myself->emails().changed().connect([this](const std::set<std::string> &) {
             set_dirty_soon();
         });
     }
@@ -1254,19 +1253,14 @@ private:
     ESourceRegistry* m_source_registry {};
     guint m_rebuild_tag {};
     time_t m_rebuild_deadline {};
-    std::unique_ptr<Myself> m_myself;
+    std::shared_ptr<Myself> m_myself;
 };
 
 /***
 ****
 ***/
 
-EdsEngine::EdsEngine():
-    p(new Impl(std::unique_ptr<Myself>(new Myself)))
-{
-}
-
-EdsEngine::EdsEngine(const std::unique_ptr<Myself> &myself):
+EdsEngine::EdsEngine(const std::shared_ptr<Myself> &myself):
     p(new Impl(myself))
 {
 }

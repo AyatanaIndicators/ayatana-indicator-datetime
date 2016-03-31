@@ -47,8 +47,7 @@ class Myself;
 class EdsEngine: public Engine
 {
 public:
-    EdsEngine();
-    explicit EdsEngine(const std::unique_ptr<Myself> &myself);
+    EdsEngine(const std::shared_ptr<Myself> &myself);
     ~EdsEngine();
 
     void get_appointments(const DateTime& begin,
