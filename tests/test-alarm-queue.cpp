@@ -79,7 +79,7 @@ protected:
         a1.type = Appointment::UBUNTU_ALARM;
         a1.begin = tomorrow_begin;
         a1.end = tomorrow_end;
-        a1.alarms.push_back(Alarm{Alarm::SOUND, "Alarm Text", "", a1.begin});
+        a1.alarms.push_back(Alarm{"Alarm Text", "", a1.begin});
 
         const auto ubermorgen_begin = now.add_days(2).start_of_day();
         const auto ubermorgen_end = ubermorgen_begin.end_of_day();
@@ -92,7 +92,7 @@ protected:
         a2.type = Appointment::EVENT;
         a2.begin = ubermorgen_begin;
         a2.end = ubermorgen_end;
-        a2.alarms.push_back(Alarm{Alarm::SOUND, "Alarm Text", "", a2.begin});
+        a2.alarms.push_back(Alarm{"Alarm Text", "", a2.begin});
 
         return std::vector<Appointment>({a1, a2});
     }
