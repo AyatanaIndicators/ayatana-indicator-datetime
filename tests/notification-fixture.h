@@ -111,7 +111,7 @@ protected:
     const auto christmas = ayatana::indicator::datetime::DateTime::Local(2015,12,25,0,0,0);
     appt.begin = christmas.start_of_day();
     appt.end = christmas.end_of_day();
-    appt.alarms.push_back(ayatana::indicator::datetime::Alarm{ayatana::indicator::datetime::Alarm::SOUND, "Ho Ho Ho!", "", appt.begin });
+    appt.alarms.push_back(ayatana::indicator::datetime::Alarm{"Ho Ho Ho!", "", appt.begin });
 
     // init a Lomiri Alarm
     ualarm.color = "red";
@@ -121,7 +121,7 @@ protected:
     const auto tomorrow = ayatana::indicator::datetime::DateTime::NowLocal().add_days(1);
     ualarm.begin = tomorrow;
     ualarm.end = tomorrow;
-    ualarm.alarms.push_back(ayatana::indicator::datetime::Alarm{ayatana::indicator::datetime::Alarm::SOUND, "It's Tomorrow!", "", appt.begin});
+    ualarm.alarms.push_back(ayatana::indicator::datetime::Alarm{"It's Tomorrow!", "", appt.begin});
 
     ///
     ///  Add the AccountsService mock

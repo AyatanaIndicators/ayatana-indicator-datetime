@@ -71,7 +71,7 @@ int main(int argc, const char* argv[])
     a.type = Appointment::UBUNTU_ALARM;
     a.begin = DateTime::Local(2014, 12, 25, 0, 0, 0);
     a.end = a.begin.end_of_day();
-    a.alarms.push_back(Alarm{Alarm::SOUND, "Alarm Text", "", a.begin});
+    a.alarms.push_back(Alarm{"Alarm Text", "", a.begin});
 
     auto loop = g_main_loop_new(nullptr, false);
     auto on_snooze = [loop](const Appointment& appt, const Alarm&){
