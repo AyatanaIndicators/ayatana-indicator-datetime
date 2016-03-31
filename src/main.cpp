@@ -25,6 +25,7 @@
 #include <datetime/exporter.h>
 #include <datetime/locations-settings.h>
 #include <datetime/menu.h>
+#include <datetime/myself.h>
 #include <datetime/planner-aggregate.h>
 #include <datetime/planner-snooze.h>
 #include <datetime/planner-range.h>
@@ -60,7 +61,7 @@ namespace
         if (!g_strcmp0("lightdm", g_get_user_name()))
             engine.reset(new MockEngine);
         else
-            engine.reset(new EdsEngine);
+            engine.reset(new EdsEngine(std::shared_ptr<Myself>(new Myself)));
 
         return engine;
     }
