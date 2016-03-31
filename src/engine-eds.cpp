@@ -61,9 +61,9 @@ public:
         e_source_registry_new(m_cancellable.get(), on_source_registry_ready, this);
 
         m_myself = std::unique_ptr<Myself>(new Myself());
-        /*m_myself->emails().changed().connect([this](const std::set<std::string> &) {
+        m_myself->emails().changed().connect([this](std::vector<std::string>) {
             set_dirty_soon();
-        });*/
+        });
     }
 
     ~Impl()
