@@ -226,6 +226,9 @@ private:
         };
 
         std::string uri;
+        if (!alarm.has_sound() && !is_alarm)
+            return uri;
+
         for(const auto& candidate : candidates)
         {
             if (gst_uri_is_valid (candidate.c_str()))
