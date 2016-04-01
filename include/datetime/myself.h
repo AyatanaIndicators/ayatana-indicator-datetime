@@ -23,7 +23,7 @@
 #include <core/property.h>
 
 #include <string>
-#include <vector>
+#include <set>
 #include <memory.h>
 #include <glib.h>
 
