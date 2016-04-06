@@ -80,7 +80,9 @@ TEST_F(VAlarmFixture, NonAttendingEvent)
 
     // the planner should match what we've got in the calendar.ics file
     const auto appts = planner->appointments().get();
-    ASSERT_EQ(2, appts.size());
+    EXPECT_EQ(2, appts.size());
+    EXPECT_EQ(appts[0].begin, DateTime(gtz, 2016, 4, 4, 16, 0, 0));
+    EXPECT_EQ(appts[1].begin, DateTime(gtz, 2016, 4, 6, 16, 0, 0));
 
     // cleanup
     g_time_zone_unref(gtz);
