@@ -1143,7 +1143,7 @@ private:
             if (alarm.audio_url.empty())
                 alarm.audio_url = get_alarm_sound_url(a,  (baseline.is_ubuntu_alarm() ?
                                                          "file://" ALARM_DEFAULT_SOUND :
-                                                         "file://" ALARM_DEFAULT_SOUND));
+                                                         "file://" CALENDAR_DEFAULT_SOUND));
 
             if (!alarm.time.is_set())
                 alarm.time = trigger_time;
