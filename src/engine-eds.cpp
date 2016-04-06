@@ -102,8 +102,6 @@ public:
         auto gtz = timezone_from_name(tz, nullptr, nullptr, &default_timezone);
         if (gtz == nullptr) {
             gtz = g_time_zone_new_local();
-        } else {
-            g_time_zone_ref(gtz);
         }
 
         g_debug("default_timezone is %s", default_timezone ? i_cal_timezone_get_display_name(default_timezone) : "null");
