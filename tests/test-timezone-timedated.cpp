@@ -1,9 +1,5 @@
-
 /*
- * Copyright 2013 Canonical Ltd.
- *
- * Authors:
- *   Charles Kerr <charles.kerr@canonical.com>
+ * Copyright © 2014-2016 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -16,127 +12,155 @@
  *
  * You should have received a copy of the GNU General Public License along
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Authors:
+ *   Charles Kerr <charles.kerr@canonical.com>
+ *   Ted Gould <ted.gould@canonical.com>
  */
 
-#include "timedated-fixture.h"
+#include "glib-fixture.h"
 
+#include <datetime/dbus-shared.h>
 #include <datetime/timezone-timedated.h>
 
-using ayatana::indicator::datetime::TimedatedTimezone;
+#include <gio/gio.h>
+
+
+using namespace ayatana::indicator::datetime;
+
+
+struct Timedate1Fixture: public GlibFixture
+{
+private:
+
+    typedef GlibFixture super;
+
+protected:
+
+    GDBusConnection* m_bus {};
+    GTestDBus* m_test_bus {};
+
+    void SetUp() override
+    {
+        super::SetUp();
+
+        // use a fake bus
+        m_test_bus = g_test_dbus_new(G_TEST_DBUS_NONE);
+        g_test_dbus_up(m_test_bus);
+        const char * address = g_test_dbus_get_bus_address(m_test_bus);
+        g_setenv("DBUS_SYSTEM_BUS_ADDRESS", address, true);
+        g_setenv("DBUS_SESSION_BUS_ADDRESS", address, true);
+        g_debug("test_dbus's address is %s", address);
+
+        // get the bus
+        m_bus = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, nullptr);
+        g_dbus_connection_set_exit_on_close(m_bus, FALSE);
+        g_object_add_weak_pointer(G_OBJECT(m_bus), (gpointer*)&m_bus);
+    }
+
+    void TearDown() override
+    {
+        g_clear_object(&m_bus);
+        g_clear_object(&m_test_bus);
+
+        super::TearDown();
+    }
+
+    void start_timedate1(const std::string& tzid)
+    {
+        // start the store
+        auto json_parameters = g_strdup_printf("{\"Timezone\": \"%s\"}", tzid.c_str());
+        const gchar* child_argv[] = { "python3", "-m", "dbusmock", "--template", "timedated", "--parameters", json_parameters, nullptr };
+        GError* error = nullptr;
+        g_spawn_async(nullptr, (gchar**)child_argv, nullptr, G_SPAWN_SEARCH_PATH, nullptr, nullptr, nullptr, &error);
+        g_assert_no_error(error);
+        g_free(json_parameters);
+
+        // wait for it to appear on the bus
+        wait_for_name_owned(m_bus, Bus::Timedate1::BUSNAME);
+    }
+
+    bool wait_for_tzid(Timezone& tz, const std::string& tzid)
+    {
+        return wait_for([&tz, &tzid](){return tzid == tz.timezone.get();});
+    }
+
+    void set_timedate1_timezone(const std::string& tzid)
+    {
+        GError* error {};
+        auto v = g_dbus_connection_call_sync(
+            m_bus,
+            Bus::Timedate1::BUSNAME,
+            Bus::Timedate1::ADDR,
+            Bus::Timedate1::IFACE,
+            Bus::Timedate1::Methods::SET_TIMEZONE,
+            g_variant_new("(sb)", tzid.c_str(), FALSE),
+            nullptr,
+            G_DBUS_CALL_FLAGS_NONE,
+            -1,
+            nullptr,
+            &error);
+        g_clear_pointer(&v, g_variant_unref);
+        g_assert_no_error(error);
+    }
+};
 
 /***
 ****
 ***/
 
-#define TIMEZONE_FILE (SANDBOX"/timezone")
-
-class TimezoneFixture: public TimedateFixture
+TEST_F(Timedate1Fixture, HelloWorld)
 {
-  private:
+}
 
-    typedef TimedateFixture super;
+/**
+ * Test that we get a default timezone of UTC if timedate1 isn't available on the bus
+ */
+TEST_F(Timedate1Fixture, DefaultTimezone)
+{
+    const std::string expected_tzid{"Etc/Utc"};
 
-  protected:
+    TimedatedTimezone tmp;
+    EXPECT_TRUE(wait_for_tzid(tmp, expected_tzid)) << "expected " << expected_tzid << " got " << tmp.timezone.get();
+}
 
-    void SetUp() override
+/**
+ * Test that we get the right tzid if timedated shows up on the bus BEFORE we start
+ */
+TEST_F(Timedate1Fixture, Timedate1First)
+{
+    const std::string expected_tzid{"America/Chicago"};
+
+    start_timedate1(expected_tzid);
+    TimedatedTimezone tmp;
+    EXPECT_TRUE(wait_for_tzid(tmp, expected_tzid)) << "expected " << expected_tzid << " got " << tmp.timezone.get();
+}
+
+/**
+ * Test that we get the right tzid if timedated shows up on the bus AFTER we start
+ */
+TEST_F(Timedate1Fixture, Timedate1Last)
+{
+    const std::string expected_tzid("America/Los_Angeles");
+
+    TimedatedTimezone tmp;
+    start_timedate1(expected_tzid);
+    EXPECT_TRUE(wait_for_tzid(tmp, expected_tzid)) << "expected " << expected_tzid << " got " << tmp.timezone.get();
+}
+
+/**
+ * Test that the timezone core::Property changes when timedate1's property changes
+ */
+TEST_F(Timedate1Fixture, TimezoneChange)
+{
+    const std::vector<std::string> expected_tzids{"America/Los_Angeles", "America/Chicago", "Etc/Utc"};
+
+    TimedatedTimezone tmp;
+    start_timedate1("America/New_York");
+
+    for(const auto& expected_tzid : expected_tzids)
     {
-      super::SetUp();
+        set_timedate1_timezone(expected_tzid);
+        EXPECT_TRUE(wait_for_tzid(tmp, expected_tzid)) << "expected " << expected_tzid << " got " << tmp.timezone.get();
     }
-
-    void TearDown() override
-    {
-      super::TearDown();
-    }
-
-  public:
-
-    /* convenience func to set the timezone file */
-    void set_file(const std::string& text)
-    {
-      g_debug("set_file %s %s", TIMEZONE_FILE, text.c_str());
-      auto fp = fopen(TIMEZONE_FILE, "w+");
-      fprintf(fp, "%s\n", text.c_str());
-      fclose(fp);
-      sync();
-    }
-};
-
-/**
- * Test that timezone-timedated warns, but doesn't crash, if the timezone file doesn't exist
- */
-TEST_F(TimezoneFixture, NoFile)
-{
-  remove(TIMEZONE_FILE);
-  ASSERT_FALSE(g_file_test(TIMEZONE_FILE, G_FILE_TEST_EXISTS));
-
-  expectLogMessage(G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, "*No such file or directory*");
-  TimedatedTimezone tz(TIMEZONE_FILE);
-}
-
-/**
- * Test that timezone-timedated gives a default of UTC if the file doesn't exist
- */
-TEST_F(TimezoneFixture, DefaultValueNoFile)
-{
-  const std::string expected_timezone = "Etc/Utc";
-  remove(TIMEZONE_FILE);
-  ASSERT_FALSE(g_file_test(TIMEZONE_FILE, G_FILE_TEST_EXISTS));
-
-  expectLogMessage(G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, "*No such file or directory*");
-  TimedatedTimezone tz(TIMEZONE_FILE);
-  ASSERT_EQ(expected_timezone, tz.timezone.get());
-}
-
-/**
- * Test that timezone-timedated picks up the initial value
- */
-TEST_F(TimezoneFixture, InitialValue)
-{
-  const std::string expected_timezone = "America/Chicago";
-  set_file(expected_timezone);
-  TimedatedTimezone tz(TIMEZONE_FILE);
-}
-
-/**
- * Test that changing the tz after we are running works.
- */
-TEST_F(TimezoneFixture, ChangedValue)
-{
-  const std::string initial_timezone = "America/Chicago";
-  const std::string changed_timezone = "America/New_York";
-
-  set_file(initial_timezone);
-
-  TimedatedTimezone tz(TIMEZONE_FILE);
-  ASSERT_EQ(initial_timezone, tz.timezone.get());
-
-  bool changed = false;
-  tz.timezone.changed().connect(
-        [&changed, this](const std::string& s){
-          g_message("timezone changed to %s", s.c_str());
-          changed = true;
-          g_main_loop_quit(loop);
-        });
-
-  g_idle_add([](gpointer gself){
-    static_cast<TimedateFixture*>(gself)->set_timezone("America/New_York");
-    return G_SOURCE_REMOVE;
-  }, this);
-
-  g_main_loop_run(loop);
-
-  ASSERT_TRUE(changed);
-  ASSERT_EQ(changed_timezone, tz.timezone.get());
-}
-
-/**
- * Test that timezone-timedated picks up the initial value
- */
-TEST_F(TimezoneFixture, IgnoreComments)
-{
-  const std::string comment = "# Created by cloud-init v. 0.7.5 on Thu, 24 Apr 2014 14:03:29 +0000";
-  const std::string expected_timezone = "Europe/Berlin";
-  set_file(comment + "\n" + expected_timezone);
-  TimedatedTimezone tz(TIMEZONE_FILE);
-  ASSERT_EQ(expected_timezone, tz.timezone.get());
 }
