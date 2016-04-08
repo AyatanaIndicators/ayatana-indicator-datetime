@@ -171,12 +171,12 @@ private:
     {
         GError* error {};
         GVariant* v = g_dbus_connection_call_finish(G_DBUS_CONNECTION(connection), res, &error);
-        if (v == nullptr)
+        if (error != nullptr)
         {
             if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
                 g_warning("%s Couldn't get timezone: %s", G_STRLOC, error->message);
         }
-        else
+        else if (v != nullptr)
         {
             GVariant* tzv {};
             g_variant_get(v, "(v)", &tzv);
