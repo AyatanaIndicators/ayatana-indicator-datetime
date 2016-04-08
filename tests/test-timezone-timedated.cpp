@@ -68,7 +68,7 @@ protected:
 
     void start_timedate1(const std::string& tzid)
     {
-        // start the store
+        // start dbusmock with the timedated template
         auto json_parameters = g_strdup_printf("{\"Timezone\": \"%s\"}", tzid.c_str());
         const gchar* child_argv[] = { "python3", "-m", "dbusmock", "--template", "timedated", "--parameters", json_parameters, nullptr };
         GError* error = nullptr;
