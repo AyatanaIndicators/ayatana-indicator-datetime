@@ -28,5 +28,47 @@
 #define BUS_POWERD_PATH      "/com/canonical/powerd"
 #define BUS_POWERD_INTERFACE "com.canonical.powerd"
 
+namespace ayatana {
+namespace indicator {
+namespace datetime {
+
+namespace Bus
+{
+    namespace Timedate1
+    {
+        static constexpr char const * BUSNAME {"org.freedesktop.timedate1"};
+        static constexpr char const * ADDR {"/org/freedesktop/timedate1"};
+        static constexpr char const * IFACE {"org.freedesktop.timedate1"};
+
+        namespace Properties
+        {
+            static constexpr char const * TIMEZONE {"Timezone"};
+        }
+
+        namespace Methods
+        {
+            static constexpr char const * SET_TIMEZONE {"SetTimezone"};
+        }
+    }
+
+    namespace Properties
+    {
+        static constexpr char const * IFACE {"org.freedesktop.DBus.Properties"};
+
+        namespace Methods
+        {
+            static constexpr char const * GET {"Get"};
+        }
+
+        namespace Signals
+        {
+            static constexpr char const * PROPERTIES_CHANGED {"PropertiesChanged"};
+        }
+    }
+}
+
+} // namespace datetime
+} // namespace indicator
+} // namespace ayatana
 
 #endif /* INDICATOR_DATETIME_DBUS_SHARED_H */
