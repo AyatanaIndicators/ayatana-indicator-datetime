@@ -80,9 +80,9 @@ protected:
         wait_for_name_owned(m_bus, Bus::Timedate1::BUSNAME);
     }
 
-    bool wait_for_tzid(Timezone& tz, const std::string& tzid)
+    bool wait_for_tzid(const std::string& tzid, Timezone& tz)
     {
-        return wait_for([&tz, &tzid](){return tzid == tz.timezone.get();});
+        return wait_for([&tzid, &tz](){return tzid == tz.timezone.get();});
     }
 
     void set_timedate1_timezone(const std::string& tzid)
@@ -105,6 +105,11 @@ protected:
     }
 };
 
+#define EXPECT_TZID(expected_tzid, tmp) \
+    EXPECT_TRUE(wait_for_tzid(expected_tzid, tmp)) \
+        << "expected " << expected_tzid \
+        << " got " << tmp.timezone.get();
+
 /***
 ****
 ***/
@@ -114,18 +119,18 @@ TEST_F(Timedate1Fixture, HelloWorld)
 }
 
 /**
- * Test that we get a default timezone of UTC if timedate1 isn't available on the bus
+ * Test that the tzid is right if timedated isn't available
  */
 TEST_F(Timedate1Fixture, DefaultTimezone)
 {
     const std::string expected_tzid{"Etc/Utc"};
 
     TimedatedTimezone tmp;
-    EXPECT_TRUE(wait_for_tzid(tmp, expected_tzid)) << "expected " << expected_tzid << " got " << tmp.timezone.get();
+    EXPECT_TZID(expected_tzid, tmp);
 }
 
 /**
- * Test that we get the right tzid if timedated shows up on the bus BEFORE we start
+ * Test that the tzid is right if timedated shows BEFORE we start
  */
 TEST_F(Timedate1Fixture, Timedate1First)
 {
@@ -133,11 +138,11 @@ TEST_F(Timedate1Fixture, Timedate1First)
 
     start_timedate1(expected_tzid);
     TimedatedTimezone tmp;
-    EXPECT_TRUE(wait_for_tzid(tmp, expected_tzid)) << "expected " << expected_tzid << " got " << tmp.timezone.get();
+    EXPECT_TZID(expected_tzid, tmp);
 }
 
 /**
- * Test that we get the right tzid if timedated shows up on the bus AFTER we start
+ * Test that the tzid is right if timedated shows AFTER we start
  */
 TEST_F(Timedate1Fixture, Timedate1Last)
 {
@@ -145,11 +150,11 @@ TEST_F(Timedate1Fixture, Timedate1Last)
 
     TimedatedTimezone tmp;
     start_timedate1(expected_tzid);
-    EXPECT_TRUE(wait_for_tzid(tmp, expected_tzid)) << "expected " << expected_tzid << " got " << tmp.timezone.get();
+    EXPECT_TZID(expected_tzid, tmp);
 }
 
 /**
- * Test that the timezone core::Property changes when timedate1's property changes
+ * Test that the tzid is right if timedated's property changes
  */
 TEST_F(Timedate1Fixture, TimezoneChange)
 {
@@ -161,6 +166,6 @@ TEST_F(Timedate1Fixture, TimezoneChange)
     for(const auto& expected_tzid : expected_tzids)
     {
         set_timedate1_timezone(expected_tzid);
-        EXPECT_TRUE(wait_for_tzid(tmp, expected_tzid)) << "expected " << expected_tzid << " got " << tmp.timezone.get();
+        EXPECT_TZID(expected_tzid, tmp);
     }
 }
