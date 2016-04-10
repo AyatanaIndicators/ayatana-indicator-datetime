@@ -17,6 +17,7 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
+#include <datetime/dbus-shared.h>
 #include <datetime/actions-live.h>
 
 #ifdef HAS_URLDISPATCHER
@@ -240,7 +241,7 @@ on_datetime1_proxy_ready (GObject      * object G_GNUC_UNUSED,
   else
     {
       g_dbus_proxy_call(proxy,
-                        "SetTimezone",
+                        Bus::Timedate1::Methods::SET_TIMEZONE,
                         g_variant_new ("(sb)", data->tzid.c_str(), TRUE),
                         G_DBUS_CALL_FLAGS_NONE,
                         -1,
@@ -268,9 +269,9 @@ void LiveActions::set_location(const std::string& tzid, const std::string& name)
     g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
                               G_DBUS_PROXY_FLAGS_NONE,
                               nullptr,
-                              "org.freedesktop.timedate1",
-                              "/org/freedesktop/timedate1",
-                              "org.freedesktop.timedate1",
+                              Bus::Timedate1::BUSNAME,
+                              Bus::Timedate1::ADDR,
+                              Bus::Timedate1::IFACE,
                               nullptr,
                               on_datetime1_proxy_ready,
                               data);
