@@ -28,10 +28,6 @@
 #define BUS_POWERD_PATH      "/com/canonical/powerd"
 #define BUS_POWERD_INTERFACE "com.canonical.powerd"
 
-namespace ayatana {
-namespace indicator {
-namespace datetime {
-
 namespace Bus
 {
     namespace Timedate1
@@ -66,9 +62,5 @@ namespace Bus
         }
     }
 }
-
-} // namespace datetime
-} // namespace indicator
-} // namespace ayatana
 
 #endif /* INDICATOR_DATETIME_DBUS_SHARED_H */

@@ -17,18 +17,75 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
+#include "state-mock.h"
 #include "timedated-fixture.h"
+
+#include <datetime/actions-live.h>
+
+using namespace ayatana::indicator::datetime;
+
+class MockLiveActions: public LiveActions
+{
+public:
+    std::string last_cmd;
+    std::string last_url;
+    explicit MockLiveActions(const std::shared_ptr<State>& state_in): LiveActions(state_in) {}
+    ~MockLiveActions() {}
+
+protected:
+    void dispatch_url(const std::string& url) override { last_url = url; }
+    void execute_command(const std::string& cmd) override { last_cmd = cmd; }
+};
+
+class TestLiveActionsFixture: public TimedatedFixture
+{
+private:
+
+    using super = TimedatedFixture;
+
+protected:
+
+    std::shared_ptr<MockState> m_mock_state;
+    std::shared_ptr<State> m_state;
+    std::shared_ptr<MockLiveActions> m_live_actions;
+    std::shared_ptr<Actions> m_actions;
+
+    void SetUp() override
+    {
+        super::SetUp();
+
+        // create the State and Actions
+        m_mock_state.reset(new MockState);
+        m_mock_state->settings.reset(new Settings);
+        m_state = std::dynamic_pointer_cast<State>(m_mock_state);
+        m_live_actions.reset(new MockLiveActions(m_state));
+        m_actions = std::dynamic_pointer_cast<Actions>(m_live_actions);
+
+        // start the timedate1 dbusmock
+        start_timedate1("Etc/Utc");
+    }
+
+    void TearDown() override
+    {
+        m_actions.reset();
+        m_live_actions.reset();
+        m_state.reset();
+        m_mock_state.reset();
+
+        super::TearDown();
+    }
+};
 
 /***
 ****
 ***/
 
-TEST_F(TimedateFixture, HelloWorld)
+TEST_F(TestLiveActionsFixture, HelloWorld)
 {
     EXPECT_TRUE(true);
 }
 
-TEST_F(TimedateFixture, SetLocation)
+TEST_F(TestLiveActionsFixture, SetLocation)
 {
     const std::string tzid = "America/Chicago";
     const std::string name = "Oklahoma City";
@@ -36,30 +93,31 @@ TEST_F(TimedateFixture, SetLocation)
 
     EXPECT_NE(expected, m_state->settings->timezone_name.get());
 
-    m_actions->set_location(tzid, name);
+    std::string new_name;
     m_state->settings->timezone_name.changed().connect(
-          [this](const std::string&){
-            g_main_loop_quit(loop);
-            });
-    g_main_loop_run(loop);
-    EXPECT_EQ(attempted_tzid, tzid);
-    wait_msec();
+        [&new_name](const std::string& n){new_name = n;}
+    );
 
+    m_actions->set_location(tzid, name);
+
+    EXPECT_TRUE(wait_for([&new_name](){return !new_name.empty();}));
+    EXPECT_EQ(expected, new_name);
     EXPECT_EQ(expected, m_state->settings->timezone_name.get());
+    EXPECT_EQ(tzid, get_timedate1_timezone());
 }
 
 /***
 ****
 ***/
 
-TEST_F(TimedateFixture, DesktopOpenAlarmApp)
+TEST_F(TestLiveActionsFixture, DesktopOpenAlarmApp)
 {
     m_actions->desktop_open_alarm_app();
     const std::string expected = "evolution -c calendar";
     EXPECT_EQ(expected, m_live_actions->last_cmd);
 }
 
-TEST_F(TimedateFixture, DesktopOpenAppointment)
+TEST_F(TestLiveActionsFixture, DesktopOpenAppointment)
 {
     Appointment a;
     a.uid = "some-uid";
@@ -69,14 +127,14 @@ TEST_F(TimedateFixture, DesktopOpenAppointment)
     EXPECT_NE(m_live_actions->last_cmd.find(expected_substr), std::string::npos);
 }
 
-TEST_F(TimedateFixture, DesktopOpenCalendarApp)
+TEST_F(TestLiveActionsFixture, DesktopOpenCalendarApp)
 {
     m_actions->desktop_open_calendar_app(DateTime::NowLocal());
     const std::string expected_substr = "evolution \"calendar:///?startdate=";
     EXPECT_NE(m_live_actions->last_cmd.find(expected_substr), std::string::npos);
 }
 
-TEST_F(TimedateFixture, DesktopOpenSettingsApp)
+TEST_F(TestLiveActionsFixture, DesktopOpenSettingsApp)
 {
     m_actions->desktop_open_settings_app();
     const std::string expected_substr = "control-center";
@@ -92,13 +150,13 @@ namespace
     const std::string clock_app_url = "appid://com.ubuntu.clock/clock/current-user-version";
 }
 
-TEST_F(TimedateFixture, PhoneOpenAlarmApp)
+TEST_F(TestLiveActionsFixture, PhoneOpenAlarmApp)
 {
     m_actions->phone_open_alarm_app();
     EXPECT_EQ(clock_app_url, m_live_actions->last_url);
 }
 
-TEST_F(TimedateFixture, PhoneOpenAppointment)
+TEST_F(TestLiveActionsFixture, PhoneOpenAppointment)
 {
     Appointment a;
 
@@ -116,7 +174,7 @@ TEST_F(TimedateFixture, PhoneOpenAppointment)
     EXPECT_EQ(clock_app_url, m_live_actions->last_url);
 }
 
-TEST_F(TimedateFixture, PhoneOpenCalendarApp)
+TEST_F(TestLiveActionsFixture, PhoneOpenCalendarApp)
 {
     auto now = DateTime::NowLocal();
     m_actions->phone_open_calendar_app(now);
@@ -125,7 +183,7 @@ TEST_F(TimedateFixture, PhoneOpenCalendarApp)
 }
 
 
-TEST_F(TimedateFixture, PhoneOpenSettingsApp)
+TEST_F(TestLiveActionsFixture, PhoneOpenSettingsApp)
 {
     m_actions->phone_open_settings_app();
     const std::string expected = "settings:///system/time-date";
@@ -136,7 +194,7 @@ TEST_F(TimedateFixture, PhoneOpenSettingsApp)
 ****
 ***/
 
-TEST_F(TimedateFixture, CalendarState)
+TEST_F(TestLiveActionsFixture, CalendarState)
 {
     // init the clock
     auto now = DateTime::Local(2014, 1, 1, 0, 0, 0);
