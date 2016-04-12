@@ -22,6 +22,8 @@
 
 #include <datetime/timezone.h> // base class
 
+#include <gio/gio.h> // GDBusConnection*
+
 #include <string> // std::string
 
 namespace ayatana {
@@ -34,7 +36,7 @@ namespace datetime {
 class TimedatedTimezone: public Timezone
 {
 public:
-    TimedatedTimezone();
+    TimedatedTimezone(GDBusConnection* connection);
     ~TimedatedTimezone();
 
 private:

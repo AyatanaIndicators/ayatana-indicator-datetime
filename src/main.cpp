@@ -71,7 +71,7 @@ namespace
     {
         // create the live objects
         auto live_settings = std::make_shared<LiveSettings>();
-        auto live_timezones = std::make_shared<LiveTimezones>(live_settings);
+        auto live_timezones = std::make_shared<LiveTimezones>(live_settings, timezone_);
         auto live_clock = std::make_shared<LiveClock>(timezone_);
 
         // create a full-month planner currently pointing to the current month
@@ -132,8 +132,17 @@ main(int /*argc*/, char** /*argv*/)
     bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
     textdomain(GETTEXT_PACKAGE);
 
+    // get the system bus
+    GError* error {};
+    auto system_bus = g_bus_get_sync(G_BUS_TYPE_SYSTEM, nullptr, &error);
+    if (error != nullptr) {
+        g_critical("Unable to get system bus: %s", error->message);
+        g_clear_error(&error);
+        return 0;
+    }
+
     auto engine = create_engine();
-    auto timezone_ = std::make_shared<TimedatedTimezone>();
+    auto timezone_ = std::make_shared<TimedatedTimezone>(system_bus);
     auto state = create_state(engine, timezone_);
     auto actions = std::make_shared<LiveActions>(state);
     MenuFactory factory(actions, state);
@@ -171,5 +180,6 @@ main(int /*argc*/, char** /*argv*/)
     g_main_loop_run(loop);
 
     g_main_loop_unref(loop);
+    g_clear_object(&system_bus);
     return 0;
 }

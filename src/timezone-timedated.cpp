@@ -37,20 +37,34 @@ class TimedatedTimezone::Impl
 {
 public:
 
-    Impl(TimedatedTimezone& owner):
+    Impl(TimedatedTimezone& owner, GDBusConnection* connection):
         m_owner{owner},
+        m_connection{G_DBUS_CONNECTION(g_object_ref(G_OBJECT(connection)))},
         m_cancellable{g_cancellable_new()}
     {
         // set the fallback value
         m_owner.timezone.set("Etc/Utc");
 
         // watch for timedate1 on the bus
-        m_watcher_id = g_bus_watch_name(
-            G_BUS_TYPE_SYSTEM,
+        m_watcher_id = g_bus_watch_name_on_connection(
+            m_connection,
             Bus::Timedate1::BUSNAME,
             G_BUS_NAME_WATCHER_FLAGS_AUTO_START,
             on_timedate1_appeared,
             on_timedate1_vanished,
+            this,
+            nullptr);
+
+        // listen for changed properties
+        m_signal_subscription_id = g_dbus_connection_signal_subscribe(
+            m_connection,
+            Bus::Timedate1::IFACE,
+            Bus::Properties::IFACE,
+            Bus::Properties::Signals::PROPERTIES_CHANGED,
+            Bus::Timedate1::ADDR,
+            nullptr,
+            G_DBUS_SIGNAL_FLAGS_NONE,
+            on_properties_changed,
             this,
             nullptr);
     }
@@ -62,57 +76,28 @@ public:
 
         g_bus_unwatch_name(m_watcher_id);
 
-        if (m_connection != nullptr)
-        {
-            if (m_signal_subscription_id)
-                g_dbus_connection_signal_unsubscribe(m_connection, m_signal_subscription_id);
+        g_dbus_connection_signal_unsubscribe(m_connection, m_signal_subscription_id);
 
-            g_clear_object(&m_connection);
-        }
+        g_clear_object(&m_connection);
     }
 
 private:
 
-    static void on_timedate1_appeared(GDBusConnection * connection,
-                                      const gchar     * /*name*/,
+    static void on_timedate1_appeared(GDBusConnection * /*connection*/,
+                                      const gchar     * name,
                                       const gchar     * /*name_owner*/,
                                       gpointer          gself)
     {
-        static_cast<Impl*>(gself)->timedate1_appeared(connection);
-    }
-    void timedate1_appeared(GDBusConnection* connection)
-    {
-        // cache m_connection for later...
-        g_clear_object(&m_connection);
-        m_connection = G_DBUS_CONNECTION(g_object_ref(G_OBJECT(connection)));
+        g_debug("%s appeared on bus", name);
 
-        ensure_propchange_subscription();
-        ask_for_timezone();
-    }
-
-    void ensure_propchange_subscription()
-    {
-        if (m_signal_subscription_id == 0)
-        {
-            m_signal_subscription_id = g_dbus_connection_signal_subscribe(
-                m_connection,
-                Bus::Timedate1::IFACE,
-                Bus::Properties::IFACE,
-                Bus::Properties::Signals::PROPERTIES_CHANGED,
-                Bus::Timedate1::ADDR,
-                nullptr,
-                G_DBUS_SIGNAL_FLAGS_NONE,
-                on_properties_changed,
-                this,
-                nullptr);
-        }
+        static_cast<Impl*>(gself)->ask_for_timezone();
     }
 
     static void on_timedate1_vanished(GDBusConnection * /*connection*/,
                                       const gchar     * name,
                                       gpointer          /*gself*/)
     {
-        g_debug("%s not present on system bus", name);
+        g_debug("%s not present on bus", name);
     }
 
     static void on_properties_changed(GDBusConnection * /*connection*/,
@@ -148,8 +133,6 @@ private:
 
     void ask_for_timezone()
     {
-        g_return_if_fail(m_connection != nullptr);
-
         g_dbus_connection_call(
             m_connection,
             Bus::Timedate1::BUSNAME,
@@ -205,8 +188,8 @@ private:
     ***/
 
     TimedatedTimezone& m_owner;
-    GCancellable* m_cancellable {};
     GDBusConnection* m_connection {};
+    GCancellable* m_cancellable {};
     unsigned long m_signal_subscription_id {};
     unsigned int m_watcher_id {};
 };
@@ -215,8 +198,8 @@ private:
 ****
 ***/
 
-TimedatedTimezone::TimedatedTimezone():
-    impl{new Impl{*this}}
+TimedatedTimezone::TimedatedTimezone(GDBusConnection* connection):
+    impl{new Impl{*this, connection}}
 {
 }
 
