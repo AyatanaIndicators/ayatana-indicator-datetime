@@ -41,7 +41,7 @@ TEST_F(TestTimedatedFixture, DefaultTimezone)
 {
     const std::string expected_tzid{"Etc/Utc"};
 
-    TimedatedTimezone tmp;
+    TimedatedTimezone tmp {m_bus};
     EXPECT_TZID(expected_tzid, tmp);
 }
 
@@ -53,7 +53,7 @@ TEST_F(TestTimedatedFixture, Timedate1First)
     const std::string expected_tzid{"America/Chicago"};
 
     start_timedate1(expected_tzid);
-    TimedatedTimezone tmp;
+    TimedatedTimezone tmp {m_bus};
     EXPECT_TZID(expected_tzid, tmp);
 }
 
@@ -64,7 +64,7 @@ TEST_F(TestTimedatedFixture, Timedate1Last)
 {
     const std::string expected_tzid("America/Los_Angeles");
 
-    TimedatedTimezone tmp;
+    TimedatedTimezone tmp {m_bus};
     start_timedate1(expected_tzid);
     EXPECT_TZID(expected_tzid, tmp);
 }
@@ -76,7 +76,7 @@ TEST_F(TestTimedatedFixture, TimezoneChange)
 {
     const std::vector<std::string> expected_tzids{"America/Los_Angeles", "America/Chicago", "Etc/Utc"};
 
-    TimedatedTimezone tmp;
+    TimedatedTimezone tmp {m_bus};
     start_timedate1("America/New_York");
 
     for(const auto& expected_tzid : expected_tzids)
