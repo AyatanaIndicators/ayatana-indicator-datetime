@@ -101,10 +101,7 @@ public:
 
         // calendar events are muted in silent mode; alarm clocks never are
         std::shared_ptr<ain::Sound> sound;
-        // play reminder sound even if the event is only a text reminder.
-        // we choose that because events synced from google only get text reminders
-        bool play_sound = (alarm.has_sound() || alarm.has_text());
-        if (appointment.is_ubuntu_alarm() || (play_sound && !silent_mode())) {
+        if (appointment.is_ubuntu_alarm() || (alarm.has_sound() && !silent_mode())) {
             // create the sound.
             const auto role = appointment.is_ubuntu_alarm() ? "alarm" : "alert";
             const auto uri = get_alarm_uri(appointment, alarm, m_settings);
