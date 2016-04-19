@@ -155,8 +155,9 @@ TEST_F(NotificationFixture,DefaultSounds)
       std::string expected_role;
       std::string expected_uri;
   } test_cases[] = {
-      { ualarm, "alarm", path_to_uri(ALARM_DEFAULT_SOUND) },
-      { appt,   "alert", path_to_uri(CALENDAR_DEFAULT_SOUND) }
+      { ualarm, "alarm", path_to_uri(ALARM_DEFAULT_SOUND) }
+    // No sound for appointments
+    //  { appt, "alert", path_to_uri(CALENDAR_DEFAULT_SOUND) }
   };
 
   auto snap = create_snap(ne, sb, settings);
