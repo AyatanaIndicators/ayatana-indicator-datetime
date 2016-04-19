@@ -21,10 +21,18 @@
 
 #include <libnotify/notify.h>
 
+#include <messaging-menu/messaging-menu-app.h>
+#include <messaging-menu/messaging-menu-message.h>
+
+
+#include <uuid/uuid.h>
+
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
+#include <memory>
+
 
 namespace ayatana {
 namespace indicator {
@@ -45,9 +53,11 @@ public:
     std::string m_body;
     std::string m_icon_name;
     std::chrono::seconds m_duration;
+    gint64 m_start_time;
     std::set<std::string> m_string_hints;
     std::vector<std::pair<std::string,std::string>> m_actions;
     std::function<void(const std::string&)> m_closed_callback;
+    std::function<void()> m_missed_click_callback;
 };
 
 Builder::Builder():
@@ -101,6 +111,18 @@ Builder::set_closed_callback (std::function<void (const std::string&)> cb)
   impl->m_closed_callback.swap (cb);
 }
 
+void
+Builder::set_missed_click_callback (std::function<void()> cb)
+{
+  impl->m_missed_click_callback.swap (cb);
+}
+
+void
+Builder::set_start_time (uint64_t time)
+{
+  impl->m_start_time = time;
+}
+
 /***
 ****
 ***/
@@ -110,23 +132,39 @@ class Engine::Impl
     struct notification_data
     {
         std::shared_ptr<NotifyNotification> nn;
-        std::function<void(const std::string&)> closed_callback;
+        Builder::Impl data;
+    };
+
+    struct messaging_menu_data
+    {
+        std::shared_ptr<MessagingMenuMessage> mm;
+        std::function<void()> callback;
     };
 
 public:
 
     Impl(const std::string& app_name):
+        m_messaging_app(messaging_menu_app_new(DATETIME_INDICATOR_DESKTOP_FILE), g_object_unref),
         m_app_name(app_name)
     {
         if (!notify_init(app_name.c_str()))
             g_critical("Unable to initialize libnotify!");
+
+        // messaging menu
+        GIcon *icon = g_themed_icon_new("calendar-app");
+
+        messaging_menu_app_register(m_messaging_app.get());
+        messaging_menu_app_append_source(m_messaging_app.get(), m_app_name.c_str(), icon, "Calendar");
+        g_object_unref(icon);
     }
 
     ~Impl()
     {
         close_all ();
+        remove_all ();
 
         notify_uninit ();
+        messaging_menu_app_unregister (m_messaging_app.get());
     }
 
     const std::string& app_name() const
@@ -217,7 +255,7 @@ public:
                             notification_key_quark(),
                             GINT_TO_POINTER(key));
 
-        m_notifications[key] = { nn, info.m_closed_callback };
+        m_notifications[key] = { nn, info };
         g_signal_connect (nn.get(), "closed",
                           G_CALLBACK(on_notification_closed), this);
 
@@ -236,6 +274,59 @@ public:
         }
 
         return ret;
+    }
+
+    std::string post(const Builder::Impl& data)
+    {
+        uuid_t message_uuid;
+        uuid_generate(message_uuid);
+
+        char message_id[37];
+        uuid_unparse(message_uuid, message_id);
+
+        GIcon *icon = g_themed_icon_new(data.m_icon_name.c_str());
+        std::shared_ptr<MessagingMenuMessage> msg (messaging_menu_message_new(message_id,
+                                                                              icon,
+                                                                              data.m_title.c_str(),
+                                                                              nullptr,
+                                                                              data.m_body.c_str(),
+                                                                              data.m_start_time * 1000000), // secs -> microsecs
+                                                   g_object_ref);
+        g_object_unref(icon);
+        if (msg)
+        {
+            m_messaging_messages[std::string(message_id)] = { msg, data.m_missed_click_callback };
+            g_signal_connect(msg.get(), "activate",
+                             G_CALLBACK(on_message_activated), this);
+            messaging_menu_app_append_message(m_messaging_app.get(), msg.get(), m_app_name.c_str(), false);
+            return message_id;
+        } else {
+            g_warning("Fail to create messaging menu message");
+        }
+        return "";
+    }
+
+    void remove (const std::string &key)
+    {
+        auto it = m_messaging_messages.find(key);
+        if (it != m_messaging_messages.end())
+        {
+            // tell the server to remove message
+            messaging_menu_app_remove_message(m_messaging_app.get(), it->second.mm.get());
+            m_messaging_messages.erase(it);
+        }
+    }
+
+    void remove_all ()
+    {
+        // call remove() on all our keys
+
+        std::set<std::string> keys;
+        for (const auto& it : m_messaging_messages)
+            keys.insert (it.first);
+
+        for (const std::string &key : keys)
+            remove (key);
     }
 
 private:
@@ -279,6 +370,22 @@ private:
         static_cast<Impl*>(gself)->remove_closed_notification(GPOINTER_TO_INT(gkey));
     }
 
+    static void on_message_activated (MessagingMenuMessage *,
+                                      const char *actionId,
+                                      GVariant *,
+                                      gpointer gself)
+    {
+        auto self =  static_cast<Impl*>(gself);
+        auto it = self->m_messaging_messages.find(actionId);
+        g_return_if_fail (it != self->m_messaging_messages.end());
+        const auto& ndata = it->second;
+
+        if (ndata.callback)
+            ndata.callback();
+
+        self->m_messaging_messages.erase(it);
+    }
+
     void remove_closed_notification (int key)
     {
         auto it = m_notifications.find(key);
@@ -286,16 +393,20 @@ private:
 
         const auto& ndata = it->second;
         auto nn = ndata.nn.get();
-        if (ndata.closed_callback)
+
+        if (ndata.data.m_closed_callback)
         {
             std::string action;
-
             const GQuark q = notification_action_quark();
             const gpointer p = g_object_get_qdata(G_OBJECT(nn), q);
             if (p != nullptr)
                 action = static_cast<const char*>(p);
 
-            ndata.closed_callback (action);
+            ndata.data.m_closed_callback (action);
+            // empty action means that the notification got timeout
+            // post a message on messaging menu
+            if (action.empty())
+                post(ndata.data);
         }
 
         m_notifications.erase(it);
@@ -304,6 +415,10 @@ private:
     /***
     ****
     ***/
+
+    // messaging menu
+    std::shared_ptr<MessagingMenuApp> m_messaging_app;
+    std::map<std::string, messaging_menu_data> m_messaging_messages;
 
     const std::string m_app_name;
 
@@ -315,6 +430,8 @@ private:
     mutable std::set<std::string> m_lazy_caps;
 
     static constexpr char const * HINT_TIMEOUT {"x-canonical-snap-decisions-timeout"};
+    static constexpr char const * DATETIME_INDICATOR_DESKTOP_FILE  {"indicator-datetime.desktop"};
+    static constexpr char const * DATETIME_INDICATOR_SOURCE_ID  {"indicator-datetime"};
 };
 
 /***

@@ -122,8 +122,9 @@ public:
         const auto minutes = std::chrono::minutes(m_settings->alarm_duration.get());
         ain::Builder b;
         b.set_body (appointment.summary);
-        b.set_icon_name (appointment.is_ubuntu_alarm() ? "alarm-clock" : "reminder");
+        b.set_icon_name (appointment.is_ubuntu_alarm() ? "alarm-clock" : "appointment");
         b.add_hint (ain::Builder::HINT_NONSHAPED_ICON);
+        b.set_start_time (appointment.begin.to_unix());
 
         const char * timefmt;
         if (is_locale_12h()) {
@@ -152,6 +153,9 @@ public:
             b.add_hint (ain::Builder::HINT_AFFIRMATIVE_HINT);
             b.add_action ("ok", _("OK"));
             b.add_action ("snooze", _("Snooze"));
+        } else {
+            b.add_hint (ain::Builder::HINT_INTERACTIVE);
+            b.add_action ("ok", _("OK"));
         }
 
         // add 'sound', 'haptic', and 'awake' objects to the capture so
@@ -161,8 +165,12 @@ public:
                               (const std::string& action){
             if (action == "snooze")
                 snooze(appointment, alarm);
-            else
+            else if (action == "ok")
                 ok(appointment, alarm);
+        });
+
+        b.set_missed_click_callback([appointment, alarm, ok](){
+            ok(appointment, alarm);
         });
 
         const auto key = m_engine->show(b);
