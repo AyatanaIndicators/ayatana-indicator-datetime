@@ -291,7 +291,7 @@ public:
                                                                               nullptr,
                                                                               data.m_body.c_str(),
                                                                               data.m_start_time * 1000000), // secs -> microsecs
-                                                   g_object_ref);
+                                                   g_object_unref);
         g_object_unref(icon);
         if (msg)
         {
@@ -370,13 +370,13 @@ private:
         static_cast<Impl*>(gself)->remove_closed_notification(GPOINTER_TO_INT(gkey));
     }
 
-    static void on_message_activated (MessagingMenuMessage *,
-                                      const char *actionId,
+    static void on_message_activated (MessagingMenuMessage *msg,
+                                      const char *,
                                       GVariant *,
                                       gpointer gself)
     {
         auto self =  static_cast<Impl*>(gself);
-        auto it = self->m_messaging_messages.find(actionId);
+        auto it = self->m_messaging_messages.find(messaging_menu_message_get_id(msg));
         g_return_if_fail (it != self->m_messaging_messages.end());
         const auto& ndata = it->second;
 
