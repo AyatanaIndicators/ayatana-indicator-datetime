@@ -101,7 +101,9 @@ public:
 
         // calendar events are muted in silent mode; alarm clocks never are
         std::shared_ptr<ain::Sound> sound;
-        if (appointment.is_ubuntu_alarm() || (alarm.has_sound() && !silent_mode())) {
+        // FIXME: only play sounds for alarms for now, we should itegrate it with
+        // system settings to decide if we should play sounds for calendar notification or not
+        if (appointment.is_ubuntu_alarm()) {
             // create the sound.
             const auto role = appointment.is_ubuntu_alarm() ? "alarm" : "alert";
             const auto uri = get_alarm_uri(appointment, alarm, m_settings);
