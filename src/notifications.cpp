@@ -137,8 +137,9 @@ class Engine::Impl
 
     struct messaging_menu_data
     {
-        std::shared_ptr<MessagingMenuMessage> mm;
+        std::string msg_id;
         std::function<void()> callback;
+        Engine::Impl *self;
     };
 
 public:
@@ -151,11 +152,7 @@ public:
             g_critical("Unable to initialize libnotify!");
 
         // messaging menu
-        GIcon *icon = g_themed_icon_new("calendar-app");
-
         messaging_menu_app_register(m_messaging_app.get());
-        messaging_menu_app_append_source(m_messaging_app.get(), m_app_name.c_str(), icon, "Calendar");
-        g_object_unref(icon);
     }
 
     ~Impl()
@@ -285,20 +282,31 @@ public:
         uuid_unparse(message_uuid, message_id);
 
         GIcon *icon = g_themed_icon_new(data.m_icon_name.c_str());
-        std::shared_ptr<MessagingMenuMessage> msg (messaging_menu_message_new(message_id,
-                                                                              icon,
-                                                                              data.m_title.c_str(),
-                                                                              nullptr,
-                                                                              data.m_body.c_str(),
-                                                                              data.m_start_time * 1000000), // secs -> microsecs
-                                                   g_object_unref);
+
+        // check if source exists
+        if (!messaging_menu_app_has_source(m_messaging_app.get(), m_app_name.c_str()))
+            messaging_menu_app_append_source(m_messaging_app.get(), m_app_name.c_str(), icon, "Calendar");
+
+        auto msg = messaging_menu_message_new(message_id,
+                                              icon,
+                                              data.m_title.c_str(),
+                                              nullptr,
+                                              data.m_body.c_str(),
+                                              data.m_start_time * 1000000); // secs -> microsecs
         g_object_unref(icon);
         if (msg)
         {
-            m_messaging_messages[std::string(message_id)] = { msg, data.m_missed_click_callback };
-            g_signal_connect(msg.get(), "activate",
-                             G_CALLBACK(on_message_activated), this);
-            messaging_menu_app_append_message(m_messaging_app.get(), msg.get(), m_app_name.c_str(), false);
+            std::shared_ptr<messaging_menu_data> msg_data(new messaging_menu_data{message_id, data.m_missed_click_callback, this});
+            m_messaging_messages[std::string(message_id)] = msg_data;
+            g_signal_connect(G_OBJECT(msg), "activate",
+                             G_CALLBACK(on_message_activated), msg_data.get());
+            messaging_menu_app_append_message(m_messaging_app.get(), msg, m_app_name.c_str(), false);
+
+            // we use that to keep track of messaging, in case of message get cleared from menu
+            g_object_set_data_full(G_OBJECT(msg), "destroy-notify", msg_data.get(), on_message_destroyed);
+            // keep the message control with message_menu
+            g_object_unref(msg);
+
             return message_id;
         } else {
             g_warning("Fail to create messaging menu message");
@@ -312,8 +320,8 @@ public:
         if (it != m_messaging_messages.end())
         {
             // tell the server to remove message
-            messaging_menu_app_remove_message(m_messaging_app.get(), it->second.mm.get());
-            m_messaging_messages.erase(it);
+            messaging_menu_app_remove_message_by_id(m_messaging_app.get(), it->second->msg_id.c_str());
+            // message will be remove by on_message_destroyed cb.
         }
     }
 
@@ -370,20 +378,26 @@ private:
         static_cast<Impl*>(gself)->remove_closed_notification(GPOINTER_TO_INT(gkey));
     }
 
-    static void on_message_activated (MessagingMenuMessage *msg,
+    static void on_message_activated (MessagingMenuMessage *,
                                       const char *,
                                       GVariant *,
-                                      gpointer gself)
+                                      gpointer data)
     {
-        auto self =  static_cast<Impl*>(gself);
-        auto it = self->m_messaging_messages.find(messaging_menu_message_get_id(msg));
-        g_return_if_fail (it != self->m_messaging_messages.end());
+        auto msg_data =  static_cast<messaging_menu_data*>(data);
+        auto it = msg_data->self->m_messaging_messages.find(msg_data->msg_id.c_str());
+        g_return_if_fail (it != msg_data->self->m_messaging_messages.end());
         const auto& ndata = it->second;
 
-        if (ndata.callback)
-            ndata.callback();
+        if (ndata->callback)
+            ndata->callback();
+    }
 
-        self->m_messaging_messages.erase(it);
+    static void on_message_destroyed(gpointer data)
+    {
+        auto msg_data = static_cast<messaging_menu_data*>(data);
+        auto it = msg_data->self->m_messaging_messages.find(msg_data->msg_id.c_str());
+        if (it != msg_data->self->m_messaging_messages.end())
+            msg_data->self->m_messaging_messages.erase(it);
     }
 
     void remove_closed_notification (int key)
@@ -418,7 +432,7 @@ private:
 
     // messaging menu
     std::shared_ptr<MessagingMenuApp> m_messaging_app;
-    std::map<std::string, messaging_menu_data> m_messaging_messages;
+    std::map<std::string, std::shared_ptr<messaging_menu_data> > m_messaging_messages;
 
     const std::string m_app_name;
 
