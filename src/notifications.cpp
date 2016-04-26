@@ -293,7 +293,7 @@ public:
                                               data.m_title.c_str(),
                                               nullptr,
                                               data.m_body.c_str(),
-                                              data.m_start_time * 1000000); // secs -> microsecs
+                                              data.m_start_time * G_USEC_PER_SEC); // secs -> microsecs
         g_object_unref(icon);
         if (msg)
         {
