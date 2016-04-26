@@ -278,8 +278,9 @@ public:
         uuid_t message_uuid;
         uuid_generate(message_uuid);
 
-        char message_id[37];
-        uuid_unparse(message_uuid, message_id);
+        char uuid_buf[37];
+        uuid_unparse(message_uuid, uuid_buf);
+        const std::string message_id(uuid_buf);
 
         GIcon *icon = g_themed_icon_new(data.m_icon_name.c_str());
 
@@ -287,7 +288,7 @@ public:
         if (!messaging_menu_app_has_source(m_messaging_app.get(), m_app_name.c_str()))
             messaging_menu_app_append_source(m_messaging_app.get(), m_app_name.c_str(), icon, "Calendar");
 
-        auto msg = messaging_menu_message_new(message_id,
+        auto msg = messaging_menu_message_new(message_id.c_str(),
                                               icon,
                                               data.m_title.c_str(),
                                               nullptr,
@@ -297,7 +298,7 @@ public:
         if (msg)
         {
             std::shared_ptr<messaging_menu_data> msg_data(new messaging_menu_data{message_id, data.m_missed_click_callback, this});
-            m_messaging_messages[std::string(message_id)] = msg_data;
+            m_messaging_messages[message_id] = msg_data;
             g_signal_connect(G_OBJECT(msg), "activate",
                              G_CALLBACK(on_message_activated), msg_data.get());
             messaging_menu_app_append_message(m_messaging_app.get(), msg, m_app_name.c_str(), false);

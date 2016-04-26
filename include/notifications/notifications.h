@@ -81,7 +81,7 @@ public:
 private:
     friend class Engine;
     class Impl;
-    std::shared_ptr<Impl> impl;
+    std::unique_ptr<Impl> impl;
 };
 
 /**
