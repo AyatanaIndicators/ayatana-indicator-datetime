@@ -63,7 +63,7 @@ TEST_F(NotificationFixture,Notification)
     bool expected_notify_called;
     bool expected_vibrate_called;
   } test_appts[] = {
-    { appt, "calendar", "Event", true, true },
+    { appt, "calendar-app", "Event", true, true },
     { ualarm, "alarm-clock", "Alarm", true, true }
   };
 
