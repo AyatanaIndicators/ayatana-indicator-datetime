@@ -80,6 +80,15 @@ if(URLDISPATCHER_FOUND)
     add_definitions( -DHAS_URLDISPATCHER )
 endif()
 
+# lomiri-app-launch
+
+pkg_check_modules(LOMIRIAPPLAUNCH lomiri-app-launch>=0)
+include_directories(${LOMIRIAPPLAUNCH_INCLUDE_DIRS})
+
+if(LOMIRIAPPLAUNCH_FOUND)
+    add_definitions( -DHAS_LOMIRIAPPLAUNCH )
+endif()
+
 if(EXISTS "/usr/share/accountsservice/interfaces/com.ubuntu.touch.AccountsService.Sound.xml")
   set (HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS ON)
   add_definitions ( -DHAS_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS )
