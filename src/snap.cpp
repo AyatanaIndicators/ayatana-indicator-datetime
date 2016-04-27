@@ -124,7 +124,7 @@ public:
         const auto minutes = std::chrono::minutes(m_settings->alarm_duration.get());
         ain::Builder b;
         b.set_body (appointment.summary);
-        b.set_icon_name (appointment.is_ubuntu_alarm() ? "alarm-clock" : "appointment");
+        b.set_icon_name (appointment.is_ubuntu_alarm() ? "alarm-clock" : "calendar");
         b.add_hint (ain::Builder::HINT_NONSHAPED_ICON);
         b.set_start_time (appointment.begin.to_unix());
 
