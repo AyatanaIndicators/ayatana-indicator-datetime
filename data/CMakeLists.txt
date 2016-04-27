@@ -32,7 +32,7 @@ if (${SYSTEMD_FOUND})
 
     # build it
     set (pkglibexecdir "${CMAKE_INSTALL_FULL_PKGLIBEXECDIR}")
-    set (messaging_menu_icon "${CMAKE_INSTALL_FULL_DATAROOTDIR}/icons/suru/actions/scalable/appointment.svg")
+    set (messaging_menu_icon "${CMAKE_INSTALL_FULL_DATAROOTDIR}/icons/suru/actions/scalable/calendar.svg")
     configure_file ("${SYSTEMD_USER_FILE_IN}" "${SYSTEMD_USER_FILE}")
 
     # install it
