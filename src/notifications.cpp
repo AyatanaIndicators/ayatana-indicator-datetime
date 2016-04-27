@@ -24,8 +24,13 @@
 #include <messaging-menu/messaging-menu-app.h>
 #include <messaging-menu/messaging-menu-message.h>
 
+#ifdef HAS_LOMIRIAPPLAUNCH
+#include <liblomiri-app-launch/lomiri-app-launch/appid.h>
+#endif
 
 #include <uuid/uuid.h>
+
+#include <gio/gdesktopappinfo.h>
 
 #include <map>
 #include <set>
@@ -145,7 +150,7 @@ class Engine::Impl
 public:
 
     Impl(const std::string& app_name):
-        m_messaging_app(messaging_menu_app_new(DATETIME_INDICATOR_DESKTOP_FILE), g_object_unref),
+        m_messaging_app(messaging_menu_app_new(calendar_app_id().c_str()), g_object_unref),
         m_app_name(app_name)
     {
         if (!notify_init(app_name.c_str()))
@@ -282,11 +287,15 @@ public:
         uuid_unparse(message_uuid, uuid_buf);
         const std::string message_id(uuid_buf);
 
-        GIcon *icon = g_themed_icon_new(data.m_icon_name.c_str());
+        // use full icon path name, "calendar-app" does not work with themed icons
+        auto icon_file = g_file_new_for_path(calendar_app_icon().c_str());
+        // messaging_menu_message_new: will take control of icon object
+        GIcon *icon = g_file_icon_new(icon_file);
+        g_object_unref(icon_file);
 
         // check if source exists
         if (!messaging_menu_app_has_source(m_messaging_app.get(), m_app_name.c_str()))
-            messaging_menu_app_append_source(m_messaging_app.get(), m_app_name.c_str(), icon, "Calendar");
+            messaging_menu_app_append_source(m_messaging_app.get(), m_app_name.c_str(), nullptr, "Calendar");
 
         auto msg = messaging_menu_message_new(message_id.c_str(),
                                               icon,
@@ -294,7 +303,6 @@ public:
                                               nullptr,
                                               data.m_body.c_str(),
                                               data.m_start_time * G_USEC_PER_SEC); // secs -> microsecs
-        g_object_unref(icon);
         if (msg)
         {
             std::shared_ptr<messaging_menu_data> msg_data(new messaging_menu_data{message_id, data.m_missed_click_callback, this});
@@ -425,6 +433,31 @@ private:
         }
 
         m_notifications.erase(it);
+    }
+
+    static std::string calendar_app_id()
+    {
+        #ifdef HAS_LOMIRIAPPLAUNCH
+        auto app_id = lomiri::app_launch::AppID::discover("com.lomiri.calendar");
+        return std::string(app_id) + ".desktop";
+        #else
+        return "";
+        #endif
+    }
+
+    static std::string calendar_app_icon()
+    {
+        auto app_desktop = g_desktop_app_info_new(calendar_app_id().c_str());
+        if (app_desktop != nullptr) {
+            auto icon_name = g_desktop_app_info_get_string(app_desktop, "Icon");
+            g_object_unref(app_desktop);
+            std::string result(icon_name);
+            g_free(icon_name);
+            return result;
+        } else {
+            g_warning("Fail to get calendar icon");
+            return std::string();
+        }
     }
 
     /***

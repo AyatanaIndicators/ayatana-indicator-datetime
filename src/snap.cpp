@@ -124,7 +124,7 @@ public:
         const auto minutes = std::chrono::minutes(m_settings->alarm_duration.get());
         ain::Builder b;
         b.set_body (appointment.summary);
-        b.set_icon_name (appointment.is_ubuntu_alarm() ? "alarm-clock" : "calendar");
+        b.set_icon_name (appointment.is_ubuntu_alarm() ? "alarm-clock" : "calendar-app");
         b.add_hint (ain::Builder::HINT_NONSHAPED_ICON);
         b.set_start_time (appointment.begin.to_unix());
 
@@ -171,9 +171,12 @@ public:
                 ok(appointment, alarm);
         });
 
-        b.set_missed_click_callback([appointment, alarm, ok](){
-            ok(appointment, alarm);
-        });
+        //TODO: we need to extend it to support alarms appoitments
+        if (!appointment.is_ubuntu_alarm()) {
+            b.set_missed_click_callback([appointment, alarm, ok](){
+                ok(appointment, alarm);
+            });
+        }
 
         const auto key = m_engine->show(b);
         if (key)
