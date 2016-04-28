@@ -176,25 +176,25 @@ TEST_F(ActionsFixture, ActionsExist)
 TEST_F(ActionsFixture, DesktopOpenAlarmApp)
 {
     test_action_with_no_args("desktop.open-alarm-app",
-                             MockActions::DesktopOpenAlarmApp);
+                             MockActions::OpenAlarmApp);
 }
 
 TEST_F(ActionsFixture, DesktopOpenAppointment)
 {
     test_action_with_appt_arg("desktop.open-appointment",
-                              MockActions::DesktopOpenAppt);
+                              MockActions::OpenAppt);
 }
 
 TEST_F(ActionsFixture, DesktopOpenCalendarApp)
 {
     test_action_with_time_arg("desktop.open-calendar-app",
-                              MockActions::DesktopOpenCalendarApp);
+                              MockActions::OpenCalendarApp);
 }
 
 TEST_F(ActionsFixture, DesktopOpenSettingsApp)
 {
     test_action_with_no_args("desktop.open-settings-app",
-                             MockActions::DesktopOpenSettingsApp);
+                             MockActions::OpenSettingsApp);
 }
 
 /***
@@ -204,25 +204,25 @@ TEST_F(ActionsFixture, DesktopOpenSettingsApp)
 TEST_F(ActionsFixture, PhoneOpenAlarmApp)
 {
     test_action_with_no_args("phone.open-alarm-app",
-                             MockActions::PhoneOpenAlarmApp);
+                             MockActions::OpenAlarmApp);
 }
 
 TEST_F(ActionsFixture, PhoneOpenAppointment)
 {
     test_action_with_appt_arg("phone.open-appointment",
-                              MockActions::PhoneOpenAppt);
+                              MockActions::OpenAppt);
 }
 
 TEST_F(ActionsFixture, PhoneOpenCalendarApp)
 {
     test_action_with_time_arg("phone.open-calendar-app",
-                              MockActions::PhoneOpenCalendarApp);
+                              MockActions::OpenCalendarApp);
 }
 
 TEST_F(ActionsFixture, PhoneOpenSettingsApp)
 {
     test_action_with_no_args("phone.open-settings-app",
-                             MockActions::PhoneOpenSettingsApp);
+                             MockActions::OpenSettingsApp);
 }
 
 /***

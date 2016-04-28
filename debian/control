@@ -17,7 +17,6 @@ Build-Depends: cmake,
                libical-dev (>= 1.0),
                libedataserver1.2-dev (>= 3.5),
                accountsservice-ubuntu-schemas | hello,
-               liblomiri-url-dispatcher-dev | hello,
                libproperties-cpp-dev,
 # for the test harness:
                libgtest-dev <!nocheck>,
