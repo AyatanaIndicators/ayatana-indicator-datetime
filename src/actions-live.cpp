@@ -20,13 +20,14 @@
 #include <datetime/dbus-shared.h>
 #include <datetime/actions-live.h>
 
-#ifdef HAS_URLDISPATCHER
-#include <lomiri-url-dispatcher.h>
-#endif
-
 #include <glib.h>
 
 #include <sstream>
+
+extern "C"
+{
+    #include <ayatana/common/utils.h>
+}
 
 namespace ayatana {
 namespace indicator {
@@ -41,53 +42,55 @@ LiveActions::LiveActions(const std::shared_ptr<State>& state_in):
 {
 }
 
-void LiveActions::execute_command(const std::string& cmdstr)
-{
-    const auto cmd = cmdstr.c_str();
-    g_debug("Issuing command '%s'", cmd);
-
-    GError* error = nullptr;
-    if (!g_spawn_command_line_async(cmd, &error))
-    {
-        g_warning("Unable to start \"%s\": %s", cmd, error->message);
-        g_error_free(error);
-    }
-}
-
-void LiveActions::dispatch_url(const std::string& url)
-{
-    g_debug("Dispatching url '%s'", url.c_str());
-#ifdef HAS_URLDISPATCHER
-    lomiri_url_dispatch_send(url.c_str(), nullptr, nullptr);
-#else
-    // FIXME: Deal with this, if we build without liburl-dispatcher...
-#endif
-}
-
 /***
 ****
 ***/
 
-void LiveActions::desktop_open_settings_app()
+void LiveActions::open_alarm_app()
 {
-    if (g_getenv ("MIR_SOCKET") != nullptr)
+    if (ayatana_common_utils_is_lomiri())
     {
-        dispatch_url("settings:///system/time-date");
+        ayatana_common_utils_open_url("appid://com.lomiri.clock/clock/current-user-version");
     }
     else
     {
-        if ((g_strcmp0 (g_getenv ("XDG_CURRENT_DESKTOP"), "Unity") == 0))
-        {
-            execute_command("unity-control-center datetime");
-        }
-        else if ((g_strcmp0 (g_getenv ("XDG_CURRENT_DESKTOP"), "MATE") == 0))
-        {
-            execute_command("mate-time-admin");
-        }
-        else
-        {
-            execute_command("gnome-control-center datetime");
-        }
+        ayatana_common_utils_execute_command("evolution -c calendar");
+    }
+}
+
+void LiveActions::open_calendar_app(const DateTime& dt)
+{
+    if (ayatana_common_utils_is_lomiri())
+    {
+        const auto utc = dt.to_timezone("UTC");
+        auto cmd = utc.format("calendar://startdate=%Y-%m-%dT%H:%M:%S+00:00");
+        ayatana_common_utils_open_url(cmd.c_str());
+    }
+    else
+    {
+        const auto utc = dt.start_of_day().to_timezone("UTC");
+        auto cmd = utc.format("evolution \"calendar:///?startdate=%Y%m%dT%H%M%SZ\"");
+        ayatana_common_utils_execute_command(cmd.c_str());
+    }
+}
+
+void LiveActions::open_settings_app()
+{
+    if (ayatana_common_utils_is_lomiri())
+    {
+        ayatana_common_utils_open_url("settings:///system/time-date");
+    }
+    else if (ayatana_common_utils_is_unity())
+    {
+        ayatana_common_utils_execute_command("unity-control-center datetime");
+    }
+    else if (ayatana_common_utils_is_mate())
+    {
+        ayatana_common_utils_execute_command("mate-time-admin");
+    }
+    else
+    {
+        ayatana_common_utils_execute_command("gnome-control-center datetime");
     }
 }
 
@@ -123,62 +126,23 @@ bool LiveActions::desktop_has_calendar_app() const
     return have_calendar;
 }
 
-void LiveActions::desktop_open_alarm_app()
+void LiveActions::open_appointment(const Appointment& appt, const DateTime& date)
 {
-    execute_command("evolution -c calendar");
-}
-
-void LiveActions::desktop_open_appointment(const Appointment&, const DateTime& date)
-{
-    desktop_open_calendar_app(date);
-}
-
-void LiveActions::desktop_open_calendar_app(const DateTime& dt)
-{
-    const auto utc = dt.start_of_day().to_timezone("UTC");
-    auto cmd = utc.format("evolution \"calendar:///?startdate=%Y%m%dT%H%M%SZ\"");
-    execute_command(cmd.c_str());
-}
-
-/***
-****
-***/
-
-void LiveActions::phone_open_alarm_app()
-{
-    dispatch_url("appid://com.ubuntu.clock/clock/current-user-version");
-}
-
-void LiveActions::phone_open_appointment(const Appointment& appt, const DateTime& date)
-{
-
     if (!appt.activation_url.empty())
     {
-        dispatch_url(appt.activation_url);
+        ayatana_common_utils_open_url(appt.activation_url.c_str());
     }
     else switch (appt.type)
     {
         case Appointment::UBUNTU_ALARM:
-            phone_open_alarm_app();
+            open_alarm_app();
             break;
 
         case Appointment::EVENT:
         default:
-            phone_open_calendar_app(date);
+            open_calendar_app(date);
             break;
     }
-}
-
-void LiveActions::phone_open_calendar_app(const DateTime& dt)
-{
-    const auto utc = dt.to_timezone("UTC");
-    auto cmd = utc.format("calendar://startdate=%Y-%m-%dT%H:%M:%S+00:00");
-    dispatch_url(cmd);
-}
-
-void LiveActions::phone_open_settings_app()
-{
-    dispatch_url("settings:///system/time-date");
 }
 
 /***

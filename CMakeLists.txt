@@ -61,17 +61,6 @@ pkg_check_modules (SERVICE_DEPS REQUIRED
                    libaccounts-glib>=1.18)
 include_directories (SYSTEM ${SERVICE_DEPS_INCLUDE_DIRS})
 
-set(URL_DISPATCHER_REQUIRED_VERSION 0)
-pkg_check_modules(URLDISPATCHER
-                  lomiri-url-dispatcher>=${URL_DISPATCHER_REQUIRED_VERSION}
-)
-include_directories(${URLDISPATCHER_INCLUDE_DIRS})
-
-# url-dispatcher support is optional...
-if(URLDISPATCHER_FOUND)
-    add_definitions( -DHAS_URLDISPATCHER )
-endif()
-
 # lomiri-app-launch
 
 pkg_check_modules(LOMIRIAPPLAUNCH lomiri-app-launch>=0)

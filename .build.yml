@@ -41,7 +41,6 @@ requires:
     - libecal2.0-dev
     - libical-dev
     - libedataserver1.2-dev
-    - liblomiri-url-dispatcher-dev
     - libproperties-cpp-dev
 # for the test harness:
     - libgtest-dev
@@ -74,7 +73,6 @@ requires:
     - libecal2.0-dev
     - libical-dev
     - libedataserver1.2-dev
-    - liblomiri-url-dispatcher-dev
     - libproperties-cpp-dev
 
   ubuntu:focal:
