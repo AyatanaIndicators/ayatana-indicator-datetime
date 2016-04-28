@@ -75,7 +75,7 @@ public:
     void set_closed_callback (std::function<void(const std::string& action)>);
 
     /** Sets the time-out callback. This will be called exactly once. */
-    void set_missed_click_callback (std::function<void()>);
+    void set_timeout_callback (std::function<void()>);
 
 
 private:

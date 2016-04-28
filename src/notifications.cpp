@@ -58,11 +58,11 @@ public:
     std::string m_body;
     std::string m_icon_name;
     std::chrono::seconds m_duration;
-    gint64 m_start_time;
+    gint64 m_start_time  {};
     std::set<std::string> m_string_hints;
     std::vector<std::pair<std::string,std::string>> m_actions;
     std::function<void(const std::string&)> m_closed_callback;
-    std::function<void()> m_missed_click_callback;
+    std::function<void()> m_timeout_callback;
 };
 
 Builder::Builder():
@@ -117,9 +117,9 @@ Builder::set_closed_callback (std::function<void (const std::string&)> cb)
 }
 
 void
-Builder::set_missed_click_callback (std::function<void()> cb)
+Builder::set_timeout_callback (std::function<void()> cb)
 {
-  impl->m_missed_click_callback.swap (cb);
+  impl->m_timeout_callback.swap (cb);
 }
 
 void
@@ -312,7 +312,7 @@ public:
                                               data.m_start_time * G_USEC_PER_SEC); // secs -> microsecs
         if (msg)
         {
-            std::shared_ptr<messaging_menu_data> msg_data(new messaging_menu_data{message_id, data.m_missed_click_callback, this});
+            std::shared_ptr<messaging_menu_data> msg_data(new messaging_menu_data{message_id, data.m_timeout_callback, this});
             m_messaging_messages[message_id] = msg_data;
             g_signal_connect(G_OBJECT(msg), "activate",
                              G_CALLBACK(on_message_activated), msg_data.get());
@@ -344,13 +344,8 @@ public:
     void remove_all ()
     {
         // call remove() on all our keys
-
-        std::set<std::string> keys;
-        for (const auto& it : m_messaging_messages)
-            keys.insert (it.first);
-
-        for (const std::string &key : keys)
-            remove (key);
+        while (!m_messaging_messages.empty())
+            remove(m_messaging_messages.begin()->first);
     }
 
 private:
@@ -400,7 +395,7 @@ private:
                                       gpointer data)
     {
         auto msg_data =  static_cast<messaging_menu_data*>(data);
-        auto it = msg_data->self->m_messaging_messages.find(msg_data->msg_id.c_str());
+        auto it = msg_data->self->m_messaging_messages.find(msg_data->msg_id);
         g_return_if_fail (it != msg_data->self->m_messaging_messages.end());
         const auto& ndata = it->second;
 
@@ -411,7 +406,7 @@ private:
     static void on_message_destroyed(gpointer data)
     {
         auto msg_data = static_cast<messaging_menu_data*>(data);
-        auto it = msg_data->self->m_messaging_messages.find(msg_data->msg_id.c_str());
+        auto it = msg_data->self->m_messaging_messages.find(msg_data->msg_id);
         if (it != msg_data->self->m_messaging_messages.end())
             msg_data->self->m_messaging_messages.erase(it);
     }
@@ -448,6 +443,7 @@ private:
         auto app_id = lomiri::app_launch::AppID::discover("com.lomiri.calendar");
 
         if (!app_id.empty())
+            // Due the use of old API by messaging_menu we need append a extra ".desktop" to the app_id.
             return std::string(app_id) + ".desktop";
         else
             return std::string();
@@ -463,13 +459,14 @@ private:
         if (app_desktop != nullptr) {
             auto icon_name = g_desktop_app_info_get_string(app_desktop, "Icon");
             g_object_unref(app_desktop);
-            std::string result(icon_name);
-            g_free(icon_name);
-            return result;
-        } else {
-            g_warning("Fail to get calendar icon");
-            return std::string();
+            if (icon_name) {
+                std::string result(icon_name);
+                g_free(icon_name);
+                return result;
+            }
         }
+        g_warning("Fail to get calendar icon");
+        return std::string();
     }
 
     /***
@@ -490,8 +487,6 @@ private:
     mutable std::set<std::string> m_lazy_caps;
 
     static constexpr char const * HINT_TIMEOUT {"x-canonical-snap-decisions-timeout"};
-    static constexpr char const * DATETIME_INDICATOR_DESKTOP_FILE  {"indicator-datetime.desktop"};
-    static constexpr char const * DATETIME_INDICATOR_SOURCE_ID  {"indicator-datetime"};
 };
 
 /***
