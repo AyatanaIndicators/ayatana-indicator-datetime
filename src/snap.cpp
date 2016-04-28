@@ -173,7 +173,7 @@ public:
 
         //TODO: we need to extend it to support alarms appoitments
         if (!appointment.is_ubuntu_alarm()) {
-            b.set_missed_click_callback([appointment, alarm, ok](){
+            b.set_timeout_callback([appointment, alarm, ok](){
                 ok(appointment, alarm);
             });
         }
