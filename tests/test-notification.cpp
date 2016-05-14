@@ -53,7 +53,7 @@ TEST_F(NotificationFixture,Notification)
   auto settings = std::make_shared<Settings>();
   auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
   auto sb = std::make_shared<ayatana::indicator::notifications::DefaultSoundBuilder>();
-  auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
+  auto func = [this](const Appointment&, const Alarm&, const Snap::Response&){g_idle_add(quit_idle, loop);};
 
   // combinatorial factor #1: event type
   struct {
@@ -143,7 +143,7 @@ TEST_F(NotificationFixture,Notification)
 
     // run the test
     auto snap = create_snap(ne, sb, settings);
-    (*snap)(test_appt.appt, appt.alarms.front(), func, func);
+    (*snap)(test_appt.appt, appt.alarms.front(), func);
 
     // confirm that the notification was as expected
     if (expected_notify_called) {
@@ -194,4 +194,3 @@ TEST_F(NotificationFixture,Notification)
   }
   }
 }
-
