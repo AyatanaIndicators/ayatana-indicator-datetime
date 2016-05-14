@@ -62,8 +62,8 @@ TEST_F(NotificationFixture, InteractiveDuration)
   make_interactive();
 
   // call the Snap Decision
-  auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
-  (*snap)(appt, appt.alarms.front(), func, func);
+  auto func = [this](const Appointment&, const Alarm&, const Snap::Response&){g_idle_add(quit_idle, loop);};
+  (*snap)(appt, appt.alarms.front(), func);
 
   // confirm that Notify got called once
   guint len = 0;
@@ -148,7 +148,7 @@ TEST_F(NotificationFixture,DefaultSounds)
   auto settings = std::make_shared<Settings>();
   auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
   auto sb = std::make_shared<TestSoundBuilder>();
-  auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
+  auto func = [this](const Appointment&, const Alarm&, const Snap::Response&){g_idle_add(quit_idle, loop);};
 
   const struct {
       Appointment appointment;
@@ -163,7 +163,7 @@ TEST_F(NotificationFixture,DefaultSounds)
   auto snap = create_snap(ne, sb, settings);
   for(const auto& test_case : test_cases)
   {
-    (*snap)(test_case.appointment, test_case.appointment.alarms.front(), func, func);
+    (*snap)(test_case.appointment, test_case.appointment.alarms.front(), func);
     EXPECT_EQ(test_case.expected_uri, sb->uri());
     EXPECT_EQ(test_case.expected_role, sb->role());
   }
