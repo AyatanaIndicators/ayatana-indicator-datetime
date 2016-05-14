@@ -81,8 +81,7 @@ public:
 
     void operator()(const Appointment& appointment,
                     const Alarm& alarm,
-                    appointment_func snooze,
-                    appointment_func ok)
+                    response_func on_response)
     {
         // If calendar notifications are muted, don't show them
         if (!appointment.is_ubuntu_alarm() && calendar_events_are_muted()) {
@@ -153,28 +152,33 @@ public:
         if (interactive) {
             b.add_hint (ain::Builder::HINT_SNAP);
             b.add_hint (ain::Builder::HINT_AFFIRMATIVE_HINT);
-            b.add_action ("ok", _("OK"));
-            b.add_action ("snooze", _("Snooze"));
+            b.add_action (ACTION_NONE, _("OK"));
+            b.add_action (ACTION_SNOOZE, _("Snooze"));
         } else {
             b.add_hint (ain::Builder::HINT_INTERACTIVE);
-            b.add_action ("ok", _("OK"));
+            b.add_action (ACTION_SHOW_APP, _("OK"));
         }
 
         // add 'sound', 'haptic', and 'awake' objects to the capture so
         // they stay alive until the closed callback is called; i.e.,
         // for the lifespan of the notficiation
-        b.set_closed_callback([appointment, alarm, snooze, ok, sound, awake, haptic]
+        b.set_closed_callback([appointment, alarm, on_response, sound, awake, haptic]
                               (const std::string& action){
-            if (action == "snooze")
-                snooze(appointment, alarm);
-            else if (action == "ok")
-                ok(appointment, alarm);
+            Snap::Response response;
+            if (action == ACTION_SNOOZE)
+                response = Snap::Response::Snooze;
+            else if (action == ACTION_SHOW_APP)
+                response = Snap::Response::ShowApp;
+            else
+                response = Snap::Response::None;
+
+            on_response(appointment, alarm, response);
         });
 
-        //TODO: we need to extend it to support alarms appoitments
+        //TODO: we need to extend it to support alarms appointments
         if (!appointment.is_ubuntu_alarm()) {
-            b.set_timeout_callback([appointment, alarm, ok](){
-                ok(appointment, alarm);
+            b.set_timeout_callback([appointment, alarm, on_response](){
+                on_response(appointment, alarm, Snap::Response::ShowApp);
             });
         }
 
@@ -267,6 +271,10 @@ private:
     std::set<int> m_notifications;
     GCancellable * m_cancellable {nullptr};
     AccountsServiceSound * m_accounts_service_sound_proxy {nullptr};
+
+    static constexpr char const * ACTION_NONE {"none"};
+    static constexpr char const * ACTION_SNOOZE {"snooze"};
+    static constexpr char const * ACTION_SHOW_APP {"show-app"};
 };
 
 /***
@@ -286,10 +294,9 @@ Snap::~Snap()
 void
 Snap::operator()(const Appointment& appointment,
                  const Alarm& alarm,
-                 appointment_func show,
-                 appointment_func ok)
+                 response_func on_response)
 {
-  (*impl)(appointment, alarm, show, ok);
+  (*impl)(appointment, alarm, on_response);
 }
 
 /***

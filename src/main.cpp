@@ -153,14 +153,21 @@ main(int /*argc*/, char** /*argv*/)
     auto notification_engine = std::make_shared<ain::Engine>("ayatana-indicator-datetime-service");
     std::unique_ptr<Snap> snap (new Snap(notification_engine, state->settings));
     auto alarm_queue = create_simple_alarm_queue(state->clock, snooze_planner, engine, timezone_);
-    auto on_snooze = [snooze_planner](const Appointment& appointment, const Alarm& alarm) {
-        snooze_planner->add(appointment, alarm);
+    auto sound_builder = std::make_shared<uin::DefaultSoundBuilder>();
+    auto on_response = [snooze_planner, actions](const Appointment& appointment, const Alarm& alarm, const Snap::Response& response) {
+        switch(response) {
+            case Snap::Response::Snooze:
+                snooze_planner->add(appointment, alarm);
+                break;
+            case Snap::Response::ShowApp:
+                actions->open_appointment(appointment, appointment.begin);
+                break;
+            case Snap::Response::None:
+                break;
+        }
     };
-    auto on_ok = [actions](const Appointment& app, const Alarm&){
-        actions->open_appointment(app, app.begin);
-    };
-    auto on_alarm_reached = [&engine, &snap, &on_snooze, &on_ok](const Appointment& appointment, const Alarm& alarm) {
-        (*snap)(appointment, alarm, on_snooze, on_ok);
+    auto on_alarm_reached = [&engine, &snap, &on_response](const Appointment& appointment, const Alarm& alarm) {
+        (*snap)(appointment, alarm, on_response);
         engine->disable_ubuntu_alarm(appointment);
     };
     alarm_queue->alarm_reached().connect(on_alarm_reached);
