@@ -17,8 +17,7 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef INDICATOR_DATETIME_TESTS_GLIB_FIXTURE_H
-#define INDICATOR_DATETIME_TESTS_GLIB_FIXTURE_H
+#pragma once
 
 #include <chrono>
 #include <functional> // std::function
@@ -198,13 +197,11 @@ class GlibFixture : public ::testing::Test
       ASSERT_FALSE(wait_for_name_owned(connection, name, timeout_msec, flags)) << "name: " << name;
     }
 
-    GMainLoop * loop;
-
     using source_func = std::function<gboolean()>;
 
-    void idle_add(source_func&& func)
+    guint idle_add(source_func&& func)
     {
-      g_idle_add_full(
+      return g_idle_add_full(
         G_PRIORITY_DEFAULT_IDLE,
         [](gpointer gf){return (*static_cast<source_func*>(gf))();},
         new std::function<gboolean()>(func),
@@ -212,9 +209,9 @@ class GlibFixture : public ::testing::Test
       );
     }
 
-    void timeout_add(source_func&& func, std::chrono::milliseconds msec)
+    guint timeout_add(source_func&& func, std::chrono::milliseconds msec)
     {
-      g_timeout_add_full(
+      return g_timeout_add_full(
         G_PRIORITY_DEFAULT,
         msec.count(),
         [](gpointer gf){return (*static_cast<source_func*>(gf))();},
@@ -222,6 +219,7 @@ class GlibFixture : public ::testing::Test
         [](gpointer gf){delete static_cast<source_func*>(gf);}
       );
     }
+
+    GMainLoop* loop {};
 };
 
-#endif /* INDICATOR_DATETIME_TESTS_GLIB_FIXTURE_H */
