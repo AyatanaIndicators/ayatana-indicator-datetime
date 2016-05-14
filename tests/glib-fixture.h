@@ -20,6 +20,7 @@
 #ifndef INDICATOR_DATETIME_TESTS_GLIB_FIXTURE_H
 #define INDICATOR_DATETIME_TESTS_GLIB_FIXTURE_H
 
+#include <chrono>
 #include <functional> // std::function
 #include <map>
 #include <memory> // std::shared_ptr
@@ -198,6 +199,29 @@ class GlibFixture : public ::testing::Test
     }
 
     GMainLoop * loop;
+
+    using source_func = std::function<gboolean()>;
+
+    void idle_add(source_func&& func)
+    {
+      g_idle_add_full(
+        G_PRIORITY_DEFAULT_IDLE,
+        [](gpointer gf){return (*static_cast<source_func*>(gf))();},
+        new std::function<gboolean()>(func),
+        [](gpointer gf){delete static_cast<source_func*>(gf);}
+      );
+    }
+
+    void timeout_add(source_func&& func, std::chrono::milliseconds msec)
+    {
+      g_timeout_add_full(
+        G_PRIORITY_DEFAULT,
+        msec.count(),
+        [](gpointer gf){return (*static_cast<source_func*>(gf))();},
+        new std::function<gboolean()>(func),
+        [](gpointer gf){delete static_cast<source_func*>(gf);}
+      );
+    }
 };
 
 #endif /* INDICATOR_DATETIME_TESTS_GLIB_FIXTURE_H */
