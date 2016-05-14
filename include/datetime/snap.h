@@ -42,11 +42,11 @@ public:
          const std::shared_ptr<const Settings>& settings);
     virtual ~Snap();
 
-    typedef std::function<void(const Appointment&, const Alarm&)> appointment_func;
+    enum class Response { None, Snooze, ShowApp };
+    typedef std::function<void(const Appointment&, const Alarm&, const Response&)> response_func;
     void operator()(const Appointment& appointment,
                     const Alarm& alarm,
-                    appointment_func snooze,
-                    appointment_func ok);
+                    response_func on_response);
 
 private:
     class Impl;
