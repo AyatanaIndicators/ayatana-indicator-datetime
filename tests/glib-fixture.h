@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2013-2016 Canonical Ltd.
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
