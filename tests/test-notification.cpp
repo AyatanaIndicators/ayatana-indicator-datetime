@@ -268,7 +268,7 @@ TEST_F(NotificationFixture,Response)
     }
 
     // make the notification mock tell the world that the user invoked an action
-    const auto notification_id {next_notification_id++};
+    const auto notification_id = next_notification_id++;
     idle_add([this, notification_id, test](){
       GError* err {};
       dbus_test_dbus_mock_object_emit_signal(notify_mock, notify_obj, "ActionInvoked",
