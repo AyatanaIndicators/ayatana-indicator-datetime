@@ -43,7 +43,7 @@ protected:
     std::shared_ptr<LiveSettings> m_live;
     std::shared_ptr<Settings> m_settings;
     GSettings * m_gsettings;
-    GSettings * m_gsettings_cunh;
+    GSettings * m_gsettings_cal_notification;
 
     void SetUp() override
     {
@@ -53,7 +53,7 @@ protected:
 
         if (ayatana_common_utils_is_lomiri())
         {
-            m_gsettings_cunh = g_settings_new(SETTINGS_CUNH_SCHEMA_ID);
+            m_gsettings_cal_notification = g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH);
         }
 
         m_live.reset(new LiveSettings);
@@ -62,7 +62,7 @@ protected:
 
     void TearDown() override
     {
-        g_clear_object(&m_gsettings_cunh);
+        g_clear_object(&m_gsettings_cal_notification);
         g_clear_object(&m_gsettings);
         m_settings.reset();
         m_live.reset();
@@ -70,62 +70,62 @@ protected:
         super::TearDown();
     }
 
-    void TestBoolProperty(core::Property<bool>& property, const gchar* key)
+    void TestBoolProperty(GSettings* gsettings, core::Property<bool>& property, const gchar* key)
     {
-        EXPECT_EQ(g_settings_get_boolean(m_gsettings, key), property.get());
-        g_settings_set_boolean(m_gsettings, key, false);
+        EXPECT_EQ(g_settings_get_boolean(gsettings, key), property.get());
+        g_settings_set_boolean(gsettings, key, false);
         EXPECT_FALSE(property.get());
-        g_settings_set_boolean(m_gsettings, key, true);
+        g_settings_set_boolean(gsettings, key, true);
         EXPECT_TRUE(property.get());
 
         property.set(false);
-        EXPECT_FALSE(g_settings_get_boolean(m_gsettings, key));
+        EXPECT_FALSE(g_settings_get_boolean(gsettings, key));
         property.set(true);
-        EXPECT_TRUE(g_settings_get_boolean(m_gsettings, key));
+        EXPECT_TRUE(g_settings_get_boolean(gsettings, key));
     }
 
-    void TestStringProperty(core::Property<std::string>& property, const gchar* key)
+    void TestStringProperty(GSettings* gsettings, core::Property<std::string>& property, const gchar* key)
     {
         gchar* tmp;
         std::string str;
 
-        tmp = g_settings_get_string(m_gsettings, key);
+        tmp = g_settings_get_string(gsettings, key);
         EXPECT_EQ(tmp, property.get());
         g_clear_pointer(&tmp, g_free);
 
         str = "a";
-        g_settings_set_string(m_gsettings, key, str.c_str());
+        g_settings_set_string(gsettings, key, str.c_str());
         EXPECT_EQ(str, property.get());
 
         str = "b";
-        g_settings_set_string(m_gsettings, key, str.c_str());
+        g_settings_set_string(gsettings, key, str.c_str());
         EXPECT_EQ(str, property.get());
 
         str = "a";
         property.set(str);
-        tmp = g_settings_get_string(m_gsettings, key);
+        tmp = g_settings_get_string(gsettings, key);
         EXPECT_EQ(str, tmp);
         g_clear_pointer(&tmp, g_free);
 
         str = "b";
         property.set(str);
-        tmp = g_settings_get_string(m_gsettings, key);
+        tmp = g_settings_get_string(gsettings, key);
         EXPECT_EQ(str, tmp);
         g_clear_pointer(&tmp, g_free);
     }
 
-    void TestUIntProperty(core::Property<unsigned int>& property, const gchar* key)
+    void TestUIntProperty(GSettings* gsettings, core::Property<unsigned int>& property, const gchar* key)
     {
-        EXPECT_EQ(g_settings_get_uint(m_gsettings, key), property.get());
+        EXPECT_EQ(g_settings_get_uint(gsettings, key), property.get());
 
         unsigned int expected_values[] = { 1, 2, 3 };
 
         // modify GSettings and confirm that the new value is propagated
         for(const auto& expected_value : expected_values)
         {
-            g_settings_set_uint(m_gsettings, key, expected_value);
+            g_settings_set_uint(gsettings, key, expected_value);
             EXPECT_EQ(expected_value, property.get());
-            EXPECT_EQ(expected_value, g_settings_get_uint(m_gsettings, key));
+            EXPECT_EQ(expected_value, g_settings_get_uint(gsettings, key));
         }
 
         // modify the property and confirm that the new value is propagated
@@ -133,7 +133,7 @@ protected:
         {
             property.set(expected_value);
             EXPECT_EQ(expected_value, property.get());
-            EXPECT_EQ(expected_value, g_settings_get_uint(m_gsettings, key));
+            EXPECT_EQ(expected_value, g_settings_get_uint(gsettings, key));
         }
     }
 };
@@ -149,31 +149,31 @@ TEST_F(SettingsFixture, HelloWorld)
 
 TEST_F(SettingsFixture, BoolProperties)
 {
-    TestBoolProperty(m_settings->show_seconds, SETTINGS_SHOW_SECONDS_S);
-    TestBoolProperty(m_settings->show_calendar, SETTINGS_SHOW_CALENDAR_S);
-    TestBoolProperty(m_settings->show_date, SETTINGS_SHOW_DATE_S);
-    TestBoolProperty(m_settings->show_day, SETTINGS_SHOW_DAY_S);
-    TestBoolProperty(m_settings->show_detected_location, SETTINGS_SHOW_DETECTED_S);
-    TestBoolProperty(m_settings->show_events, SETTINGS_SHOW_EVENTS_S);
-    TestBoolProperty(m_settings->show_locations, SETTINGS_SHOW_LOCATIONS_S);
-    TestBoolProperty(m_settings->show_week_numbers, SETTINGS_SHOW_WEEK_NUMBERS_S);
-    TestBoolProperty(m_settings->show_year, SETTINGS_SHOW_YEAR_S);
+    TestBoolProperty(m_gsettings, m_settings->show_seconds, SETTINGS_SHOW_SECONDS_S);
+    TestBoolProperty(m_gsettings, m_settings->show_calendar, SETTINGS_SHOW_CALENDAR_S);
+    TestBoolProperty(m_gsettings, m_settings->show_date, SETTINGS_SHOW_DATE_S);
+    TestBoolProperty(m_gsettings, m_settings->show_day, SETTINGS_SHOW_DAY_S);
+    TestBoolProperty(m_gsettings, m_settings->show_detected_location, SETTINGS_SHOW_DETECTED_S);
+    TestBoolProperty(m_gsettings, m_settings->show_events, SETTINGS_SHOW_EVENTS_S);
+    TestBoolProperty(m_gsettings, m_settings->show_locations, SETTINGS_SHOW_LOCATIONS_S);
+    TestBoolProperty(m_gsettings, m_settings->show_week_numbers, SETTINGS_SHOW_WEEK_NUMBERS_S);
+    TestBoolProperty(m_gsettings, m_settings->show_year, SETTINGS_SHOW_YEAR_S);
 }
 
 TEST_F(SettingsFixture, UIntProperties)
 {
-    TestUIntProperty(m_settings->alarm_duration, SETTINGS_ALARM_DURATION_S);
-    TestUIntProperty(m_settings->alarm_volume, SETTINGS_ALARM_VOLUME_S);
-    TestUIntProperty(m_settings->snooze_duration, SETTINGS_SNOOZE_DURATION_S);
+    TestUIntProperty(m_gsettings, m_settings->alarm_duration, SETTINGS_ALARM_DURATION_S);
+    TestUIntProperty(m_gsettings, m_settings->alarm_volume, SETTINGS_ALARM_VOLUME_S);
+    TestUIntProperty(m_gsettings, m_settings->snooze_duration, SETTINGS_SNOOZE_DURATION_S);
 }
 
 TEST_F(SettingsFixture, StringProperties)
 {
-    TestStringProperty(m_settings->custom_time_format, SETTINGS_CUSTOM_TIME_FORMAT_S);
-    TestStringProperty(m_settings->timezone_name, SETTINGS_TIMEZONE_NAME_S);
-    TestStringProperty(m_settings->alarm_sound, SETTINGS_ALARM_SOUND_S);
-    TestStringProperty(m_settings->calendar_sound, SETTINGS_CALENDAR_SOUND_S);
-    TestStringProperty(m_settings->alarm_haptic, SETTINGS_ALARM_HAPTIC_S);
+    TestStringProperty(m_gsettings, m_settings->custom_time_format, SETTINGS_CUSTOM_TIME_FORMAT_S);
+    TestStringProperty(m_gsettings, m_settings->timezone_name, SETTINGS_TIMEZONE_NAME_S);
+    TestStringProperty(m_gsettings, m_settings->alarm_sound, SETTINGS_ALARM_SOUND_S);
+    TestStringProperty(m_gsettings, m_settings->calendar_sound, SETTINGS_CALENDAR_SOUND_S);
+    TestStringProperty(m_gsettings, m_settings->alarm_haptic, SETTINGS_ALARM_HAPTIC_S);
 }
 
 TEST_F(SettingsFixture, TimeFormatMode)
@@ -237,36 +237,9 @@ TEST_F(SettingsFixture, Locations)
 
 TEST_F(SettingsFixture, MutedApps)
 {
-    const auto key = SETTINGS_CUNH_BLACKLIST_S;
-
-    struct {
-        std::string pkgname;
-        std::string appname;
-    } apps[] = {
-        { "", "lomiri-system-settings" },
-        { "com.lomiri.calendar", "calendar" },
-        { "com.lomiri.developer.webapps.webapp-facebook", "webapp-facebook" },
-        { "com.lomiri.reminders", "reminders" }
-    };
-    std::set<std::pair<std::string,std::string>> apps_set;
-    for (const auto& app : apps)
-        apps_set.insert(std::make_pair(app.pkgname, app.appname));
-
-    // test that changing Settings is reflected in the schema
-    m_settings->muted_apps.set(apps_set);
-    auto v = g_settings_get_value(m_gsettings_cunh, key);
-    auto str = g_variant_print(v, true);
-    EXPECT_STREQ("[('', 'lomiri-system-settings'), ('com.lomiri.calendar', 'calendar'), ('com.lomiri.developer.webapps.webapp-facebook', 'webapp-facebook'), ('com.lomiri.reminders', 'reminders')]", str);
-    g_clear_pointer(&str, g_free);
-
-    // test that clearing the schema clears the settings
-    g_settings_reset(m_gsettings_cunh, key);
-    EXPECT_EQ(0, m_settings->muted_apps.get().size());
-
-    // test thst setting the schema updates the settings
-    g_settings_set_value(m_gsettings_cunh, key, v);
-    EXPECT_EQ(apps_set, m_settings->muted_apps.get());
-
-    // cleanup
-    g_clear_pointer(&v, g_variant_unref);
+    TestBoolProperty(m_gsettings_cal_notification, m_settings->cal_notification_enabled, SETTINGS_NOTIFY_ENABLED_KEY);
+    TestBoolProperty(m_gsettings_cal_notification, m_settings->cal_notification_sounds, SETTINGS_NOTIFY_SOUNDS_KEY);
+    TestBoolProperty(m_gsettings_cal_notification, m_settings->cal_notification_vibrations, SETTINGS_NOTIFY_VIBRATIONS_KEY);
+    TestBoolProperty(m_gsettings_cal_notification, m_settings->cal_notification_bubbles, SETTINGS_NOTIFY_BUBBLES_KEY);
+    TestBoolProperty(m_gsettings_cal_notification, m_settings->cal_notification_list, SETTINGS_NOTIFY_LIST_KEY);
 }

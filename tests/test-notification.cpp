@@ -87,18 +87,16 @@ TEST_F(NotificationFixture,Notification)
     { false, true, false }
   };
 
-  // combinatorial factor #4: system settings' notifications app blacklist
-  const std::set<std::pair<std::string,std::string>> blacklist_calendar { std::make_pair(std::string{"com.lomiri.calendar"}, std::string{"calendar-app"}) };
-  const std::set<std::pair<std::string,std::string>> blacklist_empty;
+  // combinatorial factor #4: system settings' notifications disabled
   struct {
-    std::set<std::pair<std::string,std::string>> muted_apps; // apps that should not trigger notifications
+    bool cal_notification_enabled; // calendar app can trigger notifications
     std::set<Appointment::Type> expected_notify_called; // do we expect the notification to show?
     std::set<Appointment::Type> expected_vibrate_called; // do we expect the phone to vibrate?
-  } test_muted_apps[] = {
-    { blacklist_empty,    std::set<Appointment::Type>{ Appointment::Type::UBUNTU_ALARM, Appointment::Type::EVENT },
-                          std::set<Appointment::Type>{ Appointment::Type::UBUNTU_ALARM, Appointment::Type::EVENT } },
-    { blacklist_calendar, std::set<Appointment::Type>{ Appointment::Type::UBUNTU_ALARM },
-                          std::set<Appointment::Type>{ Appointment::Type::UBUNTU_ALARM } }
+  } test_cal_disabled[] = {
+    { true,  std::set<Appointment::Type>{ Appointment::Type::UBUNTU_ALARM, Appointment::Type::EVENT },
+             std::set<Appointment::Type>{ Appointment::Type::UBUNTU_ALARM, Appointment::Type::EVENT } },
+    { false, std::set<Appointment::Type>{ Appointment::Type::UBUNTU_ALARM },
+             std::set<Appointment::Type>{ Appointment::Type::UBUNTU_ALARM } }
   };
 
   for (const auto& test_appt : test_appts)
@@ -107,20 +105,20 @@ TEST_F(NotificationFixture,Notification)
   {
   for (const auto& test_vibes : test_other_vibrations)
   {
-  for (const auto& test_muted : test_muted_apps)
+  for (const auto& test_disabled : test_cal_disabled)
   {
     const bool expected_notify_called = test_appt.expected_notify_called
                                      && test_vibes.expected_notify_called
-                                     && (test_muted.expected_notify_called.count(test_appt.appt.type) > 0)
+                                     && (test_disabled.expected_notify_called.count(test_appt.appt.type) > 0)
                                      && test_haptic.expected_notify_called;
 
     const bool expected_vibrate_called = test_appt.expected_vibrate_called
                                       && test_vibes.expected_vibrate_called
-                                      && (test_muted.expected_vibrate_called.count(test_appt.appt.type) > 0)
+                                      && (test_disabled.expected_vibrate_called.count(test_appt.appt.type) > 0)
                                       && test_haptic.expected_vibrate_called;
 
-    // set test case properties: blacklist
-    settings->muted_apps.set(test_muted.muted_apps);
+    // set test case properties: cal_notification_enabled
+    settings->cal_notification_enabled.set(test_disabled.cal_notification_enabled);
 
     // set test case properties: haptic mode
     settings->alarm_haptic.set(test_haptic.haptic_mode);

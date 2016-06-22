@@ -83,9 +83,9 @@ public:
                     const Alarm& alarm,
                     response_func on_response)
     {
-        // If calendar notifications are muted, don't show them
-        if (!appointment.is_ubuntu_alarm() && calendar_events_are_muted()) {
-            g_debug("Skipping muted calendar event '%s' notification", appointment.summary.c_str());
+        // If calendar notifications are disabled, don't show them
+        if (!appointment.is_ubuntu_alarm() && !calendar_notifications_are_enabled()) {
+            g_debug("Skipping disabled calendar event '%s' notification", appointment.summary.c_str());
             return;
         }
 
@@ -96,13 +96,14 @@ public:
         const bool interactive = appointment.is_ubuntu_alarm() && m_engine->supports_actions();
 
         // force the system to stay awake
-        auto awake = std::make_shared<ain::Awake>(m_engine->app_name());
+        std::shared_ptr<ain::Awake> awake;
+        if (calendar_bubbles_enabled()) {
+            awake = std::make_shared<uin::Awake>(m_engine->app_name());
+        }
 
         // calendar events are muted in silent mode; alarm clocks never are
         std::shared_ptr<ain::Sound> sound;
-        // FIXME: only play sounds for alarms for now, we should itegrate it with
-        // system settings to decide if we should play sounds for calendar notification or not
-        if (appointment.is_ubuntu_alarm()) {
+        if (appointment.is_ubuntu_alarm() || calendar_sounds_enabled()) {
             // create the sound.
             const auto role = appointment.is_ubuntu_alarm() ? "alarm" : "alert";
             const auto uri = get_alarm_uri(appointment, alarm, m_settings);
@@ -113,7 +114,7 @@ public:
 
         // create the haptic feedback...
         std::shared_ptr<ain::Haptic> haptic;
-        if (should_vibrate()) {
+        if (should_vibrate() && calendar_vibrations_enabled()) {
             const auto haptic_mode = m_settings->alarm_haptic.get();
             if (haptic_mode == "pulse")
                 haptic = std::make_shared<ain::Haptic>(ain::Haptic::MODE_PULSE, appointment.is_ubuntu_alarm());
@@ -189,15 +190,29 @@ public:
 
 private:
 
-    bool calendar_events_are_muted() const
+    bool calendar_notifications_are_enabled() const
     {
-        for(const auto& app : m_settings->muted_apps.get()) {
-            if (app.first == "com.ubuntu.calendar") {
-                return true;
-            }
-        }
+        return m_settings->cal_notification_enabled.get();
+    }
 
-        return false;
+    bool calendar_sounds_enabled() const
+    {
+        return m_settings->cal_notification_sounds.get();
+    }
+
+    bool calendar_vibrations_enabled() const
+    {
+        return m_settings->cal_notification_vibrations.get();
+    }
+
+    bool calendar_bubbles_enabled() const
+    {
+        return m_settings->cal_notification_bubbles.get();
+    }
+
+    bool calendar_list_enabled() const
+    {
+        return m_settings->cal_notification_list.get();
     }
 
     static void on_sound_proxy_ready(GObject* /*source_object*/, GAsyncResult* res, gpointer gself)
