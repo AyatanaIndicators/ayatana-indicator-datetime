@@ -34,7 +34,7 @@ namespace datetime {
 
 LiveSettings::~LiveSettings()
 {
-    g_clear_object(&m_settings_cunh);
+    g_clear_object(&m_settings_cal_notification);
     g_clear_object(&m_settings);
 }
 
@@ -44,8 +44,8 @@ LiveSettings::LiveSettings(): m_settings(g_settings_new(SETTINGS_INTERFACE))
 
     if (ayatana_common_utils_is_lomiri())
     {
-        m_settings_cunh = g_settings_new(SETTINGS_CUNH_SCHEMA_ID);
-        g_signal_connect (m_settings_cunh, "changed", G_CALLBACK(on_changed_cunh), this);
+        m_settings_cal_notification = g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH);
+        g_signal_connect (m_settings_cal_notification, "changed", G_CALLBACK(on_changed_cal_notification), this);
     }
 
     // init the Properties from the GSettings backend
@@ -68,27 +68,17 @@ LiveSettings::LiveSettings(): m_settings(g_settings_new(SETTINGS_INTERFACE))
     update_alarm_duration();
     update_alarm_haptic();
     update_snooze_duration();
-    update_muted_apps();
+    update_cal_notification_enabled();
+    update_cal_notification_sounds();
+    update_cal_notification_vibrations();
+    update_cal_notification_bubbles();
+    update_cal_notification_list();
 
     // now listen for clients to change the properties s.t. we can sync update GSettings
 
     custom_time_format.changed().connect([this](const std::string& value){
         g_settings_set_string(m_settings, SETTINGS_CUSTOM_TIME_FORMAT_S, value.c_str());
     });
-
-    if (ayatana_common_utils_is_lomiri())
-    {
-        muted_apps.changed().connect([this](const std::set<std::pair<std::string,std::string>>& value){
-            GVariantBuilder builder;
-            g_variant_builder_init(&builder, G_VARIANT_TYPE("a(ss)"));
-            for(const auto& app : value){
-                const std::string& pkgname {app.first};
-                const std::string& appname {app.second};
-                g_variant_builder_add(&builder, "(ss)", pkgname.c_str(), appname.c_str());
-            }
-            g_settings_set_value(m_settings_cunh, SETTINGS_CUNH_BLACKLIST_S, g_variant_builder_end(&builder));
-        });
-    }
 
     locations.changed().connect([this](const std::vector<std::string>& value){
         const int n = value.size();
@@ -166,6 +156,26 @@ LiveSettings::LiveSettings(): m_settings(g_settings_new(SETTINGS_INTERFACE))
     snooze_duration.changed().connect([this](unsigned int value){
         g_settings_set_uint(m_settings, SETTINGS_SNOOZE_DURATION_S, value);
     });
+
+    cal_notification_enabled.changed().connect([this](bool value){
+        g_settings_set_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_ENABLED_KEY, value);
+    });
+
+    cal_notification_sounds.changed().connect([this](bool value){
+        g_settings_set_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_SOUNDS_KEY, value);
+    });
+
+    cal_notification_vibrations.changed().connect([this](bool value){
+        g_settings_set_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_VIBRATIONS_KEY, value);
+    });
+
+    cal_notification_bubbles.changed().connect([this](bool value){
+        g_settings_set_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_BUBBLES_KEY, value);
+    });
+
+    cal_notification_list.changed().connect([this](bool value){
+        g_settings_set_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_LIST_KEY, value);
+    });
 }
 
 /***
@@ -187,27 +197,6 @@ void LiveSettings::update_locations()
         l.push_back(strv[i]);
     g_strfreev(strv);
     locations.set(l);
-}
-
-void LiveSettings::update_muted_apps()
-{
-    if (ayatana_common_utils_is_lomiri())
-    {
-        std::set<std::pair<std::string,std::string>> apps;
-
-        auto blacklist = g_settings_get_value(m_settings_cunh, SETTINGS_CUNH_BLACKLIST_S);
-        GVariantIter* iter {nullptr};
-        g_variant_get (blacklist, "a(ss)", &iter);
-        gchar* pkgname;
-        gchar* appname;
-        while (g_variant_iter_loop (iter, "(ss)", &pkgname, &appname)) {
-            apps.insert(std::make_pair(pkgname,appname));
-        }
-        g_variant_iter_free (iter);
-        g_clear_pointer(&blacklist, g_variant_unref);
-
-        muted_apps.set(apps);
-    }
 }
 
 void LiveSettings::update_show_calendar()
@@ -308,21 +297,55 @@ void LiveSettings::update_snooze_duration()
     snooze_duration.set(g_settings_get_uint(m_settings, SETTINGS_SNOOZE_DURATION_S));
 }
 
+void LiveSettings::update_cal_notification_enabled()
+{
+    cal_notification_enabled.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_ENABLED_KEY));
+}
+
+void LiveSettings::update_cal_notification_sounds()
+{
+    cal_notification_sounds.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_SOUNDS_KEY));
+}
+
+void LiveSettings::update_cal_notification_vibrations()
+{
+    cal_notification_vibrations.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_VIBRATIONS_KEY));
+}
+
+void LiveSettings::update_cal_notification_bubbles()
+{
+    cal_notification_bubbles.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_BUBBLES_KEY));
+}
+
+void LiveSettings::update_cal_notification_list()
+{
+    cal_notification_list.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_LIST_KEY));
+}
+
 /***
 ****
 ***/
 
-void LiveSettings::on_changed_cunh(GSettings* /*settings*/,
-                                   gchar*       key,
-                                   gpointer     gself)
+void LiveSettings::on_changed_cal_notification(GSettings* /*settings*/,
+                                               gchar*     key,
+                                               gpointer   gself)
 {
-    static_cast<LiveSettings*>(gself)->update_key_cunh(key);
+    static_cast<LiveSettings*>(gself)->update_key_cal_notification(key);
 }
 
-void LiveSettings::update_key_cunh(const std::string& key)
+
+void LiveSettings::update_key_cal_notification(const std::string& key)
 {
-    if (key == SETTINGS_CUNH_BLACKLIST_S)
-        update_muted_apps();
+    if (key == SETTINGS_NOTIFY_ENABLED_KEY)
+        update_cal_notification_enabled();
+    else if (key == SETTINGS_NOTIFY_SOUNDS_KEY)
+        update_cal_notification_sounds();
+    else if (key == SETTINGS_NOTIFY_VIBRATIONS_KEY)
+        update_cal_notification_vibrations();
+    else if (key == SETTINGS_NOTIFY_BUBBLES_KEY)
+        update_cal_notification_bubbles();
+    else if (key == SETTINGS_NOTIFY_LIST_KEY)
+        update_cal_notification_list();
 }
 
 /***
