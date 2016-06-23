@@ -119,6 +119,10 @@ TEST_F(NotificationFixture,Notification)
 
     // set test case properties: cal_notification_enabled
     settings->cal_notification_enabled.set(test_disabled.cal_notification_enabled);
+    settings->cal_notification_sounds.set(test_disabled.cal_notification_enabled);
+    settings->cal_notification_vibrations.set(test_disabled.cal_notification_enabled);
+    settings->cal_notification_bubbles.set(test_disabled.cal_notification_enabled);
+    settings->cal_notification_list.set(test_disabled.cal_notification_enabled);
 
     // set test case properties: haptic mode
     settings->alarm_haptic.set(test_haptic.haptic_mode);

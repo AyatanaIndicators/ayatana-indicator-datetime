@@ -59,6 +59,12 @@ TEST_F(NotificationFixture, InteractiveDuration)
   auto sb = std::make_shared<ayatana::indicator::notifications::DefaultSoundBuilder>();
   auto snap = create_snap(ne, sb, settings);
 
+  settings->cal_notification_enabled.set(true);
+  settings->cal_notification_sounds.set(true);
+  settings->cal_notification_vibrations.set(true);
+  settings->cal_notification_bubbles.set(true);
+  settings->cal_notification_list.set(true);
+
   make_interactive();
 
   // call the Snap Decision
@@ -149,6 +155,12 @@ TEST_F(NotificationFixture,DefaultSounds)
   auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
   auto sb = std::make_shared<TestSoundBuilder>();
   auto func = [this](const Appointment&, const Alarm&, const Snap::Response&){g_idle_add(quit_idle, loop);};
+
+  settings->cal_notification_enabled.set(true);
+  settings->cal_notification_sounds.set(true);
+  settings->cal_notification_vibrations.set(true);
+  settings->cal_notification_bubbles.set(true);
+  settings->cal_notification_list.set(true);
 
   const struct {
       Appointment appointment;
