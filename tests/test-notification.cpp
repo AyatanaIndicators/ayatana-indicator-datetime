@@ -230,6 +230,12 @@ TEST_F(NotificationFixture,Response)
   };
 
 
+  settings->cal_notification_enabled.set(true);
+  settings->cal_notification_sounds.set(true);
+  settings->cal_notification_vibrations.set(true);
+  settings->cal_notification_bubbles.set(true);
+  settings->cal_notification_list.set(true);
+
   // walk through the tests
   for (const auto& test : tests)
   {
