@@ -44,26 +44,30 @@ protected:
     std::shared_ptr<Settings> m_settings;
     GSettings * m_gsettings;
     GSettings * m_gsettings_cal_notification;
-    GSettingsSchemaSource *source = g_settings_schema_source_get_default();
+    GSettingsSchemaSource * source;
 
     void SetUp() override
     {
         super::SetUp();
 
+        source = g_settings_schema_source_get_default();
+
         if (g_settings_schema_source_lookup(source, SETTINGS_INTERFACE, true)) {
             m_gsettings = g_settings_new(SETTINGS_INTERFACE);
+        } else {
+            m_gsettings = NULL;
         }
 
-        if (ayatana_common_utils_is_lomiri())
-        {
-
-            if (g_settings_schema_source_lookup(source, SETTINGS_NOTIFY_SCHEMA_ID, true)) {
-                 m_gsettings_cal_notification = g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH);
-            }
+        if (g_settings_schema_source_lookup(source, SETTINGS_NOTIFY_SCHEMA_ID, true)) {
+            m_gsettings_cal_notification = g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH);
+        } else {
+            m_gsettings_cal_notification = NULL;
         }
 
-        m_live.reset(new LiveSettings);
-        m_settings = std::dynamic_pointer_cast<Settings>(m_live);
+        if (m_gsettings != NULL) { 
+            m_live.reset(new LiveSettings);
+            m_settings = std::dynamic_pointer_cast<Settings>(m_live);
+        } 
     }
 
     void TearDown() override
@@ -78,6 +82,10 @@ protected:
 
     void TestBoolProperty(GSettings* gsettings, core::Property<bool>& property, const gchar* key)
     {
+        if (gsettings == NULL) {
+            return;
+        }
+
         EXPECT_EQ(g_settings_get_boolean(gsettings, key), property.get());
         g_settings_set_boolean(gsettings, key, false);
         EXPECT_FALSE(property.get());
@@ -92,6 +100,10 @@ protected:
 
     void TestStringProperty(GSettings* gsettings, core::Property<std::string>& property, const gchar* key)
     {
+        if (gsettings == NULL) {
+            return;
+        }
+
         gchar* tmp;
         std::string str;
 
@@ -122,6 +134,10 @@ protected:
 
     void TestUIntProperty(GSettings* gsettings, core::Property<unsigned int>& property, const gchar* key)
     {
+        if (gsettings == NULL) {
+            return;
+        }
+
         EXPECT_EQ(g_settings_get_uint(gsettings, key), property.get());
 
         unsigned int expected_values[] = { 1, 2, 3 };
@@ -155,10 +171,6 @@ TEST_F(SettingsFixture, HelloWorld)
 
 TEST_F(SettingsFixture, BoolProperties)
 {
-    if (!m_gsettings) {
-        return;
-    }
-
     TestBoolProperty(m_gsettings, m_settings->show_seconds, SETTINGS_SHOW_SECONDS_S);
     TestBoolProperty(m_gsettings, m_settings->show_calendar, SETTINGS_SHOW_CALENDAR_S);
     TestBoolProperty(m_gsettings, m_settings->show_date, SETTINGS_SHOW_DATE_S);
@@ -172,10 +184,6 @@ TEST_F(SettingsFixture, BoolProperties)
 
 TEST_F(SettingsFixture, UIntProperties)
 {
-    if (!m_gsettings) {
-        return;
-    }
-
     TestUIntProperty(m_gsettings, m_settings->alarm_duration, SETTINGS_ALARM_DURATION_S);
     TestUIntProperty(m_gsettings, m_settings->alarm_volume, SETTINGS_ALARM_VOLUME_S);
     TestUIntProperty(m_gsettings, m_settings->snooze_duration, SETTINGS_SNOOZE_DURATION_S);
@@ -183,10 +191,6 @@ TEST_F(SettingsFixture, UIntProperties)
 
 TEST_F(SettingsFixture, StringProperties)
 {
-    if (!m_gsettings) {
-        return;
-    }
-
     TestStringProperty(m_gsettings, m_settings->custom_time_format, SETTINGS_CUSTOM_TIME_FORMAT_S);
     TestStringProperty(m_gsettings, m_settings->timezone_name, SETTINGS_TIMEZONE_NAME_S);
     TestStringProperty(m_gsettings, m_settings->alarm_sound, SETTINGS_ALARM_SOUND_S);
@@ -196,10 +200,6 @@ TEST_F(SettingsFixture, StringProperties)
 
 TEST_F(SettingsFixture, TimeFormatMode)
 {
-    if (!m_gsettings) {
-        return;
-    }
-
     const auto key = SETTINGS_TIME_FORMAT_S;
     const TimeFormatMode modes[] = { TIME_FORMAT_MODE_LOCALE_DEFAULT,
                                      TIME_FORMAT_MODE_12_HOUR,
@@ -232,10 +232,6 @@ namespace
 
 TEST_F(SettingsFixture, Locations)
 {
-    if (!m_gsettings) {
-        return;
-    }
-
     const auto key = SETTINGS_LOCATIONS_S;
 
     const gchar* astrv[] = {"America/Los_Angeles Oakland", "America/Chicago Oklahoma City", "Europe/London London", nullptr};
@@ -263,10 +259,6 @@ TEST_F(SettingsFixture, Locations)
 
 TEST_F(SettingsFixture, MutedApps)
 {
-    if (!m_gsettings_cal_notification) {
-        return;
-    }
-
     TestBoolProperty(m_gsettings_cal_notification, m_settings->cal_notification_enabled, SETTINGS_NOTIFY_ENABLED_KEY);
     TestBoolProperty(m_gsettings_cal_notification, m_settings->cal_notification_sounds, SETTINGS_NOTIFY_SOUNDS_KEY);
     TestBoolProperty(m_gsettings_cal_notification, m_settings->cal_notification_vibrations, SETTINGS_NOTIFY_VIBRATIONS_KEY);
