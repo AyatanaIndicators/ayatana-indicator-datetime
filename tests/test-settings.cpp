@@ -44,6 +44,7 @@ protected:
     std::shared_ptr<Settings> m_settings;
     GSettings * m_gsettings;
     GSettings * m_gsettings_cal_notification;
+    GSettingsSchemaSource *source = g_settings_schema_source_get_default();
 
     void SetUp() override
     {
@@ -53,7 +54,10 @@ protected:
 
         if (ayatana_common_utils_is_lomiri())
         {
-            m_gsettings_cal_notification = g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH);
+
+            if (g_settings_schema_source_lookup(source, SETTINGS_NOTIFY_SCHEMA_ID, true)) {
+                 m_gsettings_cal_notification = g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH);
+            }
         }
 
         m_live.reset(new LiveSettings);
@@ -237,6 +241,10 @@ TEST_F(SettingsFixture, Locations)
 
 TEST_F(SettingsFixture, MutedApps)
 {
+    if (!m_gsettings_cal_notification) {
+        return;
+    }
+
     TestBoolProperty(m_gsettings_cal_notification, m_settings->cal_notification_enabled, SETTINGS_NOTIFY_ENABLED_KEY);
     TestBoolProperty(m_gsettings_cal_notification, m_settings->cal_notification_sounds, SETTINGS_NOTIFY_SOUNDS_KEY);
     TestBoolProperty(m_gsettings_cal_notification, m_settings->cal_notification_vibrations, SETTINGS_NOTIFY_VIBRATIONS_KEY);
