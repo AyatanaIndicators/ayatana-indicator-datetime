@@ -44,30 +44,20 @@ protected:
     std::shared_ptr<Settings> m_settings;
     GSettings * m_gsettings;
     GSettings * m_gsettings_cal_notification;
-    GSettingsSchemaSource * source;
+    GSettingsSchemaSource *source = g_settings_schema_source_get_default();
 
     void SetUp() override
     {
         super::SetUp();
 
-        source = g_settings_schema_source_get_default();
-
-        if (g_settings_schema_source_lookup(source, SETTINGS_INTERFACE, true)) {
-            m_gsettings = g_settings_new(SETTINGS_INTERFACE);
-        } else {
-            m_gsettings = NULL;
-        }
+        m_gsettings = g_settings_new(SETTINGS_INTERFACE);
 
         if (g_settings_schema_source_lookup(source, SETTINGS_NOTIFY_SCHEMA_ID, true)) {
-            m_gsettings_cal_notification = g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH);
-        } else {
-            m_gsettings_cal_notification = NULL;
+             m_gsettings_cal_notification = g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH);
         }
 
-        if (m_gsettings != NULL) { 
-            m_live.reset(new LiveSettings);
-            m_settings = std::dynamic_pointer_cast<Settings>(m_live);
-        } 
+        m_live.reset(new LiveSettings);
+        m_settings = std::dynamic_pointer_cast<Settings>(m_live);
     }
 
     void TearDown() override
@@ -82,10 +72,6 @@ protected:
 
     void TestBoolProperty(GSettings* gsettings, core::Property<bool>& property, const gchar* key)
     {
-        if (gsettings == NULL) {
-            return;
-        }
-
         EXPECT_EQ(g_settings_get_boolean(gsettings, key), property.get());
         g_settings_set_boolean(gsettings, key, false);
         EXPECT_FALSE(property.get());
@@ -100,10 +86,6 @@ protected:
 
     void TestStringProperty(GSettings* gsettings, core::Property<std::string>& property, const gchar* key)
     {
-        if (gsettings == NULL) {
-            return;
-        }
-
         gchar* tmp;
         std::string str;
 
@@ -134,10 +116,6 @@ protected:
 
     void TestUIntProperty(GSettings* gsettings, core::Property<unsigned int>& property, const gchar* key)
     {
-        if (gsettings == NULL) {
-            return;
-        }
-
         EXPECT_EQ(g_settings_get_uint(gsettings, key), property.get());
 
         unsigned int expected_values[] = { 1, 2, 3 };
@@ -259,6 +237,10 @@ TEST_F(SettingsFixture, Locations)
 
 TEST_F(SettingsFixture, MutedApps)
 {
+    if (!m_gsettings_cal_notification) {
+        return;
+    }
+
     TestBoolProperty(m_gsettings_cal_notification, m_settings->cal_notification_enabled, SETTINGS_NOTIFY_ENABLED_KEY);
     TestBoolProperty(m_gsettings_cal_notification, m_settings->cal_notification_sounds, SETTINGS_NOTIFY_SOUNDS_KEY);
     TestBoolProperty(m_gsettings_cal_notification, m_settings->cal_notification_vibrations, SETTINGS_NOTIFY_VIBRATIONS_KEY);
