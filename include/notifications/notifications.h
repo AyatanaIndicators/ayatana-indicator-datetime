@@ -77,6 +77,12 @@ public:
     /** Sets the time-out callback. This will be called exactly once. */
     void set_timeout_callback (std::function<void()>);
 
+    /** Sets if a notification bubble should be displayed. */
+    void set_show_notification_bubble (bool show);
+
+    /** Sets if notification should be posted to messaging menu after it is closed. */
+    void set_post_to_messaging_menu (bool post);
+
 
 private:
     friend class Engine;
