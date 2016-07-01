@@ -42,19 +42,15 @@ protected:
 
     std::shared_ptr<LiveSettings> m_live;
     std::shared_ptr<Settings> m_settings;
-    GSettings * m_gsettings;
-    GSettings * m_gsettings_cal_notification;
-    GSettingsSchemaSource *source = g_settings_schema_source_get_default();
+    GSettings * m_gsettings {};
+    GSettings * m_gsettings_cal_notification {};
 
     void SetUp() override
     {
         super::SetUp();
 
         m_gsettings = g_settings_new(SETTINGS_INTERFACE);
-
-        if (g_settings_schema_source_lookup(source, SETTINGS_NOTIFY_SCHEMA_ID, true)) {
-             m_gsettings_cal_notification = g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH);
-        }
+        m_gsettings_cal_notification = g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH);
 
         m_live.reset(new LiveSettings);
         m_settings = std::dynamic_pointer_cast<Settings>(m_live);
