@@ -38,21 +38,10 @@ LiveSettings::~LiveSettings()
     g_clear_object(&m_settings);
 }
 
-LiveSettings::LiveSettings(): m_settings(g_settings_new(SETTINGS_INTERFACE)), m_settings_cal_notification(NULL)
+LiveSettings::LiveSettings(): m_settings(g_settings_new(SETTINGS_INTERFACE)), m_settings_cal_notification(g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH))
 {
     g_signal_connect (m_settings,      "changed", G_CALLBACK(on_changed_ccid), this);
-
-    if (ayatana_common_utils_is_lomiri())
-    {
-        GSettingsSchemaSource *source = g_settings_schema_source_get_default();
-        if (g_settings_schema_source_lookup(source, SETTINGS_NOTIFY_SCHEMA_ID, true)) {
-            m_settings_cal_notification = g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH);
-        }
-
-        if (m_settings_cal_notification) {
-            g_signal_connect (m_settings_cal_notification, "changed", G_CALLBACK(on_changed_cal_notification), this);
-        }
-    }
+    g_signal_connect (m_settings_cal_notification, "changed", G_CALLBACK(on_changed_cal_notification), this);
 
     // init the Properties from the GSettings backend
     update_custom_time_format();
@@ -305,47 +294,27 @@ void LiveSettings::update_snooze_duration()
 
 void LiveSettings::update_cal_notification_enabled()
 {
-    if (m_settings_cal_notification) {
-        cal_notification_enabled.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_ENABLED_KEY));
-    } else {
-        cal_notification_enabled.set(true);
-    }
+    cal_notification_enabled.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_ENABLED_KEY));
 }
 
 void LiveSettings::update_cal_notification_sounds()
 {
-    if (m_settings_cal_notification) {
-        cal_notification_sounds.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_SOUNDS_KEY));
-    } else {
-        cal_notification_sounds.set(true);
-    }
+    cal_notification_sounds.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_SOUNDS_KEY));
 }
 
 void LiveSettings::update_cal_notification_vibrations()
 {
-    if (m_settings_cal_notification) {
-        cal_notification_vibrations.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_VIBRATIONS_KEY));
-    } else {
-        cal_notification_vibrations.set(true);
-    }
+    cal_notification_vibrations.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_VIBRATIONS_KEY));
 }
 
 void LiveSettings::update_cal_notification_bubbles()
 {
-    if (m_settings_cal_notification) {
-        cal_notification_bubbles.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_BUBBLES_KEY));
-    } else {
-        cal_notification_bubbles.set(true);
-    }
+    cal_notification_bubbles.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_BUBBLES_KEY));
 }
 
 void LiveSettings::update_cal_notification_list()
 {
-    if (m_settings_cal_notification) {
-        cal_notification_list.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_LIST_KEY));
-    } else {
-        cal_notification_list.set(true);
-    }
+    cal_notification_list.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_LIST_KEY));
 }
 
 /***
