@@ -96,7 +96,10 @@ public:
         const bool interactive = appointment.is_ubuntu_alarm() && m_engine->supports_actions();
 
         // force the system to stay awake
-        std::shared_ptr<ain::Awake> awake = std::make_shared<ain::Awake>(m_engine->app_name());
+        std::shared_ptr<ain::Awake> awake;
+   if (appointment.is_ubuntu_alarm() || calendar_bubbles_enabled()) {
+       awake = std::make_shared<ain::Awake>(m_engine->app_name());
+   }
 
         // calendar events are muted in silent mode; alarm clocks never are
         std::shared_ptr<ain::Sound> sound;
