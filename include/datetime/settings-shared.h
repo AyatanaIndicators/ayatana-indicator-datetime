@@ -51,6 +51,8 @@ TimeFormatMode;
 #define SETTINGS_ALARM_HAPTIC_S         "alarm-haptic-feedback"
 #define SETTINGS_SNOOZE_DURATION_S      "snooze-duration-minutes"
 
+#define SETTINGS_NOTIFY_APPS_SCHEMA_ID  "com.lomiri.notifications.settings.applications"
+#define SETTINGS_VIBRATE_SILENT_KEY     "vibrate-silent-mode"
 #define SETTINGS_NOTIFY_SCHEMA_ID       "com.lomiri.notifications.settings"
 #define SETTINGS_NOTIFY_CALENDAR_PATH   "/com/lomiri/NotificationSettings/com.lomiri.calendar/calendar/"
 #define SETTINGS_NOTIFY_ENABLED_KEY     "enable-notifications"

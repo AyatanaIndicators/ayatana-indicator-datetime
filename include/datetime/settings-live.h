@@ -40,8 +40,10 @@ public:
 private:
     static void on_changed_ccid(GSettings*, gchar*, gpointer);
     static void on_changed_cal_notification(GSettings*, gchar*, gpointer);
+    static void on_changed_general_notification(GSettings*, gchar*, gpointer);
     void update_key_ccid(const std::string& key);
     void update_key_cal_notification(const std::string& key);
+    void update_key_general_notification(const std::string& key);
 
     void update_custom_time_format();
     void update_locations();
@@ -67,9 +69,11 @@ private:
     void update_cal_notification_vibrations();
     void update_cal_notification_bubbles();
     void update_cal_notification_list();
+    void update_vibrate_silent_mode();
 
     GSettings* m_settings;
     GSettings* m_settings_cal_notification;
+    GSettings* m_settings_general_notification;
 
     // we've got a raw pointer here, so disable copying
     LiveSettings(const LiveSettings&) =delete;

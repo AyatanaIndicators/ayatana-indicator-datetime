@@ -66,6 +66,7 @@ public:
     core::Property<bool> cal_notification_vibrations;
     core::Property<bool> cal_notification_bubbles;
     core::Property<bool> cal_notification_list;
+    core::Property<bool> vibrate_silent_mode;
 };
 
 } // namespace datetime
