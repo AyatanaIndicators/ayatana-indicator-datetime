@@ -40,13 +40,9 @@ LiveSettings::~LiveSettings()
 }
 
 LiveSettings::LiveSettings():
-    m_settings(g_settings_new(SETTINGS_INTERFACE)),
-    m_settings_cal_notification(g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH)),
-    m_settings_general_notification(g_settings_new(SETTINGS_NOTIFY_APPS_SCHEMA_ID))
+    m_settings(g_settings_new(SETTINGS_INTERFACE))
 {
     g_signal_connect (m_settings,                      "changed", G_CALLBACK(on_changed_ccid), this);
-    g_signal_connect (m_settings_cal_notification,     "changed", G_CALLBACK(on_changed_cal_notification), this);
-    g_signal_connect (m_settings_general_notification, "changed", G_CALLBACK(on_changed_general_notification), this);
 
     // init the Properties from the GSettings backend
     update_custom_time_format();
@@ -68,12 +64,20 @@ LiveSettings::LiveSettings():
     update_alarm_duration();
     update_alarm_haptic();
     update_snooze_duration();
-    update_cal_notification_enabled();
-    update_cal_notification_sounds();
-    update_cal_notification_vibrations();
-    update_cal_notification_bubbles();
-    update_cal_notification_list();
-    update_vibrate_silent_mode();
+
+    if (ayatana_common_utils_is_lomiri())
+    {
+        m_settings_cal_notification = g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH);
+        m_settings_general_notification = g_settings_new(SETTINGS_NOTIFY_APPS_SCHEMA_ID);
+        g_signal_connect (m_settings_cal_notification,     "changed", G_CALLBACK(on_changed_cal_notification), this);
+        g_signal_connect (m_settings_general_notification, "changed", G_CALLBACK(on_changed_general_notification), this);
+        update_cal_notification_enabled();
+        update_cal_notification_sounds();
+        update_cal_notification_vibrations();
+        update_cal_notification_bubbles();
+        update_cal_notification_list();
+        update_vibrate_silent_mode();
+    }
 
     // now listen for clients to change the properties s.t. we can sync update GSettings
 

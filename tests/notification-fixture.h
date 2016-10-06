@@ -334,7 +334,7 @@ protected:
               const std::shared_ptr<ayatana::indicator::notifications::SoundBuilder>& sb,
               const std::shared_ptr<ayatana::indicator::datetime::Settings>& settings)
   {
-    auto snap = std::make_shared<ayatana::indicator::datetime::Snap>(ne, sb, settings);
+    auto snap = std::make_shared<ayatana::indicator::datetime::Snap>(ne, sb, settings, system_bus);
     wait_msec(100); // wait a moment for the Snap to finish its async dbus bootstrapping
     return snap;
   }
