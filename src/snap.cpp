@@ -53,19 +53,25 @@ class Snap::Impl
 public:
 
     Impl(const std::shared_ptr<ayatana::indicator::notifications::Engine>& engine,
-         const std::shared_ptr<const Settings>& settings):
+         const std::shared_ptr<ayatana::indicator::notifications::SoundBuilder>& sound_builder,
+         const std::shared_ptr<const Settings>& settings,
+         GDBusConnection* system_bus):
       m_engine(engine),
+      m_sound_builder(sound_builder),
       m_settings(settings),
-      m_cancellable(g_cancellable_new())
+      m_cancellable(g_cancellable_new()),
+      m_system_bus{G_DBUS_CONNECTION(g_object_ref(system_bus))}
     {
         auto object_path = g_strdup_printf("/org/freedesktop/Accounts/User%lu", (gulong)getuid());
-        accounts_service_sound_proxy_new_for_bus(G_BUS_TYPE_SYSTEM,
-                                                 G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES,
-                                                 "org.freedesktop.Accounts",
-                                                 object_path,
-                                                 m_cancellable,
-                                                 on_sound_proxy_ready,
-                                                 this);
+
+
+        accounts_service_sound_proxy_new(m_system_bus,
+                                         G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES,
+                                         "org.freedesktop.Accounts",
+                                         object_path,
+                                         m_cancellable,
+                                         on_sound_proxy_ready,
+                                         this);
         g_free(object_path);
     }
 
@@ -74,6 +80,7 @@ public:
         g_cancellable_cancel(m_cancellable);
         g_clear_object(&m_cancellable);
         g_clear_object(&m_accounts_service_sound_proxy);
+        g_clear_object(&m_system_bus);
 
         for (const auto& key : m_notifications)
             m_engine->close (key);
@@ -98,7 +105,7 @@ public:
         // force the system to stay awake
         std::shared_ptr<ain::Awake> awake;
         if (appointment.is_ubuntu_alarm() || calendar_bubbles_enabled() || calendar_list_enabled()) {
-            awake = std::make_shared<ain::Awake>(m_engine->app_name());
+            awake = std::make_shared<ain::Awake>(m_system_bus, m_engine->app_name());
         }
 
         // calendar events are muted in silent mode; alarm clocks never are
@@ -231,7 +238,7 @@ private:
         GError * error;
 
         error = nullptr;
-        auto proxy = accounts_service_sound_proxy_new_for_bus_finish (res, &error);
+        auto proxy = accounts_service_sound_proxy_new_finish (res, &error);
         if (error != nullptr)
         {
             if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
@@ -297,6 +304,7 @@ private:
     std::set<int> m_notifications;
     GCancellable * m_cancellable {nullptr};
     AccountsServiceSound * m_accounts_service_sound_proxy {nullptr};
+    GDBusConnection * m_system_bus {nullptr};
 
     static constexpr char const * ACTION_NONE {"none"};
     static constexpr char const * ACTION_SNOOZE {"snooze"};
@@ -308,8 +316,10 @@ private:
 ***/
 
 Snap::Snap(const std::shared_ptr<ayatana::indicator::notifications::Engine>& engine,
-           const std::shared_ptr<const Settings>& settings):
-  impl(new Impl(engine, settings))
+           const std::shared_ptr<ayatana::indicator::notifications::SoundBuilder>& sound_builder,
+           const std::shared_ptr<const Settings>& settings,
+           GDBusConnection* system_bus):
+  impl(new Impl(engine, sound_builder, settings, system_bus))
 {
 }
 
