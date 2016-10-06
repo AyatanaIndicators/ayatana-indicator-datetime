@@ -95,10 +95,12 @@ int main(int argc, const char* argv[])
 
     auto notification_engine = std::make_shared<ain::Engine>("ayatana-indicator-datetime-service");
     auto sound_builder = std::make_shared<ain::DefaultSoundBuilder>();
-    Snap snap (notification_engine, settings);
+    auto system_bus = g_bus_get_sync(G_BUS_TYPE_SYSTEM, nullptr, nullptr);
+    Snap snap (notification_engine, sound_builder, settings, system_bus);
     snap(a, a.alarms.front(), on_response);
     g_main_loop_run(loop);
 
     g_main_loop_unref(loop);
+    g_clear_object(&system_bus);
     return 0;
 }
