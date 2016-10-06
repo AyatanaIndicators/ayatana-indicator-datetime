@@ -36,11 +36,26 @@ class Awake::Impl
 {
 public:
 
-    Impl(const std::string& app_name):
+    Impl(GDBusConnection* bus, const std::string& app_name):
         m_app_name(app_name),
-        m_cancellable(g_cancellable_new())
+        m_cancellable(g_cancellable_new()),
+        m_system_bus{G_DBUS_CONNECTION(g_object_ref(bus))}
     {
-        g_bus_get(G_BUS_TYPE_SYSTEM, m_cancellable, on_system_bus_ready, this);
+        // ask repowerd to keep the system awake
+        static constexpr int32_t POWERD_SYS_STATE_ACTIVE = 1;
+        g_dbus_connection_call (m_system_bus,
+                                BUS_POWERD_NAME,
+                                BUS_POWERD_PATH,
+                                BUS_POWERD_INTERFACE,
+                                "requestSysState",
+                                g_variant_new("(si)", m_app_name.c_str(), POWERD_SYS_STATE_ACTIVE),
+                                G_VARIANT_TYPE("(s)"),
+                                G_DBUS_CALL_FLAGS_NONE,
+                                -1,
+                                m_cancellable,
+                                on_force_awake_response,
+                                this);
+
     }
 
     ~Impl()
@@ -56,47 +71,6 @@ public:
     }
 
 private:
-
-    static void on_system_bus_ready (GObject *,
-                                     GAsyncResult *res,
-                                     gpointer gself)
-    {
-        GError * error;
-        GDBusConnection * system_bus;
-
-        error = nullptr;
-        system_bus = g_bus_get_finish (res, &error);
-        if (error != nullptr)
-        {
-            if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-                g_warning ("Unable to get bus: %s", error->message);
-
-            g_error_free (error);
-        }
-        else if (system_bus != nullptr)
-        {
-            auto self = static_cast<Impl*>(gself);
-
-            self->m_system_bus = G_DBUS_CONNECTION (g_object_ref (system_bus));
-
-            // ask powerd to keep the system awake
-            static constexpr int32_t POWERD_SYS_STATE_ACTIVE = 1;
-            g_dbus_connection_call (system_bus,
-                                    BUS_POWERD_NAME,
-                                    BUS_POWERD_PATH,
-                                    BUS_POWERD_INTERFACE,
-                                    "requestSysState",
-                                    g_variant_new("(si)", self->m_app_name.c_str(), POWERD_SYS_STATE_ACTIVE),
-                                    G_VARIANT_TYPE("(s)"),
-                                    G_DBUS_CALL_FLAGS_NONE,
-                                    -1,
-                                    self->m_cancellable,
-                                    on_force_awake_response,
-                                    self);
-
-            g_object_unref (system_bus);
-        }
-    }
 
     static void on_force_awake_response (GObject      * connection,
                                          GAsyncResult * res,
@@ -164,8 +138,8 @@ private:
 ****
 ***/
 
-Awake::Awake(const std::string& app_name):
-    impl(new Impl(app_name))
+Awake::Awake(GDBusConnection* system_bus, const std::string& app_name):
+    impl{new Impl{system_bus, app_name}}
 {
 }
 

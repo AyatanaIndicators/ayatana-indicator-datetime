@@ -22,6 +22,8 @@
 
 #include <memory>
 
+#include <gio/gio.h>
+
 namespace ayatana {
 namespace indicator {
 namespace notifications {
@@ -36,7 +38,7 @@ namespace notifications {
 class Awake
 {
 public:
-    explicit Awake(const std::string& app_name);
+    explicit Awake(GDBusConnection* system_bus, const std::string& app_name);
     ~Awake();
 
 private:
