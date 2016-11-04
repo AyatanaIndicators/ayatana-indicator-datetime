@@ -62,12 +62,8 @@ public:
     {
         g_cancellable_cancel (m_cancellable);
         g_object_unref (m_cancellable);
-
-        if (m_system_bus != nullptr)
-        {
-            unforce_awake ();
-            g_object_unref (m_system_bus);
-        }
+        unforce_awake ();
+        g_clear_object (&m_system_bus);
     }
 
 private:
@@ -99,7 +95,6 @@ private:
 
             g_clear_pointer (&self->m_awake_cookie, g_free);
             g_variant_get (args, "(s)", &self->m_awake_cookie);
-            g_debug ("m_awake_cookie is now '%s'", self->m_awake_cookie);
 
             g_variant_unref (args);
         }
@@ -120,7 +115,7 @@ private:
                                     nullptr,
                                     G_DBUS_CALL_FLAGS_NONE,
                                     -1,
-                                    nullptr,
+                                    m_cancellable,
                                     nullptr,
                                     nullptr);
 
