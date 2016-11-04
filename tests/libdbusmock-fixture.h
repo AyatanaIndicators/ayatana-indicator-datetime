@@ -75,14 +75,7 @@ protected:
 
     // wait a little while for the scaffolding to shut down,
     // but don't block on it forever...
-    unsigned int cleartry = 0;
-    while (((system_bus != nullptr) || (session_bus != nullptr)) && (cleartry < 50))
-      {
-        g_usleep(100000);
-        while (g_main_pending())
-          g_main_iteration(true);
-        cleartry++;
-      }
+    wait_for([this](){return system_bus==nullptr && session_bus==nullptr;}, 5000);
 
     super::TearDown();
   }
