@@ -33,7 +33,7 @@ UpcomingPlanner::UpcomingPlanner(const std::shared_ptr<RangePlanner>& range_plan
 {
     date().changed().connect([this](const DateTime& dt){
         // set the range to the upcoming month
-        const auto b = dt.add_days(-1).start_of_day();
+        const auto b = dt.start_of_day();
         const auto e = b.add_full(0, 1, 0, 0, 0, 0);
         g_debug("%p setting date range to [%s..%s]", this, b.format("%F %T").c_str(), e.format("%F %T").c_str());
         m_range_planner->range().set(std::pair<DateTime,DateTime>(b,e));
