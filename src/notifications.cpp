@@ -465,7 +465,7 @@ private:
     {
         #ifdef HAS_LOMIRIAPPLAUNCH
         auto registry = std::make_shared<lomiri::app_launch::Registry>();
-        auto app_id = lomiri::app_launch::AppID::discover(registry, "com.lomiri.calendar");
+        auto app_id = lomiri::app_launch::AppID::discover(registry, "lomiri-calendar-app");
 
         if (!app_id.empty())
             // Due the use of old API by messaging_menu we need append a extra ".desktop" to the app_id.
