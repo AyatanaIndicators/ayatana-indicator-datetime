@@ -125,8 +125,8 @@ if (${ENABLE_TESTS})
   if (${ENABLE_COVERAGE})
     find_package(CoverageReport)
     ENABLE_COVERAGE_REPORT(
-    TARGETS indicatordatetimeservice indicator-datetime-service
-    TESTS test-actions test-alarm-queue test-clock test-datetime test-exporter test-formatter test-live-actions test-locations test-menu-appointments test-menus test-notification test-notification-response test-planner test-settings test-sound test-timezone-timedated test-utils test-eds-ics-all-day-events test-eds-ics-repeating-events test-eds-ics-nonrepeating-events test-eds-ics-repeating-valarms test-eds-ics-missing-trigger test-eds-ics-tzids test-eds-ics-tzids-2 test-eds-ics-tzids-utc test-eds-ics-non-attending-alarms test-eds-ics-repeating-events-with-individual-change manual-test-snap
+    TARGETS indicatordatetimeservice ayatana-indicator-datetime-service
+    TESTS ${COVERAGE_TEST_TARGETS}
     FILTER /usr/include ${CMAKE_BINARY_DIR}/*
     )
   endif ()

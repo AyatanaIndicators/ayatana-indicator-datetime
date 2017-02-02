@@ -37,6 +37,7 @@ add_definitions (-DG_LOG_DOMAIN="ayatana-indicator-datetime")
 
 function(add_test_by_name name)
   set (TEST_NAME ${name})
+  set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME} PARENT_SCOPE)
   add_executable (${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
   add_test (${TEST_NAME} ${TEST_NAME})
   target_link_libraries (${TEST_NAME} indicatordatetimeservice ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
@@ -64,6 +65,7 @@ add_test_by_name(test-utils)
 
 if(HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS)
   set (TEST_NAME manual-test-snap)
+  set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME})
   add_executable (${TEST_NAME} ${TEST_NAME}.cpp)
   target_link_libraries (${TEST_NAME} indicatordatetimeservice ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 endif()
@@ -76,6 +78,7 @@ find_program(DBUS_RUNNER dbus-test-runner)
 
 function(add_eds_ics_test_by_name name)
   set (TEST_NAME ${name})
+  set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME} PARENT_SCOPE)
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.ics.in"
                  "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.ics")
   add_executable(${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
@@ -105,9 +108,16 @@ add_eds_ics_test_by_name(test-eds-ics-repeating-events-with-individual-change)
 # which hasn't landed yet. These can be re-enabled as soon as that lands.
 #function(add_dbusmock_test_by_name name)
 #  set (TEST_NAME ${name})
+#  set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME})
 #  add_executable (${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
 #  add_test (${TEST_NAME} ${TEST_NAME})
 #  target_link_libraries (${TEST_NAME} indicatordatetimeservice ${SERVICE_DEPS_LIBRARIES} ${DBUSTEST_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 #endfunction()
 #add_dbusmock_test_by_name(test-timezone-geoclue)
 #add_dbusmock_test_by_name(test-timezones)
+
+set(
+  COVERAGE_TEST_TARGETS
+  ${COVERAGE_TEST_TARGETS}
+  PARENT_SCOPE
+)
