@@ -94,9 +94,6 @@ add_custom_target (dist
                    COMMAND bzr export --root=${ARCHIVE_NAME} ${CMAKE_BINARY_DIR}/${ARCHIVE_NAME}.tar.gz
                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
-add_custom_target (clean-coverage
-                   COMMAND find ${CMAKE_BINARY_DIR} -name '*.gcda' | xargs rm -f)
-
 add_custom_target (cppcheck COMMAND cppcheck --enable=all -q --error-exitcode=2 --inline-suppr
                    ${CMAKE_SOURCE_DIR}/src
                    ${CMAKE_SOURCE_DIR}/tests)
@@ -126,7 +123,12 @@ if (${ENABLE_TESTS})
   pkg_check_modules (DBUSTEST REQUIRED dbustest-1>=14.04.0)
   enable_testing ()
   if (${ENABLE_COVERAGE})
-    include(GCov)
+    find_package(CoverageReport)
+    ENABLE_COVERAGE_REPORT(
+    TARGETS indicatordatetimeservice indicator-datetime-service
+    TESTS test-actions test-alarm-queue test-clock test-datetime test-exporter test-formatter test-live-actions test-locations test-menu-appointments test-menus test-notification test-notification-response test-planner test-settings test-sound test-timezone-timedated test-utils test-eds-ics-all-day-events test-eds-ics-repeating-events test-eds-ics-nonrepeating-events test-eds-ics-repeating-valarms test-eds-ics-missing-trigger test-eds-ics-tzids test-eds-ics-tzids-2 test-eds-ics-tzids-utc test-eds-ics-non-attending-alarms test-eds-ics-repeating-events-with-individual-change manual-test-snap
+    FILTER /usr/include ${CMAKE_BINARY_DIR}/*
+    )
   endif ()
 endif ()
 
