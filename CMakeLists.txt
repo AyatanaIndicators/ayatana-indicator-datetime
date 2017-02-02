@@ -118,28 +118,33 @@ endif()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/include)
 
-# testing & coverage
-if (${ENABLE_TESTS})
-  pkg_check_modules (DBUSTEST REQUIRED dbustest-1>=14.04.0)
-  enable_testing ()
-  if (${ENABLE_COVERAGE})
-    find_package(CoverageReport)
-    ENABLE_COVERAGE_REPORT(
-    TARGETS indicatordatetimeservice ayatana-indicator-datetime-service
-    TESTS ${COVERAGE_TEST_TARGETS}
-    FILTER /usr/include ${CMAKE_BINARY_DIR}/*
-    )
-  endif ()
-endif ()
-
 # actually build things
 add_subdirectory(include)
 add_subdirectory(src)
 add_subdirectory(data)
 add_subdirectory(po)
-if (${ENABLE_TESTS})
-  add_subdirectory(tests)
-endif ()
+
+# testing & coverage
+if (ENABLE_TESTS)
+
+    include(CTest)
+    pkg_check_modules (DBUSTEST REQUIRED dbustest-1>=14.04.0)
+    enable_testing ()
+    enable_testing()
+    add_subdirectory(tests)
+
+    if (ENABLE_COVERAGE)
+
+        find_package(CoverageReport)
+        ENABLE_COVERAGE_REPORT(
+        TARGETS indicatordatetimeservice ayatana-indicator-datetime-service
+        TESTS ${COVERAGE_TEST_TARGETS}
+        FILTER /usr/include ${CMAKE_BINARY_DIR}/*
+        )
+
+    endif()
+
+endif()
 
 # Display config info
 

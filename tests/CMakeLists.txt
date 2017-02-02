@@ -108,7 +108,7 @@ add_eds_ics_test_by_name(test-eds-ics-repeating-events-with-individual-change)
 # which hasn't landed yet. These can be re-enabled as soon as that lands.
 #function(add_dbusmock_test_by_name name)
 #  set (TEST_NAME ${name})
-#  set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME})
+#  set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME} PARENT_SCOPE)
 #  add_executable (${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
 #  add_test (${TEST_NAME} ${TEST_NAME})
 #  target_link_libraries (${TEST_NAME} indicatordatetimeservice ${SERVICE_DEPS_LIBRARIES} ${DBUSTEST_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
