@@ -1,9 +1,4 @@
-# build libgtest
-add_library (gtest STATIC
-             ${GTEST_SOURCE_DIR}/gtest-all.cc
-             ${GTEST_SOURCE_DIR}/gtest_main.cc)
-set_target_properties (gtest PROPERTIES INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${GTEST_INCLUDE_DIR})
-set_target_properties (gtest PROPERTIES COMPILE_FLAGS "${COMPILE_FLAGS} -w")
+find_package(GMock REQUIRED)
 
 SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g ${COMPILE_FLAGS}")
 
@@ -44,7 +39,7 @@ function(add_test_by_name name)
   set (TEST_NAME ${name})
   add_executable (${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
   add_test (${TEST_NAME} ${TEST_NAME})
-  target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
+  target_link_libraries (${TEST_NAME} indicatordatetimeservice ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 endfunction()
 add_test_by_name(test-datetime)
 if(HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS)
@@ -70,7 +65,7 @@ add_test_by_name(test-utils)
 if(HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS)
   set (TEST_NAME manual-test-snap)
   add_executable (${TEST_NAME} ${TEST_NAME}.cpp)
-  target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
+  target_link_libraries (${TEST_NAME} indicatordatetimeservice ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 endif()
 
 ##
@@ -84,7 +79,7 @@ function(add_eds_ics_test_by_name name)
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.ics.in"
                  "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.ics")
   add_executable(${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
-  target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
+  target_link_libraries (${TEST_NAME} indicatordatetimeservice ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
   add_test (${TEST_NAME}
             ${CMAKE_CURRENT_SOURCE_DIR}/run-eds-ics-test.sh
             ${DBUS_RUNNER}                                         # arg1: dbus-test-runner exec
@@ -112,7 +107,7 @@ add_eds_ics_test_by_name(test-eds-ics-repeating-events-with-individual-change)
 #  set (TEST_NAME ${name})
 #  add_executable (${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
 #  add_test (${TEST_NAME} ${TEST_NAME})
-#  target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${DBUSTEST_LIBRARIES} ${GTEST_LIBS})
+#  target_link_libraries (${TEST_NAME} indicatordatetimeservice ${SERVICE_DEPS_LIBRARIES} ${DBUSTEST_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 #endfunction()
 #add_dbusmock_test_by_name(test-timezone-geoclue)
 #add_dbusmock_test_by_name(test-timezones)

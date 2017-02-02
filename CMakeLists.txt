@@ -116,15 +116,6 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/include)
 # testing & coverage
 if (${ENABLE_TESTS})
   pkg_check_modules (DBUSTEST REQUIRED dbustest-1>=14.04.0)
-
-  if (EXISTS /usr/src/googletest/src)
-    set (GTEST_SOURCE_DIR /usr/src/googletest/src)
-  else ()
-    set (GTEST_SOURCE_DIR /usr/src/gtest/src)
-  endif ()
-
-  set (GTEST_INCLUDE_DIR ${GTEST_SOURCE_DIR}/..)
-  set (GTEST_LIBS -lpthread)
   enable_testing ()
   if (${ENABLE_COVERAGE})
     include(GCov)
