@@ -22,7 +22,7 @@
 #include <cmath>
 #include <set>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -187,4 +187,4 @@ SimpleAlarmQueue::alarm_reached()
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

@@ -27,7 +27,7 @@
 
 #define GEOCLUE_BUS_NAME "org.freedesktop.Geoclue.Master"
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -287,5 +287,5 @@ GeoclueTimezone::~GeoclueTimezone()
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
 

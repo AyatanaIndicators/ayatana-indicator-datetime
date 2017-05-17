@@ -19,7 +19,7 @@
 
 #include <datetime/date-time.h>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -289,4 +289,4 @@ bool DateTime::is_same_minute(const DateTime& a, const DateTime& b)
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

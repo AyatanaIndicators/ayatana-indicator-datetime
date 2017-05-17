@@ -25,7 +25,7 @@
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -260,5 +260,5 @@ void Exporter::publish(const std::shared_ptr<Actions>& actions,
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
 

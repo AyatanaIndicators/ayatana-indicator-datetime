@@ -21,7 +21,7 @@
 
 #include <algorithm> 
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -51,4 +51,4 @@ Planner::sort(std::vector<Appointment>& appts)
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

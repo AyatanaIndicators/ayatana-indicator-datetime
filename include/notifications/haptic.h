@@ -17,12 +17,12 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef UNITY_INDICATOR_NOTIFICATIONS_HAPTIC_H
-#define UNITY_INDICATOR_NOTIFICATIONS_HAPTIC_H
+#ifndef AYATANA_INDICATOR_NOTIFICATIONS_HAPTIC_H
+#define AYATANA_INDICATOR_NOTIFICATIONS_HAPTIC_H
 
 #include <memory>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace notifications {
 
@@ -55,6 +55,6 @@ private:
 
 } // namespace notifications
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
 
-#endif // UNITY_INDICATOR_NOTIFICATIONS_HAPTIC_H
+#endif // AYATANA_INDICATOR_NOTIFICATIONS_HAPTIC_H

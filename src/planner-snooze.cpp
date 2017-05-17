@@ -21,7 +21,7 @@
 
 #include <libedataserver/libedataserver.h> // e_uid_new()
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -116,4 +116,4 @@ SnoozePlanner::appointments()
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

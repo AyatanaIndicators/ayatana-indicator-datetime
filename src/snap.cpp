@@ -39,7 +39,7 @@
 
 namespace uin = unity::indicator::notifications;
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -258,4 +258,4 @@ Snap::operator()(const Appointment& appointment,
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

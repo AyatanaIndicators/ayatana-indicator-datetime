@@ -30,7 +30,7 @@
 #include <map>
 #include <set>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -1072,4 +1072,4 @@ void EdsEngine::disable_ubuntu_alarm(const Appointment& appointment)
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

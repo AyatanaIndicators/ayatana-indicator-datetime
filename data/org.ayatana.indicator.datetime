@@ -1,0 +1,20 @@
+[Indicator Service]
+Name=indicator-datetime
+ObjectPath=/org/ayatana/indicator/datetime
+Position=20
+
+[desktop]
+ObjectPath=/org/ayatana/indicator/datetime/desktop
+
+[desktop_greeter]
+ObjectPath=/org/ayatana/indicator/datetime/desktop_greeter
+
+[desktop_lockscreen]
+ObjectPath=/org/ayatana/indicator/datetime/desktop_greeter
+
+[phone]
+ObjectPath=/org/ayatana/indicator/datetime/phone
+
+[phone_greeter]
+ObjectPath=/org/ayatana/indicator/datetime/phone_greeter
+

@@ -24,7 +24,7 @@
 
 #include <core/signal.h>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -50,6 +50,6 @@ public:
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
 
 #endif // INDICATOR_DATETIME_WAKEUP_TIMER_H

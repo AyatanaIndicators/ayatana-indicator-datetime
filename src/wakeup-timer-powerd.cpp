@@ -26,7 +26,7 @@
 
 #include <memory> // std::shared_ptr
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -308,4 +308,4 @@ core::Signal<>& PowerdWakeupTimer::timeout()
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

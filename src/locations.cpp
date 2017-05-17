@@ -21,7 +21,7 @@
 
 #include <glib.h>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -56,4 +56,4 @@ Location::Location(const std::string& zone_, const std::string& name_):
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

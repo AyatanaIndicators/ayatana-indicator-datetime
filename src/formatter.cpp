@@ -29,7 +29,7 @@
 #include <langinfo.h> // nl_langinfo()
 #include <string.h> // strstr()
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -264,4 +264,4 @@ Formatter::relative_format(GDateTime* then_begin, GDateTime* then_end) const
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

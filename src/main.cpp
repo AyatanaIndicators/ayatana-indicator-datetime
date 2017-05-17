@@ -44,7 +44,7 @@
 
 namespace uin = unity::indicator::notifications;
 
-using namespace unity::indicator::datetime;
+using namespace ayatana::indicator::datetime;
 
 
 namespace

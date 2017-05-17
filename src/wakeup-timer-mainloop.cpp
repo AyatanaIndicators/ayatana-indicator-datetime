@@ -23,7 +23,7 @@
 
 #include <cstdlib> // abs()
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -135,4 +135,4 @@ core::Signal<>& MainloopWakeupTimer::timeout()
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

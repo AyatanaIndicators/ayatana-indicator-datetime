@@ -29,7 +29,7 @@
  #define TFD_TIMER_CANCEL_ON_SET (1 << 1)
 #endif
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -212,5 +212,5 @@ DateTime LiveClock::localtime() const
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
 

@@ -19,7 +19,7 @@
 
 #include <datetime/planner-month.h>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -58,4 +58,4 @@ core::Property<std::vector<Appointment>>& MonthPlanner::appointments()
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

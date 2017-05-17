@@ -23,7 +23,7 @@
 
 #include <mutex> // std::call_once()
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace notifications {
 
@@ -164,4 +164,4 @@ Sound::~Sound()
 
 } // namespace notifications
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

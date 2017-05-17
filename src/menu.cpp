@@ -27,7 +27,7 @@
 
 #include <vector>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -600,4 +600,4 @@ MenuFactory::buildMenu(Menu::Profile profile)
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

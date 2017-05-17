@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace notifications {
 
@@ -366,5 +366,5 @@ Engine::app_name() const
 
 } // namespace notifications
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
 

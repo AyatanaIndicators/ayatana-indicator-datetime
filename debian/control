@@ -1,11 +1,10 @@
-Source: indicator-datetime
+Source: ayatana-indicator-datetime
 Section: misc
 Priority: optional
-Maintainer: Ubuntu Desktop Team <ubuntu-desktop@lists.ubuntu.com>
+Maintainer: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
 Build-Depends: cmake,
                dbus,
                debhelper (>= 9), 
-               dh-translations,
                libglib2.0-dev (>= 2.35.4),
                libnotify-dev (>= 0.7.6),
                libgstreamer1.0-dev,
@@ -21,19 +20,15 @@ Build-Depends: cmake,
                python3-dbusmock,
 # for 12h/24h locale unit tests:
                locales,
-               language-pack-touch-en | language-pack-en-base,
 # for running live EDS tests:
                evolution-data-server,
                gvfs-daemons,
-Standards-Version: 3.9.3
-Homepage: https://launchpad.net/indicator-datetime
-# If you aren't a member of ~indicator-applet-developers but need to upload
-# packaging changes, just go ahead.  ~indicator-applet-developers will notice
-# and sync up the code again.
-Vcs-Bzr: https://code.launchpad.net/~indicator-applet-developers/indicator-datetime/trunk.13.04
-Vcs-Browser: https://bazaar.launchpad.net/~indicator-applet-developers/indicator-datetime/trunk.13.04/files
+Standards-Version: 3.9.6
+Homepage: https://github.com/ArcticaProject/ayatana-indicator-datetime
+Vcs-Git: git://cgit.arctica-project.org/ayatana/ayatana-indicator-datetime.git
+Vcs-Browser: https://cgit.arctica-project.org/ayatana/ayatana-indicator-datetime.git/
 
-Package: indicator-datetime
+Package: ayatana-indicator-datetime
 Architecture: any
 Depends: ${shlibs:Depends}, 
          ${misc:Depends},
@@ -41,11 +36,6 @@ Depends: ${shlibs:Depends},
          systemd-shim,
 Recommends: indicator-applet | indicator-renderer,
             evolution-data-server,
-            geoclue-ubuntu-geoip | geoclue-provider,
-            unity-control-center (>= 14.04.3) | ubuntu-system-settings,
-            ubuntu-touch-sounds,
-Suggests: click,
-Conflicts: indicator-datetime (<< 13.10.0)
-Replaces: indicator-datetime (<< 13.10.0)
+            geoclue-provider,
 Description: Simple clock
  A simple clock appearing in the indicator bar

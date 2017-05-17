@@ -28,7 +28,7 @@
 #include <set>
 #include <string>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -54,6 +54,6 @@ public:
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
 
 #endif // INDICATOR_DATETIME_ALARM_QUEUE_H

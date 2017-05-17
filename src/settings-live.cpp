@@ -19,7 +19,7 @@
 
 #include <datetime/settings-live.h>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -318,4 +318,4 @@ void LiveSettings::update_key(const std::string& key)
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

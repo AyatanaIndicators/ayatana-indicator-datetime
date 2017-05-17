@@ -18,8 +18,8 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
-#ifndef UNITY_INDICATOR_NOTIFICATIONS_DBUS_SHARED_H
-#define UNITY_INDICATOR_NOTIFICATIONS_DBUS_SHARED_H
+#ifndef AYATANA_INDICATOR_NOTIFICATIONS_DBUS_SHARED_H
+#define AYATANA_INDICATOR_NOTIFICATIONS_DBUS_SHARED_H
 
 #define BUS_SCREEN_NAME      "com.canonical.Unity.Screen"
 #define BUS_SCREEN_PATH      "/com/canonical/Unity/Screen"

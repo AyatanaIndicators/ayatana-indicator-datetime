@@ -25,7 +25,7 @@
 #include <numeric>
 #include <vector>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace notifications {
 
@@ -167,4 +167,4 @@ Haptic::~Haptic()
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

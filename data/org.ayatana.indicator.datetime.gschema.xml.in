@@ -5,7 +5,7 @@
 		<value nick="24-hour" value="2" />
 		<value nick="custom" value="3" />
 	</enum>
-	<schema id="com.canonical.indicator.datetime" path="/com/canonical/indicator/datetime/" gettext-domain="indicator-datetime">
+	<schema id="com.canonical.indicator.datetime" path="/org/ayatana/indicator/datetime/" gettext-domain="indicator-datetime">
 		<key name="show-clock" type="b">
 			<default>true</default>
 			<_summary>Show the clock in the panel</_summary>

@@ -23,7 +23,7 @@
 
 #include <glib.h>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -263,4 +263,4 @@ void LiveActions::set_location(const std::string& tzid, const std::string& name)
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

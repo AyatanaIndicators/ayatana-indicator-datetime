@@ -3,7 +3,7 @@
 LDFLAGS += -Wl,-z,defs -Wl,--as-needed
 
 %:
-	dh $@ --with translations
+	dh $@
 
 override_dh_install:
 	dh_install --fail-missing

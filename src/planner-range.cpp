@@ -19,7 +19,7 @@
 
 #include <datetime/planner-range.h>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -107,4 +107,4 @@ core::Property<std::pair<DateTime,DateTime>>& SimpleRangePlanner::range()
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

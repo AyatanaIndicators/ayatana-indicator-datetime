@@ -31,7 +31,7 @@
 
 #include <memory> // std::shared_ptr
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -76,6 +76,6 @@ struct State
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
 
 #endif // INDICATOR_DATETIME_STATE_H

@@ -24,7 +24,7 @@
 
 #include <limits>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace notifications {
 
@@ -286,4 +286,4 @@ Awake::~Awake()
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

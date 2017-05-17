@@ -27,7 +27,7 @@
 
 #include <memory> // std::shared_ptr, std::unique_ptr
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -89,6 +89,6 @@ private:
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
 
 #endif // INDICATOR_DATETIME_CLOCK_H

@@ -27,7 +27,7 @@
 #include <datetime/planner.h>
 #include <datetime/wakeup-timer.h>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -52,6 +52,6 @@ private:
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
 
 #endif // INDICATOR_DATETIME_ALARM_QUEUE_H

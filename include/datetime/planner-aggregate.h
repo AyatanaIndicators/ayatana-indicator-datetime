@@ -24,7 +24,7 @@
 
 #include <memory>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -47,6 +47,6 @@ protected:
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
 
 #endif // INDICATOR_DATETIME_PLANNER_AGGREGATE_H

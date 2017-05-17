@@ -23,7 +23,7 @@
 #include <glib.h>
 #include <gio/gio.h>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -293,4 +293,4 @@ const std::shared_ptr<State> Actions::state() const
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

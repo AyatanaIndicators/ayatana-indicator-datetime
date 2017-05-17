@@ -28,7 +28,7 @@
 #include <string>
 #include <vector>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -229,4 +229,4 @@ Clock::~Clock()
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

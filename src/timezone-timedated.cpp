@@ -24,7 +24,7 @@
 #include <cerrno>
 #include <cstdlib>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -209,4 +209,4 @@ TimedatedTimezone::~TimedatedTimezone()
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

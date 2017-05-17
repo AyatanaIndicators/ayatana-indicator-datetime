@@ -20,7 +20,7 @@
 #include <datetime/formatter.h>
 #include <datetime/utils.h> // T_()
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -187,4 +187,4 @@ const gchar* DesktopFormatter::getDateFormat(bool show_day, bool show_date, bool
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

@@ -19,7 +19,7 @@
 
 #include <datetime/planner-aggregate.h>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -102,5 +102,5 @@ AggregatePlanner::add(const std::shared_ptr<Planner>& planner)
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
 

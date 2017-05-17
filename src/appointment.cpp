@@ -19,7 +19,7 @@
 
 #include <datetime/appointment.h>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -51,4 +51,4 @@ bool Appointment::operator==(const Appointment& that) const
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana

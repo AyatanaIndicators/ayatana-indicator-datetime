@@ -27,7 +27,7 @@
 #include <string>
 #include <vector>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -74,6 +74,6 @@ public:
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
 
 #endif // INDICATOR_DATETIME_LOCATIONS_H

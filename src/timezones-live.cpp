@@ -21,7 +21,7 @@
 
 #include <glib.h>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -68,4 +68,4 @@ void LiveTimezones::update_timezones()
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
