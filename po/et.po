@@ -1,0 +1,427 @@
+# Estonian translations for PACKAGE package.
+# Copyright (C) 2017 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Automatically generated, 2017.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: ted@canonical.com\n"
+"POT-Creation-Date: 2017-10-12 07:36+0200\n"
+"PO-Revision-Date: 2017-10-12 07:31+0200\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: et\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:1
+msgid "Show the clock in the panel"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:2
+msgid "Controls whether the clock indicator appears in the panel or not."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:3
+msgid "What the time format should be"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:4
+msgid ""
+"Controls the time format that is displayed in the indicator. For almost all "
+"users this should be the default for their locale. If you think the setting "
+"is wrong for your locale please join or talk to the translation team for "
+"your language. If you just want something different you can adjust this to "
+"be either 12 or 24 time. Or, you can use a custom format string and set the "
+"custom-time-format setting."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:5
+msgid "The format string passed to strftime"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:6
+msgid ""
+"The format of the time and/or date that is visible on the panel when using "
+"the indicator. For most users this will be a set of predefined values as "
+"determined by the configuration utility, but advanced users can change it to "
+"anything strftime can accept. Look at the man page on strftime for more "
+"information."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:7
+msgid "Show the number of seconds in the indicator"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:8
+msgid ""
+"Makes the datetime indicator show the number of seconds in the indicator. "
+"It's important to note that this will cause additional battery drain as the "
+"time will update 60 times as often, so it is not recommended. Also, this "
+"setting will be ignored if the time-format value is set to custom."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:9
+msgid "Show the day of the week in the indicator"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:10
+msgid ""
+"Puts the day of the week on the panel along with the time and/or date "
+"depending on settings. This setting will be ignored if the time-format value "
+"is set to custom."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:11
+msgid "Show the month and date in the indicator"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:12
+msgid ""
+"Puts the month and the date in the panel along with the time and/or day of "
+"the week depending on settings. This setting will be ignored if the time-"
+"format value is set to custom."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:13
+msgid "Show the year in the indicator"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:14
+msgid ""
+"Puts the year in the panel along with the month and the date. This setting "
+"will be ignored if either the time-format value is set to custom or if show-"
+"date is set to false."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:15
+msgid "Show the monthly calendar in the indicator"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:16
+msgid "Puts the monthly calendar in indicator-datetime's menu."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:17
+msgid "Show week numbers in calendar"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:18
+msgid ""
+"Shows the week numbers in the monthly calendar in indicator-datetime's menu."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:19
+msgid "Show events in the indicator"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:20
+msgid "Shows events from Evolution in indicator-datetime's menu."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:21
+msgid "Show the auto-detected location in the indicator"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:22
+msgid ""
+"Shows your current location (determined from geoclue and /etc/timezone) in "
+"indicator-datetime's menu."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:23
+msgid "Show locations in the indicator"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:24
+msgid "Shows custom defined locations in indicator-datetime's menu."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:25
+msgid "A List of locations"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:26
+msgid ""
+"Adds the list of locations the user has configured to display in the "
+"indicator-datetime menu."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:27
+msgid "The name of the current timezone"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:28
+msgid ""
+"Some timezones can be known by many different cities or names. This setting "
+"describes how the current zone prefers to be named. Format is \"TIMEZONE NAME"
+"\" (e.g. \"America/New_York Boston\" to name the New_York zone Boston)."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:29
+msgid "What kind of haptic feedback, if any, to trigger with an alarm."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:30
+msgid ""
+"What kind of haptic feedback, if any, to trigger with an alarm. Two modes "
+"are currently supported: 'pulse', 'none'."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:31
+msgid "The alarm's default sound file."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:32
+msgid ""
+"If an alarm doesn't specify its own sound file, this file will be used as "
+"the fallback sound."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:33
+msgid "The alarm's default volume level."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:34
+msgid "The volume at which alarms will be played."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:35
+msgid "The alarm's duration."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:36
+msgid ""
+"How long the alarm's sound will be looped if its snap decision is not "
+"dismissed by the user."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:37
+msgid "The snooze duration."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:38
+msgid "How long to wait when the user hits the Snooze button."
+msgstr ""
+
+#. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
+#: ../src/formatter.cpp:234
+msgid "%l:%M:%S %p"
+msgstr ""
+
+#. TRANSLATORS: a strftime(3) format for 12hr time
+#. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+#. This format string is used for showing, on a 12-hour clock, events/appointments that happen today.
+#. en_US example: "%l:%M %p" --> "1:00 PM"
+#: ../src/formatter.cpp:237 ../src/utils.c:304
+msgid "%l:%M %p"
+msgstr ""
+
+#. TRANSLATORS: a strftime(3) format for 24hr time w/seconds
+#: ../src/formatter.cpp:240
+msgid "%H:%M:%S"
+msgstr ""
+
+#. TRANSLATORS: a strftime(3) format for 24hr time
+#. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+#. This format string is used for showing, on a 24-hour clock, events/appointments that happen today.
+#. en_US example: "%H:%M" --> "13:00"
+#: ../src/formatter.cpp:243 ../src/utils.c:344
+msgid "%H:%M"
+msgstr ""
+
+#. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+#. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
+#. This format string shows the abbreviated weekday, day, abbreviated month, and year.
+#. en_US example: "%a %b %e %Y" --> "Sat Oct 31 2020"
+#. en_GB example: "%a %e %b %Y" --> "Sat 31 Oct 2020"
+#. zh_CN example(?): "%Y年%m月%d日 周%a" --> "2020年10月31日 周六"
+#: ../src/formatter-desktop.cpp:138
+msgid "%a %b %e %Y"
+msgstr ""
+
+#. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+#. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
+#. This format string shows the abbreviated weekday, day, and abbreviated month.
+#. en_US example: "%a %b %e" --> "Sat Oct 31"
+#. en_GB example: "%a %e %b" --> "Sat 31 Oct"
+#. zh_CN example(?): "%m月%d日 周%a" --> "03月27日 周六"
+#: ../src/formatter-desktop.cpp:147
+msgid "%a %b %e"
+msgstr ""
+
+#. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+#. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
+#. This format string shows the abbreviated weekday.
+#. zh_CN example(?): "周%a" --> "周六"
+#: ../src/formatter-desktop.cpp:154
+#, c-format
+msgid "%a"
+msgstr ""
+
+#. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+#. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
+#. This format string shows the day, abbreviated month, and year.
+#. en_US example: "%b %e %Y" --> "Oct 31 2020"
+#. en_GB example: "%e %b %Y" --> "31 Oct 2020"
+#. zh_CN example(?): "%Y年%m月%d日" --> "2020年10月31日"
+#: ../src/formatter-desktop.cpp:163
+msgid "%b %e %Y"
+msgstr ""
+
+#. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+#. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
+#. This format string shows the abbreviated month and day.
+#. en_US example: "%b %e" --> "Mar 27"
+#. en_GB example: "%e %b" --> "27 Mar"
+#. zh_CN example(?): "%m月%d日" --> "03月27日"
+#: ../src/formatter-desktop.cpp:172
+msgid "%b %e"
+msgstr ""
+
+#. This strftime(3) format string shows the year.
+#: ../src/formatter-desktop.cpp:176
+msgid "%Y"
+msgstr ""
+
+#. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+#. Format string for the day on the first menuitem in the datetime indicator.
+#. This format string gives the full weekday, date, month, and year.
+#. en_US example: "%A, %B %e %Y" --> Saturday, October 31 2020"
+#. en_GB example: "%A, %e %B %Y" --> Saturday, 31 October 2020"
+#: ../src/menu.cpp:255
+msgid "%A, %e %B %Y"
+msgstr ""
+
+#. add the 'Add Event…' menuitem
+#: ../src/menu.cpp:352
+msgid "Add Event…"
+msgstr ""
+
+#: ../src/menu.cpp:362
+msgid "Clock"
+msgstr ""
+
+#: ../src/menu.cpp:414
+msgid "Time & Date settings…"
+msgstr ""
+
+#: ../src/menu.cpp:469
+msgid "Date and Time"
+msgstr ""
+
+#: ../src/menu.cpp:519
+msgid "Time & Date"
+msgstr ""
+
+#: ../src/menu.cpp:524
+#, c-format
+msgid "%s (has alarms)"
+msgstr ""
+
+#. * strftime(3) format for abbreviated weekday,
+#. hours, minutes in a 12h locale; e.g. Wed, 2:00 PM
+#: ../src/snap.cpp:125
+msgid "%a, %l:%M %p"
+msgstr ""
+
+#. * A strftime(3) format for abbreviated weekday,
+#. hours, minutes in a 24h locale; e.g. Wed, 14:00
+#: ../src/snap.cpp:129
+msgid "%a, %H:%M"
+msgstr ""
+
+#: ../src/snap.cpp:132
+#, c-format
+msgid "Alarm %s"
+msgstr ""
+
+#: ../src/snap.cpp:139
+msgid "OK"
+msgstr ""
+
+#: ../src/snap.cpp:140
+msgid "Snooze"
+msgstr ""
+
+#: ../src/utils.c:274
+msgid "Today"
+msgstr ""
+
+#: ../src/utils.c:278
+msgid "Tomorrow"
+msgstr ""
+
+#. This is a strftime(3) format string indicating the unabbreviated weekday.
+#: ../src/utils.c:283
+#, c-format
+msgid "%A"
+msgstr ""
+
+#. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+#. This format string is used for showing full-day events that are over a week away.
+#. en_US example: "%a %b %d" --> "Sat Oct 31"
+#. en_GB example: "%a %d %b" --> "Sat 31 Oct"
+#. zh_CN example(?): "%m月%d日 周%a" --> "10月31日 周六"
+#: ../src/utils.c:292
+msgid "%a %d %b"
+msgstr ""
+
+#. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+#. This format string is used for showing, on a 12-hour clock, events/appointments that happen tomorrow.
+#. (Note: the space between the day and the time is an em space (unicode character 2003), which is
+#. slightly wider than a normal space.)
+#. en_US example: "Tomorrow %l:%M %p" --> "Tomorrow 1:00 PM"
+#: ../src/utils.c:313
+msgid "Tomorrow %l:%M %p"
+msgstr ""
+
+#. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+#. This format string is used for showing, on a 12-hour clock, events/appointments that happen this week.
+#. (Note: the space between the day and the time is an em space (unicode character 2003), which is
+#. slightly wider than a normal space.)
+#. en_US example: "Tomorrow %l:%M %p" --> "Fri 1:00 PM"
+#: ../src/utils.c:322
+msgid "%a %l:%M %p"
+msgstr ""
+
+#. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+#. This format string is used for showing, on a 12-hour clock, events/appointments that happen over a week from now.
+#. (Note: the space between the day and the time is an em space (unicode character 2003), which is
+#. slightly wider than a normal space.)
+#. en_US example: "%a %d %b %l:%M %p" --> "Fri Oct 31 1:00 PM"
+#. en_GB example: "%a %b %d %l:%M %p" --> "Fri 31 Oct 1:00 PM"
+#: ../src/utils.c:332
+msgid "%a %d %b %l:%M %p"
+msgstr ""
+
+#. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+#. This format string is used for showing, on a 24-hour clock, events/appointments that happen tomorrow.
+#. (Note: the space between the day and the time is an em space (unicode character 2003), which is
+#. slightly wider than a normal space.)
+#. en_US example: "Tomorrow %l:%M %p" --> "Tomorrow 13:00"
+#: ../src/utils.c:353
+msgid "Tomorrow %H:%M"
+msgstr ""
+
+#. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+#. This format string is used for showing, on a 24-hour clock, events/appointments that happen this week.
+#. (Note: the space between the day and the time is an em space (unicode character 2003), which is
+#. slightly wider than a normal space.)
+#. en_US example: "%a %H:%M" --> "Fri 13:00"
+#: ../src/utils.c:362
+msgid "%a %H:%M"
+msgstr ""
+
+#. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
+#. This format string is used for showing, on a 24-hour clock, events/appointments that happen over a week from now.
+#. (Note: the space between the day and the time is an em space (unicode character 2003), which is
+#. slightly wider than a normal space.)
+#. en_US example: "%a %d %b %H:%M" --> "Fri Oct 31 13:00"
+#. en_GB example: "%a %b %d %H:%M" --> "Fri 31 Oct 13:00"
+#: ../src/utils.c:372
+msgid "%a %d %b %H:%M"
+msgstr ""
