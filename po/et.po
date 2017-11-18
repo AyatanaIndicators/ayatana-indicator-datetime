@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-10-12 07:36+0200\n"
-"PO-Revision-Date: 2017-11-06 10:46+0000\n"
+"PO-Revision-Date: 2017-11-19 13:45+0000\n"
 "Last-Translator: Kristjan Räts <kristjanrats@gmail.com>\n"
 "Language-Team: Estonian <https://hosted.weblate.org/projects/ayatana-"
 "indicators/datetime-applet/et/>\n"
@@ -25,11 +25,11 @@ msgstr "Kuva kellaaeg paneelil"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:2
 msgid "Controls whether the clock indicator appears in the panel or not."
-msgstr ""
+msgstr "Kontrollib kella indikaatori kuvatamist paneelil."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:3
 msgid "What the time format should be"
-msgstr ""
+msgstr "Milline peaks olema aja vorming"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:4
 msgid ""
@@ -40,10 +40,16 @@ msgid ""
 "be either 12 or 24 time. Or, you can use a custom format string and set the "
 "custom-time-format setting."
 msgstr ""
+"Kontrollib aja vormingut, mida kuvatakse indikaatoril. Enamikule "
+"kasutajatest peaks see olema nende vaikelokaadis. Kui sule tundub, et sätted "
+"on su lokaadile valed, siis palun liitu või räägi oma keele tlketiimiga. Kui "
+"sa soovid midagi erinevat, siis saad kohandada, kas kasutatakse 12 või 24 "
+"tunnist kella. Samuti saad kasutada kohandatud vormingustringi ja määrata "
+"kohandatud aja vormingu sätte."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:5
 msgid "The format string passed to strftime"
-msgstr ""
+msgstr "Aja vormingu string funktsioonile strftime"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:6
 msgid ""
