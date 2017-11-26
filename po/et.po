@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-10-12 07:36+0200\n"
-"PO-Revision-Date: 2017-11-19 13:45+0000\n"
+"PO-Revision-Date: 2017-11-27 15:46+0000\n"
 "Last-Translator: Kristjan Räts <kristjanrats@gmail.com>\n"
 "Language-Team: Estonian <https://hosted.weblate.org/projects/ayatana-"
 "indicators/datetime-applet/et/>\n"
@@ -59,10 +59,15 @@ msgid ""
 "anything strftime can accept. Look at the man page on strftime for more "
 "information."
 msgstr ""
+"Aja ja/või kuupäeva vorming, mis kuvatakse indikaatori kasutamisel "
+"paneelile. Enamikule kasutajatest on see kogum etteantud väärtuseid, mille "
+"määramiseks on seadistusprogramm, kuid edasijõudnud kasutajad saavad seda "
+"muuta milleks iganes, mida funktsioon strftime toetab. Lisainfot vaata "
+"strftime manuaalist."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:7
 msgid "Show the number of seconds in the indicator"
-msgstr ""
+msgstr "Kuva indikaatoril sekundeid"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:8
 msgid ""
@@ -71,10 +76,14 @@ msgid ""
 "time will update 60 times as often, so it is not recommended. Also, this "
 "setting will be ignored if the time-format value is set to custom."
 msgstr ""
+"Juhib sekundite kuvamist kuupäeva kellaaja indikaatoril. Oluline on märkida, "
+"et see põhjustab täiendavat aku tühjenemist, sest kellaaega uuendatakse60 "
+"korda tihedamalt, seega ei ole see soovitatav. Seda sätet ei rakendata, kui "
+"kasutusel on kohandatud ajavorming."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:9
 msgid "Show the day of the week in the indicator"
-msgstr ""
+msgstr "Kuva nädalapäev indikaatoril"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:10
 msgid ""
@@ -82,10 +91,12 @@ msgid ""
 "depending on settings. This setting will be ignored if the time-format value "
 "is set to custom."
 msgstr ""
+"Lisab paneelile kuupäeva ja kellaaja juurde ka nädalapäeva. See muudatus ei "
+"rakendu, kui kasutusel on kohandatud ajavorming."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:11
 msgid "Show the month and date in the indicator"
-msgstr ""
+msgstr "Kuva kuu ja päev indikaatoril"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:12
 msgid ""
