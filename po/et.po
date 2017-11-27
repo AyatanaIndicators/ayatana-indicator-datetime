@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-10-12 07:36+0200\n"
-"PO-Revision-Date: 2017-11-27 15:46+0000\n"
+"PO-Revision-Date: 2017-11-28 17:45+0000\n"
 "Last-Translator: Kristjan Räts <kristjanrats@gmail.com>\n"
 "Language-Team: Estonian <https://hosted.weblate.org/projects/ayatana-"
 "indicators/datetime-applet/et/>\n"
@@ -360,7 +360,7 @@ msgstr ""
 
 #: ../src/snap.cpp:139
 msgid "OK"
-msgstr ""
+msgstr "ÕK"
 
 #: ../src/snap.cpp:140
 msgid "Snooze"
