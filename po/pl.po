@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
-"POT-Creation-Date: 2017-10-12 07:36+0200\n"
+"POT-Creation-Date: 2017-11-29 13:44+0100\n"
 "PO-Revision-Date: 2010-03-03 10:06-0500\n"
 "Last-Translator: Canonical OEM\n"
 "Language-Team: Polish\n"
@@ -18,19 +18,19 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:1
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
 msgid "Show the clock in the panel"
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:2
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:2
 msgid "Controls whether the clock indicator appears in the panel or not."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:3
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:3
 msgid "What the time format should be"
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:4
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:4
 msgid ""
 "Controls the time format that is displayed in the indicator. For almost all "
 "users this should be the default for their locale. If you think the setting "
@@ -40,11 +40,11 @@ msgid ""
 "custom-time-format setting."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:5
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:5
 msgid "The format string passed to strftime"
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:6
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:6
 msgid ""
 "The format of the time and/or date that is visible on the panel when using "
 "the indicator. For most users this will be a set of predefined values as "
@@ -53,11 +53,11 @@ msgid ""
 "information."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:7
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:7
 msgid "Show the number of seconds in the indicator"
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:8
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:8
 msgid ""
 "Makes the datetime indicator show the number of seconds in the indicator. "
 "It's important to note that this will cause additional battery drain as the "
@@ -65,146 +65,146 @@ msgid ""
 "setting will be ignored if the time-format value is set to custom."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:9
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:9
 msgid "Show the day of the week in the indicator"
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:10
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:10
 msgid ""
 "Puts the day of the week on the panel along with the time and/or date "
 "depending on settings. This setting will be ignored if the time-format value "
 "is set to custom."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:11
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:11
 msgid "Show the month and date in the indicator"
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:12
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:12
 msgid ""
 "Puts the month and the date in the panel along with the time and/or day of "
 "the week depending on settings. This setting will be ignored if the time-"
 "format value is set to custom."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:13
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:13
 msgid "Show the year in the indicator"
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:14
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:14
 msgid ""
 "Puts the year in the panel along with the month and the date. This setting "
 "will be ignored if either the time-format value is set to custom or if show-"
 "date is set to false."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:15
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:15
 msgid "Show the monthly calendar in the indicator"
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:16
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:16
 msgid "Puts the monthly calendar in indicator-datetime's menu."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:17
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:17
 msgid "Show week numbers in calendar"
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:18
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:18
 msgid ""
 "Shows the week numbers in the monthly calendar in indicator-datetime's menu."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:19
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:19
 msgid "Show events in the indicator"
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:20
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:20
 msgid "Shows events from Evolution in indicator-datetime's menu."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:21
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:21
 msgid "Show the auto-detected location in the indicator"
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:22
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:22
 msgid ""
 "Shows your current location (determined from geoclue and /etc/timezone) in "
 "indicator-datetime's menu."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:23
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:23
 msgid "Show locations in the indicator"
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:24
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:24
 msgid "Shows custom defined locations in indicator-datetime's menu."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:25
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:25
 msgid "A List of locations"
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:26
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:26
 msgid ""
 "Adds the list of locations the user has configured to display in the "
 "indicator-datetime menu."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:27
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:27
 msgid "The name of the current timezone"
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:28
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:28
 msgid ""
 "Some timezones can be known by many different cities or names. This setting "
 "describes how the current zone prefers to be named. Format is \"TIMEZONE NAME"
 "\" (e.g. \"America/New_York Boston\" to name the New_York zone Boston)."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:29
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:29
 msgid "What kind of haptic feedback, if any, to trigger with an alarm."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:30
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:30
 msgid ""
 "What kind of haptic feedback, if any, to trigger with an alarm. Two modes "
 "are currently supported: 'pulse', 'none'."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:31
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:31
 msgid "The alarm's default sound file."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:32
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:32
 msgid ""
 "If an alarm doesn't specify its own sound file, this file will be used as "
 "the fallback sound."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:33
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:33
 msgid "The alarm's default volume level."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:34
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:34
 msgid "The volume at which alarms will be played."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:35
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:35
 msgid "The alarm's duration."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:36
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:36
 msgid ""
 "How long the alarm's sound will be looped if its snap decision is not "
 "dismissed by the user."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:37
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:37
 msgid "The snooze duration."
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.h:38
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:38
 msgid "How long to wait when the user hits the Snooze button."
 msgstr ""
 
