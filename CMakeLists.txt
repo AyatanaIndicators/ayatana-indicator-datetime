@@ -26,7 +26,7 @@ set (CMAKE_INSTALL_FULL_PKGLIBEXECDIR "${CMAKE_INSTALL_FULL_LIBEXECDIR}/${CMAKE_
 
 set (GETTEXT_PACKAGE "ayatana-indicator-datetime")
 add_definitions (-DGETTEXT_PACKAGE="${GETTEXT_PACKAGE}"
-                 -DGNOMELOCALEDIR="${CMAKE_INSTALL_FULL_LOCALEDIR}")
+                 -DLOCALEDIR="${CMAKE_INSTALL_FULL_LOCALEDIR}")
 
 ##
 ##  Check for prerequisites
