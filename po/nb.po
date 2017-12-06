@@ -8,28 +8,32 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2010-03-03 10:06-0500\n"
-"Last-Translator: Canonical OEM\n"
-"Language-Team: Norwegian Bokmal\n"
-"Language: \n"
+"PO-Revision-Date: 2017-12-06 10:48+0000\n"
+"Last-Translator: Allan Nordhøy <epost@anotheragency.no>\n"
+"Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/ayatana-"
+"indicators/datetime-applet/nb/>\n"
+"Language: nb\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 2.18-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
 msgid "Show the clock in the panel"
-msgstr ""
+msgstr "Vis klokken i panelet"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:2
+#, fuzzy
 msgid "Controls whether the clock indicator appears in the panel or not."
-msgstr ""
+msgstr "Hvorvidt klokken skal vises i panelet."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:3
 msgid "What the time format should be"
-msgstr ""
+msgstr "Hva tidsformatet skal være."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:4
+#, fuzzy
 msgid ""
 "Controls the time format that is displayed in the indicator. For almost all "
 "users this should be the default for their locale. If you think the setting "
@@ -38,10 +42,16 @@ msgid ""
 "be either 12 or 24 time. Or, you can use a custom format string and set the "
 "custom-time-format setting."
 msgstr ""
+"Kontrollerer tidsformatet som vises i indikatoren. For nesten alle brukere "
+"vil dette være forvalget for deres lokale. Hvis synes innstillingen er gal "
+"for ditt lokale, ta del i, eller snakk til oversettelseslaget for ditt "
+"språk. Hvis du ønsker noe annet kan du justere dette til å være enten 12 "
+"eller 24-timers klokke. Eller, du kan bruke en egendefinert streng og sette "
+"custom-time-format -innstillingen."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:5
 msgid "The format string passed to strftime"
-msgstr ""
+msgstr "Formatstrengen som blir sendt til strftime"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:6
 msgid ""
@@ -54,7 +64,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:7
 msgid "Show the number of seconds in the indicator"
-msgstr ""
+msgstr "Vis antall sekunder i indikatoren"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:8
 msgid ""
@@ -66,7 +76,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:9
 msgid "Show the day of the week in the indicator"
-msgstr ""
+msgstr "Vis ukedagen i indikatoren"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:10
 msgid ""
@@ -77,7 +87,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:11
 msgid "Show the month and date in the indicator"
-msgstr ""
+msgstr "Vis måned og dato i indikatoren"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:12
 msgid ""
@@ -88,7 +98,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:13
 msgid "Show the year in the indicator"
-msgstr ""
+msgstr "Vis året i indikatoren"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:14
 msgid ""
@@ -99,7 +109,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:15
 msgid "Show the monthly calendar in the indicator"
-msgstr ""
+msgstr "Vis månedlig kalender i indikatoren"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:16
 msgid "Puts the monthly calendar in indicator-datetime's menu."
@@ -107,7 +117,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:17
 msgid "Show week numbers in calendar"
-msgstr ""
+msgstr "Viser ukenummer i kalender"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:18
 msgid ""
@@ -116,11 +126,12 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:19
 msgid "Show events in the indicator"
-msgstr ""
+msgstr "Vis hendelser i indikatoren"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:20
+#, fuzzy
 msgid "Shows events from Evolution in indicator-datetime's menu."
-msgstr ""
+msgstr "Viser hendelser fra Evolution i indikatorens datotidsmeny."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:21
 msgid "Show the auto-detected location in the indicator"
@@ -141,18 +152,22 @@ msgid "Shows custom defined locations in indicator-datetime's menu."
 msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:25
+#, fuzzy
 msgid "A List of locations"
-msgstr ""
+msgstr "En liste over plasseringer"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:26
 msgid ""
 "Adds the list of locations the user has configured to display in the "
 "indicator-datetime menu."
 msgstr ""
+"Legger til en liste over plasseringen brukeren har satt opp til visning i "
+"indikatorens datotidsmeny."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:27
+#, fuzzy
 msgid "The name of the current timezone"
-msgstr ""
+msgstr "Navnet på gjeldende tidssone"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:28
 msgid ""
@@ -191,7 +206,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:35
 msgid "The alarm's duration."
-msgstr ""
+msgstr "Alarmens varighet"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:36
 msgid ""
@@ -201,7 +216,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:37
 msgid "The snooze duration."
-msgstr ""
+msgstr "Slumringsvarighet"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:38
 msgid "How long to wait when the user hits the Snooze button."
@@ -299,19 +314,19 @@ msgstr ""
 #. add the 'Add Event…' menuitem
 #: ../src/menu.cpp:352
 msgid "Add Event…"
-msgstr ""
+msgstr "Legg til hendelse…"
 
 #: ../src/menu.cpp:362
 msgid "Clock"
-msgstr ""
+msgstr "Klokke"
 
 #: ../src/menu.cpp:414
 msgid "Time & Date settings…"
-msgstr ""
+msgstr "Tids- og dato-innstillinger…"
 
 #: ../src/menu.cpp:469
 msgid "Date and Time"
-msgstr ""
+msgstr "Dato og tid"
 
 #: ../src/menu.cpp:519
 #, fuzzy
@@ -338,23 +353,23 @@ msgstr ""
 #: ../src/snap.cpp:132
 #, c-format
 msgid "Alarm %s"
-msgstr ""
+msgstr "Alarm %s"
 
 #: ../src/snap.cpp:139
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: ../src/snap.cpp:140
 msgid "Snooze"
-msgstr ""
+msgstr "Slumre"
 
 #: ../src/utils.c:274
 msgid "Today"
-msgstr ""
+msgstr "I dag"
 
 #: ../src/utils.c:278
 msgid "Tomorrow"
-msgstr ""
+msgstr "I morgen"
 
 #. This is a strftime(3) format string indicating the unabbreviated weekday.
 #: ../src/utils.c:283
