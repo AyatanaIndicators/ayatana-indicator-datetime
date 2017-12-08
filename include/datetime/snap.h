@@ -40,7 +40,7 @@ namespace datetime {
 class Snap
 {
 public:
-    Snap(const std::shared_ptr<unity::indicator::notifications::Engine>& engine,
+    Snap(const std::shared_ptr<ayatana::indicator::notifications::Engine>& engine,
          const std::shared_ptr<const Settings>& settings);
     virtual ~Snap();
 
