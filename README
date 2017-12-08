@@ -1,5 +1,6 @@
-ACTIONS
-=======
+# Ayatana Indicator DateTime
+
+## ACTIONS
 
  * "desktop.open-settings-app"
  * "phone.open-settings-app"
@@ -50,15 +51,14 @@ ACTIONS
                       and which day should have the cursor.
 
 
-CUSTOM MENUITEMS
-================
+## CUSTOM MENUITEMS
 
  * Calendar
-   - x-canonical-type         s "com.canonical.indicator.calendar"
+   - x-canonical-type         s "org.ayatana.indicator.calendar"
 
  * Alarm
    - label                    s short summary of the appointment
-   - x-canonical-type         s "com.canonical.indicator.alarm"
+   - x-canonical-type         s "org.ayatana.indicator.alarm"
    - x-canonical-time         x the date of the appointment
    - x-canonical-time-format  s strftime format string
 
@@ -71,14 +71,13 @@ CUSTOM MENUITEMS
 
  * Location
    - label                    s the location's name, eg "Oklahoma City"
-   - x-canonical-type         s "com.canonical.indicator.location"
+   - x-canonical-type         s "org.ayatana.indicator.location"
    - x-canonical-timezone     s timezone that the location is in
    - x-canonical-time-format  s strftime format string
 
 
 
-CODE
-====
+## CODE
 
 Model
 
@@ -111,7 +110,7 @@ Model
   include/datetime/planner-eds.h
   include/datetime/timezones-live.h
 
-View
+## View
 
   Menu is a mostly-opaque class to wrap GMenu code. Its subclasses contain
   the per-profile logic of which sections/menuitems to show and which to hide.
@@ -128,4 +127,4 @@ View
   include/datetime/menu.h
   include/datetime/actions.h
   include/datetime/exporter.h
-  
+
