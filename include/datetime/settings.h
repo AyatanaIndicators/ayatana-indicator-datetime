@@ -33,7 +33,7 @@ namespace datetime {
 /**
  * \brief Interface that represents user-configurable settings.
  *
- * See the descriptions in data/com.canonical.indicator.datetime.gschema.xml
+ * See the descriptions in data/org.ayatana.indicator.datetime.gschema.xml
  * for more information on specific properties.
  */
 class Settings 

@@ -26,7 +26,7 @@ execute_process (COMMAND ${PKG_CONFIG_EXECUTABLE} gio-2.0 --variable glib_compil
                  OUTPUT_VARIABLE COMPILE_SCHEMA_EXECUTABLE
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
 add_custom_command (OUTPUT gschemas.compiled
-                    DEPENDS ${CMAKE_BINARY_DIR}/data/com.canonical.indicator.datetime.gschema.xml
+                    DEPENDS ${CMAKE_BINARY_DIR}/data/org.ayatana.indicator.datetime.gschema.xml
                     COMMAND cp -f ${CMAKE_BINARY_DIR}/data/*gschema.xml ${SCHEMA_DIR}
                     COMMAND ${COMPILE_SCHEMA_EXECUTABLE} ${SCHEMA_DIR})
 

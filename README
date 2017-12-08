@@ -64,7 +64,7 @@ CUSTOM MENUITEMS
 
  * Appointment
    - label                    s short summary of the appointment
-   - x-canonical-type         s "com.canonical.indicator.appointment"
+   - x-canonical-type         s "org.ayatana.indicator.appointment"
    - x-canonical-color        s color of the appt's type, to give a visual cue
    - x-canonical-time         x the date of the appointment
    - x-canonical-time-format  s strftime format string

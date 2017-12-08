@@ -220,7 +220,7 @@ private:
         const auto detailed_action = std::string("indicator.") + name() + "-header";
         auto header = g_menu_item_new(nullptr, detailed_action.c_str());
         g_menu_item_set_attribute(header, "x-canonical-type", "s",
-                                  "com.canonical.indicator.root");
+                                  "org.ayatana.indicator.root");
         g_menu_item_set_attribute(header, "submenu-action", "s",
                                   "indicator.calendar-active");
         g_menu_item_set_submenu(header, G_MENU_MODEL(m_submenu));
@@ -274,7 +274,7 @@ private:
             v = g_variant_new_int64(0);
             g_menu_item_set_action_and_target_value (item, "indicator.calendar", v);
             g_menu_item_set_attribute (item, "x-canonical-type",
-                                       "s", "com.canonical.indicator.calendar");
+                                       "s", "org.ayatana.indicator.calendar");
             if (action_name != nullptr)
                 g_menu_item_set_attribute (item, "activation-action", "s", action_name);
             g_menu_append_item (menu, item);
@@ -329,7 +329,7 @@ private:
             }
             else
             {
-                g_menu_item_set_attribute (menu_item, "x-canonical-type", "s", "com.canonical.indicator.appointment");
+                g_menu_item_set_attribute (menu_item, "x-canonical-type", "s", "org.ayatana.indicator.appointment");
             }
 
             if (!appt.color.empty())
@@ -394,7 +394,7 @@ private:
                 const auto fmt = m_formatter->relative_format(zone_now.get());
                 auto detailed_action = g_strdup_printf("indicator.set-location::%s %s", zone.c_str(), name.c_str());
                 auto i = g_menu_item_new (name.c_str(), detailed_action);
-                g_menu_item_set_attribute(i, "x-canonical-type", "s", "com.canonical.indicator.location");
+                g_menu_item_set_attribute(i, "x-canonical-type", "s", "org.ayatana.indicator.location");
                 g_menu_item_set_attribute(i, "x-canonical-timezone", "s", zone.c_str());
                 g_menu_item_set_attribute(i, "x-canonical-time-format", "s", fmt.c_str());
                 g_menu_append_item (menu, i);

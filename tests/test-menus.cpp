@@ -63,7 +63,7 @@ protected:
         EXPECT_EQ(1,g_menu_model_get_n_items(menu_model));
         gchar* str = nullptr;
         g_menu_model_get_item_attribute(menu_model, 0, "x-canonical-type", "s", &str);
-        EXPECT_STREQ("com.canonical.indicator.root", str);
+        EXPECT_STREQ("org.ayatana.indicator.root", str);
         g_clear_pointer(&str, g_free);
         g_menu_model_get_item_attribute(menu_model, 0, G_MENU_ATTRIBUTE_ACTION, "s", &str);
         const auto action_name = name + "-header";
@@ -134,7 +134,7 @@ protected:
         if (calendar_expected)
         {
             g_menu_model_get_item_attribute(section, 1, "x-canonical-type", "s", &str);
-            EXPECT_STREQ("com.canonical.indicator.calendar", str);
+            EXPECT_STREQ("org.ayatana.indicator.calendar", str);
             g_clear_pointer(&str, g_free);
 
             g_menu_model_get_item_attribute(section, 1, G_MENU_ATTRIBUTE_ACTION, "s", &str);
@@ -211,9 +211,9 @@ private:
         gchar * str = nullptr;
         g_menu_model_get_item_attribute(section, index, "x-canonical-type", "s", &str);
         if (appt.is_ubuntu_alarm())
-            EXPECT_STREQ("com.canonical.indicator.alarm", str);
+            EXPECT_STREQ("org.ayatana.indicator.alarm", str);
         else
-            EXPECT_STREQ("com.canonical.indicator.appointment", str);
+            EXPECT_STREQ("org.ayatana.indicator.appointment", str);
         g_clear_pointer(&str, g_free);
 
         // confirm it has a nonempty x-canonical-time-format
@@ -406,7 +406,7 @@ protected:
 
             // confirm that the x-canonical-type is right
             g_menu_model_get_item_attribute(section, i, "x-canonical-type", "s", &str);
-            EXPECT_STREQ("com.canonical.indicator.location", str);
+            EXPECT_STREQ("org.ayatana.indicator.location", str);
             g_clear_pointer(&str, g_free);
 
             // confirm that the timezones match the ones in the vector
