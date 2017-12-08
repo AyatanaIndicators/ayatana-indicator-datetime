@@ -223,7 +223,7 @@ private:
         return uri;
     }
 
-    const std::shared_ptr<unity::indicator::notifications::Engine> m_engine;
+    const std::shared_ptr<ayatana::indicator::notifications::Engine> m_engine;
     const std::shared_ptr<const Settings> m_settings;
     std::set<int> m_notifications;
     GCancellable * m_cancellable {nullptr};
@@ -234,7 +234,7 @@ private:
 ****
 ***/
 
-Snap::Snap(const std::shared_ptr<unity::indicator::notifications::Engine>& engine,
+Snap::Snap(const std::shared_ptr<ayatana::indicator::notifications::Engine>& engine,
            const std::shared_ptr<const Settings>& settings):
   impl(new Impl(engine, settings))
 {
