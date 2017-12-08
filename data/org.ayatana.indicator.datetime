@@ -1,5 +1,5 @@
 [Indicator Service]
-Name=indicator-datetime
+Name=ayatana-indicator-datetime
 ObjectPath=/org/ayatana/indicator/datetime
 Position=20
 
@@ -17,4 +17,3 @@ ObjectPath=/org/ayatana/indicator/datetime/phone
 
 [phone_greeter]
 ObjectPath=/org/ayatana/indicator/datetime/phone_greeter
-
