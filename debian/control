@@ -13,6 +13,7 @@ Build-Depends: cmake,
                libecal1.2-dev (>= 3.16),
                libical-dev (>= 1.0),
                libedataserver1.2-dev (>= 3.5),
+               gsettings-ubuntu-schemas | hello,
                liburl-dispatcher1-dev | hello,
                libproperties-cpp-dev,
 # for the test harness:
