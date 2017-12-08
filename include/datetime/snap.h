@@ -20,7 +20,7 @@
 #ifndef INDICATOR_DATETIME_SNAP_H
 #define INDICATOR_DATETIME_SNAP_H
 
-#ifdef HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS
+#ifdef HAS_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS
 
 #include <datetime/appointment.h>
 #include <datetime/settings.h>
@@ -59,6 +59,6 @@ private:
 } // namespace indicator
 } // namespace ayatana
 
-#endif // HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS
+#endif // HAS_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS
 
 #endif // INDICATOR_DATETIME_SNAP_H
