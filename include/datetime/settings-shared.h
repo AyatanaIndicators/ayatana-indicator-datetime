@@ -30,7 +30,7 @@ typedef enum
 }
 TimeFormatMode;
 
-#define SETTINGS_INTERFACE              "com.canonical.indicator.datetime"
+#define SETTINGS_INTERFACE              "org.ayatana.indicator.datetime"
 #define SETTINGS_SHOW_CLOCK_S           "show-clock"
 #define SETTINGS_TIME_FORMAT_S          "time-format"
 #define SETTINGS_SHOW_SECONDS_S         "show-seconds"
