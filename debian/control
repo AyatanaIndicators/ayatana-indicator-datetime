@@ -26,6 +26,7 @@ Build-Depends: cmake,
 # for running live EDS tests:
                evolution-data-server,
                gvfs-daemons,
+               systemd [linux-any],
 Standards-Version: 3.9.6
 Homepage: https://github.com/ArcticaProject/ayatana-indicator-datetime
 Vcs-Git: git://cgit.arctica-project.org/ayatana/ayatana-indicator-datetime.git
@@ -35,6 +36,7 @@ Package: ayatana-indicator-datetime
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
+         ayatana-indicator-common,
          libglib2.0-bin,
 Recommends: indicator-applet | mate-indicator-applet | xfce4-indicator-plugin | indicator-renderer,
             evolution-data-server,
