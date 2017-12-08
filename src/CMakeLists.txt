@@ -1,5 +1,5 @@
 set (SERVICE_LIB "indicatordatetimeservice")
-set (SERVICE_EXEC "indicator-datetime-service")
+set (SERVICE_EXEC "ayatana-indicator-datetime-service")
 
 add_definitions (-DG_LOG_DOMAIN="Indicator-Datetime")
 
