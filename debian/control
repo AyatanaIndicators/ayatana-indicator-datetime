@@ -35,11 +35,14 @@ Package: ayatana-indicator-datetime
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         systemd-services,
-         systemd-shim,
          libglib2.0-bin,
-Recommends: indicator-applet | indicator-renderer,
+Recommends: indicator-applet | mate-indicator-applet | xfce4-indicator-plugin | indicator-renderer,
             evolution-data-server,
             geoclue-provider,
-Description: Simple clock
- A simple clock appearing in the indicator bar
+Description: Ayatana Indicator providing clock and calendar
+ This Ayatana Indicator provides a combined calendar, clock, alarm and
+ event management tool.
+ .
+ On Ubuntu systems, this Indicator supports phone devices based on
+ Ubuntu. On non-Ubuntu systems, the phone support has been disabled at
+ build-time.
