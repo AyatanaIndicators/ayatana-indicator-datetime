@@ -203,7 +203,7 @@ TEST_F(SettingsFixture, Locations)
     const gchar* bstrv[] = {"America/Denver", "Europe/London London", "Europe/Berlin Berlin", nullptr};
     const std::vector<std::string> av = strv_to_vector(astrv);
     const std::vector<std::string> bv = strv_to_vector(bstrv);
-    
+
     g_settings_set_strv(m_gsettings, key, astrv);
     EXPECT_EQ(av, m_settings->locations.get());
     g_settings_set_strv(m_gsettings, key, bstrv);

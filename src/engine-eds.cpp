@@ -110,7 +110,7 @@ public:
 
         auto gtz = default_timezone != nullptr
                  ? g_time_zone_new(icaltimezone_get_location(default_timezone))
-                 : g_time_zone_new_local(); 
+                 : g_time_zone_new_local();
         auto main_task = std::make_shared<Task>(this, func, default_timezone, gtz, begin, end);
 
         for (auto& kv : m_clients)
@@ -1026,7 +1026,7 @@ private:
     /***
     ****
     ***/
- 
+
     core::Signal<> m_changed;
     std::set<ESource*> m_sources;
     std::map<ESource*,ECalClient*> m_clients;

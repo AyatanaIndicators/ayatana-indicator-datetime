@@ -10,7 +10,7 @@ option (enable_lcov "Generate lcov code coverage reports." ON)
 
 ##
 ##  GNU standard installation directories
-## 
+##
 
 include (GNUInstallDirs)
 if (EXISTS "/etc/debian_version") # Workaround for libexecdir on debian

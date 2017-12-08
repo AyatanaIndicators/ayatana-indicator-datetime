@@ -160,7 +160,7 @@ protected:
         for(const auto& a : m_state->calendar_upcoming->appointments().get())
             if (begin <= a.begin)
                 upcoming.push_back(a);
- 
+
         if (m_upcoming != upcoming)
         {
             m_upcoming.swap(upcoming);
@@ -324,7 +324,7 @@ private:
 
             if (appt.is_ubuntu_alarm())
             {
-                g_menu_item_set_attribute (menu_item, "x-canonical-type", "s", "com.canonical.indicator.alarm");
+                g_menu_item_set_attribute (menu_item, "x-canonical-type", "s", "org.ayatana.indicator.alarm");
                 g_menu_item_set_attribute_value(menu_item, G_MENU_ATTRIBUTE_ICON, get_serialized_alarm_icon());
             }
             else
@@ -605,7 +605,7 @@ MenuFactory::buildMenu(Menu::Profile profile)
         g_warn_if_reached();
         break;
     }
-    
+
     return menu;
 }
 

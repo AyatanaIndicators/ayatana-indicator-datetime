@@ -92,8 +92,8 @@ private:
         const double in = CLAMP(m_volume, in_range_lo, in_range_hi);
         const double pct = (in - in_range_lo) / (in_range_hi - in_range_lo);
 
-        constexpr double out_range_lo = 0.0; 
-        constexpr double out_range_hi = 1.0; 
+        constexpr double out_range_lo = 0.0;
+        constexpr double out_range_hi = 1.0;
         return out_range_lo + (pct * (out_range_hi - out_range_lo));
     }
 

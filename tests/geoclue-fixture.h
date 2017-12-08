@@ -72,7 +72,7 @@ class GeoclueFixture : public GlibFixture
       interface = "org.freedesktop.Geoclue.Address";
       obj_geo_addr = dbus_test_dbus_mock_get_object (mock, client_path, interface, nullptr);
       dbus_test_dbus_mock_object_add_method (mock, obj_geo_addr, "GetAddress", nullptr, G_VARIANT_TYPE("(ia{ss}(idd))"), gstr->str, &error);
-                                             
+
       dbus_test_service_add_task(service, DBUS_TEST_TASK(mock));
       dbus_test_service_start_tasks(service);
 

@@ -13,14 +13,14 @@ Copyright:
 
 License:
 
-  This program is free software: you can redistribute it and/or modify it 
-  under the terms of the GNU General Public License version 3, as published 
+  This program is free software: you can redistribute it and/or modify it
+  under the terms of the GNU General Public License version 3, as published
   by the Free Software Foundation.
 
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
- 
-The Debian packaging is (C) 2010, Canonical Ltd. and is licensed under the 
+
+The Debian packaging is (C) 2010, Canonical Ltd. and is licensed under the
 GPLv3, see /usr/share/common-licenses/GPL-3.

@@ -26,7 +26,7 @@
 #include <datetime/planner-upcoming.h>
 #include <datetime/settings.h>
 #include <datetime/timezones.h>
-   
+
 #include <core/property.h>
 
 #include <memory> // std::shared_ptr

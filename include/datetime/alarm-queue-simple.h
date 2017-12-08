@@ -32,7 +32,7 @@ namespace indicator {
 namespace datetime {
 
 /**
- * \brief A #AlarmQueue implementation 
+ * \brief A #AlarmQueue implementation
  */
 class SimpleAlarmQueue: public AlarmQueue
 {

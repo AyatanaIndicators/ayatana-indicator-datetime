@@ -121,7 +121,7 @@ private:
            a running loop -- we could keep vibrating even after "this" was
            destructed */
         auto repeat_count = g_variant_new_uint32 (1u);
- 
+
         g_variant_builder_init (&builder, G_VARIANT_TYPE_TUPLE);
         g_variant_builder_add_value (&builder, pattern_array);
         g_variant_builder_add_value (&builder, repeat_count);

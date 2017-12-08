@@ -76,7 +76,7 @@ TEST_F(DateTimeFixture, StartAndEnd)
     const int n_iterations{10000};
 
     for (int i{0}; i<n_iterations; ++i)
-    { 
+    {
         const auto day = random_day();
         int dayy{0}, daym{0}, dayd{0};
         day.ymd(dayy, daym, dayd);

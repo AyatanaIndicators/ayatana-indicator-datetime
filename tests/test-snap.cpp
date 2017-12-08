@@ -62,7 +62,7 @@ protected:
   static constexpr char const * HAPTIC_METHOD_VIBRATE_PATTERN {"VibratePattern"};
 
   static constexpr int SCREEN_COOKIE {8675309};
-  static constexpr char const * SCREEN_METHOD_KEEP_DISPLAY_ON {"keepDisplayOn"}; 
+  static constexpr char const * SCREEN_METHOD_KEEP_DISPLAY_ON {"keepDisplayOn"};
   static constexpr char const * SCREEN_METHOD_REMOVE_DISPLAY_ON_REQUEST {"removeDisplayOnRequest"};
 
   static constexpr int POWERD_SYS_STATE_ACTIVE = 1;
@@ -167,8 +167,8 @@ protected:
                                                 NOTIFY_INTERFACE,
                                                 &error);
     g_assert_no_error(error);
-   
-    // METHOD_GET_INFO 
+
+    // METHOD_GET_INFO
     str = g_strdup("ret = ('mock-notify', 'test vendor', '1.0', '1.1')");
     dbus_test_dbus_mock_object_add_method(notify_mock,
                                           notify_obj,
@@ -198,7 +198,7 @@ protected:
     g_assert_no_error (error);
     g_free (str);
 
-    // METHOD_CLOSE 
+    // METHOD_CLOSE
     str = g_strdup_printf("self.EmitSignal('%s', '%s', 'uu', [ args[0], %d ])",
                           NOTIFY_INTERFACE,
                           SIGNAL_CLOSED,
@@ -225,8 +225,8 @@ protected:
                                                 BUS_POWERD_INTERFACE,
                                                 &error);
     g_assert_no_error(error);
-   
-    str = g_strdup_printf ("ret = '%s'", POWERD_COOKIE); 
+
+    str = g_strdup_printf ("ret = '%s'", POWERD_COOKIE);
     dbus_test_dbus_mock_object_add_method(powerd_mock,
                                           powerd_obj,
                                           POWERD_METHOD_REQUEST_SYS_STATE,
@@ -258,8 +258,8 @@ protected:
                                                 BUS_SCREEN_INTERFACE,
                                                 &error);
     g_assert_no_error(error);
-   
-    str = g_strdup_printf ("ret = %d", SCREEN_COOKIE); 
+
+    str = g_strdup_printf ("ret = %d", SCREEN_COOKIE);
     dbus_test_dbus_mock_object_add_method(screen_mock,
                                           screen_obj,
                                           SCREEN_METHOD_KEEP_DISPLAY_ON,
@@ -289,7 +289,7 @@ protected:
                                                 BUS_HAPTIC_PATH,
                                                 BUS_HAPTIC_INTERFACE,
                                                 &error);
-   
+
     dbus_test_dbus_mock_object_add_method(haptic_mock,
                                           haptic_obj,
                                           HAPTIC_METHOD_VIBRATE_PATTERN,

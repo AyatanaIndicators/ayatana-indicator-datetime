@@ -179,7 +179,7 @@ TEST_F(ClockFixture, SysPowerStateChange)
   clock->minute_changed.connect([&minute_changed]() {
     minute_changed = true;
   });
-  
+
   // control test -- minute_changed shouldn't get triggered
   // when the clock is silently changed
   gboolean is_owned = false;

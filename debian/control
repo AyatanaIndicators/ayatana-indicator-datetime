@@ -32,7 +32,7 @@ Vcs-Browser: https://cgit.arctica-project.org/ayatana/ayatana-indicator-datetime
 
 Package: ayatana-indicator-datetime
 Architecture: any
-Depends: ${shlibs:Depends}, 
+Depends: ${shlibs:Depends},
          ${misc:Depends},
          systemd-services,
          systemd-shim,

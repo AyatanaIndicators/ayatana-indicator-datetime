@@ -56,7 +56,7 @@ if [ -e ${ICS_FILE} ]; then
 fi
 
 # run the test
-${TEST_RUNNER} --keep-env --max-wait=90 --task ${TEST_EXEC} --task-name ${TEST_NAME} --wait-until-complete 
+${TEST_RUNNER} --keep-env --max-wait=90 --task ${TEST_EXEC} --task-name ${TEST_NAME} --wait-until-complete
 rv=$?
 
 # if the test passed, blow away the tmpdir

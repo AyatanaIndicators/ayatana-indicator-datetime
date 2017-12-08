@@ -201,7 +201,7 @@ TEST_F(FormatterFixture, TestUpcomingTimes)
         {
             auto clock = std::make_shared<MockClock>(test_case.now);
             DesktopFormatter f(clock, m_settings);
-        
+
             const auto fmt = f.relative_format(test_case.then.get());
             ASSERT_EQ(test_case.expected_format_string, fmt);
         }
@@ -239,7 +239,7 @@ TEST_F(FormatterFixture, TestEventTimes)
         {
             auto clock = std::make_shared<MockClock>(test_case.now);
             DesktopFormatter f(clock, m_settings);
-          
+
             const auto fmt = f.relative_format(test_case.then.get(), test_case.then_end.get());
             ASSERT_STREQ(test_case.expected_format_string, fmt.c_str());
         }

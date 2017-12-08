@@ -59,7 +59,7 @@ public:
             unforce_awake ();
             remove_display_on_request ();
             g_object_unref (m_system_bus);
-        } 
+        }
     }
 
 private:
@@ -147,7 +147,7 @@ private:
             g_clear_pointer (&self->m_awake_cookie, g_free);
             g_variant_get (args, "(s)", &self->m_awake_cookie);
             g_debug ("m_awake_cookie is now '%s'", self->m_awake_cookie);
- 
+
             g_variant_unref (args);
         }
     }
@@ -184,7 +184,7 @@ private:
             self->m_display_on_timer = g_timeout_add_seconds (self->m_display_on_seconds,
                                                               on_display_on_timer,
                                                               gself);
- 
+
             g_variant_unref (args);
         }
     }

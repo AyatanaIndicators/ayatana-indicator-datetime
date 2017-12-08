@@ -173,7 +173,7 @@ private:
                                    self->m_cancellable,
                                    on_address_started,
                                    self);
-    
+
             g_variant_unref(result);
         }
     }

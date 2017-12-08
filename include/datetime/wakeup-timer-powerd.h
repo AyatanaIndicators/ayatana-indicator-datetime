@@ -34,7 +34,7 @@ namespace datetime {
 ***/
 
 /**
- * \brief a WakeupTimer implemented with g_timeout_add() 
+ * \brief a WakeupTimer implemented with g_timeout_add()
  */
 class PowerdWakeupTimer: public WakeupTimer
 {

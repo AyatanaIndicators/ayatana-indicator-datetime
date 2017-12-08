@@ -12,7 +12,7 @@ if (CMAKE_BUILD_TYPE MATCHES coverage)
     message(STATUS "Gcovr found, can generate XML coverage info.")
     add_custom_target (coverage-xml
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-      COMMAND "${GCOVR_EXECUTABLE}" --exclude="test.*" -x -r "${CMAKE_SOURCE_DIR}" 
+      COMMAND "${GCOVR_EXECUTABLE}" --exclude="test.*" -x -r "${CMAKE_SOURCE_DIR}"
       --object-directory=${CMAKE_BINARY_DIR} -o coverage.xml)
   endif()
 
@@ -36,7 +36,7 @@ if (CMAKE_BUILD_TYPE MATCHES coverage)
         COMMAND ${CMAKE_COMMAND} -E echo "")
         #COMMAND "${LCOV_EXECUTABLE}" --directory ${CMAKE_BINARY_DIR} --capture --output-file coverage.info --no-checksum
         #COMMAND "${GENHTML_EXECUTABLE}" --prefix ${CMAKE_BINARY_DIR} --output-directory coveragereport --title "Code Coverage" --legend --show-details coverage.info
-        #COMMAND ${CMAKE_COMMAND} -E echo "\\#define foo \\\"bar\\\"" 
+        #COMMAND ${CMAKE_COMMAND} -E echo "\\#define foo \\\"bar\\\""
         #)
     endif()
   endif()

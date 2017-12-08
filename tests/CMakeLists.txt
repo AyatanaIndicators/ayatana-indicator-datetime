@@ -1,6 +1,6 @@
 # build libgtest
-add_library (gtest STATIC 
-             ${GTEST_SOURCE_DIR}/gtest-all.cc 
+add_library (gtest STATIC
+             ${GTEST_SOURCE_DIR}/gtest-all.cc
              ${GTEST_SOURCE_DIR}/gtest_main.cc)
 set_target_properties (gtest PROPERTIES INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${GTEST_INCLUDE_DIR})
 set_target_properties (gtest PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS} -w)
@@ -72,7 +72,7 @@ if (URLDISPATCHER_FOUND)
 
 ##
 ## EDS Tests
-## 
+##
 
 find_program(DBUS_RUNNER dbus-test-runner)
 

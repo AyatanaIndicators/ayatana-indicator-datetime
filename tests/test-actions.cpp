@@ -268,13 +268,13 @@ TEST_F(ActionsFixture, SetCalendarDate)
     EXPECT_TRUE(DateTime::is_same_day (now, m_state->calendar_month->month().get()));
 
     // DST change in US
-    now = DateTime::Local(2015, 3, 8, 9, 0, 0); 
+    now = DateTime::Local(2015, 3, 8, 9, 0, 0);
     v = g_variant_new_int64(now.to_unix());
     g_action_group_activate_action (action_group, action_name, v);
     EXPECT_TRUE(DateTime::is_same_day (now, m_state->calendar_month->month().get()));
 
     // DST change in Europe
-    now = DateTime::Local(2015, 3, 29, 9, 0, 0); 
+    now = DateTime::Local(2015, 3, 29, 9, 0, 0);
     v = g_variant_new_int64(now.to_unix());
     g_action_group_activate_action (action_group, action_name, v);
     EXPECT_TRUE(DateTime::is_same_day (now, m_state->calendar_month->month().get()));

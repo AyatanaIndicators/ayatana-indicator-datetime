@@ -35,7 +35,7 @@ class Engine;
  * Helper class for showing notifications.
  *
  * Populate the builder, then pass it to Engine::show().
- * 
+ *
  * @see Engine::show(Builder)
  */
 class Builder
@@ -104,7 +104,7 @@ public:
     void close_all();
 
     const std::string& app_name() const;
-    
+
 private:
     class Impl;
     std::unique_ptr<Impl> impl;

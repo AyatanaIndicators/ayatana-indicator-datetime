@@ -39,7 +39,7 @@ namespace datetime {
 
 /**
  * Class wrapper around EDS so multiple #EdsPlanners can share resources
- * 
+ *
  * @see EdsPlanner
  */
 class EdsEngine: public Engine

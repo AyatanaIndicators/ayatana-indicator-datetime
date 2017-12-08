@@ -150,7 +150,7 @@ private:
             // reset the timer in case someone changed the system clock
             self->reset_timer();
         }
-  
+
         self->refresh();
         return G_SOURCE_CONTINUE;
     }

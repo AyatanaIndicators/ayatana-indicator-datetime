@@ -32,7 +32,7 @@ namespace datetime {
 
 /**
  * A no-op #Engine
- * 
+ *
  * @see Engine
  */
 class MockEngine: public Engine

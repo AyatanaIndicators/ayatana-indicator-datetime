@@ -34,7 +34,7 @@ namespace indicator {
 namespace datetime {
 
 /**
- * \brief Exports actions and menus to DBus. 
+ * \brief Exports actions and menus to DBus.
  */
 class Exporter
 {
@@ -51,9 +51,9 @@ private:
     class Impl;
     std::unique_ptr<Impl> p;
 
-    // disable copying 
-    Exporter(const Exporter&) =delete; 
-    Exporter& operator=(const Exporter&) =delete; 
+    // disable copying
+    Exporter(const Exporter&) =delete;
+    Exporter& operator=(const Exporter&) =delete;
 };
 
 } // namespace datetime

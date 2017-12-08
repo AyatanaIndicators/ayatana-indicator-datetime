@@ -95,7 +95,7 @@ private:
         // idle until the next alarm
         if ((alarm = find_next_alarm(appointments)))
         {
-            g_debug ("setting timer to wake up for next appointment '%s' at %s", 
+            g_debug ("setting timer to wake up for next appointment '%s' at %s",
                      alarm->text.c_str(),
                      alarm->time.format("%F %T").c_str());
 

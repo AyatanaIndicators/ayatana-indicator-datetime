@@ -66,7 +66,7 @@ namespace
         { "America/Chicago", "Europe/London London", "Chicago" }
     };
 }
-  
+
 TEST(UtilsTest, BeautifulTimezoneName)
 {
     for(const auto& test_case : beautify_timezone_test_cases)

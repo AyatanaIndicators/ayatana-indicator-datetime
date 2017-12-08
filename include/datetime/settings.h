@@ -36,7 +36,7 @@ namespace datetime {
  * See the descriptions in data/org.ayatana.indicator.datetime.gschema.xml
  * for more information on specific properties.
  */
-class Settings 
+class Settings
 {
 public:
     Settings() =default;

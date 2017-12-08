@@ -19,7 +19,7 @@
 
 #include <datetime/planner.h>
 
-#include <algorithm> 
+#include <algorithm>
 
 namespace ayatana {
 namespace indicator {

@@ -48,7 +48,7 @@ gchar *       generate_full_format_string_at_time  (GDateTime   * now,
            their other locale settings when generating time format string */
 const char*   T_                                   (const char  * msg);
 
-  
+
 G_END_DECLS
 
 #endif /* INDICATOR_DATETIME_UTILS_H */

@@ -3,50 +3,50 @@
 ## ACTIONS
 
  * "desktop.open-settings-app"
- * "phone.open-settings-app"
+ * "phone.open-settings-app"<br />
    Description: open the settings application.
    State: None
    Parameter: None
 
  * "desktop.open-alarm-app"
- * "phone.open-alarm-app"
+ * "phone.open-alarm-app"<br />
    Description: open the application for creating new alarms.
    State: None
    Parameter: None
 
  * "desktop.open-calendar-app"
- * "phone.open-calendar-app"
+ * "phone.open-calendar-app"<br />
    State: None
    Parameter: int64, a time_t hinting which day/time to show in the planner,
                      or 0 for the current day
 
  * "desktop.open-appointment"
- * "phone.open-appointment"
+ * "phone.open-appointment"<br />
    Description: opens an appointment editor to the specified appointment.
    State: None
    Parameter: string, an opaque uid to specify which appointment to use.
                       This uid comes from the menuitems' target values.
 
- * "set-location"
+ * "set-location"<br />
    Description: Set the current location. This will try to set the current
-   timezone to the new location's timezone.
-   State: None
+   timezone to the new location's timezone.<br />
+   State: None<br />
    Parameter: a timezone id string followed by a space and location name.
               Example: "America/Chicago Oklahoma City"
 
- * "calendar"
+ * "calendar"<br />
     Description: set which month/day should be given focus in the indicator's
                  calendar. The planner will look for appointments from this
                  day to the end of the same month.
                  Client code implementing the calendar view should call this
-                 when the user clicks on a new day, month, or year.
+                 when the user clicks on a new day, month, or year.<br />
     State: a dictionary containing these key value/pairs:
           "appointment-days": an array of day-of-month ints. Used by the
                               calendar menuitem to mark appointment days.
           "calendar-day": int64, a time_t. Used by the calendar menuitem
                           to know which year/month should be visible
                           and which day should have the cursor.
-          "show-week-numbers": if true, show week numbers in the calendar.
+          "show-week-numbers": if true, show week numbers in the calendar.<br />
     Parameter: int64, a time_t specifying which year/month should be visible
                       and which day should have the cursor.
 
@@ -79,7 +79,7 @@
 
 ## CODE
 
-Model
+### Model
 
   The app's model is represented by the "State" class, and "Menu" objects
   are the corresponding views. "State" is a simple container for various
@@ -96,21 +96,21 @@ Model
   components for unit tests. The entire backend can be mix-and-matched by
   adding the desired test-or-production components.
 
-  Start with:
-  include/datetime/state.h
-  include/datetime/clock.h
-  include/datetime/locations.h
-  include/datetime/planner.h
-  include/datetime/settings.h
-  include/datetime/timezones.h
+  Start with:<br />
+  include/datetime/state.h<br />
+  include/datetime/clock.h<br />
+  include/datetime/locations.h<br />
+  include/datetime/planner.h<br />
+  include/datetime/settings.h<br />
+  include/datetime/timezones.h<br />
 
-  Implementations:
-  include/datetime/settings-live.h
-  include/datetime/locations-settings.h
-  include/datetime/planner-eds.h
-  include/datetime/timezones-live.h
+  Implementations:<br />
+  include/datetime/settings-live.h<br />
+  include/datetime/locations-settings.h<br />
+  include/datetime/planner-eds.h<br />
+  include/datetime/timezones-live.h<br />
 
-## View
+### View
 
   Menu is a mostly-opaque class to wrap GMenu code. Its subclasses contain
   the per-profile logic of which sections/menuitems to show and which to hide.
@@ -124,7 +124,7 @@ Model
   signal if/when the busname is lost so indicator-datetime-service knows
   when to exit.
 
-  include/datetime/menu.h
-  include/datetime/actions.h
-  include/datetime/exporter.h
+  include/datetime/menu.h<br />
+  include/datetime/actions.h<br />
+  include/datetime/exporter.h<br />
 

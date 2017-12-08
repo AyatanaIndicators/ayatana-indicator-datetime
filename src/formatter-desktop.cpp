@@ -165,7 +165,7 @@ const gchar* DesktopFormatter::getDateFormat(bool show_day, bool show_date, bool
     else if (show_date)
         /* Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
            That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
-           This format string shows the abbreviated month and day. 
+           This format string shows the abbreviated month and day.
            en_US example: "%b %e" --> "Mar 27"
            en_GB example: "%e %b" --> "27 Mar"
            zh_CN example(?): "%m月%d日" --> "03月27日" */

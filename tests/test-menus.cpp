@@ -120,7 +120,7 @@ protected:
         g_menu_model_get_item_attribute(section, 0, G_MENU_ATTRIBUTE_LABEL, "s", &str);
         const auto now = m_state->clock->localtime();
         EXPECT_EQ(now.format("%A, %e %B %Y"), str);
-      
+
         g_clear_pointer(&str, g_free);
 
         g_menu_model_get_item_attribute(section, 0, G_MENU_ATTRIBUTE_ACTION, "s", &str);

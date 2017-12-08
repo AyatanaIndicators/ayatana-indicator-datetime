@@ -66,7 +66,7 @@ TEST_F(VAlarmFixture, MultipleAppointments)
         constexpr int max_wait_sec = 10;
         wait_msec(max_wait_sec * G_TIME_SPAN_MILLISECOND);
     }
-   
+
     // what we expect to get...
     Appointment expected_appt;
     expected_appt.uid = "20150507T211449Z-4262-32011-1418-1@ubuntu-phablet";

@@ -37,7 +37,7 @@ namespace datetime {
 
 /**
  * Class wrapper around the backend that generates appointments
- * 
+ *
  * @see EdsEngine
  * @see EdsPlanner
  */

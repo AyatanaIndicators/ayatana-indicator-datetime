@@ -95,7 +95,7 @@ split_settings_location(const gchar* location, gchar** zone, gchar** name)
  * "America/Chicago Oklahoma City"), this function tries to make a
  * more human-readable name by using the user-provided name if the guessed
  * timezone matches the last one the user manually clicked on.
- * 
+ *
  * In the example above, this allows the menuitem for the system-guessed
  * timezone ("America/Chicago") to read "Oklahoma City" after the user clicks
  * on the "Oklahoma City" menuitem.
@@ -250,10 +250,10 @@ T_(const char *msg)
  * _ a time after this week should be shown as the short version of the day,
  *   date, and time (e.g. “Wed 21 Apr 3:55 PM”)
  * _ a full-day event after this week should be shown as the short version of
- *   the day and date (e.g. “Wed 21 Apr”). 
+ *   the day and date (e.g. “Wed 21 Apr”).
  * _ in addition, when presenting the times of upcoming events, the time should
  *   be followed by the timezone if it is different from the one the computer
- *   is currently set to. For example, “Wed 3:55 PM UTC−5”. 
+ *   is currently set to. For example, “Wed 3:55 PM UTC−5”.
  */
 char* generate_full_format_string_at_time (GDateTime* now,
                                            GDateTime* then,

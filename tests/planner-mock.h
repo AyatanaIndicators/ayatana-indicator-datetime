@@ -47,7 +47,7 @@ private:
     core::Property<std::vector<Appointment>> m_appointments;
     core::Property<std::pair<DateTime,DateTime>> m_range;
 };
- 
+
 
 } // namespace datetime
 } // namespace indicator

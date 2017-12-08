@@ -58,7 +58,7 @@ Builder::Builder():
 Builder::~Builder()
 {
 }
- 
+
 void
 Builder::set_title (const std::string& title)
 {
@@ -163,7 +163,7 @@ public:
                 g_warning ("Unable to close notification %d: %s", key, error->message);
                 g_error_free (error);
             }
-         
+
             // call the user callback and remove it from our bookkeeping
             remove_closed_notification (key);
         }
@@ -220,7 +220,7 @@ public:
         m_notifications[key] = { nn, info.m_closed_callback };
         g_signal_connect (nn.get(), "closed",
                           G_CALLBACK(on_notification_closed), this);
-     
+
         GError * error = nullptr;
         if (notify_notification_show(nn.get(), &error))
         {
