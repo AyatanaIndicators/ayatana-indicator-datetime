@@ -74,16 +74,17 @@ class FormatterFixture: public GlibFixture
         }
       else
         {
-          g_warning("Unable to set locale to %s; skipping %s locale tests.", expected_locale, name);
+          g_message("Unable to set locale to %s, actual locale is %s; skipping %s locale tests.", expected_locale, actual_locale, name);
           return false;
         }
     }
 
-    inline bool Set24hLocale() { return SetLocale("C",          "24h"); }
-    inline bool Set12hLocale() { return SetLocale("en_US.utf8", "12h"); }
+    inline bool Set24hLocale() { return SetLocale("C",           "24h"); }
+    inline bool Set12hLocale() { return SetLocale("en_US.UTF-8", "12h"); }
 };
 
 
+#ifdef HAS_URLDISPATCHER
 /**
  * Test the phone header format
  */
@@ -145,17 +146,23 @@ TEST_F(FormatterFixture, TestDesktopHeader)
   auto now = DateTime::Local(2020, 10, 31, 18, 30, 59);
   auto clock = std::make_shared<MockClock>(now);
 
+  bool locale_set = false;
   for(const auto& test_case : test_cases)
     {
-      if (test_case.is_12h ? Set12hLocale() : Set24hLocale())
+      test_case.is_12h ? locale_set = Set12hLocale() : locale_set = Set24hLocale();
+      DesktopFormatter f(clock, m_settings);
+
+      m_settings->show_day.set(test_case.show_day);
+      m_settings->show_date.set(test_case.show_date);
+      m_settings->show_year.set(test_case.show_year);
+
+      if (locale_set)
         {
-          DesktopFormatter f(clock, m_settings);
-
-          m_settings->show_day.set(test_case.show_day);
-          m_settings->show_date.set(test_case.show_date);
-          m_settings->show_year.set(test_case.show_year);
-
           ASSERT_STREQ(test_case.expected_format_string, f.header_format.get().c_str());
+        }
+      else
+        {
+          g_message("Ignoring test (expected: %s, probably flawed test result: %s).", test_case.expected_format_string, f.header_format.get().c_str());
         }
     }
 }
