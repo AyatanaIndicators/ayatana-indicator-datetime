@@ -3,52 +3,52 @@
 ## ACTIONS
 
  * **desktop.open-settings-app**<br />
-   **phone.open-settings-app**<br />
-   Description: open the settings application.
-   State: None
-   Parameter: None
+   **phone.open-settings-app**
+    - Description: open the settings application.
+    - State: None
+    - Parameter: None
 
  * **desktop.open-alarm-app**<br />
-   **phone.open-alarm-app**<br />
-   Description: open the application for creating new alarms.
-   State: None
-   Parameter: None
+   **phone.open-alarm-app**
+    - Description: open the application for creating new alarms.
+    - State: None
+    - Parameter: None
 
  * **desktop.open-calendar-app**<br />
-   **phone.open-calendar-app**<br />
-   State: None
-   Parameter: int64, a time_t hinting which day/time to show in the planner,
-                     or 0 for the current day
+   **phone.open-calendar-app**
+    - State: None
+    - Parameter: int64, a time_t hinting which day/time to show in the planner,
+                 or 0 for the current day
 
  * **desktop.open-appointment**<br />
-   **phone.open-appointment**<br />
-   Description: opens an appointment editor to the specified appointment.
-   State: None
-   Parameter: string, an opaque uid to specify which appointment to use.
-                      This uid comes from the menuitems' target values.
+   **phone.open-appointment**
+    - Description: opens an appointment editor to the specified appointment.
+    - State: None
+    - Parameter: string, an opaque uid to specify which appointment to use.
+                 This uid comes from the menuitems' target values.
 
- * **set-location**<br />
-   Description: Set the current location. This will try to set the current
-   timezone to the new location's timezone.<br />
-   State: None<br />
-   Parameter: a timezone id string followed by a space and location name.
-              Example: **America/Chicago Oklahoma City**
+ * **set-location**
+    - Description: Set the current location. This will try to set the current
+    - timezone to the new location's timezone.
+    - State: None
+    - Parameter: a timezone id string followed by a space and location name.
+    - Example: **America/Chicago Oklahoma City**
 
- * **calendar**<br />
-    Description: set which month/day should be given focus in the indicator's
-                 calendar. The planner will look for appointments from this
-                 day to the end of the same month.
-                 Client code implementing the calendar view should call this
-                 when the user clicks on a new day, month, or year.<br />
-    State: a dictionary containing these key value/pairs:<br />
-          **appointment-days**: an array of day-of-month ints. Used by the
-                              calendar menuitem to mark appointment days.<br />
-          **calendar-day**: int64, a time_t. Used by the calendar menuitem
+ * **calendar**
+    - Description: set which month/day should be given focus in the indicator's
+                   calendar. The planner will look for appointments from this
+                   day to the end of the same month.
+                   Client code implementing the calendar view should call this
+                   when the user clicks on a new day, month, or year.
+    - State: a dictionary containing these key value/pairs:
+        - **appointment-days**: an array of day-of-month ints. Used by the
+                              calendar menuitem to mark appointment days.
+        - **calendar-day**: int64, a time_t. Used by the calendar menuitem
                           to know which year/month should be visible
-                          and which day should have the cursor.<br />
-          **show-week-numbers**: if true, show week numbers in the calendar.<br />
-    Parameter: int64, a time_t specifying which year/month should be visible
-                      and which day should have the cursor.
+                          and which day should have the cursor.
+        - **show-week-numbers**: if true, show week numbers in the calendar.
+    - Parameter: int64, a time_t specifying which year/month should be visible
+                 and which day should have the cursor.
 
 
 ## CUSTOM MENUITEMS
