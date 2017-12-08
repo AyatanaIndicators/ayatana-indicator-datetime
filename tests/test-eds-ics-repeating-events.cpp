@@ -31,7 +31,7 @@
 #include "timezone-mock.h"
 #include "wakeup-timer-mock.h"
 
-using namespace unity::indicator::datetime;
+using namespace ayatana::indicator::datetime;
 using VAlarmFixture = GlibFixture;
 
 /***

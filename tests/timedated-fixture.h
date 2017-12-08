@@ -25,7 +25,7 @@
 #include "state-mock.h"
 #include "glib-fixture.h"
 
-using namespace unity::indicator::datetime;
+using namespace ayatana::indicator::datetime;
 
 class MockLiveActions: public LiveActions
 {
@@ -44,7 +44,7 @@ protected:
 ****
 ***/
 
-using namespace unity::indicator::datetime;
+using namespace ayatana::indicator::datetime;
 
 class TimedateFixture: public GlibFixture
 {

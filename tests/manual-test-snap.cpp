@@ -26,9 +26,9 @@
 
 #include <glib.h>
 
-using namespace unity::indicator::datetime;
+using namespace ayatana::indicator::datetime;
 
-namespace uin = unity::indicator::notifications;
+namespace ain = ayatana::indicator::notifications;
 
 /***
 ****
@@ -91,7 +91,7 @@ int main(int argc, const char* argv[])
     auto settings = std::make_shared<LiveSettings>();
     settings->alarm_volume.set(volume);
 
-    auto notification_engine = std::make_shared<uin::Engine>("indicator-datetime-service");
+    auto notification_engine = std::make_shared<ain::Engine>("indicator-datetime-service");
     Snap snap (notification_engine, settings);
     snap(a, a.alarms.front(), on_snooze, on_ok);
     g_main_loop_run(loop);

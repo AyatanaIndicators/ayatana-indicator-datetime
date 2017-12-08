@@ -21,7 +21,7 @@
 
 #include "glib-fixture.h"
 
-using namespace unity::indicator::datetime;
+using namespace ayatana::indicator::datetime;
 
 /***
 ****

@@ -22,7 +22,7 @@
 #include <datetime/settings-live.h>
 #include <datetime/settings-shared.h>
 
-using namespace unity::indicator::datetime;
+using namespace ayatana::indicator::datetime;
 
 /***
 ****

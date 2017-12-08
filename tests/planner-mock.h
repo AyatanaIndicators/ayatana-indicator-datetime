@@ -22,7 +22,7 @@
 
 #include <datetime/planner-range.h>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -51,6 +51,6 @@ private:
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
 
 #endif // INDICATOR_DATETIME_PLANNER_MOCK_H

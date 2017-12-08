@@ -24,7 +24,7 @@
 
 #include "state-fixture.h"
 
-using namespace unity::indicator::datetime;
+using namespace ayatana::indicator::datetime;
 
 class AlarmQueueFixture: public StateFixture
 {

@@ -30,7 +30,7 @@
 #include <set>
 #include <string>
 
-using namespace unity::indicator::datetime;
+using namespace ayatana::indicator::datetime;
 
 class ExporterFixture: public GlibFixture
 {

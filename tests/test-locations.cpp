@@ -23,11 +23,11 @@
 
 #include <datetime/locations-settings.h>
 
-using unity::indicator::datetime::Location;
-using unity::indicator::datetime::Locations;
-using unity::indicator::datetime::Settings;
-using unity::indicator::datetime::SettingsLocations;
-using unity::indicator::datetime::Timezones;
+using ayatana::indicator::datetime::Location;
+using ayatana::indicator::datetime::Locations;
+using ayatana::indicator::datetime::Settings;
+using ayatana::indicator::datetime::SettingsLocations;
+using ayatana::indicator::datetime::Timezones;
 
 /***
 ****

@@ -23,7 +23,7 @@
 #include <datetime/clock.h>
 #include <datetime/wakeup-timer.h>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -73,6 +73,6 @@ private:
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
 
 #endif // INDICATOR_DATETIME_WAKEUP_TIMER_MOCK_H

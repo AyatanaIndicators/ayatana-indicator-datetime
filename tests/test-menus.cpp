@@ -28,7 +28,7 @@
 
 #include <gio/gio.h>
 
-using namespace unity::indicator::datetime;
+using namespace ayatana::indicator::datetime;
 
 class MenuFixture: public StateFixture
 {

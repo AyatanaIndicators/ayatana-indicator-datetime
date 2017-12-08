@@ -21,7 +21,7 @@
 
 #include <datetime/timezone-geoclue.h>
 
-using unity::indicator::datetime::GeoclueTimezone;
+using ayatana::indicator::datetime::GeoclueTimezone;
 
 // This test looks small because the interesting
 // work is all happening in GeoclueFixture...

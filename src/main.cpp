@@ -42,7 +42,7 @@
 #include <locale.h>
 #include <cstdlib> // exit()
 
-namespace uin = unity::indicator::notifications;
+namespace ain = ayatana::indicator::notifications;
 
 using namespace ayatana::indicator::datetime;
 

@@ -25,7 +25,7 @@
 #include "actions-mock.h"
 #include "state-mock.h"
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -77,6 +77,6 @@ protected:
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
 
 #endif /* INDICATOR_DATETIME_TESTS_STATE_FIXTURE_H */

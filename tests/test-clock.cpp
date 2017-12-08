@@ -30,7 +30,7 @@
 ****
 ***/
 
-using namespace unity::indicator::datetime;
+using namespace ayatana::indicator::datetime;
 
 class ClockFixture: public TestDBusFixture
 {

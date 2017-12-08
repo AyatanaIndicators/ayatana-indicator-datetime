@@ -22,7 +22,7 @@
 
 #include <datetime/timezone-timedated.h>
 
-using unity::indicator::datetime::TimedatedTimezone;
+using ayatana::indicator::datetime::TimedatedTimezone;
 
 /***
 ****

@@ -24,7 +24,7 @@
 
 #include <datetime/appointment.h>
 
-namespace unity {
+namespace ayatana {
 namespace indicator {
 namespace datetime {
 
@@ -73,6 +73,6 @@ PrintTo(const Appointment& appointment, std::ostream* os)
 
 } // namespace datetime
 } // namespace indicator
-} // namespace unity
+} // namespace ayatana
 
 #endif

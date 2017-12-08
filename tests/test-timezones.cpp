@@ -27,7 +27,7 @@
 #include <cstdio> // fopen()
 #include <unistd.h> // sync()
 
-using namespace unity::indicator::datetime;
+using namespace ayatana::indicator::datetime;
 
 typedef GeoclueFixture TimezonesFixture;
 

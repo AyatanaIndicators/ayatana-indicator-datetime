@@ -32,7 +32,7 @@
 #include <unistd.h> // getuid()
 #include <sys/types.h> // getuid()
 
-using namespace unity::indicator::datetime;
+using namespace ayatana::indicator::datetime;
 
 #include "glib-fixture.h"
 
@@ -45,7 +45,7 @@ namespace
   static constexpr char const * APP_NAME {"indicator-datetime-service"};
 }
 
-using namespace unity::indicator::datetime;
+using namespace ayatana::indicator::datetime;
 
 class SnapFixture: public GlibFixture
 {
@@ -380,7 +380,7 @@ TEST_F(SnapFixture, InteractiveDuration)
   static constexpr int duration_minutes = 120;
   auto settings = std::make_shared<Settings>();
   settings->alarm_duration.set(duration_minutes);
-  auto ne = std::make_shared<unity::indicator::notifications::Engine>(APP_NAME);
+  auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
   Snap snap (ne, settings);
 
   make_interactive();
@@ -430,7 +430,7 @@ TEST_F(SnapFixture, InteractiveDuration)
 TEST_F(SnapFixture, InhibitSleep)
 {
   auto settings = std::make_shared<Settings>();
-  auto ne = std::make_shared<unity::indicator::notifications::Engine>(APP_NAME);
+  auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
   auto snap = new Snap (ne, settings);
 
   make_interactive();
@@ -485,7 +485,7 @@ TEST_F(SnapFixture, InhibitSleep)
 TEST_F(SnapFixture, ForceScreen)
 {
   auto settings = std::make_shared<Settings>();
-  auto ne = std::make_shared<unity::indicator::notifications::Engine>(APP_NAME);
+  auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
   auto snap = new Snap (ne, settings);
 
   make_interactive();
@@ -526,7 +526,7 @@ TEST_F(SnapFixture, ForceScreen)
 TEST_F(SnapFixture,Vibrate)
 {
   auto settings = std::make_shared<Settings>();
-  auto ne = std::make_shared<unity::indicator::notifications::Engine>(APP_NAME);
+  auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
   auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
   GError * error = nullptr;
 

@@ -29,7 +29,7 @@
 #include <langinfo.h>
 #include <locale.h>
 
-using namespace unity::indicator::datetime;
+using namespace ayatana::indicator::datetime;
 
 /***
 ****

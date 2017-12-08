@@ -37,7 +37,7 @@
 #include <unistd.h> // getuid()
 #include <sys/types.h> // getuid()
 
-namespace uin = unity::indicator::notifications;
+namespace ain = ayatana::indicator::notifications;
 
 namespace ayatana {
 namespace indicator {
@@ -51,7 +51,7 @@ class Snap::Impl
 {
 public:
 
-    Impl(const std::shared_ptr<unity::indicator::notifications::Engine>& engine,
+    Impl(const std::shared_ptr<ayatana::indicator::notifications::Engine>& engine,
          const std::shared_ptr<const Settings>& settings):
       m_engine(engine),
       m_settings(settings),
@@ -90,33 +90,33 @@ public:
         const bool interactive = appointment.is_ubuntu_alarm() && m_engine->supports_actions();
 
         // force the system to stay awake
-        auto awake = std::make_shared<uin::Awake>(m_engine->app_name());
+        auto awake = std::make_shared<ain::Awake>(m_engine->app_name());
 
         // calendar events are muted in silent mode; alarm clocks never are
-        std::shared_ptr<uin::Sound> sound;
+        std::shared_ptr<ain::Sound> sound;
         if (appointment.is_ubuntu_alarm() || !silent_mode()) {
             // create the sound.
             const auto role = appointment.is_ubuntu_alarm() ? "alarm" : "alert";
             const auto uri = get_alarm_uri(alarm, m_settings);
             const auto volume = m_settings->alarm_volume.get();
             const bool loop = interactive;
-            sound = std::make_shared<uin::Sound>(role, uri, volume, loop);
+            sound = std::make_shared<ain::Sound>(role, uri, volume, loop);
         }
 
         // create the haptic feedback...
-        std::shared_ptr<uin::Haptic> haptic;
+        std::shared_ptr<ain::Haptic> haptic;
         if (should_vibrate()) {
             const auto haptic_mode = m_settings->alarm_haptic.get();
             if (haptic_mode == "pulse")
-                haptic = std::make_shared<uin::Haptic>(uin::Haptic::MODE_PULSE);
+                haptic = std::make_shared<ain::Haptic>(ain::Haptic::MODE_PULSE);
         }
 
         // show a notification...
         const auto minutes = std::chrono::minutes(m_settings->alarm_duration.get());
-        uin::Builder b;
+        ain::Builder b;
         b.set_body (appointment.summary);
         b.set_icon_name ("alarm-clock");
-        b.add_hint (uin::Builder::HINT_NONSHAPED_ICON);
+        b.add_hint (ain::Builder::HINT_NONSHAPED_ICON);
 
         const char * timefmt;
         if (is_locale_12h()) {
@@ -134,8 +134,8 @@ public:
         g_free (title);
         b.set_timeout (std::chrono::duration_cast<std::chrono::seconds>(minutes));
         if (interactive) {
-            b.add_hint (uin::Builder::HINT_SNAP);
-            b.add_hint (uin::Builder::HINT_AFFIRMATIVE_HINT);
+            b.add_hint (ain::Builder::HINT_SNAP);
+            b.add_hint (ain::Builder::HINT_AFFIRMATIVE_HINT);
             b.add_action ("ok", _("OK"));
             b.add_action ("snooze", _("Snooze"));
         }
