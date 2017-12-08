@@ -1,2 +1,3 @@
 version=3
-https://launchpad.net/indicator-datetime/+download .*/indicator-datetime-([0-9.]+)\.tar\.gz
+opts=pgpsigurlmangle=s/$/.asc/ \
+http://releases.ayatana-indicators.org/source/ayatana-indicator-datetime/ayatana-indicator-datetime-(.+)\.tar\.gz
