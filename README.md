@@ -8,19 +8,19 @@
    State: None
    Parameter: None
 
- * **desktop.open-alarm-app**
+ * **desktop.open-alarm-app**<br />
    **phone.open-alarm-app**<br />
    Description: open the application for creating new alarms.
    State: None
    Parameter: None
 
- * **desktop.open-calendar-app**
+ * **desktop.open-calendar-app**<br />
    **phone.open-calendar-app**<br />
    State: None
    Parameter: int64, a time_t hinting which day/time to show in the planner,
                      or 0 for the current day
 
- * **desktop.open-appointment**
+ * **desktop.open-appointment**<br />
    **phone.open-appointment**<br />
    Description: opens an appointment editor to the specified appointment.
    State: None
@@ -40,12 +40,12 @@
                  day to the end of the same month.
                  Client code implementing the calendar view should call this
                  when the user clicks on a new day, month, or year.<br />
-    State: a dictionary containing these key value/pairs:
+    State: a dictionary containing these key value/pairs:<br />
           **appointment-days**: an array of day-of-month ints. Used by the
-                              calendar menuitem to mark appointment days.
+                              calendar menuitem to mark appointment days.<br />
           **calendar-day**: int64, a time_t. Used by the calendar menuitem
                           to know which year/month should be visible
-                          and which day should have the cursor.
+                          and which day should have the cursor.<br />
           **show-week-numbers**: if true, show week numbers in the calendar.<br />
     Parameter: int64, a time_t specifying which year/month should be visible
                       and which day should have the cursor.
