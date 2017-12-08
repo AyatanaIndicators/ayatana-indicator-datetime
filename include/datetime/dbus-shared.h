@@ -21,8 +21,8 @@
 #ifndef INDICATOR_DATETIME_DBUS_SHARED_H
 #define INDICATOR_DATETIME_DBUS_SHARED_H
 
-#define BUS_DATETIME_NAME    "com.canonical.indicator.datetime"
-#define BUS_DATETIME_PATH    "/com/canonical/indicator/datetime"
+#define BUS_DATETIME_NAME    "org.ayatana.indicator.datetime"
+#define BUS_DATETIME_PATH    "/org/ayatana/indicator/datetime"
 
 #define BUS_POWERD_NAME      "com.canonical.powerd"
 #define BUS_POWERD_PATH      "/com/canonical/powerd"
