@@ -51,6 +51,7 @@ fi
 # if there's a specific ics file to test, copy it on top of the canned config files
 if [ -e ${ICS_FILE} ]; then
   echo "copying ${ICS_FILE} into $HOME"
+  mkdir -p ${XDG_DATA_HOME}/evolution/tasks/system/
   cp --verbose --archive ${ICS_FILE} ${XDG_DATA_HOME}/evolution/tasks/system/tasks.ics
 fi
 
