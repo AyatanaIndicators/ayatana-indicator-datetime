@@ -3,6 +3,7 @@ Section: misc
 Priority: optional
 Maintainer: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
 Build-Depends: cmake,
+               cmake-extras (>= 0.10),
                dbus,
                debhelper (>= 9), 
                libglib2.0-dev (>= 2.35.4),
