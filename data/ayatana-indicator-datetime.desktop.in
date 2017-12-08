@@ -2,7 +2,7 @@
 Type=Application
 Name=Indicator Date & Time
 Exec=@pkglibexecdir@/indicator-datetime-service
-OnlyShowIn=MATE;Unity;GNOME;Pantheon;
+OnlyShowIn=MATE;Unity;XFCE;Pantheon;
 NoDisplay=true
 StartupNotify=false
 Terminal=false
