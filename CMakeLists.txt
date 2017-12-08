@@ -1,4 +1,4 @@
-project (indicator-datetime C CXX)
+project (ayatana-indicator-datetime C CXX)
 cmake_minimum_required (VERSION 2.8.9)
 
 list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
