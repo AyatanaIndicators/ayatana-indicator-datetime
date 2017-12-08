@@ -1,7 +1,7 @@
 set (SERVICE_LIB "indicatordatetimeservice")
 set (SERVICE_EXEC "ayatana-indicator-datetime-service")
 
-add_definitions (-DG_LOG_DOMAIN="Indicator-Datetime")
+add_definitions (-DG_LOG_DOMAIN="ayatana-indicator-datetime")
 
 # handwritten sources
 set (SERVICE_C_SOURCES
