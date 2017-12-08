@@ -45,16 +45,20 @@ public:
     void desktop_open_calendar_app(const DateTime&) override;
     void desktop_open_settings_app() override;
 
+#ifdef HAS_URLDISPATCHER
     void phone_open_alarm_app() override;
     void phone_open_appointment(const Appointment&) override;
     void phone_open_calendar_app(const DateTime&) override;
     void phone_open_settings_app() override;
+#endif
 
     void set_location(const std::string& zone, const std::string& name) override;
 
 protected:
     virtual void execute_command(const std::string& command);
+#ifdef HAS_URLDISPATCHER
     virtual void dispatch_url(const std::string& url);
+#endif
 };
 
 } // namespace datetime

@@ -47,7 +47,9 @@ function(add_test_by_name name)
   target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
 endfunction()
 add_test_by_name(test-datetime)
+if(HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS)
 add_test_by_name(test-snap)
+endif()
 add_test_by_name(test-actions)
 add_test_by_name(test-alarm-queue)
 add_test(NAME dear-reader-the-next-test-takes-60-seconds COMMAND true)
@@ -65,6 +67,8 @@ add_test_by_name(test-utils)
 set (TEST_NAME manual-test-snap)
 add_executable (${TEST_NAME} ${TEST_NAME}.cpp)
 target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
+
+if (URLDISPATCHER_FOUND)
 
 ##
 ## EDS Tests
@@ -92,6 +96,7 @@ add_eds_ics_test_by_name(test-eds-ics-missing-trigger)
 add_eds_ics_test_by_name(test-eds-ics-tzids)
 add_eds_ics_test_by_name(test-eds-ics-tzids-2)
 
+endif()
 
 # disabling the timezone unit tests because they require
 # https://code.launchpad.net/~ted/dbus-test-runner/multi-interface-test/+merge/199724

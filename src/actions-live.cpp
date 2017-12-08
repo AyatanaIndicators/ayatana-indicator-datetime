@@ -19,7 +19,9 @@
 
 #include <datetime/actions-live.h>
 
+#ifdef HAS_URLDISPATCHER
 #include <url-dispatcher.h>
+#endif
 
 #include <glib.h>
 
@@ -49,11 +51,13 @@ void LiveActions::execute_command(const std::string& cmdstr)
     }
 }
 
+#ifdef HAS_URLDISPATCHER
 void LiveActions::dispatch_url(const std::string& url)
 {
     g_debug("Dispatching url '%s'", url.c_str());
     url_dispatch_send(url.c_str(), nullptr, nullptr);
 }
+#endif
 
 /***
 ****
@@ -61,11 +65,14 @@ void LiveActions::dispatch_url(const std::string& url)
 
 void LiveActions::desktop_open_settings_app()
 {
+#ifdef HAS_URLDISPATCHER
     if (g_getenv ("MIR_SOCKET") != nullptr)
     {
         dispatch_url("settings:///system/time-date");
     }
-    else if ((g_strcmp0 (g_getenv ("XDG_CURRENT_DESKTOP"), "Unity") == 0))
+    else
+#endif
+    if ((g_strcmp0 (g_getenv ("XDG_CURRENT_DESKTOP"), "Unity") == 0))
     {
         execute_command("unity-control-center datetime");
     }
@@ -128,6 +135,7 @@ void LiveActions::desktop_open_calendar_app(const DateTime& dt)
 ****
 ***/
 
+#ifdef HAS_URLDISPATCHER
 void LiveActions::phone_open_alarm_app()
 {
     dispatch_url("appid://com.ubuntu.clock/clock/current-user-version");
@@ -135,6 +143,7 @@ void LiveActions::phone_open_alarm_app()
 
 void LiveActions::phone_open_appointment(const Appointment& appt)
 {
+
     if (!appt.activation_url.empty())
     {
         dispatch_url(appt.activation_url);
@@ -160,6 +169,7 @@ void LiveActions::phone_open_settings_app()
 {
     dispatch_url("settings:///system/time-date");
 }
+#endif
 
 /***
 ****

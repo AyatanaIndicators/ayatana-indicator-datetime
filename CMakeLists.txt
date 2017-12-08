@@ -44,9 +44,26 @@ pkg_check_modules (SERVICE_DEPS REQUIRED
                    libedataserver-1.2>=3.5
                    gstreamer-1.0>=1.2
                    libnotify>=0.7.6
-                   url-dispatcher-1>=1
                    properties-cpp>=0.0.1)
 include_directories (SYSTEM ${SERVICE_DEPS_INCLUDE_DIRS})
+
+set(URL_DISPATCHER_1_REQUIRED_VERSION 1)
+pkg_check_modules(URLDISPATCHER
+                  url-dispatcher-1>=${URL_DISPATCHER_1_REQUIRED_VERSION}
+)
+include_directories(${URLDISPATCHER_INCLUDE_DIRS})
+
+# url-dispatcher support is optional...
+if(URLDISPATCHER_FOUND)
+    add_definitions( -DHAS_URLDISPATCHER )
+endif()
+
+if(EXISTS "/usr/share/accountsservice/interfaces/com.ubuntu.touch.AccountsService.Sound.xml")
+  set (HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS ON)
+  add_definitions ( -DHAS_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS )
+else()
+  set (HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS OFF)
+endif()
 
 ##
 ##  custom targets

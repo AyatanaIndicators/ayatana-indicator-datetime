@@ -240,9 +240,12 @@ private:
 
         const char * action_name;
 
+#ifdef HAS_URLDISPATCHER
         if (profile == Phone)
             action_name = "indicator.phone.open-calendar-app";
-        else if (profile == Desktop)
+        else
+#endif
+        if (profile == Desktop)
             action_name = "indicator.desktop.open-calendar-app";
         else
             action_name = nullptr;
@@ -288,9 +291,12 @@ private:
 
         const char * action_name;
 
+#ifdef HAS_URLDISPATCHER
         if (profile == Phone)
             action_name = "indicator.phone.open-appointment";
-        else if ((profile == Desktop) && m_actions->desktop_has_calendar_app())
+        else
+#endif
+        if ((profile == Desktop) && m_actions->desktop_has_calendar_app())
             action_name = "indicator.desktop.open-appointment";
         else
             action_name = nullptr;
@@ -357,6 +363,7 @@ private:
                 g_object_unref(menu_item);
             }
         }
+#ifdef HAS_URLDISPATCHER
         else if (profile==Phone)
         {
             auto menu_item = g_menu_item_new (_("Clock"), "indicator.phone.open-alarm-app");
@@ -366,6 +373,7 @@ private:
 
             add_appointments (menu, profile);
         }
+#endif
 
         return G_MENU_MODEL(menu);
     }
@@ -405,8 +413,10 @@ private:
 
         if (profile == Desktop)
             action_name = "indicator.desktop.open-settings-app";
+#ifdef HAS_URLDISPATCHER
         else if (profile == Phone)
             action_name = "indicator.phone.open-settings-app";
+#endif
         else
             action_name = nullptr;
 
@@ -493,6 +503,8 @@ public:
         DesktopBaseMenu(DesktopGreeter,"desktop_greeter", state_, actions_) {}
 };
 
+
+#ifdef HAS_URLDISPATCHER
 class PhoneBaseMenu: public MenuImpl
 {
 protected:
@@ -551,6 +563,7 @@ public:
                      std::shared_ptr<Actions>& actions_):
         PhoneBaseMenu(PhoneGreeter, "phone_greeter", state_, actions_) {}
 };
+#endif
 
 /****
 *****
@@ -578,6 +591,7 @@ MenuFactory::buildMenu(Menu::Profile profile)
         menu.reset(new DesktopGreeterMenu(m_state, m_actions));
         break;
 
+#ifdef HAS_URLDISPATCHER
     case Menu::Phone:
         menu.reset(new PhoneMenu(m_state, m_actions));
         break;
@@ -585,6 +599,7 @@ MenuFactory::buildMenu(Menu::Profile profile)
     case Menu::PhoneGreeter:
         menu.reset(new PhoneGreeterMenu(m_state, m_actions));
         break;
+#endif
 
     default:
         g_warn_if_reached();

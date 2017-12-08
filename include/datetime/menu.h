@@ -41,7 +41,11 @@ namespace datetime {
 class Menu
 {
 public:
-    enum Profile { Desktop, DesktopGreeter, Phone, PhoneGreeter, NUM_PROFILES };
+    enum Profile { Desktop, DesktopGreeter,
+#ifdef HAS_URLDISPATCHER
+                   Phone, PhoneGreeter,
+#endif
+                   NUM_PROFILES };
     enum Section { Calendar, Appointments, Locations, Settings, NUM_SECTIONS };
     const std::string& name() const;
     Profile profile() const;

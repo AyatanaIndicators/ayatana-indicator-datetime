@@ -36,7 +36,9 @@ public:
     ~MockLiveActions() {}
 
 protected:
+#ifdef HAS_URLDISPATCHER
     void dispatch_url(const std::string& url) override { last_url = url; }
+#endif
     void execute_command(const std::string& cmd) override { last_cmd = cmd; }
 };
 

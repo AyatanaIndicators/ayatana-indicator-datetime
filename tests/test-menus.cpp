@@ -97,8 +97,10 @@ protected:
 
         if (profile == Menu::Desktop)
             expected_action = "indicator.desktop.open-calendar-app";
+#ifdef HAS_URLDISPATCHER
         else if (profile == Menu::Phone)
             expected_action = "indicator.phone.open-calendar-app";
+#endif
         else
             expected_action = nullptr;
 
@@ -322,6 +324,7 @@ private:
         g_clear_object(&submenu);
     }
 
+#ifdef HAS_URLDISPATCHER
     void InspectPhoneAppointments(GMenuModel* menu_model, bool can_open_planner)
     {
         auto submenu = g_menu_model_get_item_link(menu_model, 0, G_MENU_LINK_SUBMENU);
@@ -354,6 +357,7 @@ private:
         // cleanup
         g_clear_object(&submenu);
     }
+#endif
 
 protected:
 
@@ -371,6 +375,7 @@ protected:
                 InspectEmptySection(menu_model, Menu::Appointments);
                 break;
 
+#ifdef HAS_URLDISPATCHER
             case Menu::Phone:
                 InspectPhoneAppointments(menu_model, can_open_planner);
                 break;
@@ -378,6 +383,7 @@ protected:
             case Menu::PhoneGreeter:
                 InspectEmptySection(menu_model, Menu::Appointments);
                 break;
+#endif
 
             default:
                 g_warn_if_reached();
@@ -449,8 +455,10 @@ protected:
 
         if (profile == Menu::Desktop)
             expected_action = "indicator.desktop.open-settings-app";
+#ifdef HAS_URLDISPATCHER
         else if (profile == Menu::Phone)
             expected_action = "indicator.phone.open-settings-app";
+#endif
 
         // get the Settings section
         auto submenu = g_menu_model_get_item_link(menu_model, 0, G_MENU_LINK_SUBMENU);

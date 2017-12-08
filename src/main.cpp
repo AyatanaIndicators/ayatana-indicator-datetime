@@ -29,7 +29,9 @@
 #include <datetime/planner-snooze.h>
 #include <datetime/planner-range.h>
 #include <datetime/settings-live.h>
+#ifdef HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS
 #include <datetime/snap.h>
+#endif
 #include <datetime/state.h>
 #include <datetime/timezones-live.h>
 #include <datetime/timezone-timedated.h>
@@ -90,6 +92,7 @@ namespace
         return state;
     }
 
+#ifdef HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS
     std::shared_ptr<AlarmQueue> create_simple_alarm_queue(const std::shared_ptr<Clock>& clock,
                                                           const std::shared_ptr<Planner>& snooze_planner,
                                                           const std::shared_ptr<Engine>& engine,
@@ -113,6 +116,7 @@ namespace
         auto wakeup_timer = std::make_shared<PowerdWakeupTimer>(clock);
         return std::make_shared<SimpleAlarmQueue>(clock, planner, wakeup_timer);
     }
+#endif
 }
 
 int
@@ -133,9 +137,10 @@ main(int /*argc*/, char** /*argv*/)
     auto actions = std::make_shared<LiveActions>(state);
     MenuFactory factory(actions, state);
 
+#ifdef HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS
     // set up the snap decisions
     auto snooze_planner = std::make_shared<SnoozePlanner>(state->settings, state->clock);
-    auto notification_engine = std::make_shared<uin::Engine>("indicator-datetime-service");
+    auto notification_engine = std::make_shared<ain::Engine>("ayatana-indicator-datetime-service");
     std::unique_ptr<Snap> snap (new Snap(notification_engine, state->settings));
     auto alarm_queue = create_simple_alarm_queue(state->clock, snooze_planner, engine, timezone_);
     auto on_snooze = [snooze_planner](const Appointment& appointment, const Alarm& alarm) {
@@ -147,6 +152,7 @@ main(int /*argc*/, char** /*argv*/)
         engine->disable_ubuntu_alarm(appointment);
     };
     alarm_queue->alarm_reached().connect(on_alarm_reached);
+#endif
 
     // create the menus
     std::vector<std::shared_ptr<Menu>> menus;

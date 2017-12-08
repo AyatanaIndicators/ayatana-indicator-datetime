@@ -17,6 +17,7 @@
  *   Charles Kerr <charles.kerr@canonical.com>
  */
 
+#ifdef HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS
 #include "dbus-accounts-sound.h"
 
 #include <datetime/snap.h>
@@ -259,3 +260,5 @@ Snap::operator()(const Appointment& appointment,
 } // namespace datetime
 } // namespace indicator
 } // namespace ayatana
+
+#endif

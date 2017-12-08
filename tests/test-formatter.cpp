@@ -108,6 +108,7 @@ TEST_F(FormatterFixture, TestPhoneHeader)
         EXPECT_EQ(std::string(" 6:30 PM"), formatter.header.get());
     }
 }
+#endif
 
 #define EM_SPACE "\u2003"
 

@@ -88,6 +88,7 @@ void on_desktop_settings_activated (GSimpleAction*, GVariant*, gpointer gself)
     static_cast<Actions*>(gself)->desktop_open_settings_app();
 }
 
+#ifdef HAS_URLDISPATCHER
 void on_phone_appointment_activated (GSimpleAction*, GVariant *vuid, gpointer gself)
 {
     auto self = static_cast<Actions*>(gself);
@@ -108,7 +109,7 @@ void on_phone_settings_activated (GSimpleAction*, GVariant*, gpointer gself)
 {
     static_cast<Actions*>(gself)->phone_open_settings_app();
 }
-
+#endif
 
 void on_set_location(GSimpleAction * /*action*/,
                      GVariant      * param,
@@ -204,11 +205,12 @@ Actions::Actions(const std::shared_ptr<State>& state):
         { "desktop.open-calendar-app", on_desktop_calendar_activated, "x", nullptr },
         { "desktop.open-settings-app", on_desktop_settings_activated },
 
+#ifdef HAS_URLDISPATCHER
         { "phone.open-appointment",    on_phone_appointment_activated, "s", nullptr },
         { "phone.open-alarm-app",      on_phone_alarm_activated },
         { "phone.open-calendar-app",   on_phone_calendar_activated, "x", nullptr },
         { "phone.open-settings-app",   on_phone_settings_activated },
-
+#endif
         { "calendar-active", nullptr, nullptr, "false", on_calendar_active_changed },
         { "set-location", on_set_location, "s" }
     };
