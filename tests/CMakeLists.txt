@@ -18,7 +18,7 @@ set_directory_properties (PROPERTIES
 set_source_files_properties (gschemas.compiled GENERATED)
 
 # GSettings:
-# compile the indicator-datetime schema into a gschemas.compiled file in this directory,
+# compile the ayatana-indicator-datetime schema into a gschemas.compiled file in this directory,
 # and help the tests to find that file by setting -DSCHEMA_DIR
 set (SCHEMA_DIR ${CMAKE_CURRENT_BINARY_DIR})
 add_definitions(-DSCHEMA_DIR="${SCHEMA_DIR}")

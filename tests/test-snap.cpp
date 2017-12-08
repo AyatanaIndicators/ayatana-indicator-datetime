@@ -42,7 +42,7 @@ using namespace ayatana::indicator::datetime;
 
 namespace
 {
-  static constexpr char const * APP_NAME {"indicator-datetime-service"};
+  static constexpr char const * APP_NAME {"ayatana-indicator-datetime-service"};
 }
 
 using namespace ayatana::indicator::datetime;

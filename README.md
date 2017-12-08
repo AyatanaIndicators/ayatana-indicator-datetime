@@ -121,8 +121,8 @@
   LiveActions for production and MockActions for testing).
 
   Exporter exports the Actions and Menus onto the DBus, and also emits a
-  signal if/when the busname is lost so indicator-datetime-service knows
-  when to exit.
+  signal if/when the busname is lost so
+  ayatana-indicator-datetime-service knows when to exit.
 
   include/datetime/menu.h<br />
   include/datetime/actions.h<br />

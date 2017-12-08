@@ -1,19 +1,19 @@
 
-Test-case indicator-datetime/unity7-items-check
+Test-case ayatana-indicator-datetime/unity7-items-check
 <dl>
 	<dt>Log in to a Unity 7 user session</dt>
 	<dt>Go to the panel and click on the DateTime indicator</dt>
 		<dd>Ensure there are items in the menu</dd>
 </dl>
 
-Test-case indicator-datetime/unity7-greeter-items-check
+Test-case ayatana-indicator-datetime/unity7-greeter-items-check
 <dl>
 	<dt>Start a system and wait for the greeter or logout of the current user session</dt>
 	<dt>Go to the panel and click on the DateTime indicator</dt>
 		<dd>Ensure there are items in the menu</dd>
 </dl>
 
-Test-case indicator-datetime/unity8-items-check
+Test-case ayatana-indicator-datetime/unity8-items-check
 <dl>
 	<dt>Login to a user session running Unity 8</dt>
 	<dt>Pull down the top panel until it sticks open</dt>
@@ -22,14 +22,14 @@ Test-case indicator-datetime/unity8-items-check
 		<dd>The menu is populated with items</dd>
 </dl>
 
-Test-case indicator-datetime/timestamp-wakeup
+Test-case ayatana-indicator-datetime/timestamp-wakeup
 <dl>
         <dt>Unplug the phone from any USB connection and put it to sleep</dt>
         <dt>Reawaken the device.</dt>
                 <dd>The indicator should be showing the correct time.</dd>
 </dl>
 
-Test-case indicator-datetime/new-alarm-wakeup
+Test-case ayatana-indicator-datetime/new-alarm-wakeup
 <dl>
 	<dt>Create and save an upcoming alarm in ubuntu-clock-app</dt>
 	<dt>Unplug the phone from any USB connection and put it to sleep</dt>
@@ -38,7 +38,7 @@ Test-case indicator-datetime/new-alarm-wakeup
 		<dd>If the device supports haptic feedback, confirm the alarm vibrates.</dd>
 </dl>
 
-Test-case indicator-datetime/disabled-alarms
+Test-case ayatana-indicator-datetime/disabled-alarms
 <dl>
 	<dt>Create and save an upcoming alarm in ubuntu-clock-app</dt>
 		<dd>Confirm that the alarm icon appears next to the current time in unity's indicator display</dd>
@@ -48,7 +48,7 @@ Test-case indicator-datetime/disabled-alarms
 		<dd>When the alarm is enabled, the alarm icon should reappear.</dd>
 </dl>
 
-Test-case indicator-datetime/disable-one-time-alarms-after-notification
+Test-case ayatana-indicator-datetime/disable-one-time-alarms-after-notification
 <dl>
 	<dt>Create and save an upcoming nonrepeating alarm in ubuntu-clock-app</dt>
 		<dd>Confirm that the alarm icon appears next to the current time in unity's indicator display</dd>
@@ -64,7 +64,7 @@ Test-case indicator-datetime/disable-one-time-alarms-after-notification
 		<dd>Confirm that the repeating alarm is not disabled after the notification is shown. NOTE: due to a refresh bug in clock-app you may need to refresh its alarms page (by swapping back to the main page, then the alarm page again, this is tracked in #1362341) in order to see the alarm change from enabled to disabled.</dd>
 </dl>
 
-Test-case indicator-datetime/calendar-event-notification
+Test-case ayatana-indicator-datetime/calendar-event-notification
 <dl>
 	<dt>In the calendar app, create and save a new upcoming calendar event that will occur in the next few minutes.</dt>
 		<dd>The datetime indicator's event list should update itself to show this new event.</dd>
@@ -74,7 +74,7 @@ Test-case indicator-datetime/calendar-event-notification
 		<dd>The notification should disappear after a moment without requiring user intervention.</dd>
 </dl>
 
-Test-case indicator-datetime/alarm-timezone
+Test-case ayatana-indicator-datetime/alarm-timezone
 <dl>
 	<dt>In ubuntu-system-settings, change your timezone to a zone you're not in</dt>
 	<dt>In ubuntu-clock-app, create and save an upcoming alarm</dt>
@@ -83,7 +83,7 @@ Test-case indicator-datetime/alarm-timezone
 		<dd>The indicator's menu should still show the alarm to click at the specified time</dd>
 </dl>
 
-Test-case indicator-datetime/snooze
+Test-case ayatana-indicator-datetime/snooze
 <dl>
 	<dt>Create and save an upcoming alarm in ubuntu-clock-app</dt>
 	<dt>When the alarm goes off, press the 'Snooze' button</dt>
@@ -92,7 +92,7 @@ Test-case indicator-datetime/snooze
 		<dd>This time when the alarm is dismissed, it should not reappear.</dd>
 </dl>
 
-Test-case indicator-datetime/edited-alarm-wakeup
+Test-case ayatana-indicator-datetime/edited-alarm-wakeup
 <dl>
 	<dt>Edit an alarm that's already passed. (see previous test)</dt>
 	<dt>Unplug the phone from any USB connection and put it to sleep</dt>
@@ -101,7 +101,7 @@ Test-case indicator-datetime/edited-alarm-wakeup
 		<dd>If the device supports haptic feedback, confirm the alarm vibrates.</dd>
 </dl>
 
-Test-case indicator-datetime/tell-snap-decision-to-dismiss
+Test-case ayatana-indicator-datetime/tell-snap-decision-to-dismiss
 <dl>
 	<dt>Set an alarm and wait for it to arrive.</dt>
 		<dd>Alarm should go off at the specified time</dd>
@@ -110,7 +110,7 @@ Test-case indicator-datetime/tell-snap-decision-to-dismiss
 		<dd>Sound should stop at the same time, rather than playing til the end of the file.</dd>
 </dl>
 
-Test-case indicator-datetime/change-alarm-sound
+Test-case ayatana-indicator-datetime/change-alarm-sound
 <dl>
 	<dt>Open the clock app</dt>
 	<dt>Swipe up from the bottom</dt>
@@ -124,7 +124,7 @@ Test-case indicator-datetime/change-alarm-sound
 		<dd>The newly-selected sound should play, rather than the previous sound.</dd>
 </dl>
 
-Test-case indicator-datetime/silent-mode
+Test-case ayatana-indicator-datetime/silent-mode
 <dl>
 	<dt>Set an alarm and wait for it to arrive.</dt>
 	<dt>From the sound indicator, turn on silent mode.</dt>
@@ -137,7 +137,7 @@ Test-case indicator-datetime/silent-mode
 		<dd>The calendar event notification should play a sound.</dd>
 </dl>
 
-Test-case indicator-datetime/manual-time
+Test-case ayatana-indicator-datetime/manual-time
 <dl>
 	<dt>In System Settings > Time & Date, manually change the time to an arbitrary time.</dt>
 		<dd>The indicator's timestamp should change right after the time manual time is set.</dd>

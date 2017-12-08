@@ -215,7 +215,7 @@ private:
         if (error != nullptr)
         {
             if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-                g_warning("indicator-datetime cannot show EDS appointments: %s", error->message);
+                g_warning("ayatana-indicator-datetime cannot show EDS appointments: %s", error->message);
 
             g_error_free(error);
         }
@@ -294,7 +294,7 @@ private:
         if (error)
         {
             if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-                g_warning("indicator-datetime cannot connect to EDS source: %s", error->message);
+                g_warning("ayatana-indicator-datetime cannot connect to EDS source: %s", error->message);
 
             g_error_free(error);
         }
@@ -344,7 +344,7 @@ private:
         else if(error != nullptr)
         {
             if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-                g_warning("indicator-datetime cannot get View to EDS client: %s", error->message);
+                g_warning("ayatana-indicator-datetime cannot get View to EDS client: %s", error->message);
 
             g_error_free(error);
         }
@@ -1017,7 +1017,7 @@ private:
         if (!e_cal_client_modify_object_finish (E_CAL_CLIENT(gclient), res, &error))
         {
             if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-                g_warning("indicator-datetime cannot mark one-time alarm as disabled: %s", error->message);
+                g_warning("ayatana-indicator-datetime cannot mark one-time alarm as disabled: %s", error->message);
 
             g_error_free(error);
         }
