@@ -38,7 +38,7 @@ include_directories (${DBUSTEST_INCLUDE_DIRS})
 
 
 add_definitions (-DSANDBOX="${CMAKE_CURRENT_BINARY_DIR}")
-add_definitions (-DG_LOG_DOMAIN="Indicator-Datetime")
+add_definitions (-DG_LOG_DOMAIN="ayatana-indicator-datetime")
 
 function(add_test_by_name name)
   set (TEST_NAME ${name})
