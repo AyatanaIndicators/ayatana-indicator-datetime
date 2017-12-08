@@ -89,8 +89,8 @@ private:
 
             g_dbus_connection_call(self->m_bus,
                                    GEOCLUE_BUS_NAME,
-                                   "/org/freedesktop/Geoclue/Master",
-                                   "org.freedesktop.Geoclue.Master",
+                                   "/org/freedesktop/Geoclue2/Master",
+                                   "org.freedesktop.Geoclue2.Master",
                                    "Create",
                                    nullptr, // parameters
                                    G_VARIANT_TYPE("(o)"),
@@ -117,7 +117,7 @@ private:
 
             auto tag = g_dbus_connection_signal_subscribe(self->m_bus,
                                                           GEOCLUE_BUS_NAME,
-                                                          "org.freedesktop.Geoclue.Address", // interface
+                                                          "org.freedesktop.Geoclue2.Address", // interface
                                                           "AddressChanged", // signal name
                                                           self->m_client_object_path.c_str(), // object path
                                                           nullptr, // arg0
@@ -130,7 +130,7 @@ private:
             g_dbus_connection_call(self->m_bus,
                                    GEOCLUE_BUS_NAME,
                                    self->m_client_object_path.c_str(),
-                                   "org.freedesktop.Geoclue.MasterClient",
+                                   "org.freedesktop.Geoclue2.MasterClient",
                                    "SetRequirements",
                                    g_variant_new("(iibi)", 2, 0, FALSE, 1023),
                                    nullptr,
@@ -164,7 +164,7 @@ private:
             g_dbus_connection_call(self->m_bus,
                                    GEOCLUE_BUS_NAME,
                                    self->m_client_object_path.c_str(),
-                                   "org.freedesktop.Geoclue.MasterClient",
+                                   "org.freedesktop.Geoclue2.MasterClient",
                                    "AddressStart",
                                    nullptr,
                                    nullptr,
@@ -189,7 +189,7 @@ private:
             g_dbus_connection_call(self->m_bus,
                                    GEOCLUE_BUS_NAME,
                                    self->m_client_object_path.c_str(),
-                                   "org.freedesktop.Geoclue.Address",
+                                   "org.freedesktop.Geoclue2.Address",
                                    "GetAddress",
                                    nullptr,
                                    G_VARIANT_TYPE("(ia{ss}(idd))"),
