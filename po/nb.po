@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2017-12-08 04:49+0000\n"
+"PO-Revision-Date: 2017-12-13 00:49+0000\n"
 "Last-Translator: Allan Nordhøy <epost@anotheragency.no>\n"
 "Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/ayatana-"
 "indicators/datetime-applet/nb/>\n"
@@ -192,31 +192,36 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:31
 msgid "The alarm's default sound file."
-msgstr ""
+msgstr "Forvalgt lydfil for alarm."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:32
 msgid ""
 "If an alarm doesn't specify its own sound file, this file will be used as "
 "the fallback sound."
 msgstr ""
+"Hvis en alarm ikke har egen lyd angitt, vil denne fila bli brukt som "
+"tilbakefall."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:33
 msgid "The alarm's default volume level."
-msgstr ""
+msgstr "Alarmens forvalgte lydnivå."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:34
 msgid "The volume at which alarms will be played."
-msgstr ""
+msgstr "Lydstyrken for alarmen."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:35
 msgid "The alarm's duration."
 msgstr "Alarmens varighet"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:36
+#, fuzzy
 msgid ""
 "How long the alarm's sound will be looped if its snap decision is not "
 "dismissed by the user."
 msgstr ""
+"Hvor lenge alarmens lyd vil gå i reprise, hvis dens snap-handling ikke "
+"avbrytes av brukeren."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:37
 msgid "The snooze duration."
@@ -224,7 +229,7 @@ msgstr "Slumringsvarighet"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:38
 msgid "How long to wait when the user hits the Snooze button."
-msgstr ""
+msgstr "Ventetid før brukeren trykker på slumreknappen."
 
 #. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
 #: ../src/formatter.cpp:234
@@ -250,7 +255,7 @@ msgstr ""
 #. en_US example: "%H:%M" --> "13:00"
 #: ../src/formatter.cpp:243 ../src/utils.c:344
 msgid "%H:%M"
-msgstr ""
+msgstr "%H:%M"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
@@ -270,7 +275,7 @@ msgstr ""
 #. zh_CN example(?): "%m月%d日 周%a" --> "03月27日 周六"
 #: ../src/formatter-desktop.cpp:147
 msgid "%a %b %e"
-msgstr ""
+msgstr "%a %e %b"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
@@ -288,8 +293,9 @@ msgstr ""
 #. en_GB example: "%e %b %Y" --> "31 Oct 2020"
 #. zh_CN example(?): "%Y年%m月%d日" --> "2020年10月31日"
 #: ../src/formatter-desktop.cpp:163
+#, fuzzy
 msgid "%b %e %Y"
-msgstr ""
+msgstr "%e.%b %Y"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
@@ -299,12 +305,12 @@ msgstr ""
 #. zh_CN example(?): "%m月%d日" --> "03月27日"
 #: ../src/formatter-desktop.cpp:172
 msgid "%b %e"
-msgstr ""
+msgstr "%e. %b"
 
 #. This strftime(3) format string shows the year.
 #: ../src/formatter-desktop.cpp:176
 msgid "%Y"
-msgstr ""
+msgstr "%Y"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. Format string for the day on the first menuitem in the datetime indicator.
@@ -340,7 +346,7 @@ msgstr "Angi dato og klokkeslett..."
 #: ../src/menu.cpp:524
 #, c-format
 msgid "%s (has alarms)"
-msgstr ""
+msgstr "%s (har alarmer)"
 
 #. * strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 12h locale; e.g. Wed, 2:00 PM
