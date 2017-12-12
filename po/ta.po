@@ -8,25 +8,28 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2017-10-12 07:36+0200\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2017-12-13 05:51+0000\n"
+"Last-Translator: Naveen Rajan <naveentherocker1234@gmail.com>\n"
+"Language-Team: Tamil <https://hosted.weblate.org/projects/ayatana-indicators"
+"/datetime-applet/ta/>\n"
 "Language: ta\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 2.18-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
 msgid "Show the clock in the panel"
-msgstr ""
+msgstr "குழுவில் கடிகாரத்தைக் காட்டு"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:2
 msgid "Controls whether the clock indicator appears in the panel or not."
-msgstr ""
+msgstr "கடிகார காட்டி பேனலில் உள்ளதா இல்லையா என்பதைக் கட்டுப்படுத்துகிறது."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:3
 msgid "What the time format should be"
-msgstr ""
+msgstr "நேரம் வடிவம் இருக்க வேண்டும்"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:4
 msgid ""
@@ -37,10 +40,17 @@ msgid ""
 "be either 12 or 24 time. Or, you can use a custom format string and set the "
 "custom-time-format setting."
 msgstr ""
+"சுட்டிக்காட்டி காட்டப்படும் நேர வடிவத்தை கட்டுப்படுத்துகிறது. கிட்டத்தட்ட "
+"அனைத்து பயனர்களுக்கும் இது அவர்களின் மொழிக்கான இயல்புநிலையாக இருக்க வேண்டும்"
+". உங்கள் மொழிக்கான அமைப்பு தவறாக உள்ளதாக நினைத்தால் தயவுசெய்து உங்கள் "
+"மொழிக்கான மொழிபெயர்ப்பு குழுவில் சேர் அல்லது உரையாடுங்கள். நீங்கள் "
+"வித்தியாசமாக ஏதாவது விரும்பினால், இதை 12 அல்லது 24 முறைகளாக மாற்றலாம். அல்லது"
+", தனிப்பயன் வடிவமைப்பு சரத்தை பயன்படுத்தலாம் மற்றும் தனிப்பயன் நேர வடிவமைப்பு"
+" அமைப்பை அமைக்கலாம்."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:5
 msgid "The format string passed to strftime"
-msgstr ""
+msgstr "வடிவமைப்பு சரம் strftime சென்றது"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:6
 msgid ""
@@ -54,6 +64,8 @@ msgstr ""
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:7
 msgid "Show the number of seconds in the indicator"
 msgstr ""
+"43/5000\n"
+"காட்டி எண்ணிக்கை விநாடிகள் காட்ட"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:8
 msgid ""
