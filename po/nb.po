@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2017-12-13 00:49+0000\n"
+"PO-Revision-Date: 2018-01-24 12:23+0000\n"
 "Last-Translator: Allan Nordhøy <epost@anotheragency.no>\n"
 "Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/ayatana-"
 "indicators/datetime-applet/nb/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2.18-dev\n"
+"X-Generator: Weblate 2.19-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
 msgid "Show the clock in the panel"
@@ -77,6 +77,10 @@ msgid ""
 "time will update 60 times as often, so it is not recommended. Also, this "
 "setting will be ignored if the time-format value is set to custom."
 msgstr ""
+"Får datotidsindikatoren til å vise antall sekunder i indikatoren. Det er "
+"viktig å mrke seg at dette vil føre til mindre batteritid, siden tiden vil "
+"oppdatere seg 60 ganger så ofte, så det anbefales ikke. Denne innstillingen "
+"vil ignoreres hvis tidsformatsverdien er satt til egendefinert."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:9
 msgid "Show the day of the week in the indicator"
@@ -88,6 +92,9 @@ msgid ""
 "depending on settings. This setting will be ignored if the time-format value "
 "is set to custom."
 msgstr ""
+"Putter ukedagen på panelet, sammen med tid og/eller dato, avhengig av "
+"innstillinger. Denne innstillingen vil ses bort fra hvis tidsformatsverdien "
+"er satt til egendefinert."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:11
 msgid "Show the month and date in the indicator"
@@ -99,6 +106,9 @@ msgid ""
 "the week depending on settings. This setting will be ignored if the time-"
 "format value is set to custom."
 msgstr ""
+"Putter måneden og datoen i panelet, sammen med tid og/eller ukedagen, "
+"avhengig av innstillingene. Denne innstillingene ses bor fra hvis "
+"tidsformatverdien er satt til egendefinert."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:13
 msgid "Show the year in the indicator"
@@ -110,6 +120,8 @@ msgid ""
 "will be ignored if either the time-format value is set to custom or if show-"
 "date is set to false."
 msgstr ""
+"Putter året i panelet, sammen med måned og dato. Denne innstillingene ses "
+"bort fra hvis tidsformatverdien er satt til egendefinert."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:15
 msgid "Show the monthly calendar in the indicator"
@@ -117,7 +129,7 @@ msgstr "Vis månedlig kalender i indikatoren"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:16
 msgid "Puts the monthly calendar in indicator-datetime's menu."
-msgstr ""
+msgstr "Putter månedlig kalender i indikatorens datotidsmeny."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:17
 msgid "Show week numbers in calendar"
@@ -127,6 +139,7 @@ msgstr "Viser ukenummer i kalender"
 msgid ""
 "Shows the week numbers in the monthly calendar in indicator-datetime's menu."
 msgstr ""
+"Viser ukenummer i i den månedlige kalenderen i indikatorens datotidsmeny."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:19
 msgid "Show events in the indicator"
@@ -139,21 +152,23 @@ msgstr "Viser hendelser fra Evolution i indikatorens datotidsmeny."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:21
 msgid "Show the auto-detected location in the indicator"
-msgstr ""
+msgstr "Vis automatisk oppdaget plassering i indikatoren"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:22
 msgid ""
 "Shows your current location (determined from geoclue and /etc/timezone) in "
 "indicator-datetime's menu."
 msgstr ""
+"Viser din nåværende plassering (bestemt av geoclue og /etc/timezone) i "
+"indikatorens datotidsmeny."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:23
 msgid "Show locations in the indicator"
-msgstr ""
+msgstr "Viser plasseringer i indikatoren"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:24
 msgid "Shows custom defined locations in indicator-datetime's menu."
-msgstr ""
+msgstr "Viser egendefinerte plasseringer i indikatorens datotidsmeny."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:25
 #, fuzzy
@@ -174,21 +189,30 @@ msgid "The name of the current timezone"
 msgstr "Navnet på gjeldende tidssone"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:28
+#, fuzzy
 msgid ""
 "Some timezones can be known by many different cities or names. This setting "
 "describes how the current zone prefers to be named. Format is \"TIMEZONE NAME"
 "\" (e.g. \"America/New_York Boston\" to name the New_York zone Boston)."
 msgstr ""
+"Noen tidssoner kan utredes av mange forskjellige byer eller navn. Denne "
+"innstillingen beskriver foretrukket navn på nåværende sone. Formatet er \""
+"TIDSSONE NAVN\" (f.eks. \"Europa/Sør_Trøndelag Trondheim\" for å navngi "
+"Sør_Trøndelag sonen Trondheim)."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:29
 msgid "What kind of haptic feedback, if any, to trigger with an alarm."
 msgstr ""
+"Hva slags fysisk tilbakemelding, hvis noen, skal utløses sammen med en alarm."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:30
+#, fuzzy
 msgid ""
 "What kind of haptic feedback, if any, to trigger with an alarm. Two modes "
 "are currently supported: 'pulse', 'none'."
 msgstr ""
+"Hva slags fysisk tilbakemelding, hvis noen, skal utløses sammen med en "
+"alarm. To modus støttes: \"pulserende\", \"ingen"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:31
 msgid "The alarm's default sound file."
@@ -212,7 +236,7 @@ msgstr "Lydstyrken for alarmen."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:35
 msgid "The alarm's duration."
-msgstr "Alarmens varighet"
+msgstr "Alarmens varighet."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:36
 #, fuzzy
@@ -225,7 +249,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:37
 msgid "The snooze duration."
-msgstr "Slumringsvarighet"
+msgstr "Slumringsvarighet."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:38
 msgid "How long to wait when the user hits the Snooze button."
@@ -233,21 +257,24 @@ msgstr "Ventetid før brukeren trykker på slumreknappen."
 
 #. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
 #: ../src/formatter.cpp:234
+#, fuzzy
 msgid "%l:%M:%S %p"
-msgstr ""
+msgstr "%l:%M:%S %p"
 
 #. TRANSLATORS: a strftime(3) format for 12hr time
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 12-hour clock, events/appointments that happen today.
 #. en_US example: "%l:%M %p" --> "1:00 PM"
 #: ../src/formatter.cpp:237 ../src/utils.c:304
+#, fuzzy
 msgid "%l:%M %p"
-msgstr ""
+msgstr "%l:%M %p"
 
 #. TRANSLATORS: a strftime(3) format for 24hr time w/seconds
 #: ../src/formatter.cpp:240
+#, fuzzy
 msgid "%H:%M:%S"
-msgstr ""
+msgstr "%H:%M:%S"
 
 #. TRANSLATORS: a strftime(3) format for 24hr time
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
@@ -265,7 +292,7 @@ msgstr "%H:%M"
 #. zh_CN example(?): "%Y年%m月%d日 周%a" --> "2020年10月31日 周六"
 #: ../src/formatter-desktop.cpp:138
 msgid "%a %b %e %Y"
-msgstr ""
+msgstr "%a %e %b %Y"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
@@ -282,9 +309,9 @@ msgstr "%a %e %b"
 #. This format string shows the abbreviated weekday.
 #. zh_CN example(?): "周%a" --> "周六"
 #: ../src/formatter-desktop.cpp:154
-#, c-format
+#, c-format, fuzzy
 msgid "%a"
-msgstr ""
+msgstr "%a"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
@@ -319,7 +346,7 @@ msgstr "%Y"
 #. en_GB example: "%A, %e %B %Y" --> Saturday, 31 October 2020"
 #: ../src/menu.cpp:255
 msgid "%A, %e %B %Y"
-msgstr ""
+msgstr "%A, %e %B %Y"
 
 #. add the 'Add Event…' menuitem
 #: ../src/menu.cpp:352
@@ -351,14 +378,16 @@ msgstr "%s (har alarmer)"
 #. * strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 12h locale; e.g. Wed, 2:00 PM
 #: ../src/snap.cpp:125
+#, fuzzy
 msgid "%a, %l:%M %p"
-msgstr ""
+msgstr "%a, %l:%M %p"
 
 #. * A strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 24h locale; e.g. Wed, 14:00
 #: ../src/snap.cpp:129
+#, fuzzy
 msgid "%a, %H:%M"
-msgstr ""
+msgstr "%a. %H:%M"
 
 #: ../src/snap.cpp:132
 #, c-format
@@ -383,9 +412,9 @@ msgstr "I morgen"
 
 #. This is a strftime(3) format string indicating the unabbreviated weekday.
 #: ../src/utils.c:283
-#, c-format
+#, c-format, fuzzy
 msgid "%A"
-msgstr ""
+msgstr "%A"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing full-day events that are over a week away.
@@ -393,8 +422,9 @@ msgstr ""
 #. en_GB example: "%a %d %b" --> "Sat 31 Oct"
 #. zh_CN example(?): "%m月%d日 周%a" --> "10月31日 周六"
 #: ../src/utils.c:292
+#, fuzzy
 msgid "%a %d %b"
-msgstr ""
+msgstr "%a. %d %b."
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 12-hour clock, events/appointments that happen tomorrow.
@@ -402,8 +432,9 @@ msgstr ""
 #. slightly wider than a normal space.)
 #. en_US example: "Tomorrow %l:%M %p" --> "Tomorrow 1:00 PM"
 #: ../src/utils.c:313
+#, fuzzy
 msgid "Tomorrow %l:%M %p"
-msgstr ""
+msgstr "I morgen %l:%M %p"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 12-hour clock, events/appointments that happen this week.
@@ -411,8 +442,9 @@ msgstr ""
 #. slightly wider than a normal space.)
 #. en_US example: "Tomorrow %l:%M %p" --> "Fri 1:00 PM"
 #: ../src/utils.c:322
+#, fuzzy
 msgid "%a %l:%M %p"
-msgstr ""
+msgstr "%a. %l:%M %p"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 12-hour clock, events/appointments that happen over a week from now.
@@ -421,8 +453,9 @@ msgstr ""
 #. en_US example: "%a %d %b %l:%M %p" --> "Fri Oct 31 1:00 PM"
 #. en_GB example: "%a %b %d %l:%M %p" --> "Fri 31 Oct 1:00 PM"
 #: ../src/utils.c:332
+#, fuzzy
 msgid "%a %d %b %l:%M %p"
-msgstr ""
+msgstr "%a. %b %d. %l:%M %p"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 24-hour clock, events/appointments that happen tomorrow.
@@ -430,8 +463,9 @@ msgstr ""
 #. slightly wider than a normal space.)
 #. en_US example: "Tomorrow %l:%M %p" --> "Tomorrow 13:00"
 #: ../src/utils.c:353
+#, fuzzy
 msgid "Tomorrow %H:%M"
-msgstr ""
+msgstr "I morgen %H:%M"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 24-hour clock, events/appointments that happen this week.
@@ -439,8 +473,9 @@ msgstr ""
 #. slightly wider than a normal space.)
 #. en_US example: "%a %H:%M" --> "Fri 13:00"
 #: ../src/utils.c:362
+#, fuzzy
 msgid "%a %H:%M"
-msgstr ""
+msgstr "%a. %H:%M"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 24-hour clock, events/appointments that happen over a week from now.
@@ -449,8 +484,9 @@ msgstr ""
 #. en_US example: "%a %d %b %H:%M" --> "Fri Oct 31 13:00"
 #. en_GB example: "%a %b %d %H:%M" --> "Fri 31 Oct 13:00"
 #: ../src/utils.c:372
+#, fuzzy
 msgid "%a %d %b %H:%M"
-msgstr ""
+msgstr "%a. %b %d. %H:%M"
 
 #~ msgid "Error getting time"
 #~ msgstr "Feil under henting av klokkeslett"
