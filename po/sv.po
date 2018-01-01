@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2017-12-31 15:11+0000\n"
-"Last-Translator: Sebastian Rasmussen <sebras@gmail.com>\n"
+"PO-Revision-Date: 2018-01-24 12:31+0000\n"
+"Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
 "Language-Team: Swedish <https://hosted.weblate.org/projects/ayatana-"
 "indicators/datetime-applet/sv/>\n"
 "Language: sv\n"
@@ -42,7 +42,7 @@ msgid ""
 msgstr ""
 "Styr tidsformatet som visas i indikatorn. För nästan alla användare bör "
 "detta vara standardvärdet för deras lokal. Om du tycker att inställningen är "
-"fel för din lokal gå med i eller prata  med översättningsgruppen för ditt "
+"fel för din lokal gå med i eller prata med översättningsgruppen för ditt "
 "språk. Om du bara vill ha något annat kan du justera detta till att vara "
 "antingen 12- eller 24-timmarstid. Eller så kan du använda en anpassad "
 "formatsträng och ställa in den anpassade tidsformatsinställningen."
@@ -63,11 +63,11 @@ msgstr ""
 "används. För de flesta användare kommer detta att vara en uppsättning "
 "fördefinierade värden bestämda av konfigurationsverktyget, men avancerade "
 "användare kan vilja ändra det till något som strftime accepterar. Titta på "
-"manualsidoan för strftime för vidare information."
+"manualsidan för strftime för vidare information."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:7
 msgid "Show the number of seconds in the indicator"
-msgstr "Visa antalet skunder i indikatorn"
+msgstr "Visa antalet sekunder i indikatorn"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:8
 msgid ""
@@ -77,9 +77,9 @@ msgid ""
 "setting will be ignored if the time-format value is set to custom."
 msgstr ""
 "Får datumtidsindikatorn att visa antalet sekunder i indikatorn. Det är "
-"viktigt att notera att detta kommer att förorsaka ytterligare användning "
+"viktigt att notera att detta kommer att förorsaka ytterligare användning av "
 "batteri då tiden kommer att uppdateras 60 gånger så ofta, så det "
-"rekommenderas inte. Denna inställning kommerockså att ignoreras om "
+"rekommenderas inte. Denna inställning kommer också att ignoreras om "
 "tidformatsvärdet är anpassat."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:9
@@ -140,7 +140,7 @@ msgstr "Visa veckonummer i kalender"
 msgid ""
 "Shows the week numbers in the monthly calendar in indicator-datetime's menu."
 msgstr ""
-"Visar vackornumret i den månatliga kalendern i indikatorns datumtidsmeny."
+"Visar veckonumret i den månatliga kalendern i indikatorns datumtidsmeny."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:19
 msgid "Show events in the indicator"
@@ -194,7 +194,7 @@ msgid ""
 msgstr ""
 "Vissa tidszoner är kända vid namnet på många olika städer. Denna inställning "
 "beskriver hur den aktuella zonen önskas namnges. Formatet är \"TIDSZON NAMN\""
-" (t.ex. \"Amerika/New_York Boston\" för att namnget New_York-zonen Boston)."
+" (t.ex. \"Amerika/New_York Boston\" för att namnge New_York-zonen Boston)."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:29
 msgid "What kind of haptic feedback, if any, to trigger with an alarm."
@@ -243,7 +243,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:37
 msgid "The snooze duration."
-msgstr "Varkatighet för insomningsfunktionen."
+msgstr "Varaktighet för insomningsfunktionen."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:38
 msgid "How long to wait when the user hits the Snooze button."
@@ -336,7 +336,7 @@ msgstr "%Y"
 #. en_GB example: "%A, %e %B %Y" --> Saturday, 31 October 2020"
 #: ../src/menu.cpp:255
 msgid "%A, %e %B %Y"
-msgstr "%A %B %e %Y"
+msgstr "%A, %e %B %Y"
 
 #. add the 'Add Event…' menuitem
 #: ../src/menu.cpp:352
