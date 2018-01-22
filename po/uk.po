@@ -8,19 +8,21 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2017-10-12 07:36+0200\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2018-01-24 12:35+0000\n"
+"Last-Translator: Марс Ямбар <mjambarmeta@gmail.com>\n"
+"Language-Team: Ukrainian <https://hosted.weblate.org/projects/ayatana-"
+"indicators/datetime-applet/uk/>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<="
+"4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 2.19-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
 msgid "Show the clock in the panel"
-msgstr ""
+msgstr "Показати годинник на панелі"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:2
 msgid "Controls whether the clock indicator appears in the panel or not."
@@ -108,7 +110,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:17
 msgid "Show week numbers in calendar"
-msgstr ""
+msgstr "Показувати номери тижнів у календарі"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:18
 msgid ""
@@ -117,7 +119,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:19
 msgid "Show events in the indicator"
-msgstr ""
+msgstr "Показувати події в індикаторі"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:20
 msgid "Shows events from Evolution in indicator-datetime's menu."
@@ -135,7 +137,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:23
 msgid "Show locations in the indicator"
-msgstr ""
+msgstr "Показати місцезнаходження в індикаторі"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:24
 msgid "Shows custom defined locations in indicator-datetime's menu."
@@ -153,7 +155,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:27
 msgid "The name of the current timezone"
-msgstr ""
+msgstr "Назва поточного часового поясу"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:28
 msgid ""
@@ -300,11 +302,11 @@ msgstr ""
 #. add the 'Add Event…' menuitem
 #: ../src/menu.cpp:352
 msgid "Add Event…"
-msgstr ""
+msgstr "Додати подію…"
 
 #: ../src/menu.cpp:362
 msgid "Clock"
-msgstr ""
+msgstr "Годинник"
 
 #: ../src/menu.cpp:414
 msgid "Time & Date settings…"
@@ -312,11 +314,11 @@ msgstr ""
 
 #: ../src/menu.cpp:469
 msgid "Date and Time"
-msgstr ""
+msgstr "Дата і час"
 
 #: ../src/menu.cpp:519
 msgid "Time & Date"
-msgstr ""
+msgstr "Час і дата"
 
 #: ../src/menu.cpp:524
 #, c-format
@@ -342,7 +344,7 @@ msgstr ""
 
 #: ../src/snap.cpp:139
 msgid "OK"
-msgstr ""
+msgstr "Гаразд"
 
 #: ../src/snap.cpp:140
 msgid "Snooze"
@@ -350,11 +352,11 @@ msgstr ""
 
 #: ../src/utils.c:274
 msgid "Today"
-msgstr ""
+msgstr "Сьогодні"
 
 #: ../src/utils.c:278
 msgid "Tomorrow"
-msgstr ""
+msgstr "Завтра"
 
 #. This is a strftime(3) format string indicating the unabbreviated weekday.
 #: ../src/utils.c:283
