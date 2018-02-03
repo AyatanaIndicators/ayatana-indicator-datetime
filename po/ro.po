@@ -8,27 +8,29 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2010-03-03 10:06-0500\n"
-"Last-Translator: Canonical OEM\n"
-"Language-Team: Romanian\n"
-"Language: \n"
+"PO-Revision-Date: 2018-02-04 09:39+0000\n"
+"Last-Translator: Cristian Gherman <c_gherman@yahoo.com>\n"
+"Language-Team: Romanian <https://hosted.weblate.org/projects/ayatana-"
+"indicators/datetime-applet/ro/>\n"
+"Language: ro\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
+"X-Generator: Weblate 2.19-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
 msgid "Show the clock in the panel"
-msgstr ""
+msgstr "Arată ceasul în panoul"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:2
 msgid "Controls whether the clock indicator appears in the panel or not."
-msgstr ""
+msgstr "Controlează dacă indicatorul de ceas apare în panou sau nu."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:3
 msgid "What the time format should be"
-msgstr ""
+msgstr "Ce format de timp ar trebui să fie"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:4
 msgid ""
@@ -42,7 +44,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:5
 msgid "The format string passed to strftime"
-msgstr ""
+msgstr "Șirul de format a trecut la strftime"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:6
 msgid ""
@@ -55,7 +57,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:7
 msgid "Show the number of seconds in the indicator"
-msgstr ""
+msgstr "Afișați numărul de secunde din indicator"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:8
 msgid ""
@@ -67,7 +69,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:9
 msgid "Show the day of the week in the indicator"
-msgstr ""
+msgstr "Afișați ziua săptămânii în indicator"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:10
 msgid ""
@@ -78,7 +80,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:11
 msgid "Show the month and date in the indicator"
-msgstr ""
+msgstr "Afișați luna și data în indicator"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:12
 msgid ""
@@ -86,10 +88,13 @@ msgid ""
 "the week depending on settings. This setting will be ignored if the time-"
 "format value is set to custom."
 msgstr ""
+"Pune luna și data în panou împreună cu ora și / sau ziua săptămânii, în "
+"funcție de setări. Această setare va fi ignorată în cazul în care valoarea "
+"formatul orei este setată personalizat."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:13
 msgid "Show the year in the indicator"
-msgstr ""
+msgstr "Afișați anul în indicator"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:14
 msgid ""
@@ -100,24 +105,24 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:15
 msgid "Show the monthly calendar in the indicator"
-msgstr ""
+msgstr "Afișați calendarul lunar în indicator"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:16
 msgid "Puts the monthly calendar in indicator-datetime's menu."
-msgstr ""
+msgstr "Pune calendarul lunar în meniul indicator."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:17
 msgid "Show week numbers in calendar"
-msgstr ""
+msgstr "Afișați numerele săptămânii din calendar"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:18
 msgid ""
 "Shows the week numbers in the monthly calendar in indicator-datetime's menu."
-msgstr ""
+msgstr "Afișează numerele săptămânii din calendarul lunar în meniul dată."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:19
 msgid "Show events in the indicator"
-msgstr ""
+msgstr "Afișați evenimentele în indicator"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:20
 msgid "Shows events from Evolution in indicator-datetime's menu."
@@ -132,18 +137,20 @@ msgid ""
 "Shows your current location (determined from geoclue and /etc/timezone) in "
 "indicator-datetime's menu."
 msgstr ""
+"Afișează locația dvs. curentă (determinată de geoclue și / etc / timezone) "
+"în meniul indicator-datetime."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:23
 msgid "Show locations in the indicator"
-msgstr ""
+msgstr "Afișați locațiile în indicator"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:24
 msgid "Shows custom defined locations in indicator-datetime's menu."
-msgstr ""
+msgstr "Afișează locații personalizate definite în meniul indicator-datetime."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:25
 msgid "A List of locations"
-msgstr ""
+msgstr "O listă de locații"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:26
 msgid ""
