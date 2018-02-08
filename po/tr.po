@@ -8,26 +8,28 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2010-03-03 10:06-0500\n"
-"Last-Translator: Canonical OEM\n"
-"Language-Team: Turkish\n"
-"Language: \n"
+"PO-Revision-Date: 2018-02-09 12:40+0000\n"
+"Last-Translator: Mertcan Gokgoz <mertcan.gokgoz@gmail.com>\n"
+"Language-Team: Turkish <https://hosted.weblate.org/projects/ayatana-"
+"indicators/datetime-applet/tr/>\n"
+"Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 2.19-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
 msgid "Show the clock in the panel"
-msgstr ""
+msgstr "Panelde saati göster"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:2
 msgid "Controls whether the clock indicator appears in the panel or not."
-msgstr ""
+msgstr "Saat gösterge panelinde görünür olup olmadığını denetler."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:3
 msgid "What the time format should be"
-msgstr ""
+msgstr "Saat biçimi ne olmalıdır"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:4
 msgid ""
@@ -38,6 +40,12 @@ msgid ""
 "be either 12 or 24 time. Or, you can use a custom format string and set the "
 "custom-time-format setting."
 msgstr ""
+"Göstergede görüntülenen saat biçimini denetler. Neredeyse tüm kullanıcılar "
+"için bu, onların yerel ayarları için varsayılan olmalıdır. Yerel "
+"ayarlarınızın yanlış olduğunu düşünüyorsanız, lütfen dilinize çeviri yapan "
+"ekibe katılın veya çeviri ekibiyle görüşün. Farklı bir şey istiyorsanız, "
+"bunu 12 veya 24 saat olacak şekilde ayarlayabilirsiniz. Veya, özel bir biçim "
+"dizesi kullanabilir ve özel zaman biçimi ayarını uygulayabilirsiniz."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:5
 msgid "The format string passed to strftime"
@@ -51,6 +59,11 @@ msgid ""
 "anything strftime can accept. Look at the man page on strftime for more "
 "information."
 msgstr ""
+"Göstergeyi kullanırken panelde görünen saat ve/veya tarihin biçimi. Çoğu "
+"kullanıcı için, yapılandırma yardımcı programı tarafından belirlenen önceden "
+"tanımlanmış değerler kümesidir, ancak ileri düzey kullanıcılar bunu "
+"strftime'ın kabul edebileceği bir şey ile değiştirebilirler. Daha fazla "
+"bilgi için strftime için kullanılan man sayfasına bakınız."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:7
 msgid "Show the number of seconds in the indicator"
@@ -314,9 +327,8 @@ msgid "Date and Time"
 msgstr ""
 
 #: ../src/menu.cpp:519
-#, fuzzy
 msgid "Time & Date"
-msgstr "Saati ve Târihi Ayarla..."
+msgstr "Saat ve Tarih"
 
 #: ../src/menu.cpp:524
 #, c-format
@@ -342,7 +354,7 @@ msgstr ""
 
 #: ../src/snap.cpp:139
 msgid "OK"
-msgstr ""
+msgstr "Tamam"
 
 #: ../src/snap.cpp:140
 msgid "Snooze"
@@ -397,7 +409,7 @@ msgstr ""
 #. en_GB example: "%a %b %d %l:%M %p" --> "Fri 31 Oct 1:00 PM"
 #: ../src/utils.c:332
 msgid "%a %d %b %l:%M %p"
-msgstr ""
+msgstr "%l:%M %b %d %a"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 24-hour clock, events/appointments that happen tomorrow.
