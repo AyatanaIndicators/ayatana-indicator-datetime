@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2018-03-01 22:40+0000\n"
+"PO-Revision-Date: 2018-03-05 21:38+0000\n"
 "Last-Translator: Moo <hazap@hotmail.com>\n"
 "Language-Team: Lithuanian <https://hosted.weblate.org/projects/ayatana-"
 "indicators/datetime-applet/lt/>\n"
@@ -42,10 +42,17 @@ msgid ""
 "be either 12 or 24 time. Or, you can use a custom format string and set the "
 "custom-time-format setting."
 msgstr ""
+"Valdo laiko formatą, kuris yra rodomas indikatoriuje. Beveik visiems "
+"naudotojams tai turėtų būti numatytasis jų lokalės formatas. Jei galvojate, "
+"kad šis nustatymas jūsų lokalei yra neteisingas, tuomet prisijunkite ar "
+"susisiekite su savo kalbos vertimo komanda. Jei, tiesiog, norite kažkokio "
+"kitokio formato, galite jį reguliuoti į 12 arba 24 valandų laiką. Arba "
+"galite naudoti pasirinktinio formato eilutę ir nusistatyti custom-time-"
+"format nustatymą."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:5
 msgid "The format string passed to strftime"
-msgstr ""
+msgstr "Formato eilutė, perduodama į strftime"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:6
 msgid ""
@@ -111,7 +118,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:17
 msgid "Show week numbers in calendar"
-msgstr ""
+msgstr "Rodyti kalendoriuje savaičių numerius"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:18
 msgid ""
@@ -120,7 +127,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:19
 msgid "Show events in the indicator"
-msgstr ""
+msgstr "Rodyti indikatoriuje įvykius"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:20
 msgid "Shows events from Evolution in indicator-datetime's menu."
@@ -128,7 +135,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:21
 msgid "Show the auto-detected location in the indicator"
-msgstr ""
+msgstr "Rodyti indikatoriuje automatiškai aptiktą vietą"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:22
 msgid ""
@@ -138,7 +145,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:23
 msgid "Show locations in the indicator"
-msgstr ""
+msgstr "Rodyti indikatoriuje vietas"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:24
 msgid "Shows custom defined locations in indicator-datetime's menu."
@@ -146,7 +153,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:25
 msgid "A List of locations"
-msgstr ""
+msgstr "Vietų sąrašas"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:26
 msgid ""
@@ -156,7 +163,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:27
 msgid "The name of the current timezone"
-msgstr ""
+msgstr "Dabartinės laiko juostos pavadinimas"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:28
 msgid ""
@@ -214,7 +221,7 @@ msgstr ""
 #. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
 #: ../src/formatter.cpp:234
 msgid "%l:%M:%S %p"
-msgstr ""
+msgstr "%l:%M:%S %p"
 
 #. TRANSLATORS: a strftime(3) format for 12hr time
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
@@ -222,12 +229,12 @@ msgstr ""
 #. en_US example: "%l:%M %p" --> "1:00 PM"
 #: ../src/formatter.cpp:237 ../src/utils.c:304
 msgid "%l:%M %p"
-msgstr ""
+msgstr "%l:%M %p"
 
 #. TRANSLATORS: a strftime(3) format for 24hr time w/seconds
 #: ../src/formatter.cpp:240
 msgid "%H:%M:%S"
-msgstr ""
+msgstr "%H:%M:%S"
 
 #. TRANSLATORS: a strftime(3) format for 24hr time
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
@@ -235,7 +242,7 @@ msgstr ""
 #. en_US example: "%H:%M" --> "13:00"
 #: ../src/formatter.cpp:243 ../src/utils.c:344
 msgid "%H:%M"
-msgstr ""
+msgstr "%H:%M"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
@@ -264,7 +271,7 @@ msgstr ""
 #: ../src/formatter-desktop.cpp:154
 #, c-format
 msgid "%a"
-msgstr ""
+msgstr "%a"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
@@ -289,7 +296,7 @@ msgstr ""
 #. This strftime(3) format string shows the year.
 #: ../src/formatter-desktop.cpp:176
 msgid "%Y"
-msgstr ""
+msgstr "%Y"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. Format string for the day on the first menuitem in the datetime indicator.
@@ -303,23 +310,23 @@ msgstr ""
 #. add the 'Add Event…' menuitem
 #: ../src/menu.cpp:352
 msgid "Add Event…"
-msgstr ""
+msgstr "Pridėti įvykį…"
 
 #: ../src/menu.cpp:362
 msgid "Clock"
-msgstr ""
+msgstr "Laikrodis"
 
 #: ../src/menu.cpp:414
 msgid "Time & Date settings…"
-msgstr ""
+msgstr "Laiko ir datos nustatymai…"
 
 #: ../src/menu.cpp:469
 msgid "Date and Time"
-msgstr ""
+msgstr "Data ir laikas"
 
 #: ../src/menu.cpp:519
 msgid "Time & Date"
-msgstr ""
+msgstr "Laikas ir data"
 
 #: ../src/menu.cpp:524
 #, c-format
@@ -345,7 +352,7 @@ msgstr ""
 
 #: ../src/snap.cpp:139
 msgid "OK"
-msgstr ""
+msgstr "Gerai"
 
 #: ../src/snap.cpp:140
 msgid "Snooze"
