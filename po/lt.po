@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2018-03-05 21:38+0000\n"
+"PO-Revision-Date: 2018-03-12 00:39+0000\n"
 "Last-Translator: Moo <hazap@hotmail.com>\n"
 "Language-Team: Lithuanian <https://hosted.weblate.org/projects/ayatana-"
 "indicators/datetime-applet/lt/>\n"
@@ -62,10 +62,15 @@ msgid ""
 "anything strftime can accept. Look at the man page on strftime for more "
 "information."
 msgstr ""
+"Laiko ir/ar datos formatas, kuris yra matomas skydelyje, naudojant "
+"indikatorių. Daugumai naudotojų tai bus iš anksto nustatytų reikšmių "
+"rinkinys, apibrėžtas konfigūracijos paslaugų programos, tačiau patyrę "
+"naudotojai gali tai pakeisti į bet ką, ką gali priimti strftime. Išsamesnei "
+"informacijai, žiūrėkite strftime žinyno puslapius."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:7
 msgid "Show the number of seconds in the indicator"
-msgstr ""
+msgstr "Rodyti indikatoriuje sekundžių skaičių"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:8
 msgid ""
@@ -74,10 +79,15 @@ msgid ""
 "time will update 60 times as often, so it is not recommended. Also, this "
 "setting will be ignored if the time-format value is set to custom."
 msgstr ""
+"Padaro taip, kad datos ir laiko indikatorius rodytų sekundžių skaičių. "
+"Svarbu pastebėti, kad tai sukels papildomą baterijos iškrovimą, nes laikas "
+"bus atnaujinamas 60 kartų dažniau, taigi, tai nėra rekomenduojama. Taip pat "
+"šio nustatymo bus nepaisoma, jei laiko formatas yra nustatytas į "
+"pasirinktinį."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:9
 msgid "Show the day of the week in the indicator"
-msgstr ""
+msgstr "Rodyti indikatoriuje savaitės dieną"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:10
 msgid ""
@@ -85,10 +95,13 @@ msgid ""
 "depending on settings. This setting will be ignored if the time-format value "
 "is set to custom."
 msgstr ""
+"Priklausomai nuo nustatymų, skydelyje šalia laiko ir/ar datos įterpia "
+"savaitės dieną. Šio nustatymo bus nepaisoma, jei laiko formatas yra "
+"nustatytas į pasirinktinį."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:11
 msgid "Show the month and date in the indicator"
-msgstr ""
+msgstr "Rodyti indikatoriuje mėnesį ir datą"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:12
 msgid ""
@@ -96,10 +109,13 @@ msgid ""
 "the week depending on settings. This setting will be ignored if the time-"
 "format value is set to custom."
 msgstr ""
+"Priklausomai nuo nustatymų, skydelyje šalia laiko ir/ar savaitės dienos "
+"įterpia mėnesį ir datą. Šio nustatymo bus nepaisoma, jei laiko formatas yra "
+"nustatytas į pasirinktinį."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:13
 msgid "Show the year in the indicator"
-msgstr ""
+msgstr "Rodyti indikatoriuje metus"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:14
 msgid ""
@@ -107,6 +123,9 @@ msgid ""
 "will be ignored if either the time-format value is set to custom or if show-"
 "date is set to false."
 msgstr ""
+"Skydelyje šalia mėnesio ir datos įterpia metus. Šio nustatymo bus nepaisoma, "
+"jei laiko formatas yra nustatytas į pasirinktinį, arba jei show-date yra "
+"nustatyta į neteisingą."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:15
 msgid "Show the monthly calendar in the indicator"
