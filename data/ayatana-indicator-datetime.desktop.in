@@ -1,9 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=Indicator Date & Time
-Exec=@pkglibexecdir@/indicator-datetime-service
+Name=Ayatana Indicator Date & Time
+Exec=@pkglibexecdir@/ayatana-indicator-datetime-service
 OnlyShowIn=MATE;Unity;XFCE;Pantheon;
 NoDisplay=true
 StartupNotify=false
 Terminal=false
-AutostartCondition=GNOME3 unless-session gnome

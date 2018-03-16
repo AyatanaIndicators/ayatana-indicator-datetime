@@ -1,9 +1,9 @@
-description "Indicator Date & Time Backend"
+description "Ayatana Indicator Date & Time Backend"
 
-start on indicator-services-start
-stop on desktop-end or indicator-services-end
+start on ayatana-indicator-services-start
+stop on desktop-end or ayatana-indicator-services-end
 
 respawn
 respawn limit 2 10
 
-exec @pkglibexecdir@/indicator-datetime-service
+exec @pkglibexecdir@/ayatana-indicator-datetime-service
