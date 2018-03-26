@@ -132,7 +132,7 @@
 			</description>
 		</key>
 		<key name="alarm-default-sound" type="s">
-			<default>'/usr/share/sounds/ubuntu/ringtones/Alarm clock.ogg'</default>
+			<default>'${ALARM_DEFAULT_SOUND}'</default>
 			<summary>The alarm's default sound file.</summary>
 			<description>
 			  If an alarm doesn't specify its own sound file, this file will be used as the fallback sound.

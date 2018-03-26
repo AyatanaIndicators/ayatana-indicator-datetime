@@ -2,9 +2,19 @@
 ##  GSettings schema
 ##
 
-find_package (GSettings)
+include (UseGSettings)
+set (SCHEMA_NAME "org.ayatana.indicator.datetime.gschema.xml")
+set (SCHEMA_FILE_IN_IN "${CMAKE_CURRENT_SOURCE_DIR}/${SCHEMA_NAME}.in.in")
+set (SCHEMA_FILE_IN    "${CMAKE_CURRENT_BINARY_DIR}/${SCHEMA_NAME}.in")
+set (SCHEMA_FILE       "${CMAKE_CURRENT_BINARY_DIR}/${SCHEMA_NAME}")
+# generate the .xml.in file so cmake constants are included
+configure_file(${SCHEMA_FILE_IN_IN} ${SCHEMA_FILE_IN})
+# generate the .xml file using intltool
+set (ENV{LC_ALL} "C")
+execute_process (COMMAND intltool-merge -quiet --xml-style --utf8 --no-translations "${SCHEMA_FILE_IN}" "${SCHEMA_FILE}")
 
-add_schema ("org.ayatana.indicator.datetime.gschema.xml")
+# let UseGSettings do the rest
+add_schema (${SCHEMA_FILE})
 
 ##
 ##  Systemd Unit File
