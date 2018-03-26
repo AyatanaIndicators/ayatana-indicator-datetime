@@ -376,20 +376,23 @@ private:
 
         const auto now = m_state->clock->localtime();
 
-        for(const auto& location : m_state->locations->locations.get())
+        if (profile == Desktop || profile == Phone)
         {
-            const auto& zone = location.zone();
-            const auto& name = location.name();
-            const auto zone_now = now.to_timezone(zone);
-            const auto fmt = m_formatter->relative_format(zone_now.get());
-            auto detailed_action = g_strdup_printf("indicator.set-location::%s %s", zone.c_str(), name.c_str());
-            auto i = g_menu_item_new (name.c_str(), detailed_action);
-            g_menu_item_set_attribute(i, "x-canonical-type", "s", "org.ayatana.indicator.location");
-            g_menu_item_set_attribute(i, "x-canonical-timezone", "s", zone.c_str());
-            g_menu_item_set_attribute(i, "x-canonical-time-format", "s", fmt.c_str());
-            g_menu_append_item (menu, i);
-            g_object_unref(i);
-            g_free(detailed_action);
+            for(const auto& location : m_state->locations->locations.get())
+            {
+                const auto& zone = location.zone();
+                const auto& name = location.name();
+                const auto zone_now = now.to_timezone(zone);
+                const auto fmt = m_formatter->relative_format(zone_now.get());
+                auto detailed_action = g_strdup_printf("indicator.set-location::%s %s", zone.c_str(), name.c_str());
+                auto i = g_menu_item_new (name.c_str(), detailed_action);
+                g_menu_item_set_attribute(i, "x-canonical-type", "s", "org.ayatana.indicator.location");
+                g_menu_item_set_attribute(i, "x-canonical-timezone", "s", zone.c_str());
+                g_menu_item_set_attribute(i, "x-canonical-time-format", "s", fmt.c_str());
+                g_menu_append_item (menu, i);
+                g_object_unref(i);
+                g_free(detailed_action);
+            }
         }
 
         return G_MENU_MODEL(menu);
