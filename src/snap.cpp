@@ -98,8 +98,7 @@ public:
         if (appointment.is_ubuntu_alarm() || !silent_mode()) {
             // create the sound.
             const auto role = appointment.is_ubuntu_alarm() ? "alarm" : "alert";
-            const auto default_sound = appointment.is_ubuntu_alarm() ? ALARM_DEFAULT_SOUND : CALENDAR_DEFAULT_SOUND;
-            const auto uri = get_alarm_uri(alarm, m_settings, default_sound);
+            const auto uri = get_alarm_uri(appointment, alarm, m_settings);
             const auto volume = m_settings->alarm_volume.get();
             const bool loop = interactive;
             sound = std::make_shared<ain::Sound>(role, uri, volume, loop);
@@ -191,13 +190,16 @@ private:
             && (accounts_service_sound_get_other_vibrate(m_accounts_service_sound_proxy));
     }
 
-    std::string get_alarm_uri(const Alarm& alarm,
-                              const std::shared_ptr<const Settings>& settings,
-                              const std::string& default_sound ) const
+    std::string get_alarm_uri(const Appointment& appointment,
+                              const Alarm& alarm,
+                              const std::shared_ptr<const Settings>& settings) const
     {
-        const std::string candidates[] = { alarm.audio_url,
-                                           settings->alarm_sound.get(),
-                                           default_sound };
+        const auto is_alarm = appointment.is_ubuntu_alarm();
+        const std::string candidates[] = {
+            alarm.audio_url,
+            is_alarm ? settings->alarm_sound.get() : settings->calendar_sound.get(),
+            is_alarm ? ALARM_DEFAULT_SOUND : CALENDAR_DEFAULT_SOUND
+        };
 
         std::string uri;
 

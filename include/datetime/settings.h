@@ -56,6 +56,7 @@ public:
     core::Property<bool> show_year;
     core::Property<TimeFormatMode> time_format_mode;
     core::Property<std::string> timezone_name;
+    core::Property<std::string> calendar_sound;
     core::Property<std::string> alarm_sound;
     core::Property<std::string> alarm_haptic;
     core::Property<unsigned int> alarm_volume;
