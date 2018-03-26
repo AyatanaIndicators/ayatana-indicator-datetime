@@ -86,7 +86,7 @@ TEST_F(VAlarmFixture, MissingTriggers)
     a.uid = "20150617T211913Z-6217-32011-2036-5@ubuntu-phablet";
     a.summary = "Recurring Alarm";
     a.alarms[0].text = a.summary;
-    std::array<DateTime,14> recurrences {
+    std::array<DateTime,13> recurrences {
         DateTime{ gtz, 2015, 6, 18, 10, 1, 0 },
         DateTime{ gtz, 2015, 6, 19, 10, 1, 0 },
         DateTime{ gtz, 2015, 6, 20, 10, 1, 0 },
@@ -100,7 +100,6 @@ TEST_F(VAlarmFixture, MissingTriggers)
         DateTime{ gtz, 2015, 6, 28, 10, 1, 0 },
         DateTime{ gtz, 2015, 6, 29, 10, 1, 0 },
         DateTime{ gtz, 2015, 6, 30, 10, 1, 0 },
-        DateTime{ gtz, 2015, 7,  1, 10, 1, 0 }
     };
     for (const auto& time : recurrences) {
         a.begin = a.end = a.alarms[0].time = time;
