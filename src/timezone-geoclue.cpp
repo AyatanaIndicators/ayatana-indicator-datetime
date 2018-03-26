@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-#define GEOCLUE_BUS_NAME "org.freedesktop.Geoclue2.Master"
+#define GEOCLUE_BUS_NAME "org.freedesktop.Geoclue.Master"
 
 namespace ayatana {
 namespace indicator {
