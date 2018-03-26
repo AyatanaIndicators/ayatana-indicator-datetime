@@ -111,19 +111,19 @@ TEST_F(ExporterFixture, Publish)
     EXPECT_EQ(1, names.count("desktop.open-appointment"));
     EXPECT_EQ(1, names.count("desktop.open-calendar-app"));
     EXPECT_EQ(1, names.count("desktop.open-settings-app"));
-#ifdef HAS_URLDISPATCHER
+
     EXPECT_EQ(1, names.count("phone.open-alarm-app"));
     EXPECT_EQ(1, names.count("phone.open-appointment"));
     EXPECT_EQ(1, names.count("phone.open-calendar-app"));
     EXPECT_EQ(1, names.count("phone.open-settings-app"));
-#endif
+
     EXPECT_EQ(1, names.count("calendar"));
     EXPECT_EQ(1, names.count("desktop_greeter-header"));
     EXPECT_EQ(1, names.count("desktop-header"));
-#ifdef HAS_URLDISPATCHER
+
     EXPECT_EQ(1, names.count("phone_greeter-header"));
     EXPECT_EQ(1, names.count("phone-header"));
-#endif
+
     EXPECT_EQ(1, names.count("set-location"));
 
     // try closing the connection prematurely

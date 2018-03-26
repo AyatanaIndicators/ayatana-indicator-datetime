@@ -157,12 +157,10 @@ TEST_F(ActionsFixture, ActionsExist)
                             "desktop.open-alarm-app",
                             "desktop.open-calendar-app",
                             "desktop.open-settings-app",
-#ifdef HAS_URLDISPATCHER
                             "phone.open-appointment",
                             "phone.open-alarm-app",
                             "phone.open-calendar-app",
                             "phone.open-settings-app"
-#endif
                           };
 
     for(const auto& name: names)
@@ -203,7 +201,6 @@ TEST_F(ActionsFixture, DesktopOpenSettingsApp)
 ****
 ***/
 
-#ifdef HAS_URLDISPATCHER
 TEST_F(ActionsFixture, PhoneOpenAlarmApp)
 {
     test_action_with_no_args("phone.open-alarm-app",
@@ -227,7 +224,6 @@ TEST_F(ActionsFixture, PhoneOpenSettingsApp)
     test_action_with_no_args("phone.open-settings-app",
                              MockActions::PhoneOpenSettingsApp);
 }
-#endif
 
 /***
 ****

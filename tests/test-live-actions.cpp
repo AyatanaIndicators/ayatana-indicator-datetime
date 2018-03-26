@@ -94,7 +94,6 @@ namespace
     const std::string calendar_app_url = "appid://com.ubuntu.calendar/calendar/current-user-version";
 }
 
-#ifdef HAS_URLDISPATCHER
 TEST_F(TimedateFixture, PhoneOpenAlarmApp)
 {
     m_actions->phone_open_alarm_app();
@@ -129,7 +128,6 @@ TEST_F(TimedateFixture, PhoneOpenSettingsApp)
     const std::string expected = "settings:///system/time-date";
     EXPECT_EQ(expected, m_live_actions->last_url);
 }
-#endif
 
 /***
 ****

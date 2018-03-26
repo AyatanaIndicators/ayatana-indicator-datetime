@@ -18,8 +18,6 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAS_URLDISPATCHER
-
 #include <datetime/appointment.h>
 #include <datetime/settings-live.h>
 #include <datetime/snap.h>
@@ -101,5 +99,3 @@ int main(int argc, const char* argv[])
     g_main_loop_unref(loop);
     return 0;
 }
-
-#endif

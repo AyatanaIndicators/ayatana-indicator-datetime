@@ -135,10 +135,13 @@ void LiveActions::desktop_open_calendar_app(const DateTime& dt)
 ****
 ***/
 
-#ifdef HAS_URLDISPATCHER
 void LiveActions::phone_open_alarm_app()
 {
+#ifdef HAS_URLDISPATCHER
     dispatch_url("appid://com.ubuntu.clock/clock/current-user-version");
+#else
+    // FIXME: Deal with this, if we build without liburl-dispatcher...
+#endif
 }
 
 void LiveActions::phone_open_appointment(const Appointment& appt)
@@ -146,7 +149,11 @@ void LiveActions::phone_open_appointment(const Appointment& appt)
 
     if (!appt.activation_url.empty())
     {
+#ifdef HAS_URLDISPATCHER
         dispatch_url(appt.activation_url);
+#else
+    // FIXME: Deal with this, if we build without liburl-dispatcher...
+#endif
     }
     else switch (appt.type)
     {
@@ -161,15 +168,22 @@ void LiveActions::phone_open_appointment(const Appointment& appt)
 
 void LiveActions::phone_open_calendar_app(const DateTime&)
 {
+#ifdef HAS_URLDISPATCHER
     // does calendar app have a mechanism for specifying dates?
     dispatch_url("appid://com.ubuntu.calendar/calendar/current-user-version");
+#else
+    // FIXME: Deal with this, if we build without liburl-dispatcher...
+#endif
 }
 
 void LiveActions::phone_open_settings_app()
 {
+#ifdef HAS_URLDISPATCHER
     dispatch_url("settings:///system/time-date");
-}
+#else
+    // FIXME: Deal with this, if we build without liburl-dispatcher...
 #endif
+}
 
 /***
 ****

@@ -49,12 +49,10 @@ public:
     virtual void desktop_open_calendar_app(const DateTime&) =0;
     virtual void desktop_open_settings_app() =0;
 
-#ifdef HAS_URLDISPATCHER
     virtual void phone_open_alarm_app() =0;
     virtual void phone_open_appointment(const Appointment&) =0;
     virtual void phone_open_calendar_app(const DateTime&) =0;
     virtual void phone_open_settings_app() =0;
-#endif
 
     virtual void set_location(const std::string& zone, const std::string& name)=0;
 
