@@ -51,7 +51,7 @@ TEST_F(VAlarmFixture, MultipleAppointments)
     // make a planner that looks at the first half of 2015 in EDS
     auto planner = std::make_shared<SimpleRangePlanner>(engine, tz);
     const DateTime range_begin {gtz, 2015,1, 1, 0, 0, 0.0};
-    const DateTime range_end   {gtz, 2015,6,31,23,59,59.5};
+    const DateTime range_end   {gtz, 2015,6,30,23,59,59.5};
     planner->range().set(std::make_pair(range_begin, range_end));
 
     // give EDS a moment to load
