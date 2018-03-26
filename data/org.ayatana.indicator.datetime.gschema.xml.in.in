@@ -131,6 +131,13 @@
                           Two modes are currently supported: 'pulse', 'none'.
 			</description>
 		</key>
+		<key name="calendar-default-sound" type="s">
+			<default>'${CALENDAR_DEFAULT_SOUND}'</default>
+			<_summary>The calendar's default sound file.</_summary>
+			<_description>
+			  If a calendar or reminder event doesn't specify its own sound file, this file will be used as the fallback sound.
+			</_description>
+		</key>
 		<key name="alarm-default-sound" type="s">
 			<default>'${ALARM_DEFAULT_SOUND}'</default>
 			<summary>The alarm's default sound file.</summary>
