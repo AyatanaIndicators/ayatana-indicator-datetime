@@ -28,6 +28,9 @@ set (GETTEXT_PACKAGE "ayatana-indicator-datetime")
 add_definitions (-DGETTEXT_PACKAGE="${GETTEXT_PACKAGE}"
                  -DLOCALEDIR="${CMAKE_INSTALL_FULL_LOCALEDIR}")
 
+set (ALARM_DEFAULT_SOUND "/usr/share/sounds/ubuntu/ringtones/Alarm clock.ogg")
+add_definitions (-DALARM_DEFAULT_SOUND="${ALARM_DEFAULT_SOUND}")
+
 ##
 ##  Check for prerequisites
 ##
