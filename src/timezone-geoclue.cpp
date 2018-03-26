@@ -288,4 +288,3 @@ GeoclueTimezone::~GeoclueTimezone()
 } // namespace datetime
 } // namespace indicator
 } // namespace ayatana
-
