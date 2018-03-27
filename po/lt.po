@@ -8,10 +8,10 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2018-03-12 00:39+0000\n"
+"PO-Revision-Date: 2018-03-28 10:36+0000\n"
 "Last-Translator: Moo <hazap@hotmail.com>\n"
-"Language-Team: Lithuanian <https://hosted.weblate.org/projects/ayatana-"
-"indicators/datetime-applet/lt/>\n"
+"Language-Team: Lithuanian <https://hosted.weblate.org/projects/"
+"ayatana-indicators/datetime-applet/lt/>\n"
 "Language: lt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -129,11 +129,11 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:15
 msgid "Show the monthly calendar in the indicator"
-msgstr ""
+msgstr "Rodyti indikatoriuje mėnesio kalendorių"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:16
 msgid "Puts the monthly calendar in indicator-datetime's menu."
-msgstr ""
+msgstr "Įterpia į datos ir laiko indikatoriaus meniu mėnesio kalendorių."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:17
 msgid "Show week numbers in calendar"
@@ -143,6 +143,8 @@ msgstr "Rodyti kalendoriuje savaičių numerius"
 msgid ""
 "Shows the week numbers in the monthly calendar in indicator-datetime's menu."
 msgstr ""
+"Rodo mėnesio kalendoriuje, datos ir laiko indikatoriaus meniu, savaičių "
+"numerius."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:19
 msgid "Show events in the indicator"
@@ -150,7 +152,7 @@ msgstr "Rodyti indikatoriuje įvykius"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:20
 msgid "Shows events from Evolution in indicator-datetime's menu."
-msgstr ""
+msgstr "Rodo datos ir laiko indikatoriaus meniu įvykius iš Evolution."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:21
 msgid "Show the auto-detected location in the indicator"
@@ -161,6 +163,8 @@ msgid ""
 "Shows your current location (determined from geoclue and /etc/timezone) in "
 "indicator-datetime's menu."
 msgstr ""
+"Rodo datos ir laiko indikatoriaus meniu jūsų esamą vietą (nustatytą iš "
+"geoclue ir /etc/timezone)."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:23
 msgid "Show locations in the indicator"
@@ -168,7 +172,7 @@ msgstr "Rodyti indikatoriuje vietas"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:24
 msgid "Shows custom defined locations in indicator-datetime's menu."
-msgstr ""
+msgstr "Rodo datos ir laiko indikatoriaus meniu tinkintas apibrėžtas vietas."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:25
 msgid "A List of locations"
