@@ -29,7 +29,7 @@ Build-Depends: cmake,
                systemd [linux-any],
 # for phone alarm/calendar notification sound tests:
                ubuntu-touch-sounds | hello,
-Standards-Version: 3.9.6
+Standards-Version: 4.1.3
 Homepage: https://github.com/ArcticaProject/ayatana-indicator-datetime
 Vcs-Git: git://cgit.arctica-project.org/ayatana/ayatana-indicator-datetime.git
 Vcs-Browser: https://cgit.arctica-project.org/ayatana/ayatana-indicator-datetime.git/
