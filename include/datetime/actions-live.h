@@ -54,9 +54,7 @@ public:
 
 protected:
     virtual void execute_command(const std::string& command);
-#ifdef HAS_URLDISPATCHER
     virtual void dispatch_url(const std::string& url);
-#endif
 };
 
 } // namespace datetime

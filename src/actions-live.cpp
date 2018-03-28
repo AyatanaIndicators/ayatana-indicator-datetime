@@ -51,13 +51,15 @@ void LiveActions::execute_command(const std::string& cmdstr)
     }
 }
 
-#ifdef HAS_URLDISPATCHER
 void LiveActions::dispatch_url(const std::string& url)
 {
     g_debug("Dispatching url '%s'", url.c_str());
+#ifdef HAS_URLDISPATCHER
     url_dispatch_send(url.c_str(), nullptr, nullptr);
-}
+#else
+    // FIXME: Deal with this, if we build without liburl-dispatcher...
 #endif
+}
 
 /***
 ****
@@ -65,13 +67,11 @@ void LiveActions::dispatch_url(const std::string& url)
 
 void LiveActions::desktop_open_settings_app()
 {
-#ifdef HAS_URLDISPATCHER
     if (g_getenv ("MIR_SOCKET") != nullptr)
     {
         dispatch_url("settings:///system/time-date");
     }
     else
-#endif
     if ((g_strcmp0 (g_getenv ("XDG_CURRENT_DESKTOP"), "Unity") == 0))
     {
         execute_command("unity-control-center datetime");
@@ -137,11 +137,7 @@ void LiveActions::desktop_open_calendar_app(const DateTime& dt)
 
 void LiveActions::phone_open_alarm_app()
 {
-#ifdef HAS_URLDISPATCHER
     dispatch_url("appid://com.ubuntu.clock/clock/current-user-version");
-#else
-    // FIXME: Deal with this, if we build without liburl-dispatcher...
-#endif
 }
 
 void LiveActions::phone_open_appointment(const Appointment& appt)
@@ -149,11 +145,7 @@ void LiveActions::phone_open_appointment(const Appointment& appt)
 
     if (!appt.activation_url.empty())
     {
-#ifdef HAS_URLDISPATCHER
         dispatch_url(appt.activation_url);
-#else
-    // FIXME: Deal with this, if we build without liburl-dispatcher...
-#endif
     }
     else switch (appt.type)
     {
@@ -168,21 +160,13 @@ void LiveActions::phone_open_appointment(const Appointment& appt)
 
 void LiveActions::phone_open_calendar_app(const DateTime&)
 {
-#ifdef HAS_URLDISPATCHER
     // does calendar app have a mechanism for specifying dates?
     dispatch_url("appid://com.ubuntu.calendar/calendar/current-user-version");
-#else
-    // FIXME: Deal with this, if we build without liburl-dispatcher...
-#endif
 }
 
 void LiveActions::phone_open_settings_app()
 {
-#ifdef HAS_URLDISPATCHER
     dispatch_url("settings:///system/time-date");
-#else
-    // FIXME: Deal with this, if we build without liburl-dispatcher...
-#endif
 }
 
 /***
