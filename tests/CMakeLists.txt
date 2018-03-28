@@ -64,9 +64,11 @@ add_test_by_name(test-settings)
 add_test_by_name(test-timezone-timedated)
 add_test_by_name(test-utils)
 
-set (TEST_NAME manual-test-snap)
-add_executable (${TEST_NAME} ${TEST_NAME}.cpp)
-target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
+if(HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS)
+  set (TEST_NAME manual-test-snap)
+  add_executable (${TEST_NAME} ${TEST_NAME}.cpp)
+  target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
+endif()
 
 if (URLDISPATCHER_FOUND)
 
