@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2018-03-28 10:36+0000\n"
+"PO-Revision-Date: 2018-04-03 23:37+0000\n"
 "Last-Translator: Moo <hazap@hotmail.com>\n"
 "Language-Team: Lithuanian <https://hosted.weblate.org/projects/"
 "ayatana-indicators/datetime-applet/lt/>\n"
@@ -207,17 +207,19 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:31
 msgid "The alarm's default sound file."
-msgstr ""
+msgstr "Signalo numatytasis garso failas."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:32
 msgid ""
 "If an alarm doesn't specify its own sound file, this file will be used as "
 "the fallback sound."
 msgstr ""
+"Jeigu signalas nenurodo savo asmeninio garso failo, tuomet šis failas bus "
+"naudojamas kaip atsarginis garsas."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:33
 msgid "The alarm's default volume level."
-msgstr ""
+msgstr "Signalo numatytasis garsio lygis."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:34
 msgid "The volume at which alarms will be played."
