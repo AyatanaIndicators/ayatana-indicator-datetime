@@ -339,7 +339,7 @@ msgstr ""
 #: ../src/snap.cpp:132
 #, c-format
 msgid "Alarm %s"
-msgstr "Upozornění"
+msgstr "Budík"
 
 #: ../src/snap.cpp:139
 msgid "OK"
