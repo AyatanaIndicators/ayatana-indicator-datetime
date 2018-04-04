@@ -8,18 +8,20 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:43+0100\n"
-"PO-Revision-Date: 2017-10-12 07:31+0200\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2018-04-04 04:40+0000\n"
+"Last-Translator: Pavel Borecki <pavel.borecki@gmail.com>\n"
+"Language-Team: Czech <https://hosted.weblate.org/projects/ayatana-indicators/"
+"datetime-applet/cs/>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Weblate 2.20-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
 msgid "Show the clock in the panel"
-msgstr ""
+msgstr "Zobrazovat hodiny na panelu"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:2
 msgid "Controls whether the clock indicator appears in the panel or not."
@@ -27,7 +29,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:3
 msgid "What the time format should be"
-msgstr ""
+msgstr "Jaký by měl být formát času"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:4
 msgid ""
@@ -66,7 +68,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:9
 msgid "Show the day of the week in the indicator"
-msgstr ""
+msgstr "Zobrazovat v indikátoru den"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:10
 msgid ""
@@ -77,7 +79,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:11
 msgid "Show the month and date in the indicator"
-msgstr ""
+msgstr "Zobrazovat v indikátoru měsíc a datum"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:12
 msgid ""
@@ -88,7 +90,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:13
 msgid "Show the year in the indicator"
-msgstr ""
+msgstr "Zobrazovat v indikátoru rok"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:14
 msgid ""
@@ -99,7 +101,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:15
 msgid "Show the monthly calendar in the indicator"
-msgstr ""
+msgstr "Zobrazovat v indikátoru měsíční kalendář"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:16
 msgid "Puts the monthly calendar in indicator-datetime's menu."
@@ -107,7 +109,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:17
 msgid "Show week numbers in calendar"
-msgstr ""
+msgstr "Zobrazovat v kalendáři čísla týdnů"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:18
 msgid ""
@@ -116,7 +118,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:19
 msgid "Show events in the indicator"
-msgstr ""
+msgstr "Zobrazovat v indikátoru událostí"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:20
 msgid "Shows events from Evolution in indicator-datetime's menu."
@@ -134,7 +136,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:23
 msgid "Show locations in the indicator"
-msgstr ""
+msgstr "Zobrazovat v indikátoru umístění"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:24
 msgid "Shows custom defined locations in indicator-datetime's menu."
@@ -142,7 +144,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:25
 msgid "A List of locations"
-msgstr ""
+msgstr "Seznam umístění"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:26
 msgid ""
@@ -152,7 +154,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:27
 msgid "The name of the current timezone"
-msgstr ""
+msgstr "Název stávající časové zóny"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:28
 msgid ""
@@ -173,7 +175,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:31
 msgid "The alarm's default sound file."
-msgstr ""
+msgstr "Výchozí zvukový soubor pro upozornění."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:32
 msgid ""
@@ -183,7 +185,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:33
 msgid "The alarm's default volume level."
-msgstr ""
+msgstr "Výchozí hlasitost upozornění."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:34
 msgid "The volume at which alarms will be played."
@@ -191,7 +193,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:35
 msgid "The alarm's duration."
-msgstr ""
+msgstr "Trvání upozornění."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:36
 msgid ""
@@ -303,19 +305,19 @@ msgstr ""
 
 #: ../src/menu.cpp:362
 msgid "Clock"
-msgstr ""
+msgstr "Hodiny"
 
 #: ../src/menu.cpp:414
 msgid "Time & Date settings…"
-msgstr ""
+msgstr "Nastavení data a času…"
 
 #: ../src/menu.cpp:469
 msgid "Date and Time"
-msgstr ""
+msgstr "Datum a čas"
 
 #: ../src/menu.cpp:519
 msgid "Time & Date"
-msgstr ""
+msgstr "Čas a datum"
 
 #: ../src/menu.cpp:524
 #, c-format
@@ -337,11 +339,11 @@ msgstr ""
 #: ../src/snap.cpp:132
 #, c-format
 msgid "Alarm %s"
-msgstr ""
+msgstr "Upozornění"
 
 #: ../src/snap.cpp:139
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: ../src/snap.cpp:140
 msgid "Snooze"
