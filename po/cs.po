@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:43+0100\n"
-"PO-Revision-Date: 2018-04-04 04:40+0000\n"
+"PO-Revision-Date: 2018-04-05 05:36+0000\n"
 "Last-Translator: Pavel Borecki <pavel.borecki@gmail.com>\n"
 "Language-Team: Czech <https://hosted.weblate.org/projects/ayatana-indicators/"
 "datetime-applet/cs/>\n"
@@ -339,7 +339,7 @@ msgstr ""
 #: ../src/snap.cpp:132
 #, c-format
 msgid "Alarm %s"
-msgstr "Budík"
+msgstr "Budík %"
 
 #: ../src/snap.cpp:139
 msgid "OK"
@@ -347,15 +347,15 @@ msgstr "OK"
 
 #: ../src/snap.cpp:140
 msgid "Snooze"
-msgstr ""
+msgstr "Odložit"
 
 #: ../src/utils.c:274
 msgid "Today"
-msgstr ""
+msgstr "Dnes"
 
 #: ../src/utils.c:278
 msgid "Tomorrow"
-msgstr ""
+msgstr "Zítra"
 
 #. This is a strftime(3) format string indicating the unabbreviated weekday.
 #: ../src/utils.c:283
