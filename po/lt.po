@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2018-04-03 23:37+0000\n"
+"PO-Revision-Date: 2018-04-04 21:14+0000\n"
 "Last-Translator: Moo <hazap@hotmail.com>\n"
 "Language-Team: Lithuanian <https://hosted.weblate.org/projects/"
 "ayatana-indicators/datetime-applet/lt/>\n"
@@ -183,6 +183,8 @@ msgid ""
 "Adds the list of locations the user has configured to display in the "
 "indicator-datetime menu."
 msgstr ""
+"Prideda ir rodo naudotojo sukonfigūruotą vietų sąrašą į datos ir laiko "
+"indikatoriaus meniu."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:27
 msgid "The name of the current timezone"
@@ -194,16 +196,22 @@ msgid ""
 "describes how the current zone prefers to be named. Format is \"TIMEZONE NAME"
 "\" (e.g. \"America/New_York Boston\" to name the New_York zone Boston)."
 msgstr ""
+"Kai kurios laiko juostos gali būti žinomos pagal daugelį įvairių miestų ar "
+"pavadinimų. Šis nustatymas aprašo, kaip dabartinė laiko juosta pageidauja "
+"būti pavadinta. Formatas yra toks: \"LAIKO_JUOSTA PAVADINIMAS\" (pvz., \""
+"Europe/Vilnius Alytus\" pavadins laiko juosta \"Vilnius\" kaip \"Alytus\")."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:29
 msgid "What kind of haptic feedback, if any, to trigger with an alarm."
-msgstr ""
+msgstr "Kokį kontaktinį grįžtamąjį ryšį sukelti su signalu."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:30
 msgid ""
 "What kind of haptic feedback, if any, to trigger with an alarm. Two modes "
 "are currently supported: 'pulse', 'none'."
 msgstr ""
+"Kokį kontaktinį grįžtamąjį ryšį sukelti su signalu. Šiuo metu yra palaikomos "
+"dvi veiksenos: \"pulse\", \"none\"."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:31
 msgid "The alarm's default sound file."
@@ -223,25 +231,28 @@ msgstr "Signalo numatytasis garsio lygis."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:34
 msgid "The volume at which alarms will be played."
-msgstr ""
+msgstr "Garsis, kuriuo bus atkuriamas signalas."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:35
 msgid "The alarm's duration."
-msgstr ""
+msgstr "Signalo trukmė."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:36
 msgid ""
 "How long the alarm's sound will be looped if its snap decision is not "
 "dismissed by the user."
 msgstr ""
+"Kiek laiko bus cikliškai grojamas signalo garsas, jeigu naudotojas neatmes "
+"signalo sprendimo."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:37
 msgid "The snooze duration."
-msgstr ""
+msgstr "Snūstelėjimo trukmė."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:38
 msgid "How long to wait when the user hits the Snooze button."
 msgstr ""
+"Kiek laiko laukti po to, kai naudotojas spustelėjo mygtuką \"Snūstelėti\"."
 
 #. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
 #: ../src/formatter.cpp:234
@@ -277,7 +288,7 @@ msgstr "%H:%M"
 #. zh_CN example(?): "%Y年%m月%d日 周%a" --> "2020年10月31日 周六"
 #: ../src/formatter-desktop.cpp:138
 msgid "%a %b %e %Y"
-msgstr ""
+msgstr "%Y %b %e, %a"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
@@ -287,7 +298,7 @@ msgstr ""
 #. zh_CN example(?): "%m月%d日 周%a" --> "03月27日 周六"
 #: ../src/formatter-desktop.cpp:147
 msgid "%a %b %e"
-msgstr ""
+msgstr "%b %e, %a"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
@@ -306,7 +317,7 @@ msgstr "%a"
 #. zh_CN example(?): "%Y年%m月%d日" --> "2020年10月31日"
 #: ../src/formatter-desktop.cpp:163
 msgid "%b %e %Y"
-msgstr ""
+msgstr "%Y %b %e"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
@@ -316,7 +327,7 @@ msgstr ""
 #. zh_CN example(?): "%m月%d日" --> "03月27日"
 #: ../src/formatter-desktop.cpp:172
 msgid "%b %e"
-msgstr ""
+msgstr "%b %e"
 
 #. This strftime(3) format string shows the year.
 #: ../src/formatter-desktop.cpp:176
@@ -330,7 +341,7 @@ msgstr "%Y"
 #. en_GB example: "%A, %e %B %Y" --> Saturday, 31 October 2020"
 #: ../src/menu.cpp:255
 msgid "%A, %e %B %Y"
-msgstr ""
+msgstr "%Y %B %e, %A"
 
 #. add the 'Add Event…' menuitem
 #: ../src/menu.cpp:352
@@ -356,24 +367,24 @@ msgstr "Laikas ir data"
 #: ../src/menu.cpp:524
 #, c-format
 msgid "%s (has alarms)"
-msgstr ""
+msgstr "%s (yra signalų)"
 
 #. * strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 12h locale; e.g. Wed, 2:00 PM
 #: ../src/snap.cpp:125
 msgid "%a, %l:%M %p"
-msgstr ""
+msgstr "%a, %l:%M %p"
 
 #. * A strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 24h locale; e.g. Wed, 14:00
 #: ../src/snap.cpp:129
 msgid "%a, %H:%M"
-msgstr ""
+msgstr "%a, %H:%M"
 
 #: ../src/snap.cpp:132
 #, c-format
 msgid "Alarm %s"
-msgstr ""
+msgstr "Signalas %s"
 
 #: ../src/snap.cpp:139
 msgid "OK"
@@ -381,21 +392,21 @@ msgstr "Gerai"
 
 #: ../src/snap.cpp:140
 msgid "Snooze"
-msgstr ""
+msgstr "Snūstelėti"
 
 #: ../src/utils.c:274
 msgid "Today"
-msgstr ""
+msgstr "Šiandien"
 
 #: ../src/utils.c:278
 msgid "Tomorrow"
-msgstr ""
+msgstr "Rytoj"
 
 #. This is a strftime(3) format string indicating the unabbreviated weekday.
 #: ../src/utils.c:283
 #, c-format
 msgid "%A"
-msgstr ""
+msgstr "%A"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing full-day events that are over a week away.
@@ -404,7 +415,7 @@ msgstr ""
 #. zh_CN example(?): "%m月%d日 周%a" --> "10月31日 周六"
 #: ../src/utils.c:292
 msgid "%a %d %b"
-msgstr ""
+msgstr "%b %d, %a"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 12-hour clock, events/appointments that happen tomorrow.
@@ -413,7 +424,7 @@ msgstr ""
 #. en_US example: "Tomorrow %l:%M %p" --> "Tomorrow 1:00 PM"
 #: ../src/utils.c:313
 msgid "Tomorrow %l:%M %p"
-msgstr ""
+msgstr "Rytoj %l:%M %p"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 12-hour clock, events/appointments that happen this week.
@@ -422,7 +433,7 @@ msgstr ""
 #. en_US example: "Tomorrow %l:%M %p" --> "Fri 1:00 PM"
 #: ../src/utils.c:322
 msgid "%a %l:%M %p"
-msgstr ""
+msgstr "%a %l:%M %p"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 12-hour clock, events/appointments that happen over a week from now.
@@ -432,7 +443,7 @@ msgstr ""
 #. en_GB example: "%a %b %d %l:%M %p" --> "Fri 31 Oct 1:00 PM"
 #: ../src/utils.c:332
 msgid "%a %d %b %l:%M %p"
-msgstr ""
+msgstr "%b %d, %a %l:%M %p"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 24-hour clock, events/appointments that happen tomorrow.
@@ -441,7 +452,7 @@ msgstr ""
 #. en_US example: "Tomorrow %l:%M %p" --> "Tomorrow 13:00"
 #: ../src/utils.c:353
 msgid "Tomorrow %H:%M"
-msgstr ""
+msgstr "Rytoj %H:%M"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 24-hour clock, events/appointments that happen this week.
@@ -450,7 +461,7 @@ msgstr ""
 #. en_US example: "%a %H:%M" --> "Fri 13:00"
 #: ../src/utils.c:362
 msgid "%a %H:%M"
-msgstr ""
+msgstr "%a %H:%M"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 24-hour clock, events/appointments that happen over a week from now.
@@ -460,4 +471,4 @@ msgstr ""
 #. en_GB example: "%a %b %d %H:%M" --> "Fri 31 Oct 13:00"
 #: ../src/utils.c:372
 msgid "%a %d %b %H:%M"
-msgstr ""
+msgstr "%b %d, %a %H:%M"
