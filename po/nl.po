@@ -8,16 +8,16 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2018-03-04 19:36+0000\n"
-"Last-Translator: karel van dongen <karelvandongen@gmail.com>\n"
-"Language-Team: Dutch <https://hosted.weblate.org/projects/ayatana-indicators"
-"/datetime-applet/nl/>\n"
+"PO-Revision-Date: 2018-05-09 13:36+0000\n"
+"Last-Translator: Heimen Stoffels <vistausss@outlook.com>\n"
+"Language-Team: Dutch <https://hosted.weblate.org/projects/ayatana-indicators/"
+"datetime-applet/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2.20-dev\n"
+"X-Generator: Weblate 3.0-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
 msgid "Show the clock in the panel"
@@ -25,11 +25,11 @@ msgstr "Tonen klok in paneel"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:2
 msgid "Controls whether the clock indicator appears in the panel or not."
-msgstr ""
+msgstr "Of de klokindicator moet worden weergegeven op het paneel."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:3
 msgid "What the time format should be"
-msgstr ""
+msgstr "Wat de tijdopmaak moet zijn"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:4
 msgid ""
@@ -40,10 +40,16 @@ msgid ""
 "be either 12 or 24 time. Or, you can use a custom format string and set the "
 "custom-time-format setting."
 msgstr ""
+"Beheert hoe de tijdopmaak moet zijn op de indicator. Voor de nagenoeg alle "
+"gebruikers moet dit gelijk zijn aan de standaard van hun taal. Als u "
+"vermoedt dat de instelling onjuist is voor uw taal, wordt dan lid van het "
+"vertaalteam van uw taal of neem contact op met het team. Als u simpelweg "
+"iets anders wilt, dan kunt u kiezen tussen 12- en 24-uurstijd. Of u kunt een "
+"aangepaste opmaak opgeven en de instelling custom-time-format gebruiken."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:5
 msgid "The format string passed to strftime"
-msgstr ""
+msgstr "De opmaak die wordt doorgegeven aan strftime"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:6
 msgid ""
@@ -53,10 +59,16 @@ msgid ""
 "anything strftime can accept. Look at the man page on strftime for more "
 "information."
 msgstr ""
+"De opmaak van de tijd en/of datum die zichtbaar is op het paneel als de "
+"indicator in gebruik is. Voor de meeste gebruikers is dit een verzameling "
+"van vooringestelde waarden, zoals ondervonden door het "
+"configuratiehulpmiddel. Gevorderde gebruikers kunnen dit wijzigen naar alles "
+"dat strftime kan accepteren. Bekijk de man-pagina van strftime voor meer "
+"informatie."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:7
 msgid "Show the number of seconds in the indicator"
-msgstr ""
+msgstr "Het aantal seconden weergeven op de indicator"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:8
 msgid ""
@@ -65,10 +77,14 @@ msgid ""
 "time will update 60 times as often, so it is not recommended. Also, this "
 "setting will be ignored if the time-format value is set to custom."
 msgstr ""
+"Zorgt ervoor dat het aantal seconden wordt weergegeven op de indicator. "
+"Belangrijk: dit kan zorgen voor extra batterijgebruik omdat de tijd 60 keer "
+"sneller wordt bijgewerkt. Deze instelling wordt afgeraden. Deze instelling "
+"wordt tevens genegeerd als de waarde time-format is ingesteld op aangepast."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:9
 msgid "Show the day of the week in the indicator"
-msgstr ""
+msgstr "Weekdag weergeven op de indicator"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:10
 msgid ""
@@ -76,10 +92,13 @@ msgid ""
 "depending on settings. This setting will be ignored if the time-format value "
 "is set to custom."
 msgstr ""
+"Plaatst de weekdag op het paneel, tegelijk met de tijd en/of datum ("
+"afhankelijk van uw instellingen). Deze instelling wordt genegeerd als de "
+"waarde time-format is ingesteld op aangepast."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:11
 msgid "Show the month and date in the indicator"
-msgstr ""
+msgstr "Maand en datum weergeven op de indicator"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:12
 msgid ""
@@ -87,10 +106,13 @@ msgid ""
 "the week depending on settings. This setting will be ignored if the time-"
 "format value is set to custom."
 msgstr ""
+"Plaatst de maand en datum op het paneel, tegelijk met de tijd en/of weekdag ("
+"afhankelijk van uw instellingen). Deze instelling wordt genegeerd als de "
+"waarde time-format is ingesteld op aangepast."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:13
 msgid "Show the year in the indicator"
-msgstr ""
+msgstr "Jaar weergeven op de indicator"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:14
 msgid ""
@@ -98,63 +120,70 @@ msgid ""
 "will be ignored if either the time-format value is set to custom or if show-"
 "date is set to false."
 msgstr ""
+"Plaatst het jaar op het paneel, tegelijk met de maand en datum (afhankelijk "
+"van uw instellingen). Deze instelling wordt genegeerd als de waarde show-"
+"format is ingesteld op false."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:15
 msgid "Show the monthly calendar in the indicator"
-msgstr ""
+msgstr "Maandkalender weergeven in de indicator"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:16
 msgid "Puts the monthly calendar in indicator-datetime's menu."
-msgstr ""
+msgstr "Plaatst een maandkalender in het menu van de indicator."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:17
 msgid "Show week numbers in calendar"
-msgstr ""
+msgstr "Weeknummers weergeven in de kalender"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:18
 msgid ""
 "Shows the week numbers in the monthly calendar in indicator-datetime's menu."
-msgstr ""
+msgstr "Toont de weeknummers in de maandkalender in het menu van de indicator."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:19
 msgid "Show events in the indicator"
-msgstr ""
+msgstr "Gebeurtenissen weergeven in de indicator"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:20
 msgid "Shows events from Evolution in indicator-datetime's menu."
-msgstr ""
+msgstr "Toont gebeurtenissen uit Evolution in het menu van de indicator."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:21
 msgid "Show the auto-detected location in the indicator"
-msgstr ""
+msgstr "Toont de automatisch gedetecteerde locatie in de indicator"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:22
 msgid ""
 "Shows your current location (determined from geoclue and /etc/timezone) in "
 "indicator-datetime's menu."
 msgstr ""
+"Toont uw huidige locatie (zoals opgevraagd door geoclue en /etc/timezone) in "
+"het menu van de indicator."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:23
 msgid "Show locations in the indicator"
-msgstr ""
+msgstr "Locaties weergeven in de indicator"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:24
 msgid "Shows custom defined locations in indicator-datetime's menu."
-msgstr ""
+msgstr "Aangepaste locaties weergeven in het menu van de indicator."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:25
 msgid "A List of locations"
-msgstr ""
+msgstr "Een lijst met locaties"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:26
 msgid ""
 "Adds the list of locations the user has configured to display in the "
 "indicator-datetime menu."
 msgstr ""
+"Voegt een lijst toe met door de gebruiker opgegeven locaties in het menu van "
+"de indicator."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:27
 msgid "The name of the current timezone"
-msgstr ""
+msgstr "De naam van de huidige tijdzone"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:28
 msgid ""
@@ -162,52 +191,64 @@ msgid ""
 "describes how the current zone prefers to be named. Format is \"TIMEZONE NAME"
 "\" (e.g. \"America/New_York Boston\" to name the New_York zone Boston)."
 msgstr ""
+"Sommige tijdzones kunnen meerdere namen of steden bevatten. Deze instelling "
+"omschrijft de voorkeursnaam van de huidige tijdzone. De opmaak is \"TIJDZONE "
+"NAAM\" (bijv. \"America/New_York Boston\" om de tijdzone van Boston New York "
+"te noemen)."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:29
 msgid "What kind of haptic feedback, if any, to trigger with an alarm."
-msgstr ""
+msgstr "Welk soort feedback er moet worden gegeven bij een alarm."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:30
 msgid ""
 "What kind of haptic feedback, if any, to trigger with an alarm. Two modes "
 "are currently supported: 'pulse', 'none'."
 msgstr ""
+"Welk soort feedback er moet worden gegeven bij een alarm. Momenteel worden "
+"twee modi ondersteund: 'pulseren', 'geen'."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:31
 msgid "The alarm's default sound file."
-msgstr ""
+msgstr "Het standaard geluidsbestand van het alarm."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:32
 msgid ""
 "If an alarm doesn't specify its own sound file, this file will be used as "
 "the fallback sound."
 msgstr ""
+"Als een alarm geen eigen geluidsbestand opgeeft, dan wordt dit bestand "
+"gebruikt om op terug te vallen."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:33
 msgid "The alarm's default volume level."
-msgstr ""
+msgstr "Het standaard volumeniveau van het alarm."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:34
 msgid "The volume at which alarms will be played."
-msgstr ""
+msgstr "Het volume waarop alarmen moeten worden afgespeeld."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:35
 msgid "The alarm's duration."
-msgstr ""
+msgstr "De alarmduur."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:36
 msgid ""
 "How long the alarm's sound will be looped if its snap decision is not "
 "dismissed by the user."
 msgstr ""
+"Hoe lang het geluid van het alarm moet worden herhaald als de spontane actie "
+"niet wordt verworpen door de gebruiker."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:37
 msgid "The snooze duration."
-msgstr ""
+msgstr "De uitstelduur."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:38
 msgid "How long to wait when the user hits the Snooze button."
 msgstr ""
+"Hoe lang er moet worden gewacht nadat de gebruiker heeft gedrukt op de knop "
+"Uitstellen."
 
 #. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
 #: ../src/formatter.cpp:234
@@ -301,29 +342,28 @@ msgstr ""
 #. add the 'Add Event…' menuitem
 #: ../src/menu.cpp:352
 msgid "Add Event…"
-msgstr ""
+msgstr "Gebeurtenis toevoegen…"
 
 #: ../src/menu.cpp:362
 msgid "Clock"
-msgstr ""
+msgstr "Klok"
 
 #: ../src/menu.cpp:414
 msgid "Time & Date settings…"
-msgstr ""
+msgstr "Tijd- en datuminstellingen…"
 
 #: ../src/menu.cpp:469
 msgid "Date and Time"
-msgstr ""
+msgstr "Datum en tijd"
 
 #: ../src/menu.cpp:519
-#, fuzzy
 msgid "Time & Date"
-msgstr "Datum en tijd instellen..."
+msgstr "Tijd en datum"
 
 #: ../src/menu.cpp:524
 #, c-format
 msgid "%s (has alarms)"
-msgstr ""
+msgstr "%s (bevat alarmen)"
 
 #. * strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 12h locale; e.g. Wed, 2:00 PM
@@ -340,23 +380,23 @@ msgstr ""
 #: ../src/snap.cpp:132
 #, c-format
 msgid "Alarm %s"
-msgstr ""
+msgstr "Alarm %s"
 
 #: ../src/snap.cpp:139
 msgid "OK"
-msgstr ""
+msgstr "Oké"
 
 #: ../src/snap.cpp:140
 msgid "Snooze"
-msgstr ""
+msgstr "Uitstellen"
 
 #: ../src/utils.c:274
 msgid "Today"
-msgstr ""
+msgstr "Vandaag"
 
 #: ../src/utils.c:278
 msgid "Tomorrow"
-msgstr ""
+msgstr "Morgen"
 
 #. This is a strftime(3) format string indicating the unabbreviated weekday.
 #: ../src/utils.c:283
