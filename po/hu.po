@@ -8,26 +8,28 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2010-03-03 10:06-0500\n"
-"Last-Translator: Canonical OEM\n"
-"Language-Team: Hungarian\n"
-"Language: \n"
+"PO-Revision-Date: 2018-06-19 09:39+0000\n"
+"Last-Translator: Doma Gergő <domag02@gmail.com>\n"
+"Language-Team: Hungarian <https://hosted.weblate.org/projects/"
+"ayatana-indicators/datetime-applet/hu/>\n"
+"Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 3.0.1\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
 msgid "Show the clock in the panel"
-msgstr ""
+msgstr "Mutassa az órát a panelen"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:2
 msgid "Controls whether the clock indicator appears in the panel or not."
-msgstr ""
+msgstr "Szabályozza hogy az óra megjelenjen-e a panelen vagy nem."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:3
 msgid "What the time format should be"
-msgstr ""
+msgstr "Milyen legyen a megjelenített időformátum"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:4
 msgid ""
@@ -299,24 +301,23 @@ msgstr ""
 #. add the 'Add Event…' menuitem
 #: ../src/menu.cpp:352
 msgid "Add Event…"
-msgstr ""
+msgstr "Esemény hozzáadása…"
 
 #: ../src/menu.cpp:362
 msgid "Clock"
-msgstr ""
+msgstr "Óra"
 
 #: ../src/menu.cpp:414
 msgid "Time & Date settings…"
-msgstr ""
+msgstr "Idő és dátum beállítása…"
 
 #: ../src/menu.cpp:469
 msgid "Date and Time"
-msgstr ""
+msgstr "Dátum és idő"
 
 #: ../src/menu.cpp:519
-#, fuzzy
 msgid "Time & Date"
-msgstr "Idő és dátum beállítása..."
+msgstr "Idő és dátum"
 
 #: ../src/menu.cpp:524
 #, c-format
@@ -342,19 +343,19 @@ msgstr ""
 
 #: ../src/snap.cpp:139
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: ../src/snap.cpp:140
 msgid "Snooze"
-msgstr ""
+msgstr "Szundi"
 
 #: ../src/utils.c:274
 msgid "Today"
-msgstr ""
+msgstr "Ma"
 
 #: ../src/utils.c:278
 msgid "Tomorrow"
-msgstr ""
+msgstr "Holnap"
 
 #. This is a strftime(3) format string indicating the unabbreviated weekday.
 #: ../src/utils.c:283
