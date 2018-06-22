@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2018-06-21 14:38+0000\n"
+"PO-Revision-Date: 2018-06-23 16:38+0000\n"
 "Last-Translator: Lejo <Lejo_1@web.de>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/"
 "ayatana-indicators/datetime-applet/de/>\n"
@@ -231,7 +231,7 @@ msgstr ""
 #. TRANSLATORS: a strftime(3) format for 24hr time w/seconds
 #: ../src/formatter.cpp:240
 msgid "%H:%M:%S"
-msgstr ""
+msgstr "%H:%M:%S"
 
 #. TRANSLATORS: a strftime(3) format for 24hr time
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
@@ -239,7 +239,7 @@ msgstr ""
 #. en_US example: "%H:%M" --> "13:00"
 #: ../src/formatter.cpp:243 ../src/utils.c:344
 msgid "%H:%M"
-msgstr ""
+msgstr "%H:%M"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
@@ -249,7 +249,7 @@ msgstr ""
 #. zh_CN example(?): "%Y年%m月%d日 周%a" --> "2020年10月31日 周六"
 #: ../src/formatter-desktop.cpp:138
 msgid "%a %b %e %Y"
-msgstr ""
+msgstr "%a %e %b %Y"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
@@ -259,7 +259,7 @@ msgstr ""
 #. zh_CN example(?): "%m月%d日 周%a" --> "03月27日 周六"
 #: ../src/formatter-desktop.cpp:147
 msgid "%a %b %e"
-msgstr ""
+msgstr "%a %e %b"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
@@ -278,7 +278,7 @@ msgstr ""
 #. zh_CN example(?): "%Y年%m月%d日" --> "2020年10月31日"
 #: ../src/formatter-desktop.cpp:163
 msgid "%b %e %Y"
-msgstr ""
+msgstr "%e %b %Y"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
@@ -288,12 +288,12 @@ msgstr ""
 #. zh_CN example(?): "%m月%d日" --> "03月27日"
 #: ../src/formatter-desktop.cpp:172
 msgid "%b %e"
-msgstr ""
+msgstr "%e %b"
 
 #. This strftime(3) format string shows the year.
 #: ../src/formatter-desktop.cpp:176
 msgid "%Y"
-msgstr ""
+msgstr "%Y"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. Format string for the day on the first menuitem in the datetime indicator.
@@ -302,12 +302,12 @@ msgstr ""
 #. en_GB example: "%A, %e %B %Y" --> Saturday, 31 October 2020"
 #: ../src/menu.cpp:255
 msgid "%A, %e %B %Y"
-msgstr ""
+msgstr "%A, %e %B %Y"
 
 #. add the 'Add Event…' menuitem
 #: ../src/menu.cpp:352
 msgid "Add Event…"
-msgstr ""
+msgstr "Ereignis hinzufügen…"
 
 #: ../src/menu.cpp:362
 msgid "Clock"
@@ -315,7 +315,7 @@ msgstr "Uhr"
 
 #: ../src/menu.cpp:414
 msgid "Time & Date settings…"
-msgstr "Zeit & Datum Einstellungen"
+msgstr "Zeit & Datum Einstellungen…"
 
 #: ../src/menu.cpp:469
 msgid "Date and Time"
@@ -340,7 +340,7 @@ msgstr ""
 #. hours, minutes in a 24h locale; e.g. Wed, 14:00
 #: ../src/snap.cpp:129
 msgid "%a, %H:%M"
-msgstr ""
+msgstr "%a, %H:%M"
 
 #: ../src/snap.cpp:132
 #, c-format
@@ -353,7 +353,7 @@ msgstr "OK"
 
 #: ../src/snap.cpp:140
 msgid "Snooze"
-msgstr ""
+msgstr "Schlummer-taste"
 
 #: ../src/utils.c:274
 msgid "Today"
@@ -367,7 +367,7 @@ msgstr "Morgen"
 #: ../src/utils.c:283
 #, c-format
 msgid "%A"
-msgstr ""
+msgstr "%A"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing full-day events that are over a week away.
@@ -376,7 +376,7 @@ msgstr ""
 #. zh_CN example(?): "%m月%d日 周%a" --> "10月31日 周六"
 #: ../src/utils.c:292
 msgid "%a %d %b"
-msgstr ""
+msgstr "Sat 31 Oct"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 12-hour clock, events/appointments that happen tomorrow.
