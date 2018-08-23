@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2018-05-04 00:41+0000\n"
-"Last-Translator: Karol Kosek <krkkx@protonmail.com>\n"
+"PO-Revision-Date: 2018-08-24 17:42+0000\n"
+"Last-Translator: WaldiS <admin@sto.ugu.pl>\n"
 "Language-Team: Polish <https://hosted.weblate.org/projects/"
 "ayatana-indicators/datetime-applet/pl/>\n"
 "Language: pl\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 3.0-dev\n"
+"X-Generator: Weblate 3.2-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
 msgid "Show the clock in the panel"
@@ -26,11 +26,11 @@ msgstr "Pokaż zegar w panelu"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:2
 msgid "Controls whether the clock indicator appears in the panel or not."
-msgstr ""
+msgstr "Określa, czy wskaźnik zegarowy pojawia się w panelu, czy nie."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:3
 msgid "What the time format should be"
-msgstr ""
+msgstr "Jaki powinien być format czasu"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:4
 msgid ""
@@ -41,10 +41,17 @@ msgid ""
 "be either 12 or 24 time. Or, you can use a custom format string and set the "
 "custom-time-format setting."
 msgstr ""
+"Steruje formatem czasu wyświetlanym na wskaźniku. Dla prawie wszystkich "
+"użytkowników powinno to być domyślne dla ich ustawień narodowych. Jeśli "
+"uważasz, że ustawienie jest nieprawidłowe w Twoim regionie, dołącz do "
+"zespołu tłumaczy lub porozmawiaj z nim w sprawie swojego języka. Jeśli "
+"chcesz tylko czegoś innego, możesz to zmienić na 12 lub 24. Możesz też użyć "
+"niestandardowego ciągu formatu i ustawić niestandardowe ustawienie formatu "
+"czasu."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:5
 msgid "The format string passed to strftime"
-msgstr ""
+msgstr "Ciąg formatu przekazany do strftime"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:6
 msgid ""
@@ -54,10 +61,16 @@ msgid ""
 "anything strftime can accept. Look at the man page on strftime for more "
 "information."
 msgstr ""
+"Format czasu i/lub daty, który jest widoczny w panelu podczas używania "
+"wskaźnika. Dla większości użytkowników będzie to zestaw wstępnie "
+"zdefiniowanych wartości określonych przez narzędzie konfiguracyjne, ale "
+"zaawansowani użytkownicy mogą go zmienić na dowolną wartość, którą strftime "
+"może zaakceptować. Sprawdź stronę man na strftime, aby uzyskać więcej "
+"informacji."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:7
 msgid "Show the number of seconds in the indicator"
-msgstr ""
+msgstr "Pokaż liczbę sekund na wskaźniku"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:8
 msgid ""
@@ -66,10 +79,15 @@ msgid ""
 "time will update 60 times as often, so it is not recommended. Also, this "
 "setting will be ignored if the time-format value is set to custom."
 msgstr ""
+"Sprawia, że wskaźnik datetime pokazuje liczbę sekund na wskaźniku. Należy "
+"pamiętać, że spowoduje to dodatkowe rozładowanie baterii, ponieważ czas "
+"będzie aktualizowany 60 razy częściej, więc nie jest to zalecane. Ponadto to "
+"ustawienie zostanie zignorowane, jeśli wartość formatu czasu zostanie "
+"ustawiona jako niestandardowa."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:9
 msgid "Show the day of the week in the indicator"
-msgstr ""
+msgstr "Pokaż dzień tygodnia na wskaźniku"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:10
 msgid ""
@@ -77,10 +95,13 @@ msgid ""
 "depending on settings. This setting will be ignored if the time-format value "
 "is set to custom."
 msgstr ""
+"Umieszcza dzień tygodnia w panelu wraz z godziną i/lub datą w zależności od "
+"ustawień. To ustawienie zostanie zignorowane, jeśli wartość formatu czasu "
+"zostanie ustawiona jako niestandardowa."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:11
 msgid "Show the month and date in the indicator"
-msgstr ""
+msgstr "Pokaż miesiąc i datę na wskaźniku"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:12
 msgid ""
@@ -88,10 +109,13 @@ msgid ""
 "the week depending on settings. This setting will be ignored if the time-"
 "format value is set to custom."
 msgstr ""
+"Umieszcza miesiąc i datę w panelu wraz z czasem i/lub dniem tygodnia w "
+"zależności od ustawień. To ustawienie zostanie zignorowane, jeśli wartość "
+"formatu czasu zostanie ustawiona jako niestandardowa."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:13
 msgid "Show the year in the indicator"
-msgstr ""
+msgstr "Pokaż rok w wskaźniku"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:14
 msgid ""
@@ -99,45 +123,51 @@ msgid ""
 "will be ignored if either the time-format value is set to custom or if show-"
 "date is set to false."
 msgstr ""
+"Umieszcza rok w panelu wraz z miesiącem i datą. To ustawienie zostanie "
+"zignorowane, jeśli wartość formatu czasu jest ustawiona na wartość "
+"niestandardową lub jeśli opcja show-date ma wartość false."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:15
 msgid "Show the monthly calendar in the indicator"
-msgstr ""
+msgstr "Pokaż kalendarz miesięczny na wskaźniku"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:16
 msgid "Puts the monthly calendar in indicator-datetime's menu."
-msgstr ""
+msgstr "Umieszcza kalendarz miesięczny w menu wskaźnika-datetime."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:17
 msgid "Show week numbers in calendar"
-msgstr ""
+msgstr "Pokaż numery tygodni w kalendarzu"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:18
 msgid ""
 "Shows the week numbers in the monthly calendar in indicator-datetime's menu."
 msgstr ""
+"Wyświetla numery tygodni w kalendarzu miesięcznym w menu wskaźnika-datetime."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:19
 msgid "Show events in the indicator"
-msgstr ""
+msgstr "Pokaż wydarzenia na wskaźniku"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:20
 msgid "Shows events from Evolution in indicator-datetime's menu."
-msgstr ""
+msgstr "Wyświetla zdarzenia z Evolution w menu wskaźnika-datetime."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:21
 msgid "Show the auto-detected location in the indicator"
-msgstr ""
+msgstr "Pokaż automatycznie wykrywaną lokalizację na wskaźniku"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:22
 msgid ""
 "Shows your current location (determined from geoclue and /etc/timezone) in "
 "indicator-datetime's menu."
 msgstr ""
+"Pokazuje twoją aktualną lokalizację (określoną z geoclue i /etc/timezone) w "
+"menu wskaźnika-datetime."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:23
 msgid "Show locations in the indicator"
-msgstr ""
+msgstr "Pokaż lokalizacje na wskaźniku"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:24
 msgid "Shows custom defined locations in indicator-datetime's menu."
@@ -317,9 +347,8 @@ msgid "Date and Time"
 msgstr ""
 
 #: ../src/menu.cpp:519
-#, fuzzy
 msgid "Time & Date"
-msgstr "Ustaw godzinę i datę..."
+msgstr "Data i godzina"
 
 #: ../src/menu.cpp:524
 #, c-format
