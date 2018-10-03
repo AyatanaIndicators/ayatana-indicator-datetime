@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2018-10-01 16:36+0000\n"
+"PO-Revision-Date: 2018-10-04 10:38+0000\n"
 "Last-Translator: Володимир Бриняк <bardvv@gmail.com>\n"
 "Language-Team: Ukrainian <https://hosted.weblate.org/projects/"
 "ayatana-indicators/datetime-applet/uk/>\n"
@@ -191,11 +191,16 @@ msgid "The name of the current timezone"
 msgstr "Назва поточного часового поясу"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:28
+#, fuzzy
 msgid ""
 "Some timezones can be known by many different cities or names. This setting "
 "describes how the current zone prefers to be named. Format is \"TIMEZONE NAME"
 "\" (e.g. \"America/New_York Boston\" to name the New_York zone Boston)."
 msgstr ""
+"Деякі часові пояси можуть бути відомі багатьма містами або найменуваннями. "
+"Цей параметр описує, як поточна сфера вважає за краще назвати. Формат - "
+"'TIMEZONE NAME' (наприклад, 'America / New_York Boston', щоб назвати зону "
+"New_York Boston)."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:29
 msgid "What kind of haptic feedback, if any, to trigger with an alarm."
