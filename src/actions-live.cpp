@@ -50,7 +50,7 @@ void LiveActions::open_alarm_app()
 {
     if (ayatana_common_utils_is_lomiri())
     {
-        ayatana_common_utils_open_url("appid://lomiri-clock-app/lomiri-clock-app/current-user-version");
+        ayatana_common_utils_open_url("alarm://");
     }
     else
     {
