@@ -58,16 +58,17 @@ pkg_check_modules (SERVICE_DEPS REQUIRED
                    gstreamer-1.0>=1.2
                    libnotify>=0.7.6
                    properties-cpp>=0.0.1
-                   libaccounts-glib>=1.18)
+                   libaccounts-glib>=1.18
+                   messaging-menu>=0.8.2)
 include_directories (SYSTEM ${SERVICE_DEPS_INCLUDE_DIRS})
 
-# lomiri-app-launch
+# lomiri-url-dispatcher
 
-pkg_check_modules(LOMIRIAPPLAUNCH lomiri-app-launch>=0)
-include_directories(${LOMIRIAPPLAUNCH_INCLUDE_DIRS})
+pkg_check_modules(URLDISPATCHER lomiri-url-dispatcher>=0)
+include_directories(${URLDISPATCHER_INCLUDE_DIRS})
 
-if(LOMIRIAPPLAUNCH_FOUND)
-    add_definitions( -DHAS_LOMIRIAPPLAUNCH )
+if(URLDISPATCHER_FOUND)
+    add_definitions( -DHAS_URLDISPATCHER )
 endif()
 
 if(EXISTS "/usr/share/accountsservice/interfaces/com.ubuntu.touch.AccountsService.Sound.xml")
