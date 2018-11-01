@@ -24,9 +24,8 @@
 #include <messaging-menu/messaging-menu-app.h>
 #include <messaging-menu/messaging-menu-message.h>
 
-#ifdef HAS_LOMIRIAPPLAUNCH
-#include <liblomiri-app-launch/lomiri-app-launch/appid.h>
-#include <liblomiri-app-launch/lomiri-app-launch/registry.h>
+#ifdef HAS_URLDISPATCHER
+#include <lomiri-url-dispatcher.h>
 #endif
 
 #include <uuid/uuid.h>
@@ -463,16 +462,17 @@ private:
 
     static std::string calendar_app_id()
     {
-        #ifdef HAS_LOMIRIAPPLAUNCH
-        auto registry = std::make_shared<lomiri::app_launch::Registry>();
-        auto app_id = lomiri::app_launch::AppID::discover(registry, "lomiri-calendar-app");
-
-        if (!app_id.empty())
+        #ifdef HAS_URLDISPATCHER
+        auto urls = g_strsplit("calendar://", ",", 0);
+        auto appids = lomiri_url_dispatch_url_appid(const_cast<const gchar**>(urls));
+        g_strfreev(urls);
+        std::string result;
+        if (appids != nullptr) {
             // Due the use of old API by messaging_menu we need append a extra ".desktop" to the app_id.
-            return std::string(app_id) + ".desktop";
-        else
-            return std::string();
-
+            result = std::string(appids[0]) + ".desktop";
+            g_strfreev(appids);
+        }
+        return result;
         #else
         return std::string();
         #endif
