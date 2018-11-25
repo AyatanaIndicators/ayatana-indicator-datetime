@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2018-09-02 14:16+0000\n"
-"Last-Translator: account1 <surajchawla61@gmail.com>\n"
+"PO-Revision-Date: 2018-11-26 22:07+0000\n"
+"Last-Translator: ssantos <ssantos@web.de>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/"
 "ayatana-indicators/datetime-applet/de/>\n"
 "Language: de\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 3.2-dev\n"
+"X-Generator: Weblate 3.3-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
 msgid "Show the clock in the panel"
@@ -48,7 +48,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:5
 msgid "The format string passed to strftime"
-msgstr ""
+msgstr "Die an strftime übergebene Formatzeichenkette"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:6
 msgid ""
@@ -58,6 +58,12 @@ msgid ""
 "anything strftime can accept. Look at the man page on strftime for more "
 "information."
 msgstr ""
+"Das Format der Uhrzeit und/oder des Datums, das auf dem Bedienfeld bei "
+"Verwendung der Anzeige sichtbar ist. Für die meisten Benutzer ist dies eine "
+"Reihe von vordefinierten Werten, wie sie vom Konfigurationsprogramm "
+"festgelegt wurden, aber fortgeschrittene Benutzer können sie in alles "
+"ändern, was strftime akzeptiert. Für weitere Informationen schauen Sie sich "
+"die Manpage für strftime an."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:7
 msgid "Show the number of seconds in the indicator"
@@ -70,6 +76,11 @@ msgid ""
 "time will update 60 times as often, so it is not recommended. Also, this "
 "setting will be ignored if the time-format value is set to custom."
 msgstr ""
+"Lässt die Datumsanzeige die Anzahl der Sekunden lang in der Anzeige "
+"anzeigen. Da die Zeit 60-mal so oft aktualisiert wird, ist zu beachten, dass "
+"dies zu einem zusätzlichen Batterieverbrauch führt, weshalb es nicht "
+"empfohlen wird. Außerdem wird diese Einstellung ignoriert, wenn der "
+"Zeitformatwert auf benutzerdefiniert gesetzt ist."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:9
 msgid "Show the day of the week in the indicator"
@@ -81,6 +92,9 @@ msgid ""
 "depending on settings. This setting will be ignored if the time-format value "
 "is set to custom."
 msgstr ""
+"Stellt den Wochentag zusammen mit der Uhrzeit und/oder dem Datum auf dem "
+"Bedienfeld ein, je nach Einstellung. Diese Einstellung wird ignoriert, wenn "
+"der Zeitformatwert auf Custom gesetzt ist."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:11
 msgid "Show the month and date in the indicator"
@@ -92,6 +106,9 @@ msgid ""
 "the week depending on settings. This setting will be ignored if the time-"
 "format value is set to custom."
 msgstr ""
+"Stellt den Monat und das Datum sowie die Uhrzeit und/oder den Wochentag je "
+"nach Einstellung im Panel ein. Diese Einstellung wird ignoriert, wenn der "
+"Zeitformatwert auf Custom gesetzt ist."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:13
 msgid "Show the year in the indicator"
@@ -103,6 +120,10 @@ msgid ""
 "will be ignored if either the time-format value is set to custom or if show-"
 "date is set to false."
 msgstr ""
+"Setzt das Jahr in das Feld zusammen mit dem Monat und dem Datum. Diese "
+"Einstellung wird ignoriert, wenn entweder der Zeitformatwert auf "
+"benutzerdefiniert gesetzt ist oder wenn das Anzeigedatum auf falsch gesetzt "
+"ist."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:15
 msgid "Show the monthly calendar in the indicator"
@@ -157,6 +178,8 @@ msgid ""
 "Adds the list of locations the user has configured to display in the "
 "indicator-datetime menu."
 msgstr ""
+"Fügt die Liste der Orte hinzu, die der Benutzer für die Anzeige im Menü "
+"indicator-datetime konfiguriert hat."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:27
 msgid "The name of the current timezone"
@@ -168,16 +191,24 @@ msgid ""
 "describes how the current zone prefers to be named. Format is \"TIMEZONE NAME"
 "\" (e.g. \"America/New_York Boston\" to name the New_York zone Boston)."
 msgstr ""
+"Einige Zeitzonen können über viele verschiedene Städte oder Namen bezeichnet "
+"werden. Diese Einstellung beschreibt, wie die aktuelle Zone benannt werden "
+"soll. Das Format ist \"TIMEZONE NAME\" (z.B. \"America/New_York Boston\", um "
+"die New_York Zone Boston zu benennen)."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:29
 msgid "What kind of haptic feedback, if any, to trigger with an alarm."
 msgstr ""
+"Welche Art haptischer Rückmeldung, falls vorhanden, soll bei einem Alarm "
+"ausgelöst werden."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:30
 msgid ""
 "What kind of haptic feedback, if any, to trigger with an alarm. Two modes "
 "are currently supported: 'pulse', 'none'."
 msgstr ""
+"Welche Art haptischer Rückmeldung, falls vorhanden, soll mit einem Alarm "
+"ausgelöst werden. Derzeit werden zwei Modi unterstützt: \"Puls\", \"keine\"."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:31
 msgid "The alarm's default sound file."
@@ -188,6 +219,8 @@ msgid ""
 "If an alarm doesn't specify its own sound file, this file will be used as "
 "the fallback sound."
 msgstr ""
+"Wenn ein Alarm keine eigene Audiodatei verwendet, wird diese Datei als "
+"Rückfallton verwendet."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:33
 msgid "The alarm's default volume level."
@@ -206,6 +239,8 @@ msgid ""
 "How long the alarm's sound will be looped if its snap decision is not "
 "dismissed by the user."
 msgstr ""
+"Wie lange der Ton des Alarms zu hören sein wird, wenn die Snap-Entscheidung "
+"nicht vom Benutzer verworfen wird."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:37
 msgid "The snooze duration."
@@ -218,7 +253,7 @@ msgstr "Wie lange man warten soll, wenn der Nutzer die Schlummertaste drückt."
 #. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
 #: ../src/formatter.cpp:234
 msgid "%l:%M:%S %p"
-msgstr ""
+msgstr "%l:%M:%S %p"
 
 #. TRANSLATORS: a strftime(3) format for 12hr time
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
@@ -226,7 +261,7 @@ msgstr ""
 #. en_US example: "%l:%M %p" --> "1:00 PM"
 #: ../src/formatter.cpp:237 ../src/utils.c:304
 msgid "%l:%M %p"
-msgstr ""
+msgstr "%H:%M"
 
 #. TRANSLATORS: a strftime(3) format for 24hr time w/seconds
 #: ../src/formatter.cpp:240
@@ -268,7 +303,7 @@ msgstr "%a %e %b"
 #: ../src/formatter-desktop.cpp:154
 #, c-format
 msgid "%a"
-msgstr ""
+msgstr "%a"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
@@ -334,7 +369,7 @@ msgstr "%s1 (hat einen Alarm)"
 #. hours, minutes in a 12h locale; e.g. Wed, 2:00 PM
 #: ../src/snap.cpp:125
 msgid "%a, %l:%M %p"
-msgstr ""
+msgstr "%a, %l:%M %p"
 
 #. * A strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 24h locale; e.g. Wed, 14:00
@@ -385,7 +420,7 @@ msgstr "Sat 31 Oct"
 #. en_US example: "Tomorrow %l:%M %p" --> "Tomorrow 1:00 PM"
 #: ../src/utils.c:313
 msgid "Tomorrow %l:%M %p"
-msgstr ""
+msgstr "Morgen %H:%M"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 12-hour clock, events/appointments that happen this week.
@@ -394,7 +429,7 @@ msgstr ""
 #. en_US example: "Tomorrow %l:%M %p" --> "Fri 1:00 PM"
 #: ../src/utils.c:322
 msgid "%a %l:%M %p"
-msgstr ""
+msgstr "%a %H:%M"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 12-hour clock, events/appointments that happen over a week from now.
@@ -404,7 +439,7 @@ msgstr ""
 #. en_GB example: "%a %b %d %l:%M %p" --> "Fri 31 Oct 1:00 PM"
 #: ../src/utils.c:332
 msgid "%a %d %b %l:%M %p"
-msgstr ""
+msgstr "%a %b. %d %H:%M"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 24-hour clock, events/appointments that happen tomorrow.
