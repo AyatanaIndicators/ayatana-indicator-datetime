@@ -8,14 +8,16 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2010-03-03 10:06-0500\n"
-"Last-Translator: Canonical OEM\n"
-"Language-Team: Portuguese\n"
-"Language: \n"
+"PO-Revision-Date: 2019-02-20 15:17+0000\n"
+"Last-Translator: thebylito <thebylito@gmail.com>\n"
+"Language-Team: Portuguese <https://hosted.weblate.org/projects/"
+"ayatana-indicators/datetime-applet/pt/>\n"
+"Language: pt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 3.5-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
 msgid "Show the clock in the panel"
@@ -152,7 +154,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:27
 msgid "The name of the current timezone"
-msgstr ""
+msgstr "O nome do fuso horário atual"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:28
 msgid ""
