@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2018-07-23 14:45+0000\n"
-"Last-Translator: Eugen Wesseloh <auscoder@gmail.com>\n"
+"PO-Revision-Date: 2019-05-16 15:48+0000\n"
+"Last-Translator: Артем <wwesstt@gmail.com>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/"
 "ayatana-indicators/datetime-applet/ru/>\n"
 "Language: ru\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<="
 "4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 3.1-dev\n"
+"X-Generator: Weblate 3.7-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
 msgid "Show the clock in the panel"
@@ -155,7 +155,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:27
 msgid "The name of the current timezone"
-msgstr ""
+msgstr "Название текущего часового пояса"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:28
 msgid ""
@@ -163,6 +163,10 @@ msgid ""
 "describes how the current zone prefers to be named. Format is \"TIMEZONE NAME"
 "\" (e.g. \"America/New_York Boston\" to name the New_York zone Boston)."
 msgstr ""
+"Некоторые часовые пояса могут называться по разному в зависимости от  города "
+"или каким-либо другим названием. Данная настройка назначает предпочтительное "
+"название часового пояса. Формат \"TIMEZONE NAME\" (например \"America/"
+"New_York Boston\" изменит название часового пояса на New_York zone Boston)."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:29
 msgid "What kind of haptic feedback, if any, to trigger with an alarm."
