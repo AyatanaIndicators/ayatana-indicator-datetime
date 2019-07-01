@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2018-06-01 14:35+0000\n"
-"Last-Translator: Zhaoyu Gan <ganzhaoyu037@sina.com>\n"
+"PO-Revision-Date: 2019-07-02 20:01+0000\n"
+"Last-Translator: Elizabeth Sherrock <lizzyd710@gmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "ayatana-indicators/datetime-applet/zh_Hans/>\n"
 "Language: zh_CN\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 3.0\n"
+"X-Generator: Weblate 3.8-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
 msgid "Show the clock in the panel"
@@ -344,7 +344,7 @@ msgstr ""
 
 #: ../src/snap.cpp:139
 msgid "OK"
-msgstr ""
+msgstr "好的"
 
 #: ../src/snap.cpp:140
 msgid "Snooze"
