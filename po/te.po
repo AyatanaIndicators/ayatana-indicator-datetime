@@ -8,25 +8,28 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2017-10-12 07:36+0200\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2019-08-11 10:23+0000\n"
+"Last-Translator: M Ramani Priya <priya.maremanda@gmail.com>\n"
+"Language-Team: Telugu <https://hosted.weblate.org/projects/"
+"ayatana-indicators/datetime-applet/te/>\n"
 "Language: te\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 3.8-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
 msgid "Show the clock in the panel"
-msgstr ""
+msgstr "గడియారం వాక్యం పట్టికలో  చూపించడం"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:2
 msgid "Controls whether the clock indicator appears in the panel or not."
-msgstr ""
+msgstr "గడియారం  పట్టికలో  చూపించాలా వద్దా అని అదుపు చేయడం"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:3
 msgid "What the time format should be"
-msgstr ""
+msgstr "సమయ ఆకృతి ఏ విధంగా ఉండాలి?"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:4
 msgid ""
@@ -37,6 +40,12 @@ msgid ""
 "be either 12 or 24 time. Or, you can use a custom format string and set the "
 "custom-time-format setting."
 msgstr ""
+"సూచికలో ప్రదర్శించబడే సమయ ఆకృతిని నియంత్రిస్తుంది. దాదాపు అన్ని "
+"వినియోగదారులకు ఇది వారి లొకేల్‌కు డిఫాల్ట్‌గా ఉండాలి. మీ లొకేల్‌కు సెట్టింగ్ "
+"తప్పు అని మీరు అనుకుంటే, దయచేసి మీ భాష కోసం అనువాద బృందంలో చేరండి లేదా "
+"మాట్లాడండి. మీరు వేరేదాన్ని కోరుకుంటే, మీరు దీన్ని 12 లేదా 24 సమయం గా "
+"సర్దుబాటు చేయవచ్చు. లేదా, మీరు కస్టమ్ ఫార్మాట్ స్ట్రింగ్‌ను ఉపయోగించవచ్చు "
+"మరియు కస్టమ్-టైమ్-ఫార్మాట్ సెట్టింగ్‌ను సెట్ చేయవచ్చు."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:5
 msgid "The format string passed to strftime"
@@ -53,7 +62,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:7
 msgid "Show the number of seconds in the indicator"
-msgstr ""
+msgstr "క్షణాల లెక్క సూచికలో చూపించంచండి"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:8
 msgid ""
@@ -65,7 +74,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:9
 msgid "Show the day of the week in the indicator"
-msgstr ""
+msgstr "సూచికలో  వారం చూపించడం"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:10
 msgid ""
@@ -73,10 +82,13 @@ msgid ""
 "depending on settings. This setting will be ignored if the time-format value "
 "is set to custom."
 msgstr ""
+"సెట్టింగులను బట్టి సమయం మరియు / లేదా తేదీతో పాటు వారంలోని రోజును విషయ "
+"పట్టికలో  ఉంచుతుంది. సమయ-ఆకృతి విలువ అనుకూలానికి  సెట్ట్ చేయబడితే ఈ సెట్టింగ్"
+" విస్మరించబడుతుంది."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:11
 msgid "Show the month and date in the indicator"
-msgstr ""
+msgstr "నెల మరియు  తేది సూచిక లో చూపించడం"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:12
 msgid ""
@@ -87,7 +99,7 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:13
 msgid "Show the year in the indicator"
-msgstr ""
+msgstr "సూచిక లో  సంవత్సరం చూపించడం"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:14
 msgid ""
@@ -98,28 +110,29 @@ msgstr ""
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:15
 msgid "Show the monthly calendar in the indicator"
-msgstr ""
+msgstr "నెల పంచాంగం సూచికలో చూపించడం"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:16
+#, fuzzy
 msgid "Puts the monthly calendar in indicator-datetime's menu."
-msgstr ""
+msgstr "సూచికల- తేది సమయం యొక్క జాబితాలో పెట్టడం"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:17
 msgid "Show week numbers in calendar"
-msgstr ""
+msgstr "వార-అంకెలు పంచాంగంలో చూపించడం"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:18
 msgid ""
 "Shows the week numbers in the monthly calendar in indicator-datetime's menu."
-msgstr ""
+msgstr "సూచిక-డేట్‌టైమ్ మెనులో నెలవారీ క్యాలెండర్‌లో వార సంఖ్యలను చూపుతుంది."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:19
 msgid "Show events in the indicator"
-msgstr ""
+msgstr "సూచికలో సంఘటనలను చూపించు"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:20
 msgid "Shows events from Evolution in indicator-datetime's menu."
-msgstr ""
+msgstr "సూచిక-తేదీసమయ జలాబితాలో పరిణామం నుండి సంఘటనలను చూపుతుంది."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:21
 msgid "Show the auto-detected location in the indicator"
