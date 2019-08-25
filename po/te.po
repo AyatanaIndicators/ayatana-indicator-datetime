@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2017-11-29 13:44+0100\n"
-"PO-Revision-Date: 2019-08-11 10:23+0000\n"
-"Last-Translator: M Ramani Priya <priya.maremanda@gmail.com>\n"
+"PO-Revision-Date: 2019-08-26 04:24+0000\n"
+"Last-Translator: leela <53352@protonmail.com>\n"
 "Language-Team: Telugu <https://hosted.weblate.org/projects/"
 "ayatana-indicators/datetime-applet/te/>\n"
 "Language: te\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 3.8-dev\n"
+"X-Generator: Weblate 3.9-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
 msgid "Show the clock in the panel"
@@ -25,7 +25,7 @@ msgstr "గడియారం వాక్యం పట్టికలో  చ�
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:2
 msgid "Controls whether the clock indicator appears in the panel or not."
-msgstr "గడియారం  పట్టికలో  చూపించాలా వద్దా అని అదుపు చేయడం"
+msgstr "గడియారం  పట్టికలో  చూపించాలా వద్దా అని అదుపు చేయడం."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in:3
 msgid "What the time format should be"
