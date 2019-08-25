@@ -15,7 +15,7 @@
 		</key>
 		<key name="time-format" enum="time-enum">
 			<default>'locale-default'</default>
-			<summary>What the time format should be</summary>
+			<summary>What the time format should be?</summary>
 			<description>
 			  Controls the time format that is displayed in the indicator.  For almost
 			  all users this should be the default for their locale.  If you think the
