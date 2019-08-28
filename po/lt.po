@@ -7,11 +7,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
-"POT-Creation-Date: 2017-11-29 13:44+0100\n"
+"POT-Creation-Date: 2019-08-28 20:25+0200\n"
 "PO-Revision-Date: 2018-04-04 21:14+0000\n"
 "Last-Translator: Moo <hazap@hotmail.com>\n"
-"Language-Team: Lithuanian <https://hosted.weblate.org/projects/"
-"ayatana-indicators/datetime-applet/lt/>\n"
+"Language-Team: Lithuanian <https://hosted.weblate.org/projects/ayatana-"
+"indicators/datetime-applet/lt/>\n"
 "Language: lt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -21,238 +21,19 @@ msgstr ""
 "1 : 2);\n"
 "X-Generator: Weblate 2.20-dev\n"
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
-msgid "Show the clock in the panel"
-msgstr "Rodyti skydelyje laikrodį"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:2
-msgid "Controls whether the clock indicator appears in the panel or not."
-msgstr "Valdo ar laikrodžio indikatorius pasirodys skydelyje ar ne."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:3
-msgid "What the time format should be"
-msgstr "Koks turėtų būti laiko formatas"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:4
-msgid ""
-"Controls the time format that is displayed in the indicator. For almost all "
-"users this should be the default for their locale. If you think the setting "
-"is wrong for your locale please join or talk to the translation team for "
-"your language. If you just want something different you can adjust this to "
-"be either 12 or 24 time. Or, you can use a custom format string and set the "
-"custom-time-format setting."
-msgstr ""
-"Valdo laiko formatą, kuris yra rodomas indikatoriuje. Beveik visiems "
-"naudotojams tai turėtų būti numatytasis jų lokalės formatas. Jei galvojate, "
-"kad šis nustatymas jūsų lokalei yra neteisingas, tuomet prisijunkite ar "
-"susisiekite su savo kalbos vertimo komanda. Jei, tiesiog, norite kažkokio "
-"kitokio formato, galite jį reguliuoti į 12 arba 24 valandų laiką. Arba "
-"galite naudoti pasirinktinio formato eilutę ir nusistatyti custom-time-"
-"format nustatymą."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:5
-msgid "The format string passed to strftime"
-msgstr "Formato eilutė, perduodama į strftime"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:6
-msgid ""
-"The format of the time and/or date that is visible on the panel when using "
-"the indicator. For most users this will be a set of predefined values as "
-"determined by the configuration utility, but advanced users can change it to "
-"anything strftime can accept. Look at the man page on strftime for more "
-"information."
-msgstr ""
-"Laiko ir/ar datos formatas, kuris yra matomas skydelyje, naudojant "
-"indikatorių. Daugumai naudotojų tai bus iš anksto nustatytų reikšmių "
-"rinkinys, apibrėžtas konfigūracijos paslaugų programos, tačiau patyrę "
-"naudotojai gali tai pakeisti į bet ką, ką gali priimti strftime. Išsamesnei "
-"informacijai, žiūrėkite strftime žinyno puslapius."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:7
-msgid "Show the number of seconds in the indicator"
-msgstr "Rodyti indikatoriuje sekundžių skaičių"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:8
-msgid ""
-"Makes the datetime indicator show the number of seconds in the indicator. "
-"It's important to note that this will cause additional battery drain as the "
-"time will update 60 times as often, so it is not recommended. Also, this "
-"setting will be ignored if the time-format value is set to custom."
-msgstr ""
-"Padaro taip, kad datos ir laiko indikatorius rodytų sekundžių skaičių. "
-"Svarbu pastebėti, kad tai sukels papildomą baterijos iškrovimą, nes laikas "
-"bus atnaujinamas 60 kartų dažniau, taigi, tai nėra rekomenduojama. Taip pat "
-"šio nustatymo bus nepaisoma, jei laiko formatas yra nustatytas į "
-"pasirinktinį."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:9
-msgid "Show the day of the week in the indicator"
-msgstr "Rodyti indikatoriuje savaitės dieną"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:10
-msgid ""
-"Puts the day of the week on the panel along with the time and/or date "
-"depending on settings. This setting will be ignored if the time-format value "
-"is set to custom."
-msgstr ""
-"Priklausomai nuo nustatymų, skydelyje šalia laiko ir/ar datos įterpia "
-"savaitės dieną. Šio nustatymo bus nepaisoma, jei laiko formatas yra "
-"nustatytas į pasirinktinį."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:11
-msgid "Show the month and date in the indicator"
-msgstr "Rodyti indikatoriuje mėnesį ir datą"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:12
-msgid ""
-"Puts the month and the date in the panel along with the time and/or day of "
-"the week depending on settings. This setting will be ignored if the time-"
-"format value is set to custom."
-msgstr ""
-"Priklausomai nuo nustatymų, skydelyje šalia laiko ir/ar savaitės dienos "
-"įterpia mėnesį ir datą. Šio nustatymo bus nepaisoma, jei laiko formatas yra "
-"nustatytas į pasirinktinį."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:13
-msgid "Show the year in the indicator"
-msgstr "Rodyti indikatoriuje metus"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:14
-msgid ""
-"Puts the year in the panel along with the month and the date. This setting "
-"will be ignored if either the time-format value is set to custom or if show-"
-"date is set to false."
-msgstr ""
-"Skydelyje šalia mėnesio ir datos įterpia metus. Šio nustatymo bus nepaisoma, "
-"jei laiko formatas yra nustatytas į pasirinktinį, arba jei show-date yra "
-"nustatyta į neteisingą."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:15
-msgid "Show the monthly calendar in the indicator"
-msgstr "Rodyti indikatoriuje mėnesio kalendorių"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:16
-msgid "Puts the monthly calendar in indicator-datetime's menu."
-msgstr "Įterpia į datos ir laiko indikatoriaus meniu mėnesio kalendorių."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:17
-msgid "Show week numbers in calendar"
-msgstr "Rodyti kalendoriuje savaičių numerius"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:18
-msgid ""
-"Shows the week numbers in the monthly calendar in indicator-datetime's menu."
-msgstr ""
-"Rodo mėnesio kalendoriuje, datos ir laiko indikatoriaus meniu, savaičių "
-"numerius."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:19
-msgid "Show events in the indicator"
-msgstr "Rodyti indikatoriuje įvykius"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:20
-msgid "Shows events from Evolution in indicator-datetime's menu."
-msgstr "Rodo datos ir laiko indikatoriaus meniu įvykius iš Evolution."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:21
-msgid "Show the auto-detected location in the indicator"
-msgstr "Rodyti indikatoriuje automatiškai aptiktą vietą"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:22
-msgid ""
-"Shows your current location (determined from geoclue and /etc/timezone) in "
-"indicator-datetime's menu."
-msgstr ""
-"Rodo datos ir laiko indikatoriaus meniu jūsų esamą vietą (nustatytą iš "
-"geoclue ir /etc/timezone)."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:23
-msgid "Show locations in the indicator"
-msgstr "Rodyti indikatoriuje vietas"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:24
-msgid "Shows custom defined locations in indicator-datetime's menu."
-msgstr "Rodo datos ir laiko indikatoriaus meniu tinkintas apibrėžtas vietas."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:25
-msgid "A List of locations"
-msgstr "Vietų sąrašas"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:26
-msgid ""
-"Adds the list of locations the user has configured to display in the "
-"indicator-datetime menu."
-msgstr ""
-"Prideda ir rodo naudotojo sukonfigūruotą vietų sąrašą į datos ir laiko "
-"indikatoriaus meniu."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:27
-msgid "The name of the current timezone"
-msgstr "Dabartinės laiko juostos pavadinimas"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:28
-msgid ""
-"Some timezones can be known by many different cities or names. This setting "
-"describes how the current zone prefers to be named. Format is \"TIMEZONE NAME"
-"\" (e.g. \"America/New_York Boston\" to name the New_York zone Boston)."
-msgstr ""
-"Kai kurios laiko juostos gali būti žinomos pagal daugelį įvairių miestų ar "
-"pavadinimų. Šis nustatymas aprašo, kaip dabartinė laiko juosta pageidauja "
-"būti pavadinta. Formatas yra toks: \"LAIKO_JUOSTA PAVADINIMAS\" (pvz., \""
-"Europe/Vilnius Alytus\" pavadins laiko juosta \"Vilnius\" kaip \"Alytus\")."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:29
-msgid "What kind of haptic feedback, if any, to trigger with an alarm."
-msgstr "Kokį kontaktinį grįžtamąjį ryšį sukelti su signalu."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:30
-msgid ""
-"What kind of haptic feedback, if any, to trigger with an alarm. Two modes "
-"are currently supported: 'pulse', 'none'."
-msgstr ""
-"Kokį kontaktinį grįžtamąjį ryšį sukelti su signalu. Šiuo metu yra palaikomos "
-"dvi veiksenos: \"pulse\", \"none\"."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:31
-msgid "The alarm's default sound file."
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
+#, fuzzy
+msgid "The calendar's default sound file."
 msgstr "Signalo numatytasis garso failas."
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:32
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:2
+#, fuzzy
 msgid ""
-"If an alarm doesn't specify its own sound file, this file will be used as "
-"the fallback sound."
+"If a calendar or reminder event doesn't specify its own sound file, this "
+"file will be used as the fallback sound."
 msgstr ""
 "Jeigu signalas nenurodo savo asmeninio garso failo, tuomet šis failas bus "
 "naudojamas kaip atsarginis garsas."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:33
-msgid "The alarm's default volume level."
-msgstr "Signalo numatytasis garsio lygis."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:34
-msgid "The volume at which alarms will be played."
-msgstr "Garsis, kuriuo bus atkuriamas signalas."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:35
-msgid "The alarm's duration."
-msgstr "Signalo trukmė."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:36
-msgid ""
-"How long the alarm's sound will be looped if its snap decision is not "
-"dismissed by the user."
-msgstr ""
-"Kiek laiko bus cikliškai grojamas signalo garsas, jeigu naudotojas neatmes "
-"signalo sprendimo."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:37
-msgid "The snooze duration."
-msgstr "Snūstelėjimo trukmė."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:38
-msgid "How long to wait when the user hits the Snooze button."
-msgstr ""
-"Kiek laiko laukti po to, kai naudotojas spustelėjo mygtuką \"Snūstelėti\"."
 
 #. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
 #: ../src/formatter.cpp:234
@@ -360,37 +141,37 @@ msgstr "Laiko ir datos nustatymai…"
 msgid "Date and Time"
 msgstr "Data ir laikas"
 
-#: ../src/menu.cpp:519
+#: ../src/menu.cpp:520
 msgid "Time & Date"
 msgstr "Laikas ir data"
 
-#: ../src/menu.cpp:524
+#: ../src/menu.cpp:525
 #, c-format
 msgid "%s (has alarms)"
 msgstr "%s (yra signalų)"
 
 #. * strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 12h locale; e.g. Wed, 2:00 PM
-#: ../src/snap.cpp:125
+#: ../src/snap.cpp:126
 msgid "%a, %l:%M %p"
 msgstr "%a, %l:%M %p"
 
 #. * A strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 24h locale; e.g. Wed, 14:00
-#: ../src/snap.cpp:129
+#: ../src/snap.cpp:130
 msgid "%a, %H:%M"
 msgstr "%a, %H:%M"
 
-#: ../src/snap.cpp:132
+#: ../src/snap.cpp:133
 #, c-format
 msgid "Alarm %s"
 msgstr "Signalas %s"
 
-#: ../src/snap.cpp:139
+#: ../src/snap.cpp:140
 msgid "OK"
 msgstr "Gerai"
 
-#: ../src/snap.cpp:140
+#: ../src/snap.cpp:141
 msgid "Snooze"
 msgstr "Snūstelėti"
 
@@ -439,8 +220,8 @@ msgstr "%a %l:%M %p"
 #. This format string is used for showing, on a 12-hour clock, events/appointments that happen over a week from now.
 #. (Note: the space between the day and the time is an em space (unicode character 2003), which is
 #. slightly wider than a normal space.)
-#. en_US example: "%a %d %b %l:%M %p" --> "Fri Oct 31 1:00 PM"
-#. en_GB example: "%a %b %d %l:%M %p" --> "Fri 31 Oct 1:00 PM"
+#. en_US example: "%a %b %d %l:%M %p" --> "Fri Oct 31 1:00 PM"
+#. en_GB example: "%a %d %b %l:%M %p" --> "Fri 31 Oct 1:00 PM"
 #: ../src/utils.c:332
 msgid "%a %d %b %l:%M %p"
 msgstr "%b %d, %a %l:%M %p"
@@ -467,8 +248,197 @@ msgstr "%a %H:%M"
 #. This format string is used for showing, on a 24-hour clock, events/appointments that happen over a week from now.
 #. (Note: the space between the day and the time is an em space (unicode character 2003), which is
 #. slightly wider than a normal space.)
-#. en_US example: "%a %d %b %H:%M" --> "Fri Oct 31 13:00"
-#. en_GB example: "%a %b %d %H:%M" --> "Fri 31 Oct 13:00"
+#. en_US example: "%a %b %d %H:%M" --> "Fri Oct 31 13:00"
+#. en_GB example: "%a %d %b %H:%M" --> "Fri 31 Oct 13:00"
 #: ../src/utils.c:372
 msgid "%a %d %b %H:%M"
 msgstr "%b %d, %a %H:%M"
+
+#~ msgid "Show the clock in the panel"
+#~ msgstr "Rodyti skydelyje laikrodį"
+
+#~ msgid "Controls whether the clock indicator appears in the panel or not."
+#~ msgstr "Valdo ar laikrodžio indikatorius pasirodys skydelyje ar ne."
+
+#~ msgid "What the time format should be"
+#~ msgstr "Koks turėtų būti laiko formatas"
+
+#~ msgid ""
+#~ "Controls the time format that is displayed in the indicator. For almost "
+#~ "all users this should be the default for their locale. If you think the "
+#~ "setting is wrong for your locale please join or talk to the translation "
+#~ "team for your language. If you just want something different you can "
+#~ "adjust this to be either 12 or 24 time. Or, you can use a custom format "
+#~ "string and set the custom-time-format setting."
+#~ msgstr ""
+#~ "Valdo laiko formatą, kuris yra rodomas indikatoriuje. Beveik visiems "
+#~ "naudotojams tai turėtų būti numatytasis jų lokalės formatas. Jei "
+#~ "galvojate, kad šis nustatymas jūsų lokalei yra neteisingas, tuomet "
+#~ "prisijunkite ar susisiekite su savo kalbos vertimo komanda. Jei, tiesiog, "
+#~ "norite kažkokio kitokio formato, galite jį reguliuoti į 12 arba 24 "
+#~ "valandų laiką. Arba galite naudoti pasirinktinio formato eilutę ir "
+#~ "nusistatyti custom-time-format nustatymą."
+
+#~ msgid "The format string passed to strftime"
+#~ msgstr "Formato eilutė, perduodama į strftime"
+
+#~ msgid ""
+#~ "The format of the time and/or date that is visible on the panel when "
+#~ "using the indicator. For most users this will be a set of predefined "
+#~ "values as determined by the configuration utility, but advanced users can "
+#~ "change it to anything strftime can accept. Look at the man page on "
+#~ "strftime for more information."
+#~ msgstr ""
+#~ "Laiko ir/ar datos formatas, kuris yra matomas skydelyje, naudojant "
+#~ "indikatorių. Daugumai naudotojų tai bus iš anksto nustatytų reikšmių "
+#~ "rinkinys, apibrėžtas konfigūracijos paslaugų programos, tačiau patyrę "
+#~ "naudotojai gali tai pakeisti į bet ką, ką gali priimti strftime. "
+#~ "Išsamesnei informacijai, žiūrėkite strftime žinyno puslapius."
+
+#~ msgid "Show the number of seconds in the indicator"
+#~ msgstr "Rodyti indikatoriuje sekundžių skaičių"
+
+#~ msgid ""
+#~ "Makes the datetime indicator show the number of seconds in the indicator. "
+#~ "It's important to note that this will cause additional battery drain as "
+#~ "the time will update 60 times as often, so it is not recommended. Also, "
+#~ "this setting will be ignored if the time-format value is set to custom."
+#~ msgstr ""
+#~ "Padaro taip, kad datos ir laiko indikatorius rodytų sekundžių skaičių. "
+#~ "Svarbu pastebėti, kad tai sukels papildomą baterijos iškrovimą, nes "
+#~ "laikas bus atnaujinamas 60 kartų dažniau, taigi, tai nėra rekomenduojama. "
+#~ "Taip pat šio nustatymo bus nepaisoma, jei laiko formatas yra nustatytas į "
+#~ "pasirinktinį."
+
+#~ msgid "Show the day of the week in the indicator"
+#~ msgstr "Rodyti indikatoriuje savaitės dieną"
+
+#~ msgid ""
+#~ "Puts the day of the week on the panel along with the time and/or date "
+#~ "depending on settings. This setting will be ignored if the time-format "
+#~ "value is set to custom."
+#~ msgstr ""
+#~ "Priklausomai nuo nustatymų, skydelyje šalia laiko ir/ar datos įterpia "
+#~ "savaitės dieną. Šio nustatymo bus nepaisoma, jei laiko formatas yra "
+#~ "nustatytas į pasirinktinį."
+
+#~ msgid "Show the month and date in the indicator"
+#~ msgstr "Rodyti indikatoriuje mėnesį ir datą"
+
+#~ msgid ""
+#~ "Puts the month and the date in the panel along with the time and/or day "
+#~ "of the week depending on settings. This setting will be ignored if the "
+#~ "time-format value is set to custom."
+#~ msgstr ""
+#~ "Priklausomai nuo nustatymų, skydelyje šalia laiko ir/ar savaitės dienos "
+#~ "įterpia mėnesį ir datą. Šio nustatymo bus nepaisoma, jei laiko formatas "
+#~ "yra nustatytas į pasirinktinį."
+
+#~ msgid "Show the year in the indicator"
+#~ msgstr "Rodyti indikatoriuje metus"
+
+#~ msgid ""
+#~ "Puts the year in the panel along with the month and the date. This "
+#~ "setting will be ignored if either the time-format value is set to custom "
+#~ "or if show-date is set to false."
+#~ msgstr ""
+#~ "Skydelyje šalia mėnesio ir datos įterpia metus. Šio nustatymo bus "
+#~ "nepaisoma, jei laiko formatas yra nustatytas į pasirinktinį, arba jei "
+#~ "show-date yra nustatyta į neteisingą."
+
+#~ msgid "Show the monthly calendar in the indicator"
+#~ msgstr "Rodyti indikatoriuje mėnesio kalendorių"
+
+#~ msgid "Puts the monthly calendar in indicator-datetime's menu."
+#~ msgstr "Įterpia į datos ir laiko indikatoriaus meniu mėnesio kalendorių."
+
+#~ msgid "Show week numbers in calendar"
+#~ msgstr "Rodyti kalendoriuje savaičių numerius"
+
+#~ msgid ""
+#~ "Shows the week numbers in the monthly calendar in indicator-datetime's "
+#~ "menu."
+#~ msgstr ""
+#~ "Rodo mėnesio kalendoriuje, datos ir laiko indikatoriaus meniu, savaičių "
+#~ "numerius."
+
+#~ msgid "Show events in the indicator"
+#~ msgstr "Rodyti indikatoriuje įvykius"
+
+#~ msgid "Shows events from Evolution in indicator-datetime's menu."
+#~ msgstr "Rodo datos ir laiko indikatoriaus meniu įvykius iš Evolution."
+
+#~ msgid "Show the auto-detected location in the indicator"
+#~ msgstr "Rodyti indikatoriuje automatiškai aptiktą vietą"
+
+#~ msgid ""
+#~ "Shows your current location (determined from geoclue and /etc/timezone) "
+#~ "in indicator-datetime's menu."
+#~ msgstr ""
+#~ "Rodo datos ir laiko indikatoriaus meniu jūsų esamą vietą (nustatytą iš "
+#~ "geoclue ir /etc/timezone)."
+
+#~ msgid "Show locations in the indicator"
+#~ msgstr "Rodyti indikatoriuje vietas"
+
+#~ msgid "Shows custom defined locations in indicator-datetime's menu."
+#~ msgstr ""
+#~ "Rodo datos ir laiko indikatoriaus meniu tinkintas apibrėžtas vietas."
+
+#~ msgid "A List of locations"
+#~ msgstr "Vietų sąrašas"
+
+#~ msgid ""
+#~ "Adds the list of locations the user has configured to display in the "
+#~ "indicator-datetime menu."
+#~ msgstr ""
+#~ "Prideda ir rodo naudotojo sukonfigūruotą vietų sąrašą į datos ir laiko "
+#~ "indikatoriaus meniu."
+
+#~ msgid "The name of the current timezone"
+#~ msgstr "Dabartinės laiko juostos pavadinimas"
+
+#~ msgid ""
+#~ "Some timezones can be known by many different cities or names. This "
+#~ "setting describes how the current zone prefers to be named. Format is "
+#~ "\"TIMEZONE NAME\" (e.g. \"America/New_York Boston\" to name the New_York "
+#~ "zone Boston)."
+#~ msgstr ""
+#~ "Kai kurios laiko juostos gali būti žinomos pagal daugelį įvairių miestų "
+#~ "ar pavadinimų. Šis nustatymas aprašo, kaip dabartinė laiko juosta "
+#~ "pageidauja būti pavadinta. Formatas yra toks: \"LAIKO_JUOSTA PAVADINIMAS"
+#~ "\" (pvz., \"Europe/Vilnius Alytus\" pavadins laiko juosta \"Vilnius\" "
+#~ "kaip \"Alytus\")."
+
+#~ msgid "What kind of haptic feedback, if any, to trigger with an alarm."
+#~ msgstr "Kokį kontaktinį grįžtamąjį ryšį sukelti su signalu."
+
+#~ msgid ""
+#~ "What kind of haptic feedback, if any, to trigger with an alarm. Two modes "
+#~ "are currently supported: 'pulse', 'none'."
+#~ msgstr ""
+#~ "Kokį kontaktinį grįžtamąjį ryšį sukelti su signalu. Šiuo metu yra "
+#~ "palaikomos dvi veiksenos: \"pulse\", \"none\"."
+
+#~ msgid "The alarm's default volume level."
+#~ msgstr "Signalo numatytasis garsio lygis."
+
+#~ msgid "The volume at which alarms will be played."
+#~ msgstr "Garsis, kuriuo bus atkuriamas signalas."
+
+#~ msgid "The alarm's duration."
+#~ msgstr "Signalo trukmė."
+
+#~ msgid ""
+#~ "How long the alarm's sound will be looped if its snap decision is not "
+#~ "dismissed by the user."
+#~ msgstr ""
+#~ "Kiek laiko bus cikliškai grojamas signalo garsas, jeigu naudotojas "
+#~ "neatmes signalo sprendimo."
+
+#~ msgid "The snooze duration."
+#~ msgstr "Snūstelėjimo trukmė."
+
+#~ msgid "How long to wait when the user hits the Snooze button."
+#~ msgstr ""
+#~ "Kiek laiko laukti po to, kai naudotojas spustelėjo mygtuką \"Snūstelėti\"."

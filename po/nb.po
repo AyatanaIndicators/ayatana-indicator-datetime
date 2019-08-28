@@ -7,11 +7,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
-"POT-Creation-Date: 2017-11-29 13:44+0100\n"
+"POT-Creation-Date: 2019-08-28 20:25+0200\n"
 "PO-Revision-Date: 2018-03-19 21:45+0000\n"
 "Last-Translator: Allan Nordhøy <epost@anotheragency.no>\n"
-"Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/"
-"ayatana-indicators/datetime-applet/nb/>\n"
+"Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/ayatana-"
+"indicators/datetime-applet/nb/>\n"
 "Language: nb\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,241 +19,19 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 2.20-dev\n"
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:1
-msgid "Show the clock in the panel"
-msgstr "Vis klokken i panelet"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:2
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
 #, fuzzy
-msgid "Controls whether the clock indicator appears in the panel or not."
-msgstr "Hvorvidt klokken skal vises i panelet."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:3
-msgid "What the time format should be"
-msgstr "Hva tidsformatet skal være"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:4
-#, fuzzy
-msgid ""
-"Controls the time format that is displayed in the indicator. For almost all "
-"users this should be the default for their locale. If you think the setting "
-"is wrong for your locale please join or talk to the translation team for "
-"your language. If you just want something different you can adjust this to "
-"be either 12 or 24 time. Or, you can use a custom format string and set the "
-"custom-time-format setting."
-msgstr ""
-"Kontrollerer tidsformatet som vises i indikatoren. For nesten alle brukere "
-"vil dette være forvalget for deres lokale. Hvis synes innstillingen er gal "
-"for ditt lokale, ta del i, eller snakk til oversettelseslaget for ditt "
-"språk. Hvis du ønsker noe annet kan du justere dette til å være enten 12 "
-"eller 24-timers klokke. Eller, du kan bruke en egendefinert streng og sette "
-"custom-time-format -innstillingen."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:5
-msgid "The format string passed to strftime"
-msgstr "Formatstrengen som blir sendt til strftime"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:6
-msgid ""
-"The format of the time and/or date that is visible on the panel when using "
-"the indicator. For most users this will be a set of predefined values as "
-"determined by the configuration utility, but advanced users can change it to "
-"anything strftime can accept. Look at the man page on strftime for more "
-"information."
-msgstr ""
-"Tid og/eller dato-formatet synlig i panelet når indikatoren brukes. For de "
-"fleste brukere er dette et knippe forhåndsdefinerte verdier bestemt av "
-"oppsettsverktøyet, men avanserte brukere kan bruke det til å endre alt "
-"strftime godtar. Sjekk man-siden for strftime for mer informasjon."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:7
-msgid "Show the number of seconds in the indicator"
-msgstr "Vis antall sekunder i indikatoren"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:8
-msgid ""
-"Makes the datetime indicator show the number of seconds in the indicator. "
-"It's important to note that this will cause additional battery drain as the "
-"time will update 60 times as often, so it is not recommended. Also, this "
-"setting will be ignored if the time-format value is set to custom."
-msgstr ""
-"Får datotidsindikatoren til å vise antall sekunder i indikatoren. Det er "
-"viktig å mrke seg at dette vil føre til mindre batteritid, siden tiden vil "
-"oppdatere seg 60 ganger så ofte, så det anbefales ikke. Denne innstillingen "
-"vil ignoreres hvis tidsformatsverdien er satt til egendefinert."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:9
-msgid "Show the day of the week in the indicator"
-msgstr "Vis ukedagen i indikatoren"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:10
-msgid ""
-"Puts the day of the week on the panel along with the time and/or date "
-"depending on settings. This setting will be ignored if the time-format value "
-"is set to custom."
-msgstr ""
-"Putter ukedagen på panelet, sammen med tid og/eller dato, avhengig av "
-"innstillinger. Denne innstillingen vil ses bort fra hvis tidsformatsverdien "
-"er satt til egendefinert."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:11
-msgid "Show the month and date in the indicator"
-msgstr "Vis måned og dato i indikatoren"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:12
-msgid ""
-"Puts the month and the date in the panel along with the time and/or day of "
-"the week depending on settings. This setting will be ignored if the time-"
-"format value is set to custom."
-msgstr ""
-"Putter måneden og datoen i panelet, sammen med tid og/eller ukedagen, "
-"avhengig av innstillingene. Denne innstillingene ses bor fra hvis "
-"tidsformatverdien er satt til egendefinert."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:13
-msgid "Show the year in the indicator"
-msgstr "Vis året i indikatoren"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:14
-msgid ""
-"Puts the year in the panel along with the month and the date. This setting "
-"will be ignored if either the time-format value is set to custom or if show-"
-"date is set to false."
-msgstr ""
-"Putter året i panelet, sammen med måned og dato. Denne innstillingene ses "
-"bort fra hvis tidsformatverdien er satt til egendefinert."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:15
-msgid "Show the monthly calendar in the indicator"
-msgstr "Vis månedlig kalender i indikatoren"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:16
-msgid "Puts the monthly calendar in indicator-datetime's menu."
-msgstr "Putter månedlig kalender i indikatorens datotidsmeny."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:17
-msgid "Show week numbers in calendar"
-msgstr "Viser ukenummer i kalender"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:18
-msgid ""
-"Shows the week numbers in the monthly calendar in indicator-datetime's menu."
-msgstr ""
-"Viser ukenummer i i den månedlige kalenderen i indikatorens datotidsmeny."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:19
-msgid "Show events in the indicator"
-msgstr "Vis hendelser i indikatoren"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:20
-#, fuzzy
-msgid "Shows events from Evolution in indicator-datetime's menu."
-msgstr "Viser hendelser fra Evolution i indikatorens datotidsmeny."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:21
-msgid "Show the auto-detected location in the indicator"
-msgstr "Vis automatisk oppdaget plassering i indikatoren"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:22
-msgid ""
-"Shows your current location (determined from geoclue and /etc/timezone) in "
-"indicator-datetime's menu."
-msgstr ""
-"Viser din nåværende plassering (bestemt av geoclue og /etc/timezone) i "
-"indikatorens datotidsmeny."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:23
-msgid "Show locations in the indicator"
-msgstr "Viser plasseringer i indikatoren"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:24
-msgid "Shows custom defined locations in indicator-datetime's menu."
-msgstr "Viser egendefinerte plasseringer i indikatorens datotidsmeny."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:25
-#, fuzzy
-msgid "A List of locations"
-msgstr "En liste over plasseringer"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:26
-msgid ""
-"Adds the list of locations the user has configured to display in the "
-"indicator-datetime menu."
-msgstr ""
-"Legger til en liste over plasseringen brukeren har satt opp til visning i "
-"indikatorens datotidsmeny."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:27
-#, fuzzy
-msgid "The name of the current timezone"
-msgstr "Navnet på gjeldende tidssone"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:28
-#, fuzzy
-msgid ""
-"Some timezones can be known by many different cities or names. This setting "
-"describes how the current zone prefers to be named. Format is \"TIMEZONE NAME"
-"\" (e.g. \"America/New_York Boston\" to name the New_York zone Boston)."
-msgstr ""
-"Noen tidssoner kan utredes av mange forskjellige byer eller navn. Denne "
-"innstillingen beskriver foretrukket navn på nåværende sone. Formatet er \""
-"TIDSSONE NAVN\" (f.eks. \"Europa/Sør_Trøndelag Trondheim\" for å navngi "
-"Sør_Trøndelag sonen Trondheim)."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:29
-msgid "What kind of haptic feedback, if any, to trigger with an alarm."
-msgstr ""
-"Hva slags fysisk tilbakemelding, hvis noen, skal utløses sammen med en alarm."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:30
-#, fuzzy
-msgid ""
-"What kind of haptic feedback, if any, to trigger with an alarm. Two modes "
-"are currently supported: 'pulse', 'none'."
-msgstr ""
-"Hva slags fysisk tilbakemelding, hvis noen, skal utløses sammen med en "
-"alarm. To modus støttes: \"pulserende\", \"ingen"
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:31
-msgid "The alarm's default sound file."
+msgid "The calendar's default sound file."
 msgstr "Forvalgt lydfil for alarm."
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:32
+#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:2
+#, fuzzy
 msgid ""
-"If an alarm doesn't specify its own sound file, this file will be used as "
-"the fallback sound."
+"If a calendar or reminder event doesn't specify its own sound file, this "
+"file will be used as the fallback sound."
 msgstr ""
 "Hvis en alarm ikke har egen lyd angitt, vil denne fila bli brukt som "
 "tilbakefall."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:33
-msgid "The alarm's default volume level."
-msgstr "Alarmens forvalgte lydnivå."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:34
-msgid "The volume at which alarms will be played."
-msgstr "Lydstyrken for alarmen."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:35
-msgid "The alarm's duration."
-msgstr "Alarmens varighet."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:36
-#, fuzzy
-msgid ""
-"How long the alarm's sound will be looped if its snap decision is not "
-"dismissed by the user."
-msgstr ""
-"Hvor lenge alarmens lyd vil gå i reprise, hvis dens snap-handling ikke "
-"avbrytes av brukeren."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:37
-msgid "The snooze duration."
-msgstr "Slumringsvarighet."
-
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in:38
-msgid "How long to wait when the user hits the Snooze button."
-msgstr "Ventetid før brukeren trykker på slumreknappen."
 
 #. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
 #: ../src/formatter.cpp:234
@@ -309,7 +87,7 @@ msgstr "%a %e %b"
 #. This format string shows the abbreviated weekday.
 #. zh_CN example(?): "周%a" --> "周六"
 #: ../src/formatter-desktop.cpp:154
-#, c-format, fuzzy
+#, fuzzy, c-format
 msgid "%a"
 msgstr "%a"
 
@@ -365,40 +143,40 @@ msgstr "Tids- og dato-innstillinger…"
 msgid "Date and Time"
 msgstr "Dato og tid"
 
-#: ../src/menu.cpp:519
+#: ../src/menu.cpp:520
 #, fuzzy
 msgid "Time & Date"
 msgstr "Angi dato og klokkeslett..."
 
-#: ../src/menu.cpp:524
+#: ../src/menu.cpp:525
 #, c-format
 msgid "%s (has alarms)"
 msgstr "%s (har alarmer)"
 
 #. * strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 12h locale; e.g. Wed, 2:00 PM
-#: ../src/snap.cpp:125
+#: ../src/snap.cpp:126
 #, fuzzy
 msgid "%a, %l:%M %p"
 msgstr "%a, %l:%M %p"
 
 #. * A strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 24h locale; e.g. Wed, 14:00
-#: ../src/snap.cpp:129
+#: ../src/snap.cpp:130
 #, fuzzy
 msgid "%a, %H:%M"
 msgstr "%a. %H:%M"
 
-#: ../src/snap.cpp:132
+#: ../src/snap.cpp:133
 #, c-format
 msgid "Alarm %s"
 msgstr "Alarm %s"
 
-#: ../src/snap.cpp:139
+#: ../src/snap.cpp:140
 msgid "OK"
 msgstr "OK"
 
-#: ../src/snap.cpp:140
+#: ../src/snap.cpp:141
 msgid "Snooze"
 msgstr "Slumre"
 
@@ -412,7 +190,7 @@ msgstr "I morgen"
 
 #. This is a strftime(3) format string indicating the unabbreviated weekday.
 #: ../src/utils.c:283
-#, c-format, fuzzy
+#, fuzzy, c-format
 msgid "%A"
 msgstr "%A"
 
@@ -450,8 +228,8 @@ msgstr "%a. %l:%M %p"
 #. This format string is used for showing, on a 12-hour clock, events/appointments that happen over a week from now.
 #. (Note: the space between the day and the time is an em space (unicode character 2003), which is
 #. slightly wider than a normal space.)
-#. en_US example: "%a %d %b %l:%M %p" --> "Fri Oct 31 1:00 PM"
-#. en_GB example: "%a %b %d %l:%M %p" --> "Fri 31 Oct 1:00 PM"
+#. en_US example: "%a %b %d %l:%M %p" --> "Fri Oct 31 1:00 PM"
+#. en_GB example: "%a %d %b %l:%M %p" --> "Fri 31 Oct 1:00 PM"
 #: ../src/utils.c:332
 #, fuzzy
 msgid "%a %d %b %l:%M %p"
@@ -481,12 +259,204 @@ msgstr "%a. %H:%M"
 #. This format string is used for showing, on a 24-hour clock, events/appointments that happen over a week from now.
 #. (Note: the space between the day and the time is an em space (unicode character 2003), which is
 #. slightly wider than a normal space.)
-#. en_US example: "%a %d %b %H:%M" --> "Fri Oct 31 13:00"
-#. en_GB example: "%a %b %d %H:%M" --> "Fri 31 Oct 13:00"
+#. en_US example: "%a %b %d %H:%M" --> "Fri Oct 31 13:00"
+#. en_GB example: "%a %d %b %H:%M" --> "Fri 31 Oct 13:00"
 #: ../src/utils.c:372
 #, fuzzy
 msgid "%a %d %b %H:%M"
 msgstr "%a. %b %d. %H:%M"
+
+#~ msgid "Show the clock in the panel"
+#~ msgstr "Vis klokken i panelet"
+
+#, fuzzy
+#~ msgid "Controls whether the clock indicator appears in the panel or not."
+#~ msgstr "Hvorvidt klokken skal vises i panelet."
+
+#~ msgid "What the time format should be"
+#~ msgstr "Hva tidsformatet skal være"
+
+#, fuzzy
+#~ msgid ""
+#~ "Controls the time format that is displayed in the indicator. For almost "
+#~ "all users this should be the default for their locale. If you think the "
+#~ "setting is wrong for your locale please join or talk to the translation "
+#~ "team for your language. If you just want something different you can "
+#~ "adjust this to be either 12 or 24 time. Or, you can use a custom format "
+#~ "string and set the custom-time-format setting."
+#~ msgstr ""
+#~ "Kontrollerer tidsformatet som vises i indikatoren. For nesten alle "
+#~ "brukere vil dette være forvalget for deres lokale. Hvis synes "
+#~ "innstillingen er gal for ditt lokale, ta del i, eller snakk til "
+#~ "oversettelseslaget for ditt språk. Hvis du ønsker noe annet kan du "
+#~ "justere dette til å være enten 12 eller 24-timers klokke. Eller, du kan "
+#~ "bruke en egendefinert streng og sette custom-time-format -innstillingen."
+
+#~ msgid "The format string passed to strftime"
+#~ msgstr "Formatstrengen som blir sendt til strftime"
+
+#~ msgid ""
+#~ "The format of the time and/or date that is visible on the panel when "
+#~ "using the indicator. For most users this will be a set of predefined "
+#~ "values as determined by the configuration utility, but advanced users can "
+#~ "change it to anything strftime can accept. Look at the man page on "
+#~ "strftime for more information."
+#~ msgstr ""
+#~ "Tid og/eller dato-formatet synlig i panelet når indikatoren brukes. For "
+#~ "de fleste brukere er dette et knippe forhåndsdefinerte verdier bestemt av "
+#~ "oppsettsverktøyet, men avanserte brukere kan bruke det til å endre alt "
+#~ "strftime godtar. Sjekk man-siden for strftime for mer informasjon."
+
+#~ msgid "Show the number of seconds in the indicator"
+#~ msgstr "Vis antall sekunder i indikatoren"
+
+#~ msgid ""
+#~ "Makes the datetime indicator show the number of seconds in the indicator. "
+#~ "It's important to note that this will cause additional battery drain as "
+#~ "the time will update 60 times as often, so it is not recommended. Also, "
+#~ "this setting will be ignored if the time-format value is set to custom."
+#~ msgstr ""
+#~ "Får datotidsindikatoren til å vise antall sekunder i indikatoren. Det er "
+#~ "viktig å mrke seg at dette vil føre til mindre batteritid, siden tiden "
+#~ "vil oppdatere seg 60 ganger så ofte, så det anbefales ikke. Denne "
+#~ "innstillingen vil ignoreres hvis tidsformatsverdien er satt til "
+#~ "egendefinert."
+
+#~ msgid "Show the day of the week in the indicator"
+#~ msgstr "Vis ukedagen i indikatoren"
+
+#~ msgid ""
+#~ "Puts the day of the week on the panel along with the time and/or date "
+#~ "depending on settings. This setting will be ignored if the time-format "
+#~ "value is set to custom."
+#~ msgstr ""
+#~ "Putter ukedagen på panelet, sammen med tid og/eller dato, avhengig av "
+#~ "innstillinger. Denne innstillingen vil ses bort fra hvis "
+#~ "tidsformatsverdien er satt til egendefinert."
+
+#~ msgid "Show the month and date in the indicator"
+#~ msgstr "Vis måned og dato i indikatoren"
+
+#~ msgid ""
+#~ "Puts the month and the date in the panel along with the time and/or day "
+#~ "of the week depending on settings. This setting will be ignored if the "
+#~ "time-format value is set to custom."
+#~ msgstr ""
+#~ "Putter måneden og datoen i panelet, sammen med tid og/eller ukedagen, "
+#~ "avhengig av innstillingene. Denne innstillingene ses bor fra hvis "
+#~ "tidsformatverdien er satt til egendefinert."
+
+#~ msgid "Show the year in the indicator"
+#~ msgstr "Vis året i indikatoren"
+
+#~ msgid ""
+#~ "Puts the year in the panel along with the month and the date. This "
+#~ "setting will be ignored if either the time-format value is set to custom "
+#~ "or if show-date is set to false."
+#~ msgstr ""
+#~ "Putter året i panelet, sammen med måned og dato. Denne innstillingene ses "
+#~ "bort fra hvis tidsformatverdien er satt til egendefinert."
+
+#~ msgid "Show the monthly calendar in the indicator"
+#~ msgstr "Vis månedlig kalender i indikatoren"
+
+#~ msgid "Puts the monthly calendar in indicator-datetime's menu."
+#~ msgstr "Putter månedlig kalender i indikatorens datotidsmeny."
+
+#~ msgid "Show week numbers in calendar"
+#~ msgstr "Viser ukenummer i kalender"
+
+#~ msgid ""
+#~ "Shows the week numbers in the monthly calendar in indicator-datetime's "
+#~ "menu."
+#~ msgstr ""
+#~ "Viser ukenummer i i den månedlige kalenderen i indikatorens datotidsmeny."
+
+#~ msgid "Show events in the indicator"
+#~ msgstr "Vis hendelser i indikatoren"
+
+#, fuzzy
+#~ msgid "Shows events from Evolution in indicator-datetime's menu."
+#~ msgstr "Viser hendelser fra Evolution i indikatorens datotidsmeny."
+
+#~ msgid "Show the auto-detected location in the indicator"
+#~ msgstr "Vis automatisk oppdaget plassering i indikatoren"
+
+#~ msgid ""
+#~ "Shows your current location (determined from geoclue and /etc/timezone) "
+#~ "in indicator-datetime's menu."
+#~ msgstr ""
+#~ "Viser din nåværende plassering (bestemt av geoclue og /etc/timezone) i "
+#~ "indikatorens datotidsmeny."
+
+#~ msgid "Show locations in the indicator"
+#~ msgstr "Viser plasseringer i indikatoren"
+
+#~ msgid "Shows custom defined locations in indicator-datetime's menu."
+#~ msgstr "Viser egendefinerte plasseringer i indikatorens datotidsmeny."
+
+#, fuzzy
+#~ msgid "A List of locations"
+#~ msgstr "En liste over plasseringer"
+
+#~ msgid ""
+#~ "Adds the list of locations the user has configured to display in the "
+#~ "indicator-datetime menu."
+#~ msgstr ""
+#~ "Legger til en liste over plasseringen brukeren har satt opp til visning i "
+#~ "indikatorens datotidsmeny."
+
+#, fuzzy
+#~ msgid "The name of the current timezone"
+#~ msgstr "Navnet på gjeldende tidssone"
+
+#, fuzzy
+#~ msgid ""
+#~ "Some timezones can be known by many different cities or names. This "
+#~ "setting describes how the current zone prefers to be named. Format is "
+#~ "\"TIMEZONE NAME\" (e.g. \"America/New_York Boston\" to name the New_York "
+#~ "zone Boston)."
+#~ msgstr ""
+#~ "Noen tidssoner kan utredes av mange forskjellige byer eller navn. Denne "
+#~ "innstillingen beskriver foretrukket navn på nåværende sone. Formatet er "
+#~ "\"TIDSSONE NAVN\" (f.eks. \"Europa/Sør_Trøndelag Trondheim\" for å navngi "
+#~ "Sør_Trøndelag sonen Trondheim)."
+
+#~ msgid "What kind of haptic feedback, if any, to trigger with an alarm."
+#~ msgstr ""
+#~ "Hva slags fysisk tilbakemelding, hvis noen, skal utløses sammen med en "
+#~ "alarm."
+
+#, fuzzy
+#~ msgid ""
+#~ "What kind of haptic feedback, if any, to trigger with an alarm. Two modes "
+#~ "are currently supported: 'pulse', 'none'."
+#~ msgstr ""
+#~ "Hva slags fysisk tilbakemelding, hvis noen, skal utløses sammen med en "
+#~ "alarm. To modus støttes: \"pulserende\", \"ingen"
+
+#~ msgid "The alarm's default volume level."
+#~ msgstr "Alarmens forvalgte lydnivå."
+
+#~ msgid "The volume at which alarms will be played."
+#~ msgstr "Lydstyrken for alarmen."
+
+#~ msgid "The alarm's duration."
+#~ msgstr "Alarmens varighet."
+
+#, fuzzy
+#~ msgid ""
+#~ "How long the alarm's sound will be looped if its snap decision is not "
+#~ "dismissed by the user."
+#~ msgstr ""
+#~ "Hvor lenge alarmens lyd vil gå i reprise, hvis dens snap-handling ikke "
+#~ "avbrytes av brukeren."
+
+#~ msgid "The snooze duration."
+#~ msgstr "Slumringsvarighet."
+
+#~ msgid "How long to wait when the user hits the Snooze button."
+#~ msgstr "Ventetid før brukeren trykker på slumreknappen."
 
 #~ msgid "Error getting time"
 #~ msgstr "Feil under henting av klokkeslett"
