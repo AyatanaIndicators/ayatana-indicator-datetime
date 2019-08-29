@@ -8,30 +8,28 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2019-08-28 20:26+0200\n"
-"PO-Revision-Date: 2018-03-30 23:42+0000\n"
+"PO-Revision-Date: 2019-08-30 10:24+0000\n"
 "Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
-"Language-Team: Swedish <https://hosted.weblate.org/projects/ayatana-"
-"indicators/datetime-applet/sv/>\n"
+"Language-Team: Swedish <https://hosted.weblate.org/projects/"
+"ayatana-indicators/datetime-applet/sv/>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2.20-dev\n"
+"X-Generator: Weblate 3.9-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
-#, fuzzy
 msgid "The calendar's default sound file."
-msgstr "Standardljudfilen för alarmet."
+msgstr "Standardljudfilen för kalendern."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:2
-#, fuzzy
 msgid ""
 "If a calendar or reminder event doesn't specify its own sound file, this "
 "file will be used as the fallback sound."
 msgstr ""
-"Om ett alarm inte anger sin egen ljudfil kommer denna fil att användas som "
-"ljudet att falla tillbaka på."
+"Om en kalender eller påminnelse inte anger sin egen ljudfil kommer denna fil "
+"att användas som ljudet att falla tillbaka på."
 
 #. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
 #: ../src/formatter.cpp:234
