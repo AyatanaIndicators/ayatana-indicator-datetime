@@ -8,14 +8,16 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2019-08-28 20:25+0200\n"
-"PO-Revision-Date: 2010-03-03 10:06-0500\n"
-"Last-Translator: Canonical OEM\n"
-"Language-Team: Japanese\n"
-"Language: \n"
+"PO-Revision-Date: 2020-03-17 05:36+0000\n"
+"Last-Translator: Grace Guo <grace@appest.com>\n"
+"Language-Team: Japanese <https://hosted.weblate.org/projects/"
+"ayatana-indicators/datetime-applet/ja/>\n"
+"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 4.0-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
 msgid "The calendar's default sound file."
@@ -161,8 +163,9 @@ msgid "Alarm %s"
 msgstr ""
 
 #: ../src/snap.cpp:140
+#, fuzzy
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: ../src/snap.cpp:141
 msgid "Snooze"
