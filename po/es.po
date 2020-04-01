@@ -8,30 +8,28 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2019-08-28 20:25+0200\n"
-"PO-Revision-Date: 2018-06-17 10:33+0000\n"
-"Last-Translator: advocatux <advocatux@airpost.net>\n"
-"Language-Team: Spanish <https://hosted.weblate.org/projects/ayatana-"
-"indicators/datetime-applet/es/>\n"
+"PO-Revision-Date: 2020-04-01 03:15+0000\n"
+"Last-Translator: Johntini <ekardian@gmail.com>\n"
+"Language-Team: Spanish <https://hosted.weblate.org/projects/"
+"ayatana-indicators/datetime-applet/es/>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 3.0.1\n"
+"X-Generator: Weblate 4.0-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
-#, fuzzy
 msgid "The calendar's default sound file."
-msgstr "Archivo de sonido predeterminado de la alarma."
+msgstr "Sonido predeterminado para la alarma."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:2
-#, fuzzy
 msgid ""
 "If a calendar or reminder event doesn't specify its own sound file, this "
 "file will be used as the fallback sound."
 msgstr ""
-"Si una alarma no especifica su propio archivo de sonido, este archivo se "
-"usará como el sonido de reserva."
+"Si un evento de recordatorio o alarma no se le especifica su archivo de "
+"sonido, este archivo será usado como sonido secundario."
 
 #. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
 #: ../src/formatter.cpp:234
