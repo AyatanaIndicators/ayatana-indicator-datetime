@@ -23,6 +23,7 @@ set (SERVICE_CXX_SOURCES
      locations.cpp
      locations-settings.cpp
      menu.cpp
+     myself.cpp
      notifications.cpp
      planner.cpp
      planner-aggregate.cpp

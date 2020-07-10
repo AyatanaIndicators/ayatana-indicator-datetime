@@ -143,7 +143,7 @@ private:
             auto now_str = g_date_time_format(now, "%F %T");
             g_debug("%s triggered at %s.%06d by GIOCondition %d, read %zd bytes, found %zu interrupts",
                     G_STRFUNC, now_str, g_date_time_get_microsecond(now),
-                    (int)cond, n_bytes, n_interrupts);
+                    (int)cond, (signed size_t)n_bytes, (size_t)n_interrupts);
             g_free(now_str);
             g_date_time_unref(now);
 

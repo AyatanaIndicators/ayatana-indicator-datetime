@@ -22,11 +22,12 @@ build dependencies for indicator-datetime-service
  * gio-unix-2.0 >= 2.36
  * geoclue >= 0.12
  * libical >= 0.48
- * libecal-1.2 >= 3.5
+ * libecal-2.0 >= 3.16
  * libedataserver-1.2 >= 3.5
  * libnotify >= 0.7.6
  * url-dispatcher-1 >= 1
  * json-glib-1.0 >= 0.16.2
+ * libaccounts-glib>=1.18
 
 
 Additional build dependencies for the gnome-control-center panel:

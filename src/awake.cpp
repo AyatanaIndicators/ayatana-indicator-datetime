@@ -21,7 +21,7 @@
 #include <notifications/dbus-shared.h>
 
 #include <gio/gio.h>
-
+#include <string>
 #include <limits>
 
 namespace ayatana {

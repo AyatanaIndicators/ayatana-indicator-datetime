@@ -39,7 +39,10 @@ struct Alarm
     DateTime time;
 
     bool operator== (const Alarm& that) const;
+    bool has_sound() const;
+    bool has_text() const;
 };
+
 
 /**
  * \brief An instance of an appointment; e.g. a calendar event or clock-app alarm
@@ -54,6 +57,7 @@ public:
     bool is_ubuntu_alarm() const { return type == UBUNTU_ALARM; }
 
     std::string uid;
+    std::string source_uid;
     std::string color;
     std::string summary;
     std::string activation_url;
