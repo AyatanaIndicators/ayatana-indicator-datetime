@@ -18,7 +18,7 @@
  */
 
 #include "datetime/myself.h"
-#include <libaccounts-glib.h>
+#include <libaccounts-glib/accounts-glib.h>
 #include <algorithm>
 
 namespace ayatana {
