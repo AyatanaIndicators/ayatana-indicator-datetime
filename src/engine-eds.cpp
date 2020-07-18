@@ -18,7 +18,7 @@
  */
 
 #include <datetime/engine-eds.h>
-
+#include <datetime/myself.h>
 #include <libical/ical.h>
 #include <libical/icaltime.h>
 #include <libecal/libecal.h>
@@ -27,6 +27,7 @@
 #include <algorithm> // std::sort()
 #include <array>
 #include <ctime> // time()
+#include <cstring> // strstr(), strlen()
 #include <map>
 #include <set>
 
@@ -47,7 +48,8 @@ class EdsEngine::Impl
 {
 public:
 
-    Impl()
+    Impl(const std::shared_ptr<Myself> &myself)
+        : m_myself(myself)
     {
         auto cancellable_deleter = [](GCancellable * c) {
             g_cancellable_cancel(c);
@@ -55,8 +57,10 @@ public:
         };
 
         m_cancellable = std::shared_ptr<GCancellable>(g_cancellable_new(), cancellable_deleter);
-
         e_source_registry_new(m_cancellable.get(), on_source_registry_ready, this);
+        m_myself->emails().changed().connect([this](const std::set<std::string> &) {
+            set_dirty_soon();
+        });
     }
 
     ~Impl()
@@ -91,26 +95,19 @@ public:
         /**
         ***  init the default timezone
         **/
-
-        icaltimezone * default_timezone = nullptr;
+        ICalTimezone * default_timezone = nullptr;
         const auto tz = timezone.timezone.get().c_str();
-        if (tz && *tz)
-        {
-            default_timezone = icaltimezone_get_builtin_timezone(tz);
-
-            if (default_timezone == nullptr) // maybe str is a tzid?
-                default_timezone = icaltimezone_get_builtin_timezone_from_tzid(tz);
-
-            g_debug("default_timezone is %p", (void*)default_timezone);
+        auto gtz = timezone_from_name(tz, nullptr, nullptr, &default_timezone);
+        if (gtz == nullptr) {
+            gtz = g_time_zone_new_local();
         }
+
+        g_debug("default_timezone is %s", default_timezone ? i_cal_timezone_get_display_name(default_timezone) : "null");
 
         /**
         ***  walk through the sources to build the appointment list
         **/
 
-        auto gtz = default_timezone != nullptr
-                 ? g_time_zone_new(icaltimezone_get_location(default_timezone))
-                 : g_time_zone_new_local();
         auto main_task = std::make_shared<Task>(this, func, default_timezone, gtz, begin, end);
 
         for (auto& kv : m_clients)
@@ -122,37 +119,21 @@ public:
 
             auto& source = kv.first;
             auto extension = e_source_get_extension(source, E_SOURCE_EXTENSION_CALENDAR);
+            // check source is selected
+            if (!e_source_selectable_get_selected(E_SOURCE_SELECTABLE(extension))) {
+                g_debug("Soure is not selected, ignore it: %s", e_source_get_display_name(source));
+                continue;
+            }
             const auto color = e_source_selectable_get_color(E_SOURCE_SELECTABLE(extension));
 
-            auto begin_str = isodate_from_time_t(begin.to_unix());
-            auto end_str = isodate_from_time_t(end.to_unix());
-            auto sexp_fmt = g_strdup_printf("(%%s? (make-time \"%s\") (make-time \"%s\"))", begin_str, end_str);
-            g_clear_pointer(&begin_str, g_free);
-            g_clear_pointer(&end_str, g_free);
-
-            // ask EDS about alarms that occur in this window...
-            auto sexp = g_strdup_printf(sexp_fmt, "has-alarms-in-range");
-            g_debug("%s alarm sexp is %s", G_STRLOC, sexp);
-            e_cal_client_get_object_list_as_comps(
+            e_cal_client_generate_instances(
                 client,
-                sexp,
+                begin.to_unix(),
+                end.to_unix(),
                 m_cancellable.get(),
-                on_alarm_component_list_ready,
-                new ClientSubtask(main_task, client, m_cancellable, color));
-            g_clear_pointer(&sexp, g_free);
-
-            // ask EDS about events that occur in this window...
-            sexp = g_strdup_printf(sexp_fmt, "occur-in-time-range");
-            g_debug("%s event sexp is %s", G_STRLOC, sexp);
-            e_cal_client_get_object_list_as_comps(
-                client,
-                sexp,
-                m_cancellable.get(),
-                on_event_component_list_ready,
-                new ClientSubtask(main_task, client, m_cancellable, color));
-            g_clear_pointer(&sexp, g_free);
-
-            g_clear_pointer(&sexp_fmt, g_free);
+                on_event_generated,
+                new ClientSubtask(main_task, client, m_cancellable, color),
+                on_event_generated_list_ready);
         }
     }
 
@@ -276,7 +257,9 @@ private:
             g_debug("%s connecting a client to source %s", G_STRFUNC, source_uid);
             e_cal_client_connect(source,
                                  source_type,
+#if EDS_CHECK_VERSION(3,13,90)
                                  -1,
+#endif
                                  self->m_cancellable.get(),
                                  on_client_connected,
                                  gself);
@@ -419,17 +402,8 @@ private:
         static_cast<Impl*>(gself)->set_dirty_soon();
     }
 
-    /***
-    ****
-    ***/
-
-    // old ubuntu-clock-app alarms created VTODO VALARMS without the
-    // required 'TRIGGER' property... http://pad.lv/1465806
-
     void ensure_client_alarms_have_triggers(ECalClient* client)
     {
-        // ask the EDS server for all the ubuntu-clock-app alarms...
-
         auto sexp = g_strdup_printf("has-categories? '%s'", TAG_ALARM);
 
         e_cal_client_get_object_list_as_comps(
@@ -457,8 +431,8 @@ private:
                                                          &error))
         {
             auto self = static_cast<Impl*>(gself);
-            self->ensure_canonical_alarms_have_triggers(client, components);
-            e_cal_client_free_ecalcomp_slist(components);
+            self->ensure_ayatana_alarms_have_triggers(client, components);
+            e_client_util_free_object_slist (components);
         }
         else if (error != nullptr)
         {
@@ -469,7 +443,29 @@ private:
         }
     }
 
-    void ensure_canonical_alarms_have_triggers(ECalClient * client,
+    static ECalComponentAlarm * ensure_alarm_has_trigger(ECalComponentAlarm *alarm)
+    {
+        ECalComponentAlarm * ret = nullptr;
+
+        auto trigger = e_cal_component_alarm_get_trigger(alarm);
+
+        if (trigger == nullptr ||
+            (e_cal_component_alarm_trigger_get_kind (trigger) == E_CAL_COMPONENT_ALARM_TRIGGER_NONE)) {
+            auto copy = e_cal_component_alarm_copy (alarm);
+            auto null_duration = i_cal_duration_new_null_duration();
+            trigger = e_cal_component_alarm_trigger_new_relative(E_CAL_COMPONENT_ALARM_TRIGGER_RELATIVE_START,
+                                                                 null_duration);
+            e_cal_component_alarm_trigger_set_duration(trigger, null_duration);
+            e_cal_component_alarm_set_trigger(copy, trigger);
+            ret = copy;
+            e_cal_component_alarm_trigger_free(trigger);
+            g_clear_object(&null_duration);
+        }
+
+        return ret;
+    }
+
+    void ensure_ayatana_alarms_have_triggers(ECalClient * client,
                                                GSList     * components)
     {
         GSList * modify_slist = nullptr;
@@ -489,20 +485,16 @@ private:
                 if (alarm == nullptr)
                     continue;
 
-                // if the alarm has no trigger, add one.
-                ECalComponentAlarmTrigger trigger;
-                e_cal_component_alarm_get_trigger(alarm, &trigger);
-                if (trigger.type == E_CAL_COMPONENT_ALARM_TRIGGER_NONE)
+                auto new_alarm = ensure_alarm_has_trigger (alarm);
+                if (new_alarm != nullptr)
                 {
-                    trigger.type = E_CAL_COMPONENT_ALARM_TRIGGER_RELATIVE_START;
-                    trigger.u.rel_duration = icaldurationtype_from_int(0);
-                    e_cal_component_alarm_set_trigger (alarm, trigger);
+                    e_cal_component_remove_alarm (component, auid);
+                    e_cal_component_add_alarm (component, new_alarm);
                     changed = true;
+                    g_clear_pointer (&new_alarm, e_cal_component_alarm_free);
                 }
-
-                g_clear_pointer(&alarm, e_cal_component_alarm_free);
             }
-            g_clear_pointer(&auids, cal_obj_uid_list_free);
+            g_slist_free_full (auids, g_free);
 
             if (changed)
             {
@@ -516,8 +508,9 @@ private:
             e_cal_client_modify_objects(client,
                                         modify_slist,
                                         E_CAL_OBJ_MOD_ALL,
+                                        E_CAL_OPERATION_FLAG_NONE,
                                         m_cancellable.get(),
-                                        ensure_canonical_alarms_have_triggers_async_cb,
+                                        ensure_ayatana_alarms_have_triggers_async_cb,
                                         this);
 
             g_clear_pointer(&modify_slist, g_slist_free);
@@ -525,7 +518,7 @@ private:
     }
 
     // log a warning if e_cal_client_modify_objects() failed
-    static void ensure_canonical_alarms_have_triggers_async_cb(
+    static void ensure_ayatana_alarms_have_triggers_async_cb(
         GObject      * oclient,
         GAsyncResult * res,
         gpointer       /*gself*/)
@@ -554,7 +547,7 @@ private:
     {
         Impl* p;
         appointment_func func;
-        icaltimezone* default_timezone; // pointer owned by libical
+        ICalTimezone* default_timezone; // pointer owned by libical
         GTimeZone* gtz;
         std::vector<Appointment> appointments;
         const DateTime begin;
@@ -562,7 +555,7 @@ private:
 
         Task(Impl* p_in,
              appointment_func func_in,
-             icaltimezone* tz_in,
+             ICalTimezone* tz_in,
              GTimeZone* gtz_in,
              const DateTime& begin_in,
              const DateTime& end_in):
@@ -588,6 +581,9 @@ private:
         ECalClient* client;
         std::shared_ptr<GCancellable> cancellable;
         std::string color;
+        GList *components;
+        GList *instance_components;
+        std::set<std::string> parent_components;
 
         ClientSubtask(const std::shared_ptr<Task>& task_in,
                       ECalClient* client_in,
@@ -595,190 +591,366 @@ private:
                       const char* color_in):
             task(task_in),
             client(client_in),
-            cancellable(cancellable_in)
+            cancellable(cancellable_in),
+            components(nullptr),
+            instance_components(nullptr)
         {
             if (color_in)
                 color = color_in;
+
         }
     };
 
     static std::string get_alarm_text(ECalComponentAlarm * alarm)
     {
         std::string ret;
+        auto action = e_cal_component_alarm_get_action(alarm);
 
-        ECalComponentAlarmAction action;
-        e_cal_component_alarm_get_action(alarm, &action);
         if (action == E_CAL_COMPONENT_ALARM_DISPLAY)
         {
-            ECalComponentText text {};
-            e_cal_component_alarm_get_description(alarm, &text);
-            if (text.value)
-                ret = text.value;
-        }
+            auto text = e_cal_component_alarm_get_description(alarm);
 
-        return ret;
-    }
-
-    static std::string get_alarm_sound_url(ECalComponentAlarm * alarm)
-    {
-        std::string ret;
-
-        ECalComponentAlarmAction action;
-        e_cal_component_alarm_get_action(alarm, &action);
-        if (action == E_CAL_COMPONENT_ALARM_AUDIO)
-        {
-            icalattach* attach = nullptr;
-            e_cal_component_alarm_get_attach(alarm, &attach);
-            if (attach != nullptr)
+            if (text != nullptr)
             {
-                if (icalattach_get_is_url (attach))
-                {
-                    const char* url = icalattach_get_url(attach);
-                    if (url != nullptr)
-                        ret = url;
-                }
+                auto value = e_cal_component_text_get_value(text);
 
-                icalattach_unref(attach);
+                if (value != nullptr)
+                {
+                    ret = value;
+                }
             }
         }
 
         return ret;
     }
 
-    static void
-    on_alarm_component_list_ready(GObject      * oclient,
-                                  GAsyncResult * res,
-                                  gpointer       gsubtask)
+    static std::string get_alarm_sound_url(ECalComponentAlarm * alarm, const std::string & default_sound)
     {
-        GError * error = NULL;
-        GSList * comps_slist = NULL;
+        std::string ret;
+
+        auto action = e_cal_component_alarm_get_action(alarm);
+        if (action == E_CAL_COMPONENT_ALARM_AUDIO)
+        {
+            ICalAttach *attach = nullptr;
+            auto attachments = e_cal_component_alarm_get_attachments(alarm);
+
+            if (attachments != nullptr && attachments->next != nullptr)
+                attach = I_CAL_ATTACH (attachments->data);
+
+            if (attach != nullptr)
+            {
+                if (i_cal_attach_get_is_url (attach))
+                {
+                    const char* url = i_cal_attach_get_url(attach);
+                    if (url != nullptr)
+                        ret = url;
+                }
+            }
+            if (ret.empty())
+                ret = default_sound;
+        }
+
+        return ret;
+    }
+
+    static gboolean
+    on_event_generated(ICalComponent *comp,
+                       ICalTime *start,
+                       ICalTime *end,
+                       gpointer gsubtask,
+                       GCancellable *cancellable,
+                       GError **error)
+    {
         auto subtask = static_cast<ClientSubtask*>(gsubtask);
+        const auto uid = i_cal_component_get_uid (comp);
+        auto ecomp = e_cal_component_new_from_icalcomponent (i_cal_component_clone (comp));
 
-        if (e_cal_client_get_object_list_as_comps_finish(E_CAL_CLIENT(oclient),
-                                                         res,
-                                                         &comps_slist,
-                                                         &error))
+        auto auids = e_cal_component_get_alarm_uids(ecomp);
+        for(auto l=auids; l!=nullptr; l=l->next)
         {
-            // _generate_alarms takes a GList, so make a shallow one
-            GList * comps_list = nullptr;
-            for (auto l=comps_slist; l!=nullptr; l=l->next)
-                comps_list = g_list_prepend(comps_list, l->data);
+            auto auid = static_cast<const char*>(l->data);
+            auto alarm = e_cal_component_get_alarm(ecomp, auid);
+            if (alarm == nullptr)
+                continue;
 
-            constexpr std::array<ECalComponentAlarmAction,1> omit = {
-                (ECalComponentAlarmAction)-1
-            }; // list of action types to omit, terminated with -1
-            GSList * comp_alarms = nullptr;
-            e_cal_util_generate_alarms_for_list(
-                comps_list,
-                subtask->task->begin.to_unix(),
-                subtask->task->end.to_unix(),
-                const_cast<ECalComponentAlarmAction*>(omit.data()),
-                &comp_alarms,
-                e_cal_client_resolve_tzid_cb,
-                oclient,
-                subtask->task->default_timezone);
-
-            // walk the alarms & add them
-            for (auto l=comp_alarms; l!=nullptr; l=l->next)
-                add_alarms_to_subtask(static_cast<ECalComponentAlarms*>(l->data), subtask, subtask->task->gtz);
-
-            // cleanup
-            e_cal_free_alarms(comp_alarms);
-            g_list_free(comps_list);
-            e_cal_client_free_ecalcomp_slist(comps_slist);
-        }
-        else if (error != nullptr)
-        {
-            if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-                g_warning("can't get ecalcomponent list: %s", error->message);
-
-            g_error_free(error);
+            auto new_alarm = ensure_alarm_has_trigger (alarm);
+            if (new_alarm != nullptr) {
+                e_cal_component_remove_alarm (ecomp, auid);
+                e_cal_component_add_alarm (ecomp, new_alarm);
+                g_clear_pointer (&new_alarm, e_cal_component_alarm_free);
+            }
         }
 
-        delete subtask;
+        if (e_cal_component_is_instance(ecomp) && (uid != nullptr)) {
+            subtask->parent_components.insert(std::string(uid));
+            subtask->instance_components = g_list_append(subtask->instance_components, ecomp);
+        } else {
+            subtask->components = g_list_append(subtask->components, ecomp);
+        }
+        return TRUE;
     }
 
     static void
-    on_event_component_list_ready(GObject      * oclient,
-                                  GAsyncResult * res,
-                                  gpointer       gsubtask)
+    merge_detached_instances(ClientSubtask *subtask, GSList *instances)
     {
-        GError * error = NULL;
-        GSList * comps_slist = NULL;
+        for (GSList *i=instances; i!=nullptr; i=i->next) {
+            auto instance = static_cast<ECalComponent*>(i->data);
+            auto instance_id = e_cal_component_get_id(instance);
+            for (GList *c=subtask->instance_components ; c!= nullptr; c=c->next) {
+                auto component = static_cast<ECalComponent*>(c->data);
+                auto component_id = e_cal_component_get_id(component);
+                bool found = false;
+
+                if (e_cal_component_id_equal(instance_id, component_id)) {
+                    // replaces virtual instance with the real one
+                    g_object_unref(component);
+                    c->data = g_object_ref(instance);
+                    found = true;
+                }
+                e_cal_component_id_free(component_id);
+                if (found)
+                    break;
+            }
+            e_cal_component_id_free(instance_id);
+        }
+    }
+
+    static void
+    fetch_detached_instances(GObject *,
+                              GAsyncResult *res,
+                              gpointer gsubtask)
+    {
+        auto subtask = static_cast<ClientSubtask*>(gsubtask);
+        if (res) {
+            GError *error = nullptr;
+            GSList *comps = nullptr;
+            e_cal_client_get_objects_for_uid_finish(subtask->client,
+                                                    res,
+                                                    &comps,
+                                                    &error);
+            if (error) {
+                g_warning("Fail to retrieve detached instances: %s", error->message);
+                g_error_free(error);
+            } else {
+                merge_detached_instances(subtask, comps);
+                e_client_util_free_object_slist(comps);
+            }
+        }
+
+        if (subtask->parent_components.empty()) {
+            on_event_fetch_list_done(gsubtask);
+            return;
+        }
+
+        // continue fetch detached instances
+        auto i_begin = subtask->parent_components.begin();
+        std::string id = *i_begin;
+        subtask->parent_components.erase(i_begin);
+        e_cal_client_get_objects_for_uid(subtask->client,
+                                         id.c_str(),
+                                         subtask->cancellable.get(),
+                                         (GAsyncReadyCallback) fetch_detached_instances,
+                                         gsubtask);
+    }
+
+    static void
+    on_event_generated_list_ready(gpointer gsubtask)
+    {
+        fetch_detached_instances(nullptr, nullptr, gsubtask);
+    }
+
+    static gint
+    sort_events_by_start_date(ECalComponent *eventA, ECalComponent *eventB)
+    {
+        auto start_date_a = e_cal_component_get_dtstart(eventA);
+        auto start_date_b = e_cal_component_get_dtstart(eventB);
+
+        auto icaltime_a = e_cal_component_datetime_get_value(start_date_a);
+        auto icaltime_b = e_cal_component_datetime_get_value(start_date_b);
+
+        auto time_a = i_cal_time_as_timet(icaltime_a);
+        auto time_b = i_cal_time_as_timet(icaltime_b);
+        if (time_a == time_b)
+            return 0;
+        if (time_a < time_b)
+            return -1;
+        return 1;
+    }
+
+    static bool
+    is_alarm_interesting(ECalComponentAlarm *alarm)
+    {
+        if (alarm) {
+            auto action = e_cal_component_alarm_get_action(alarm);
+            if ((action == E_CAL_COMPONENT_ALARM_AUDIO) ||
+                (action == E_CAL_COMPONENT_ALARM_DISPLAY)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // we only care about AUDIO or DISPLAY alarms, other kind of alarm will not generate a notification
+    static bool
+    event_has_valid_alarms(ECalComponent *event)
+    {
+        if (!e_cal_component_has_alarms(event))
+            return false;
+
+        // check alarms
+        bool valid = false;
+        auto uids = e_cal_component_get_alarm_uids(event);
+        for (auto l=uids; l!=nullptr; l=uids->next) {
+            auto auid = static_cast<gchar*>(l->data);
+            auto alarm = e_cal_component_get_alarm(event, auid);
+
+            valid = is_alarm_interesting(alarm);
+            if (valid) {
+                break;
+            }
+        }
+
+        g_slist_free_full(uids, g_free);
+        return valid;
+    }
+
+
+
+    static void
+    on_event_fetch_list_done(gpointer gsubtask)
+    {
         auto subtask = static_cast<ClientSubtask*>(gsubtask);
 
-        if (e_cal_client_get_object_list_as_comps_finish(E_CAL_CLIENT(oclient),
-                                                         res,
-                                                         &comps_slist,
-                                                         &error))
-        {
-            for (auto l=comps_slist; l!=nullptr; l=l->next)
-                add_event_to_subtask(static_cast<ECalComponent*>(l->data), subtask, subtask->task->gtz);
+        // generate alarms
+        constexpr std::array<ECalComponentAlarmAction,1> omit = {
+            (ECalComponentAlarmAction)-1
+        }; // list of action types to omit, terminated with -1
+        GSList * comp_alarms = nullptr;
 
-            e_cal_client_free_ecalcomp_slist(comps_slist);
+        // we do not need translate tz for instance events,
+        // they are aredy in the correct time
+        e_cal_util_generate_alarms_for_list(
+            subtask->instance_components,
+            subtask->task->begin.to_unix(),
+            subtask->task->end.to_unix(),
+            const_cast<ECalComponentAlarmAction*>(omit.data()),
+            &comp_alarms,
+            e_cal_client_tzlookup_cb,
+            subtask->client,
+            nullptr);
+
+        // convert timezone for non-instance events
+        e_cal_util_generate_alarms_for_list(
+            subtask->components,
+            subtask->task->begin.to_unix(),
+            subtask->task->end.to_unix(),
+            const_cast<ECalComponentAlarmAction*>(omit.data()),
+            &comp_alarms,
+            e_cal_client_tzlookup_cb,
+            subtask->client,
+            subtask->task->default_timezone);
+
+        // walk the alarms & add them
+        for (auto l=comp_alarms; l!=nullptr; l=l->next)
+            add_alarms_to_subtask(static_cast<ECalComponentAlarms*>(l->data), subtask, subtask->task->gtz);
+
+        subtask->components = g_list_concat(subtask->components, subtask->instance_components);
+        subtask->components = g_list_sort(subtask->components, (GCompareFunc) sort_events_by_start_date);
+        // add events without alarm
+        for (auto l=subtask->components; l!=nullptr; l=l->next) {
+            auto component = static_cast<ECalComponent*>(l->data);
+            if (!event_has_valid_alarms(component))
+                add_event_to_subtask(component, subtask, subtask->task->gtz);
         }
-        else if (error != nullptr)
-        {
-            if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-                g_warning("can't get ecalcomponent list: %s", error->message);
-
-            g_error_free(error);
-        }
-
+        g_list_free_full(subtask->components, g_object_unref);
+        g_slist_free_full(comp_alarms, e_cal_component_alarms_free);
         delete subtask;
+    }
+
+    static GTimeZone *
+    timezone_from_name (const char * tzid,
+                        ECalClient * client,
+                        GCancellable * cancellable,
+                        ICalTimezone **itimezone)
+    {
+        if (tzid == nullptr)
+            return nullptr;
+
+        auto itz = i_cal_timezone_get_builtin_timezone_from_tzid(tzid); // usually works
+
+        if (itz == nullptr) // fallback
+            itz = i_cal_timezone_get_builtin_timezone(tzid);
+
+        if (client && (itz == nullptr)) // ok we have a strange tzid... ask EDS to look it up in VTIMEZONES
+            e_cal_client_get_timezone_sync(client, tzid, &itz, cancellable, nullptr);
+
+        const char* identifier {};
+        if (itimezone)
+            *itimezone = itz;
+
+        if (itz != nullptr)
+        {
+            identifier = i_cal_timezone_get_display_name(itz);
+
+            if (identifier == nullptr)
+                identifier = i_cal_timezone_get_location(itz);
+        }
+
+        // handle the TZID /freeassociation.sourceforge.net/Tzfile/[Location] case
+        if (identifier != nullptr)
+        {
+            const char* pch;
+            const char* key = "/freeassociation.sourceforge.net/";
+            if ((pch = strstr(identifier, key)))
+            {
+                identifier = pch + strlen(key);
+                key = "Tzfile/"; // some don't have this, so check for it separately
+                if ((pch = strstr(identifier, key)))
+                    identifier = pch + strlen(key);
+            }
+        }
+
+        if (identifier == nullptr)
+            g_warning("Unrecognized TZID: '%s'", tzid);
+        else
+            return g_time_zone_new(identifier);
+
+        return nullptr;
     }
 
     static DateTime
     datetime_from_component_date_time(ECalClient                     * client,
                                       std::shared_ptr<GCancellable>  & cancellable,
-                                      const ECalComponentDateTime    & in,
+                                      const ECalComponentDateTime    * in,
                                       GTimeZone                      * default_timezone)
     {
         DateTime out;
-        g_return_val_if_fail(in.value != nullptr, out);
 
-        GTimeZone * gtz {};
-        if (in.tzid != nullptr)
-        {
-            auto itz = icaltimezone_get_builtin_timezone_from_tzid(in.tzid); // usually works
+        if (in == nullptr)
+            return out;
 
-            if (itz == nullptr) // fallback
-                itz = icaltimezone_get_builtin_timezone(in.tzid);
+        auto value = e_cal_component_datetime_get_value(in);
 
-            if (itz == nullptr) // ok we have a strange tzid... ask EDS to look it up in VTIMEZONES
-                e_cal_client_get_timezone_sync(client, in.tzid, &itz, cancellable.get(), nullptr);
+        if (value == nullptr)
+            return out;
 
-            const char * tzid;
-            if (itz != nullptr)
-            {
-                tzid = icaltimezone_get_location(itz);
-            }
-            else
-            {
-                g_warning("Unrecognized TZID: '%s'", in.tzid);
-                tzid = nullptr;
-            }
-
-            gtz = g_time_zone_new(tzid);
-            g_debug("%s eccdt.tzid -> offset is %d", G_STRLOC, in.tzid, (int)g_time_zone_get_offset(gtz,0));
-        }
-        else
-        {
+        auto tz = i_cal_time_get_timezone (value);
+        GTimeZone * gtz = timezone_from_name(i_cal_timezone_get_tzid (tz), client, cancellable.get(), nullptr);
+        if (gtz == nullptr)
             gtz = g_time_zone_ref(default_timezone);
-        }
 
         out = DateTime(gtz,
-                       in.value->year,
-                       in.value->month,
-                       in.value->day,
-                       in.value->hour,
-                       in.value->minute,
-                       in.value->second);
+                       i_cal_time_get_year(value),
+                       i_cal_time_get_month(value),
+                       i_cal_time_get_day(value),
+                       i_cal_time_get_hour(value),
+                       i_cal_time_get_minute(value),
+                       i_cal_time_get_second(value));
         g_time_zone_unref(gtz);
         return out;
     }
 
-    static bool
+    bool
     is_component_interesting(ECalComponent * component)
     {
         // we only want calendar events and vtodos
@@ -788,22 +960,42 @@ private:
             return false;
 
         // we're not interested in completed or cancelled components
-        auto status = ICAL_STATUS_NONE;
-        e_cal_component_get_status(component, &status);
-        if ((status == ICAL_STATUS_COMPLETED) ||
-                (status == ICAL_STATUS_CANCELLED))
+        auto status = e_cal_component_get_status(component);
+        if ((status == I_CAL_STATUS_COMPLETED) ||
+                (status == I_CAL_STATUS_CANCELLED))
             return false;
 
         // we don't want disabled alarms
         bool disabled = false;
-        GSList * categ_list = nullptr;
-        e_cal_component_get_categories_list (component, &categ_list);
+        GSList * categ_list = e_cal_component_get_categories_list (component);
         for (GSList * l=categ_list; l!=nullptr; l=l->next) {
             auto tag = static_cast<const char*>(l->data);
             if (!g_strcmp0(tag, TAG_DISABLED))
                 disabled = true;
         }
-        e_cal_component_free_categories_list(categ_list);
+        g_slist_free (categ_list);
+
+        if (!disabled) {
+            // we don't want not attending alarms
+            // check if the user is part of attendee list if we found it check the status
+            auto attendeeList = e_cal_component_get_attendees(component);
+
+            for (GSList *attendeeIter=attendeeList; attendeeIter != nullptr; attendeeIter = attendeeIter->next) {
+                ECalComponentAttendee *attendee = static_cast<ECalComponentAttendee *>(attendeeIter->data);
+                auto value = e_cal_component_attendee_get_value(attendee);
+                if (value != nullptr) {
+                    if (strncmp(value, "mailto:", 7) == 0) {
+                        if (m_myself->isMyEmail(value+7)) {
+                            disabled = (e_cal_component_attendee_get_partstat(attendee) == I_CAL_PARTSTAT_DECLINED);
+                            break;
+                        }
+                    }
+                }
+            }
+            if (attendeeList != nullptr)
+                g_slist_free(attendeeList);
+        }
+
         if (disabled)
             return false;
 
@@ -819,82 +1011,71 @@ private:
         Appointment baseline;
 
         // get appointment.uid
-        const gchar* uid = nullptr;
-        e_cal_component_get_uid(component, &uid);
+        const auto uid = e_cal_component_get_uid(component);
         if (uid != nullptr)
             baseline.uid = uid;
 
+        // get source uid
+        ESource *source = nullptr;
+        g_object_get(G_OBJECT(client), "source", &source, nullptr);
+        if (source != nullptr) {
+            baseline.source_uid = e_source_get_uid(source);
+            g_object_unref(source);
+        }
+
         // get appointment.summary
-        ECalComponentText text {};
-        e_cal_component_get_summary(component, &text);
-        if (text.value)
-            baseline.summary = text.value;
+        auto text = e_cal_component_get_summary(component);
+        auto value = e_cal_component_text_get_value(text);
+
+        if (value != nullptr)
+            baseline.summary = value;
 
         // get appointment.begin
-        ECalComponentDateTime eccdt_tmp {};
-        e_cal_component_get_dtstart(component, &eccdt_tmp);
+        auto eccdt_tmp = e_cal_component_get_dtstart(component);
         baseline.begin = datetime_from_component_date_time(client, cancellable, eccdt_tmp, gtz);
-        e_cal_component_free_datetime(&eccdt_tmp);
+        e_cal_component_datetime_free(eccdt_tmp);
 
         // get appointment.end
-        e_cal_component_get_dtend(component, &eccdt_tmp);
-        baseline.end = eccdt_tmp.value != nullptr
-                                  ? datetime_from_component_date_time(client, cancellable, eccdt_tmp, gtz)
-                                  : baseline.begin;
-        e_cal_component_free_datetime(&eccdt_tmp);
+        eccdt_tmp = e_cal_component_get_dtend(component);
+        if (eccdt_tmp != nullptr) {
+            auto dt_value = e_cal_component_datetime_get_value(eccdt_tmp);
+            baseline.end = dt_value != nullptr
+                                      ? datetime_from_component_date_time(client, cancellable, eccdt_tmp, gtz)
+                                      : baseline.begin;
+        } else {
+            baseline.end = baseline.begin;
+        }
+        g_clear_pointer (&eccdt_tmp, e_cal_component_datetime_free);
 
         // get appointment.activation_url from x-props
         auto icc = e_cal_component_get_icalcomponent(component); // icc owned by component
-        auto icalprop = icalcomponent_get_first_property(icc, ICAL_X_PROPERTY);
+        auto icalprop = i_cal_component_get_first_property(icc, I_CAL_X_PROPERTY);
         while (icalprop != nullptr) {
-            const char * x_name = icalproperty_get_x_name(icalprop);
+            const char * x_name = i_cal_property_get_x_name(icalprop);
             if ((x_name != nullptr) && !g_ascii_strcasecmp(x_name, X_PROP_ACTIVATION_URL)) {
-                const char * url = icalproperty_get_value_as_string(icalprop);
+                const char * url = i_cal_property_get_value_as_string(icalprop);
                 if ((url != nullptr) && baseline.activation_url.empty())
                     baseline.activation_url = url;
             }
-            icalprop = icalcomponent_get_next_property(icc, ICAL_X_PROPERTY);
+            icalprop = i_cal_component_get_next_property(icc, I_CAL_X_PROPERTY);
         }
 
         // get appointment.type
         baseline.type = Appointment::EVENT;
-        GSList * categ_list = nullptr;
-        e_cal_component_get_categories_list (component, &categ_list);
+        auto categ_list = e_cal_component_get_categories_list (component);
         for (GSList * l=categ_list; l!=nullptr; l=l->next) {
             auto tag = static_cast<const char*>(l->data);
             if (!g_strcmp0(tag, TAG_ALARM))
                 baseline.type = Appointment::UBUNTU_ALARM;
         }
-        e_cal_component_free_categories_list(categ_list);
+        g_slist_free_full(categ_list, g_free);
 
         g_debug("%s got appointment from %s to %s: %s", G_STRLOC,
                 baseline.begin.format("%F %T %z").c_str(),
                 baseline.end.format("%F %T %z").c_str(),
-                icalcomponent_as_ical_string(icc) /* string owned by ical */);
+                i_cal_component_as_ical_string(icc) /* string owned by ical */);
 
         return baseline;
-    }
-
-    static void
-    add_event_to_subtask(ECalComponent * component,
-                         ClientSubtask * subtask,
-                         GTimeZone     * gtz)
-    {
-        // events with alarms are covered by add_alarms_to_subtask(),
-        // so skip them here
-        auto auids = e_cal_component_get_alarm_uids(component);
-        const bool has_alarms = auids != nullptr;
-        cal_obj_uid_list_free(auids);
-        if (has_alarms)
-            return;
-
-        // add it. simple, eh?
-        if (is_component_interesting(component))
-        {
-            Appointment appointment = get_appointment(subtask->client, subtask->cancellable, component, gtz);
-            appointment.color = subtask->color;
-            subtask->task->appointments.push_back(appointment);
-        }
     }
 
     static void
@@ -902,9 +1083,9 @@ private:
                           ClientSubtask       * subtask,
                           GTimeZone           * gtz)
     {
-        auto& component = comp_alarms->comp;
+        auto component = e_cal_component_alarms_get_component(comp_alarms);
 
-        if (!is_component_interesting(component))
+        if (!subtask->task->p->is_component_interesting(component))
             return;
 
         Appointment baseline = get_appointment(subtask->client, subtask->cancellable, component, gtz);
@@ -928,23 +1109,27 @@ private:
         ***  will specify a sound to be played.
          */
         std::map<std::pair<DateTime,DateTime>,std::map<DateTime,Alarm>> alarms;
-        for (auto l=comp_alarms->alarms; l!=nullptr; l=l->next)
+        for (auto l=e_cal_component_alarms_get_instances(comp_alarms); l!=nullptr; l=l->next)
         {
             auto ai = static_cast<ECalComponentAlarmInstance*>(l->data);
-            auto a = e_cal_component_get_alarm(component, ai->auid);
-            if (a == nullptr)
+            auto a = e_cal_component_get_alarm(component, e_cal_component_alarm_instance_get_uid(ai));
+
+            if (!is_alarm_interesting(a)) {
                 continue;
+            }
 
-            auto instance_time = std::make_pair(DateTime{gtz, ai->occur_start},
-                                                DateTime{gtz, ai->occur_end});
-            auto trigger_time = DateTime{gtz, ai->trigger};
-
+            auto instance_time = std::make_pair(DateTime{gtz, e_cal_component_alarm_instance_get_occur_start(ai)},
+                                                DateTime{gtz, e_cal_component_alarm_instance_get_occur_end(ai)});
+            auto trigger_time = DateTime{gtz, e_cal_component_alarm_instance_get_time(ai)};
             auto& alarm = alarms[instance_time][trigger_time];
-
             if (alarm.text.empty())
                 alarm.text = get_alarm_text(a);
+
             if (alarm.audio_url.empty())
-                alarm.audio_url = get_alarm_sound_url(a);
+                alarm.audio_url = get_alarm_sound_url(a,  (baseline.is_ubuntu_alarm() ?
+                                                         "file://" ALARM_DEFAULT_SOUND :
+                                                         "file://" CALENDAR_DEFAULT_SOUND));
+
             if (!alarm.time.is_set())
                 alarm.time = trigger_time;
 
@@ -958,7 +1143,25 @@ private:
             appointment.end = i.first.second;
             appointment.alarms.reserve(i.second.size());
             for (auto& j : i.second)
-                appointment.alarms.push_back(j.second);
+            {
+                if (j.second.has_text() || j.second.has_sound())
+                    appointment.alarms.push_back(j.second);
+            }
+            subtask->task->appointments.push_back(appointment);
+        }
+    }
+
+
+    static void
+    add_event_to_subtask(ECalComponent * component,
+                         ClientSubtask * subtask,
+                         GTimeZone     * gtz)
+    {
+        // add it. simple, eh?
+        if (subtask->task->p->is_component_interesting(component))
+        {
+            Appointment appointment = get_appointment(subtask->client, subtask->cancellable, component, gtz);
+            appointment.color = subtask->color;
             subtask->task->appointments.push_back(appointment);
         }
     }
@@ -971,17 +1174,17 @@ private:
                                             GAsyncResult * result,
                                             gpointer       gself)
     {
-        icalcomponent * icc = nullptr;
+        ICalComponent * icc = nullptr;
         if (e_cal_client_get_object_finish (E_CAL_CLIENT(client), result, &icc, nullptr))
         {
-            auto rrule_property = icalcomponent_get_first_property (icc, ICAL_RRULE_PROPERTY); // transfer none
-            auto rdate_property = icalcomponent_get_first_property (icc, ICAL_RDATE_PROPERTY); // transfer none
+            auto rrule_property = i_cal_component_get_first_property (icc, I_CAL_RRULE_PROPERTY); // transfer none
+            auto rdate_property = i_cal_component_get_first_property (icc, I_CAL_RDATE_PROPERTY); // transfer none
             const bool is_nonrepeating = (rrule_property == nullptr) && (rdate_property == nullptr);
 
             if (is_nonrepeating)
             {
                 g_debug("'%s' appears to be a one-time alarm... adding 'disabled' tag.",
-                        icalcomponent_as_ical_string(icc));
+                        i_cal_component_as_ical_string(icc));
 
                 auto ecc = e_cal_component_new_from_icalcomponent (icc); // takes ownership of icc
                 icc = nullptr;
@@ -989,16 +1192,16 @@ private:
                 if (ecc != nullptr)
                 {
                     // add TAG_DISABLED to the list of categories
-                    GSList * old_categories = nullptr;
-                    e_cal_component_get_categories_list(ecc, &old_categories);
+                    auto old_categories = e_cal_component_get_categories_list(ecc);
                     auto new_categories = g_slist_copy(old_categories);
                     new_categories = g_slist_append(new_categories, const_cast<char*>(TAG_DISABLED));
                     e_cal_component_set_categories_list(ecc, new_categories);
                     g_slist_free(new_categories);
-                    e_cal_component_free_categories_list(old_categories);
+                    g_slist_free_full (old_categories, g_free);
                     e_cal_client_modify_object(E_CAL_CLIENT(client),
                                                e_cal_component_get_icalcomponent(ecc),
                                                E_CAL_OBJ_MOD_THIS,
+                                               E_CAL_OPERATION_FLAG_NONE,
                                                static_cast<Impl*>(gself)->m_cancellable.get(),
                                                on_disable_done,
                                                nullptr);
@@ -1035,14 +1238,15 @@ private:
     ESourceRegistry* m_source_registry {};
     guint m_rebuild_tag {};
     time_t m_rebuild_deadline {};
+    std::shared_ptr<Myself> m_myself;
 };
 
 /***
 ****
 ***/
 
-EdsEngine::EdsEngine():
-    p(new Impl())
+EdsEngine::EdsEngine(const std::shared_ptr<Myself> &myself):
+    p(new Impl(myself))
 {
 }
 

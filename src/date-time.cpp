@@ -18,6 +18,7 @@
  */
 
 #include <datetime/date-time.h>
+#include <string>
 
 namespace ayatana {
 namespace indicator {

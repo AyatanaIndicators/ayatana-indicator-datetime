@@ -72,13 +72,19 @@ void LiveActions::desktop_open_settings_app()
         dispatch_url("settings:///system/time-date");
     }
     else
-    if ((g_strcmp0 (g_getenv ("XDG_CURRENT_DESKTOP"), "Unity") == 0))
     {
-        execute_command("unity-control-center datetime");
-    }
-    else
-    {
-        execute_command("gnome-control-center datetime");
+        if ((g_strcmp0 (g_getenv ("XDG_CURRENT_DESKTOP"), "Unity") == 0))
+        {
+            execute_command("unity-control-center datetime");
+        }
+        else if ((g_strcmp0 (g_getenv ("XDG_CURRENT_DESKTOP"), "MATE") == 0))
+        {
+            execute_command("mate-time-admin");
+        }
+        else
+        {
+            execute_command("gnome-control-center datetime");
+        }
     }
 }
 

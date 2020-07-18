@@ -45,11 +45,12 @@ pkg_check_modules (SERVICE_DEPS REQUIRED
                    glib-2.0>=2.36
                    gio-unix-2.0>=2.36
                    libical>=0.48
-                   libecal-1.2>=3.16
+                   libecal-2.0>=3.16
                    libedataserver-1.2>=3.5
                    gstreamer-1.0>=1.2
                    libnotify>=0.7.6
-                   properties-cpp>=0.0.1)
+                   properties-cpp>=0.0.1
+                   libaccounts-glib>=1.18)
 include_directories (SYSTEM ${SERVICE_DEPS_INCLUDE_DIRS})
 
 set(URL_DISPATCHER_1_REQUIRED_VERSION 1)
@@ -90,8 +91,8 @@ add_custom_target (cppcheck COMMAND cppcheck --enable=all -q --error-exitcode=2 
 ##  Actual building
 ##
 
-set (CC_WARNING_ARGS " -Wall -Wshadow -Wextra -Wunused -Wformat=2 -Wno-missing-field-initializers")
-set (CXX_WARNING_ARGS " -Wall -Wextra -pedantic -Wno-missing-field-initializers")
+set (CC_WARNING_ARGS " -Wall")
+set (CXX_WARNING_ARGS " -Wall")
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/include)
