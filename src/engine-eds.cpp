@@ -121,7 +121,7 @@ public:
             auto extension = e_source_get_extension(source, E_SOURCE_EXTENSION_CALENDAR);
             // check source is selected
             if (!e_source_selectable_get_selected(E_SOURCE_SELECTABLE(extension))) {
-                g_debug("Soure is not selected, ignore it: %s", e_source_get_display_name(source));
+                g_debug("Source is not selected, ignore it: %s", e_source_get_display_name(source));
                 continue;
             }
             const auto color = e_source_selectable_get_color(E_SOURCE_SELECTABLE(extension));
