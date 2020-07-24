@@ -1,8 +1,8 @@
-ayatana-indicator-datetime (0.4.0-0) UNRELEASED; urgency=medium
+ayatana-indicator-datetime (0.4.0-0) unstable; urgency=medium
 
   * Fork ayatana-indicator-datetime from Ubuntu's indicator-datetime.
 
- -- Mike Gabriel <mike.gabriel@das-netzwerkteam.de>  Sat, 07 Nov 2015 12:44:19 +0100
+ -- Mike Gabriel <sunweaver@debian.org>  Fri, 24 Jul 2020 10:23:29 +0200
 
 indicator-datetime (15.10) wily; urgency=medium
 
