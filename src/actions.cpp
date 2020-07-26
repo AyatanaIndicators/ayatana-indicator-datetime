@@ -130,7 +130,7 @@ void on_calendar_active_changed(GSimpleAction * /*action*/,
     {
         auto self = static_cast<Actions*>(gself);
 
-        self->set_calendar_date(self->state()->clock->localtime());
+        self->set_calendar_date(self->state()->clock->localtime(), true);
     }
 }
 
@@ -143,7 +143,7 @@ void on_calendar_activated(GSimpleAction * /*action*/,
     g_return_if_fail(t != 0);
 
     auto dt = DateTime::Local(t).start_of_day();
-    static_cast<Actions*>(gself)->set_calendar_date(dt);
+    static_cast<Actions*>(gself)->set_calendar_date(dt, false);
 }
 
 GVariant* create_default_header_state()
@@ -272,9 +272,13 @@ void Actions::update_calendar_state()
                                        create_calendar_state(m_state));
 }
 
-void Actions::set_calendar_date(const DateTime& date)
+void Actions::set_calendar_date(const DateTime& date, bool bUpdateCalendar)
 {
-    m_state->calendar_month->month().set(date);
+    if (bUpdateCalendar)
+    {
+        m_state->calendar_month->month().set(date);
+    }
+
     m_state->calendar_upcoming->date().set(date);
 }
 
