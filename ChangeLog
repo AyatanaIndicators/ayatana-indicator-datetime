@@ -1,6 +1,28 @@
-2020-07-24 10:26:31 +0200 Mike Gabriel
+2020-07-29 18:19:16 +0200 Mike Gabriel
 
-	* release 0.4.0 (HEAD -> master, tag: 0.4.0)
+	* release 0.4.1 (HEAD -> master, tag: 0.4.1)
+
+2020-07-26 19:01:02 +0200 Robert Tari (e7f2629)
+
+	* Fix calendar going into update loop
+
+2020-07-24 12:05:24 +0200 Mike Gabriel (d754849)
+
+	* CMakeLists.txt: Drop workaround for missing libexec dir on Debian.
+          Debian moved forward and now supports FHS 3.0 (since
+          Debian Policy 4.1.5).
+
+2020-07-24 11:47:55 +0200 Mike Gabriel (068e34a)
+
+	* src/engine-eds.cpp: Typo fix in g_debug output.
+
+2020-07-24 10:28:09 +0200 Mike Gabriel (5930dc4)
+
+	* debian/changelog: Don't use my debian.org address.
+
+2020-07-24 10:26:31 +0200 Mike Gabriel (5204262)
+
+	* release 0.4.0 (tag: 0.4.0)
 
 2020-07-18 22:02:22 +0000 Mike Gabriel (027b23a)
 
