@@ -8,23 +8,28 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2019-08-28 20:25+0200\n"
-"PO-Revision-Date: 2017-10-12 07:31+0200\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2020-08-04 18:32+0000\n"
+"Last-Translator: Abbas Baharforoosh <abahar1996@gmail.com>\n"
+"Language-Team: Persian <https://hosted.weblate.org/projects/"
+"ayatana-indicators/datetime-applet/fa/>\n"
 "Language: fa\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 4.2-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
 msgid "The calendar's default sound file."
-msgstr ""
+msgstr "فایل صدای پیش فرض تقویم."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:2
 msgid ""
 "If a calendar or reminder event doesn't specify its own sound file, this "
 "file will be used as the fallback sound."
 msgstr ""
+"در صورتی که برای تقدیم یا یادآور هیچ فایل صدایی مشخص نشده باشد، از این فایل "
+"صدا استفاده خواهد شد."
 
 #. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
 #: ../src/formatter.cpp:234
@@ -118,28 +123,28 @@ msgstr ""
 #. add the 'Add Event…' menuitem
 #: ../src/menu.cpp:352
 msgid "Add Event…"
-msgstr ""
+msgstr "افزودن رویداد…"
 
 #: ../src/menu.cpp:362
 msgid "Clock"
-msgstr ""
+msgstr "ساعت"
 
 #: ../src/menu.cpp:414
 msgid "Time & Date settings…"
-msgstr ""
+msgstr "تنظیمات زمان و تاریخ…"
 
 #: ../src/menu.cpp:469
 msgid "Date and Time"
-msgstr ""
+msgstr "تاریخ و زمان"
 
 #: ../src/menu.cpp:520
 msgid "Time & Date"
-msgstr ""
+msgstr "زمان و تاریخ"
 
 #: ../src/menu.cpp:525
 #, c-format
 msgid "%s (has alarms)"
-msgstr ""
+msgstr "%s (هشدار دارد)"
 
 #. * strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 12h locale; e.g. Wed, 2:00 PM
@@ -168,11 +173,11 @@ msgstr ""
 
 #: ../src/utils.c:274
 msgid "Today"
-msgstr ""
+msgstr "امروز"
 
 #: ../src/utils.c:278
 msgid "Tomorrow"
-msgstr ""
+msgstr "فردا"
 
 #. This is a strftime(3) format string indicating the unabbreviated weekday.
 #: ../src/utils.c:283
