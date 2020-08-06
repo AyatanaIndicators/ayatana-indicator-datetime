@@ -411,7 +411,7 @@ private:
             action_name = nullptr;
 
         if (action_name != nullptr)
-            g_menu_append (menu, _("Time & Date Settings…"), action_name);
+            g_menu_append (menu, _("Time and Date Settings…"), action_name);
 
         return G_MENU_MODEL (menu);
     }
@@ -517,7 +517,7 @@ protected:
 
         GVariantBuilder b;
         g_variant_builder_init(&b, G_VARIANT_TYPE_VARDICT);
-        g_variant_builder_add(&b, "{sv}", "title", g_variant_new_string (_("Time & Date")));
+        g_variant_builder_add(&b, "{sv}", "title", g_variant_new_string (_("Time and Date")));
         g_variant_builder_add(&b, "{sv}", "visible", g_variant_new_boolean (TRUE));
         if (has_ubuntu_alarms)
         {

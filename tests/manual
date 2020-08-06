@@ -17,7 +17,7 @@ Test-case ayatana-indicator-datetime/unity8-items-check
 <dl>
 	<dt>Login to a user session running Unity 8</dt>
 	<dt>Pull down the top panel until it sticks open</dt>
-	<dt>Navigate through the tabs until "Time & Date" is shown</dt>
+	<dt>Navigate through the tabs until "Time and Date" is shown</dt>
 		<dd>Upcoming is at the top of the menu</dd>
 		<dd>The menu is populated with items</dd>
 </dl>
@@ -139,7 +139,7 @@ Test-case ayatana-indicator-datetime/silent-mode
 
 Test-case ayatana-indicator-datetime/manual-time
 <dl>
-	<dt>In System Settings > Time & Date, manually change the time to an arbitrary time.</dt>
+	<dt>In System Settings > Time and Date, manually change the time to an arbitrary time.</dt>
 		<dd>The indicator's timestamp should change right after the time manual time is set.</dd>
 </dl>
 
