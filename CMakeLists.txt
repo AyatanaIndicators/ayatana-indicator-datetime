@@ -3,6 +3,8 @@ cmake_minimum_required (VERSION 2.8.9)
 
 list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
+include (GNUInstallDirs)
+
 set (PROJECT_VERSION "0.4.1")
 set (PACKAGE ${CMAKE_PROJECT_NAME})
 option (enable_tests "Build the package's automatic tests." ON)
@@ -12,7 +14,6 @@ option (enable_lcov "Generate lcov code coverage reports." ON)
 ##  GNU standard installation directories
 ##
 
-include (GNUInstallDirs)
 set (CMAKE_INSTALL_PKGLIBEXECDIR "${CMAKE_INSTALL_LIBEXECDIR}/${CMAKE_PROJECT_NAME}")
 set (CMAKE_INSTALL_FULL_PKGLIBEXECDIR "${CMAKE_INSTALL_FULL_LIBEXECDIR}/${CMAKE_PROJECT_NAME}")
 
