@@ -62,7 +62,7 @@ protected:
         // check that there's a header menuitem
         EXPECT_EQ(1,g_menu_model_get_n_items(menu_model));
         gchar* str = nullptr;
-        g_menu_model_get_item_attribute(menu_model, 0, "x-canonical-type", "s", &str);
+        g_menu_model_get_item_attribute(menu_model, 0, "x-ayatana-type", "s", &str);
         EXPECT_STREQ("org.ayatana.indicator.root", str);
         g_clear_pointer(&str, g_free);
         g_menu_model_get_item_attribute(menu_model, 0, G_MENU_ATTRIBUTE_ACTION, "s", &str);
@@ -131,7 +131,7 @@ protected:
         // look at the calendar menuitem
         if (calendar_expected)
         {
-            g_menu_model_get_item_attribute(section, 1, "x-canonical-type", "s", &str);
+            g_menu_model_get_item_attribute(section, 1, "x-ayatana-type", "s", &str);
             EXPECT_STREQ("org.ayatana.indicator.calendar", str);
             g_clear_pointer(&str, g_free);
 
@@ -205,27 +205,27 @@ private:
                                     int                 index,
                                     const Appointment&  appt)
     {
-        //  confirm it has the right x-canonical-type
+        //  confirm it has the right x-ayatana-type
         gchar * str = nullptr;
-        g_menu_model_get_item_attribute(section, index, "x-canonical-type", "s", &str);
+        g_menu_model_get_item_attribute(section, index, "x-ayatana-type", "s", &str);
         if (appt.is_ubuntu_alarm())
             EXPECT_STREQ("org.ayatana.indicator.alarm", str);
         else
             EXPECT_STREQ("org.ayatana.indicator.appointment", str);
         g_clear_pointer(&str, g_free);
 
-        // confirm it has a nonempty x-canonical-time-format
-        g_menu_model_get_item_attribute(section, index, "x-canonical-time-format", "s", &str);
+        // confirm it has a nonempty x-ayatana-time-format
+        g_menu_model_get_item_attribute(section, index, "x-ayatana-time-format", "s", &str);
         EXPECT_TRUE(str && *str);
         g_clear_pointer(&str, g_free);
 
         // confirm the color hint, if it exists,
-        // is in the x-canonical-color attribute
+        // is in the x-ayatana-color attribute
         if (appt.color.empty())
         {
             EXPECT_FALSE(g_menu_model_get_item_attribute(section,
                                                          index,
-                                                         "x-canonical-color",
+                                                         "x-ayatana-color",
                                                          "s",
                                                          &str));
         }
@@ -233,7 +233,7 @@ private:
         {
             EXPECT_TRUE(g_menu_model_get_item_attribute(section,
                                                         index,
-                                                        "x-canonical-color",
+                                                        "x-ayatana-color",
                                                         "s",
                                                         &str));
             EXPECT_EQ(appt.color, str);
@@ -398,18 +398,18 @@ protected:
         {
             gchar* str = nullptr;
 
-            // confirm that the x-canonical-type is right
-            g_menu_model_get_item_attribute(section, i, "x-canonical-type", "s", &str);
+            // confirm that the x-ayatana-type is right
+            g_menu_model_get_item_attribute(section, i, "x-ayatana-type", "s", &str);
             EXPECT_STREQ("org.ayatana.indicator.location", str);
             g_clear_pointer(&str, g_free);
 
             // confirm that the timezones match the ones in the vector
-            g_menu_model_get_item_attribute(section, i, "x-canonical-timezone", "s", &str);
+            g_menu_model_get_item_attribute(section, i, "x-ayatana-timezone", "s", &str);
             EXPECT_EQ(locations[i].zone(), str);
             g_clear_pointer(&str, g_free);
 
-            // confirm that x-canonical-time-format has some kind of time format string
-            g_menu_model_get_item_attribute(section, i, "x-canonical-time-format", "s", &str);
+            // confirm that x-ayatana-time-format has some kind of time format string
+            g_menu_model_get_item_attribute(section, i, "x-ayatana-time-format", "s", &str);
             EXPECT_TRUE(str && *str && (strchr(str,'%')!=nullptr));
             g_clear_pointer(&str, g_free);
         }
