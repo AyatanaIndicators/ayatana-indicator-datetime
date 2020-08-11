@@ -37,38 +37,7 @@ if (${SYSTEMD_FOUND})
     # install it
     install (FILES "${SYSTEMD_USER_FILE}"
              DESTINATION "${SYSTEMD_USER_DIR}")
-
-    ##
-    ##  Upstart systemd override Job File
-    ##
-
-    set (UPSTART_SYSTEMD_OVERRIDE_DIR "${CMAKE_INSTALL_FULL_DATADIR}/upstart/systemd-session/upstart")
-    message (STATUS "${UPSTART_SYSTEMD_OVERRIDE_DIR} is the Upstart override Job File for systemd dir")
-
-    install (FILES "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_PROJECT_NAME}.override"
-             DESTINATION "${UPSTART_SYSTEMD_OVERRIDE_DIR}")
-
 endif()
-
-##
-##  Upstart Job File
-##
-
-# where to install
-set (UPSTART_JOB_DIR "${CMAKE_INSTALL_FULL_DATADIR}/upstart/sessions")
-message (STATUS "${UPSTART_JOB_DIR} is the Upstart Job File install dir")
-
-set (UPSTART_JOB_NAME "${CMAKE_PROJECT_NAME}.conf")
-set (UPSTART_JOB_FILE "${CMAKE_CURRENT_BINARY_DIR}/${UPSTART_JOB_NAME}")
-set (UPSTART_JOB_FILE_IN "${CMAKE_CURRENT_SOURCE_DIR}/${UPSTART_JOB_NAME}.in")
-
-# build it
-set (pkglibexecdir "${CMAKE_INSTALL_FULL_PKGLIBEXECDIR}")
-configure_file ("${UPSTART_JOB_FILE_IN}" "${UPSTART_JOB_FILE}")
-
-# install it
-install (FILES "${UPSTART_JOB_FILE}"
-         DESTINATION "${UPSTART_JOB_DIR}")
 
 ##
 ##  XDG Autostart File
@@ -89,27 +58,6 @@ configure_file ("${XDG_AUTOSTART_FILE_IN}" "${XDG_AUTOSTART_FILE}")
 # install it
 install (FILES "${XDG_AUTOSTART_FILE}"
          DESTINATION "${XDG_AUTOSTART_DIR}")
-
-##
-##  Upstart XDG Autostart Override
-##
-
-# where to install
-set (UPSTART_XDG_AUTOSTART_DIR "${CMAKE_INSTALL_FULL_DATAROOTDIR}/upstart/xdg/autostart")
-message (STATUS "${UPSTART_XDG_AUTOSTART_DIR} is the Upstart XDG autostart override dir")
-
-set (UPSTART_XDG_AUTOSTART_NAME "${CMAKE_PROJECT_NAME}.upstart.desktop")
-set (UPSTART_XDG_AUTOSTART_FILE "${CMAKE_CURRENT_BINARY_DIR}/${UPSTART_XDG_AUTOSTART_NAME}")
-set (UPSTART_XDG_AUTOSTART_FILE_IN "${CMAKE_CURRENT_SOURCE_DIR}/${UPSTART_XDG_AUTOSTART_NAME}.in")
-
-# build it
-set (pkglibexecdir "${CMAKE_INSTALL_FULL_PKGLIBEXECDIR}")
-configure_file ("${UPSTART_XDG_AUTOSTART_FILE_IN}" "${UPSTART_XDG_AUTOSTART_FILE}")
-
-# install it
-install (FILES "${UPSTART_XDG_AUTOSTART_FILE}"
-         DESTINATION "${UPSTART_XDG_AUTOSTART_DIR}"
-         RENAME "${XDG_AUTOSTART_NAME}")
 
 ##
 ##  Ayatana Indicator File

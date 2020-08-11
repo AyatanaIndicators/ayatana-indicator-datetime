@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Ayatana Indicator Date & Time
-Exec=@pkglibexecdir@/ayatana-indicator-datetime-service
-OnlyShowIn=Unity;
-NoDisplay=true
-StartupNotify=false
-Terminal=false
-Hidden=true
