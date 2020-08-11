@@ -314,7 +314,7 @@ private:
     // as the name indicates, don't use this directly: use server_caps() instead
     mutable std::set<std::string> m_lazy_caps;
 
-    static constexpr char const * HINT_TIMEOUT {"x-ayatana-snap-decisions-timeout"};
+    static constexpr char const * HINT_TIMEOUT {"x-canonical-snap-decisions-timeout"};
 };
 
 /***
