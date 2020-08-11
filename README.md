@@ -54,26 +54,26 @@
 ## CUSTOM MENUITEMS
 
  * Calendar
-   - x-canonical-type         s "org.ayatana.indicator.calendar"
+   - x-ayatana-type         s "org.ayatana.indicator.calendar"
 
  * Alarm
    - label                    s short summary of the appointment
-   - x-canonical-type         s "org.ayatana.indicator.alarm"
-   - x-canonical-time         x the date of the appointment
-   - x-canonical-time-format  s strftime format string
+   - x-ayatana-type         s "org.ayatana.indicator.alarm"
+   - x-ayatana-time         x the date of the appointment
+   - x-ayatana-time-format  s strftime format string
 
  * Appointment
    - label                    s short summary of the appointment
-   - x-canonical-type         s "org.ayatana.indicator.appointment"
-   - x-canonical-color        s color of the appt's type, to give a visual cue
-   - x-canonical-time         x the date of the appointment
-   - x-canonical-time-format  s strftime format string
+   - x-ayatana-type         s "org.ayatana.indicator.appointment"
+   - x-ayatana-color        s color of the appt's type, to give a visual cue
+   - x-ayatana-time         x the date of the appointment
+   - x-ayatana-time-format  s strftime format string
 
  * Location
    - label                    s the location's name, eg "Oklahoma City"
-   - x-canonical-type         s "org.ayatana.indicator.location"
-   - x-canonical-timezone     s timezone that the location is in
-   - x-canonical-time-format  s strftime format string
+   - x-ayatana-type         s "org.ayatana.indicator.location"
+   - x-ayatana-timezone     s timezone that the location is in
+   - x-ayatana-time-format  s strftime format string
 
 
 

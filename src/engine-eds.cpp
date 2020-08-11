@@ -35,8 +35,8 @@ namespace ayatana {
 namespace indicator {
 namespace datetime {
 
-static constexpr char const * TAG_ALARM    {"x-canonical-alarm"};
-static constexpr char const * TAG_DISABLED {"x-canonical-disabled"};
+static constexpr char const * TAG_ALARM    {"x-ayatana-alarm"};
+static constexpr char const * TAG_DISABLED {"x-ayatana-disabled"};
 
 static constexpr char const * X_PROP_ACTIVATION_URL {"X-CANONICAL-ACTIVATION-URL"};
 
