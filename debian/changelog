@@ -1,6 +1,13 @@
+ayatana-indicator-datetime (0.8.0-0) unstable; urgency=medium
+
+  * Upstream-provided Debian package for ayatana-indicator-datetime.
+    See upstream ChangeLog for recent changes.
+
+ -- Mike Gabriel <mike.gabriel@das-netzwerkteam.de>  Mon, 17 Aug 2020 22:15:35 +0200
+
 ayatana-indicator-datetime (0.4.1-0) unstable; urgency=medi
 
-  * Upstream-provided Debian package for ayatana-indicator-power.
+  * Upstream-provided Debian package for ayatana-indicator-datetime.
     See upstream ChangeLog for recent changes.
 
  -- Mike Gabriel <mike.gabriel@das-netzwerkteam.de>  Wed, 29 Jul 2020 18:17:50 +0200

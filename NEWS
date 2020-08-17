@@ -1,3 +1,15 @@
+Overview of changes in ayatana-indicator-datetime 0.8.0
+
+  - Version bump to bring all system indicator (and the
+    renderer libraries to the same version level).
+  - Rename 'x-canonical-type' attribute to 'x-ayatana-type'
+    (and others) to allow using system indicators from
+    Ayatana Indicators on Ubuntu.
+  - Start the indicator with the ayatana-indicators.target.
+  - Some minor phrases changes.
+  - Drop upstart support.
+  - Translation updates.
+
 Overview of changes in ayatana-indicator-datetime 0.4.1
 
   - Fix calendar going into update loop.
