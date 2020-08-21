@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
-"POT-Creation-Date: 2019-08-28 20:26+0200\n"
+"POT-Creation-Date: 2020-08-22 00:11+0200\n"
 "PO-Revision-Date: 2018-10-04 10:38+0000\n"
 "Last-Translator: Володимир Бриняк <bardvv@gmail.com>\n"
 "Language-Team: Ukrainian <https://hosted.weblate.org/projects/ayatana-"
@@ -130,7 +130,7 @@ msgid "Clock"
 msgstr "Годинник"
 
 #: ../src/menu.cpp:414
-msgid "Time & Date settings…"
+msgid "Time and Date Settings…"
 msgstr ""
 
 #: ../src/menu.cpp:469
@@ -138,7 +138,8 @@ msgid "Date and Time"
 msgstr "Дата і час"
 
 #: ../src/menu.cpp:520
-msgid "Time & Date"
+#, fuzzy
+msgid "Time and Date"
 msgstr "Час і дата"
 
 #: ../src/menu.cpp:525

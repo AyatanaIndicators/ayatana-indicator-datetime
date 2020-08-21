@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
-"POT-Creation-Date: 2019-08-28 20:26+0200\n"
+"POT-Creation-Date: 2020-08-22 00:10+0200\n"
 "PO-Revision-Date: 2020-02-26 17:33+0000\n"
 "Last-Translator: Wellington Terumi Uemura <wellingtonuemura@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://hosted.weblate.org/projects/"
@@ -130,7 +130,8 @@ msgid "Clock"
 msgstr "Relógio"
 
 #: ../src/menu.cpp:414
-msgid "Time & Date settings…"
+#, fuzzy
+msgid "Time and Date Settings…"
 msgstr "Configuração de data e hora…"
 
 #: ../src/menu.cpp:469
@@ -138,7 +139,8 @@ msgid "Date and Time"
 msgstr "Data e hora"
 
 #: ../src/menu.cpp:520
-msgid "Time & Date"
+#, fuzzy
+msgid "Time and Date"
 msgstr "Hora e Data"
 
 #: ../src/menu.cpp:525

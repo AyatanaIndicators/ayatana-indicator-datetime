@@ -7,11 +7,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
-"POT-Creation-Date: 2019-08-28 20:26+0200\n"
+"POT-Creation-Date: 2020-08-22 00:10+0200\n"
 "PO-Revision-Date: 2020-05-31 23:41+0000\n"
 "Last-Translator: Juraj Liso <lisojuraj@gmail.com>\n"
-"Language-Team: Slovak <https://hosted.weblate.org/projects/"
-"ayatana-indicators/datetime-applet/sk/>\n"
+"Language-Team: Slovak <https://hosted.weblate.org/projects/ayatana-"
+"indicators/datetime-applet/sk/>\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -128,7 +128,7 @@ msgid "Clock"
 msgstr ""
 
 #: ../src/menu.cpp:414
-msgid "Time & Date settings…"
+msgid "Time and Date Settings…"
 msgstr ""
 
 #: ../src/menu.cpp:469
@@ -137,7 +137,7 @@ msgstr ""
 
 #: ../src/menu.cpp:520
 #, fuzzy
-msgid "Time & Date"
+msgid "Time and Date"
 msgstr "Nastaviť čas a dátum..."
 
 #: ../src/menu.cpp:525

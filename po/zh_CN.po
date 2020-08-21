@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
-"POT-Creation-Date: 2019-08-28 20:26+0200\n"
+"POT-Creation-Date: 2020-08-22 00:11+0200\n"
 "PO-Revision-Date: 2020-05-26 01:41+0000\n"
 "Last-Translator: wdggg <wdggg7@gmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
@@ -27,7 +27,9 @@ msgstr "此日历的默认音效文件."
 msgid ""
 "If a calendar or reminder event doesn't specify its own sound file, this "
 "file will be used as the fallback sound."
-msgstr "如果日历或提醒事项没有被指定使用其他音效文件, 那么此文件将会被调用(作为后备音效文件)."
+msgstr ""
+"如果日历或提醒事项没有被指定使用其他音效文件, 那么此文件将会被调用(作为后备音"
+"效文件)."
 
 #. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
 #: ../src/formatter.cpp:234
@@ -128,7 +130,8 @@ msgid "Clock"
 msgstr "时钟"
 
 #: ../src/menu.cpp:414
-msgid "Time & Date settings…"
+#, fuzzy
+msgid "Time and Date Settings…"
 msgstr "时间和日期设置…"
 
 #: ../src/menu.cpp:469
@@ -136,7 +139,8 @@ msgid "Date and Time"
 msgstr "时间和日期"
 
 #: ../src/menu.cpp:520
-msgid "Time & Date"
+#, fuzzy
+msgid "Time and Date"
 msgstr "时间和日期"
 
 #: ../src/menu.cpp:525

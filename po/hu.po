@@ -7,11 +7,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
-"POT-Creation-Date: 2019-08-28 20:25+0200\n"
+"POT-Creation-Date: 2020-08-22 00:10+0200\n"
 "PO-Revision-Date: 2020-07-30 10:41+0000\n"
 "Last-Translator: Ács Zoltán <acszoltan111@gmail.com>\n"
-"Language-Team: Hungarian <https://hosted.weblate.org/projects/"
-"ayatana-indicators/datetime-applet/hu/>\n"
+"Language-Team: Hungarian <https://hosted.weblate.org/projects/ayatana-"
+"indicators/datetime-applet/hu/>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -83,7 +83,7 @@ msgstr ""
 #. This format string shows the abbreviated weekday.
 #. zh_CN example(?): "周%a" --> "周六"
 #: ../src/formatter-desktop.cpp:154
-#, c-format, fuzzy
+#, fuzzy, c-format
 msgid "%a"
 msgstr "%a"
 
@@ -131,7 +131,8 @@ msgid "Clock"
 msgstr "Óra"
 
 #: ../src/menu.cpp:414
-msgid "Time & Date settings…"
+#, fuzzy
+msgid "Time and Date Settings…"
 msgstr "Idő és dátum beállítása…"
 
 #: ../src/menu.cpp:469
@@ -139,7 +140,8 @@ msgid "Date and Time"
 msgstr "Dátum és idő"
 
 #: ../src/menu.cpp:520
-msgid "Time & Date"
+#, fuzzy
+msgid "Time and Date"
 msgstr "Idő és dátum"
 
 #: ../src/menu.cpp:525

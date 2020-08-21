@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
-"POT-Creation-Date: 2019-08-28 20:25+0200\n"
+"POT-Creation-Date: 2020-08-22 00:10+0200\n"
 "PO-Revision-Date: 2018-01-24 12:16+0000\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <https://hosted.weblate.org/projects/ayatana-"
@@ -128,7 +128,7 @@ msgid "Clock"
 msgstr ""
 
 #: ../src/menu.cpp:414
-msgid "Time & Date settings…"
+msgid "Time and Date Settings…"
 msgstr ""
 
 #: ../src/menu.cpp:469
@@ -137,7 +137,7 @@ msgstr ""
 
 #: ../src/menu.cpp:520
 #, fuzzy
-msgid "Time & Date"
+msgid "Time and Date"
 msgstr "הגדרת שעה ותאריך..."
 
 #: ../src/menu.cpp:525

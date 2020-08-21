@@ -7,17 +7,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
-"POT-Creation-Date: 2019-08-28 20:25+0200\n"
+"POT-Creation-Date: 2020-08-22 00:10+0200\n"
 "PO-Revision-Date: 2020-01-29 06:50+0000\n"
 "Last-Translator: MoccoCoffee <egor.pravdikov@gmail.com>\n"
-"Language-Team: Belarusian <https://hosted.weblate.org/projects/"
-"ayatana-indicators/datetime-applet/be/>\n"
+"Language-Team: Belarusian <https://hosted.weblate.org/projects/ayatana-"
+"indicators/datetime-applet/be/>\n"
 "Language: be\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<="
-"4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Generator: Weblate 3.11-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
@@ -131,7 +131,8 @@ msgid "Clock"
 msgstr "Гадзіннік"
 
 #: ../src/menu.cpp:414
-msgid "Time & Date settings…"
+#, fuzzy
+msgid "Time and Date Settings…"
 msgstr "Налады часу і даты…"
 
 #: ../src/menu.cpp:469
@@ -139,7 +140,8 @@ msgid "Date and Time"
 msgstr "Дата і час"
 
 #: ../src/menu.cpp:520
-msgid "Time & Date"
+#, fuzzy
+msgid "Time and Date"
 msgstr "Дата і час"
 
 #: ../src/menu.cpp:525

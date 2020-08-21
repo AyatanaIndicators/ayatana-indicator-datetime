@@ -7,11 +7,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
-"POT-Creation-Date: 2019-08-28 20:26+0200\n"
+"POT-Creation-Date: 2020-08-22 00:10+0200\n"
 "PO-Revision-Date: 2019-10-08 16:58+0000\n"
 "Last-Translator: Mateusz Rumiński <matt.ruminski@protonmail.com>\n"
-"Language-Team: Polish <https://hosted.weblate.org/projects/"
-"ayatana-indicators/datetime-applet/pl/>\n"
+"Language-Team: Polish <https://hosted.weblate.org/projects/ayatana-"
+"indicators/datetime-applet/pl/>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -131,7 +131,8 @@ msgid "Clock"
 msgstr "Zegar"
 
 #: ../src/menu.cpp:414
-msgid "Time & Date settings…"
+#, fuzzy
+msgid "Time and Date Settings…"
 msgstr "Ustawienia czasu i daty…"
 
 #: ../src/menu.cpp:469
@@ -139,7 +140,8 @@ msgid "Date and Time"
 msgstr "Data i godzina"
 
 #: ../src/menu.cpp:520
-msgid "Time & Date"
+#, fuzzy
+msgid "Time and Date"
 msgstr "Data i godzina"
 
 #: ../src/menu.cpp:525

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
-"POT-Creation-Date: 2019-08-28 20:25+0200\n"
+"POT-Creation-Date: 2020-08-22 00:09+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -126,7 +126,7 @@ msgid "Clock"
 msgstr ""
 
 #: ../src/menu.cpp:414
-msgid "Time & Date settings…"
+msgid "Time and Date Settings…"
 msgstr ""
 
 #: ../src/menu.cpp:469
@@ -134,7 +134,7 @@ msgid "Date and Time"
 msgstr ""
 
 #: ../src/menu.cpp:520
-msgid "Time & Date"
+msgid "Time and Date"
 msgstr ""
 
 #: ../src/menu.cpp:525

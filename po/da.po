@@ -7,11 +7,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
-"POT-Creation-Date: 2019-08-28 20:25+0200\n"
+"POT-Creation-Date: 2020-08-22 00:10+0200\n"
 "PO-Revision-Date: 2020-07-04 23:41+0000\n"
 "Last-Translator: Tobias p <sorenautonom667@gmail.com>\n"
-"Language-Team: Danish <https://hosted.weblate.org/projects/"
-"ayatana-indicators/datetime-applet/da/>\n"
+"Language-Team: Danish <https://hosted.weblate.org/projects/ayatana-"
+"indicators/datetime-applet/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -131,7 +131,8 @@ msgid "Clock"
 msgstr "Ur"
 
 #: ../src/menu.cpp:414
-msgid "Time & Date settings…"
+#, fuzzy
+msgid "Time and Date Settings…"
 msgstr "Tid & Dato indstillinger…"
 
 #: ../src/menu.cpp:469
@@ -139,7 +140,8 @@ msgid "Date and Time"
 msgstr "Dato og Tid"
 
 #: ../src/menu.cpp:520
-msgid "Time & Date"
+#, fuzzy
+msgid "Time and Date"
 msgstr "Tid og  Dato"
 
 #: ../src/menu.cpp:525
@@ -160,7 +162,7 @@ msgid "%a, %H:%M"
 msgstr "%a, %H:%M"
 
 #: ../src/snap.cpp:133
-#, c-format, fuzzy
+#, fuzzy, c-format
 msgid "Alarm %s"
 msgstr "Alarm %s"
 

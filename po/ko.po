@@ -7,11 +7,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
-"POT-Creation-Date: 2019-08-28 20:25+0200\n"
+"POT-Creation-Date: 2020-08-22 00:10+0200\n"
 "PO-Revision-Date: 2020-06-15 05:41+0000\n"
 "Last-Translator: MarongHappy <daemul72@gmail.com>\n"
-"Language-Team: Korean <https://hosted.weblate.org/projects/"
-"ayatana-indicators/datetime-applet/ko/>\n"
+"Language-Team: Korean <https://hosted.weblate.org/projects/ayatana-"
+"indicators/datetime-applet/ko/>\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -27,7 +27,9 @@ msgstr "일정관리의 기본 사운드 파일입니다."
 msgid ""
 "If a calendar or reminder event doesn't specify its own sound file, this "
 "file will be used as the fallback sound."
-msgstr "일정관리 또는 미리 알림 이벤트가 자체 사운드 파일을 지정하지 않으면 이 파일이 대체 사운드로 사용됩니다."
+msgstr ""
+"일정관리 또는 미리 알림 이벤트가 자체 사운드 파일을 지정하지 않으면 이 파일"
+"이 대체 사운드로 사용됩니다."
 
 #. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
 #: ../src/formatter.cpp:234
@@ -128,7 +130,8 @@ msgid "Clock"
 msgstr "시계"
 
 #: ../src/menu.cpp:414
-msgid "Time & Date settings…"
+#, fuzzy
+msgid "Time and Date Settings…"
 msgstr "시간 및 날짜 설정…"
 
 #: ../src/menu.cpp:469
@@ -136,7 +139,8 @@ msgid "Date and Time"
 msgstr "시간 및 날짜"
 
 #: ../src/menu.cpp:520
-msgid "Time & Date"
+#, fuzzy
+msgid "Time and Date"
 msgstr "시간 및 날짜"
 
 #: ../src/menu.cpp:525

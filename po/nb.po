@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
-"POT-Creation-Date: 2019-08-28 20:25+0200\n"
+"POT-Creation-Date: 2020-08-22 00:10+0200\n"
 "PO-Revision-Date: 2018-03-19 21:45+0000\n"
 "Last-Translator: Allan Nordhøy <epost@anotheragency.no>\n"
 "Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/ayatana-"
@@ -136,7 +136,8 @@ msgid "Clock"
 msgstr "Klokke"
 
 #: ../src/menu.cpp:414
-msgid "Time & Date settings…"
+#, fuzzy
+msgid "Time and Date Settings…"
 msgstr "Tids- og dato-innstillinger…"
 
 #: ../src/menu.cpp:469
@@ -145,7 +146,7 @@ msgstr "Dato og tid"
 
 #: ../src/menu.cpp:520
 #, fuzzy
-msgid "Time & Date"
+msgid "Time and Date"
 msgstr "Angi dato og klokkeslett..."
 
 #: ../src/menu.cpp:525

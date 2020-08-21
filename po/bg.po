@@ -7,11 +7,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
-"POT-Creation-Date: 2019-08-28 20:25+0200\n"
+"POT-Creation-Date: 2020-08-22 00:10+0200\n"
 "PO-Revision-Date: 2020-04-14 12:11+0000\n"
 "Last-Translator: geni <me@geni.site>\n"
-"Language-Team: Bulgarian <https://hosted.weblate.org/projects/"
-"ayatana-indicators/datetime-applet/bg/>\n"
+"Language-Team: Bulgarian <https://hosted.weblate.org/projects/ayatana-"
+"indicators/datetime-applet/bg/>\n"
 "Language: bg\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -131,7 +131,7 @@ msgid "Clock"
 msgstr ""
 
 #: ../src/menu.cpp:414
-msgid "Time & Date settings…"
+msgid "Time and Date Settings…"
 msgstr ""
 
 #: ../src/menu.cpp:469
@@ -139,7 +139,7 @@ msgid "Date and Time"
 msgstr ""
 
 #: ../src/menu.cpp:520
-msgid "Time & Date"
+msgid "Time and Date"
 msgstr ""
 
 #: ../src/menu.cpp:525
