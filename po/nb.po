@@ -8,16 +8,16 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2020-08-22 00:10+0200\n"
-"PO-Revision-Date: 2018-03-19 21:45+0000\n"
-"Last-Translator: Allan Nordhøy <epost@anotheragency.no>\n"
-"Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/ayatana-"
-"indicators/datetime-applet/nb/>\n"
+"PO-Revision-Date: 2020-09-01 21:36+0000\n"
+"Last-Translator: klausade <klaus@linuxavdelingen.no>\n"
+"Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/"
+"ayatana-indicators/datetime-applet/nb_NO/>\n"
 "Language: nb\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2.20-dev\n"
+"X-Generator: Weblate 4.2.1-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
 #, fuzzy
@@ -25,13 +25,10 @@ msgid "The calendar's default sound file."
 msgstr "Forvalgt lydfil for alarm."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:2
-#, fuzzy
 msgid ""
 "If a calendar or reminder event doesn't specify its own sound file, this "
 "file will be used as the fallback sound."
-msgstr ""
-"Hvis en alarm ikke har egen lyd angitt, vil denne fila bli brukt som "
-"tilbakefall."
+msgstr "Hvis en alarm ikke har egen lyd angitt, vil denne fila bli brukt."
 
 #. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
 #: ../src/formatter.cpp:234
@@ -50,7 +47,6 @@ msgstr "%l:%M %p"
 
 #. TRANSLATORS: a strftime(3) format for 24hr time w/seconds
 #: ../src/formatter.cpp:240
-#, fuzzy
 msgid "%H:%M:%S"
 msgstr "%H:%M:%S"
 
@@ -87,7 +83,7 @@ msgstr "%a %e %b"
 #. This format string shows the abbreviated weekday.
 #. zh_CN example(?): "周%a" --> "周六"
 #: ../src/formatter-desktop.cpp:154
-#, fuzzy, c-format
+#, c-format
 msgid "%a"
 msgstr "%a"
 
@@ -98,7 +94,6 @@ msgstr "%a"
 #. en_GB example: "%e %b %Y" --> "31 Oct 2020"
 #. zh_CN example(?): "%Y年%m月%d日" --> "2020年10月31日"
 #: ../src/formatter-desktop.cpp:163
-#, fuzzy
 msgid "%b %e %Y"
 msgstr "%e.%b %Y"
 
@@ -136,7 +131,6 @@ msgid "Clock"
 msgstr "Klokke"
 
 #: ../src/menu.cpp:414
-#, fuzzy
 msgid "Time and Date Settings…"
 msgstr "Tids- og dato-innstillinger…"
 
@@ -145,9 +139,8 @@ msgid "Date and Time"
 msgstr "Dato og tid"
 
 #: ../src/menu.cpp:520
-#, fuzzy
 msgid "Time and Date"
-msgstr "Angi dato og klokkeslett..."
+msgstr "Angi dato og klokkeslett"
 
 #: ../src/menu.cpp:525
 #, c-format
@@ -242,7 +235,6 @@ msgstr "%a. %b %d. %l:%M %p"
 #. slightly wider than a normal space.)
 #. en_US example: "Tomorrow %l:%M %p" --> "Tomorrow 13:00"
 #: ../src/utils.c:353
-#, fuzzy
 msgid "Tomorrow %H:%M"
 msgstr "I morgen %H:%M"
 
@@ -252,7 +244,6 @@ msgstr "I morgen %H:%M"
 #. slightly wider than a normal space.)
 #. en_US example: "%a %H:%M" --> "Fri 13:00"
 #: ../src/utils.c:362
-#, fuzzy
 msgid "%a %H:%M"
 msgstr "%a. %H:%M"
 
@@ -263,9 +254,8 @@ msgstr "%a. %H:%M"
 #. en_US example: "%a %b %d %H:%M" --> "Fri Oct 31 13:00"
 #. en_GB example: "%a %d %b %H:%M" --> "Fri 31 Oct 13:00"
 #: ../src/utils.c:372
-#, fuzzy
 msgid "%a %d %b %H:%M"
-msgstr "%a. %b %d. %H:%M"
+msgstr "%a. %d. %b %H:%M"
 
 #~ msgid "Show the clock in the panel"
 #~ msgstr "Vis klokken i panelet"
