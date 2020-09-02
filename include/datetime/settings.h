@@ -45,7 +45,6 @@ public:
     core::Property<std::string> custom_time_format;
     core::Property<std::vector<std::string>> locations;
     core::Property<bool> show_calendar;
-    core::Property<bool> show_clock;
     core::Property<bool> show_date;
     core::Property<bool> show_day;
     core::Property<bool> show_detected_location;

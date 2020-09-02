@@ -41,7 +41,6 @@ LiveSettings::LiveSettings():
     update_custom_time_format();
     update_locations();
     update_show_calendar();
-    update_show_clock();
     update_show_date();
     update_show_day();
     update_show_detected_locations();
@@ -76,10 +75,6 @@ LiveSettings::LiveSettings():
 
     show_calendar.changed().connect([this](bool value){
         g_settings_set_boolean(m_settings, SETTINGS_SHOW_CALENDAR_S, value);
-    });
-
-    show_clock.changed().connect([this](bool value){
-        g_settings_set_boolean(m_settings, SETTINGS_SHOW_CLOCK_S, value);
     });
 
     show_date.changed().connect([this](bool value){
@@ -172,11 +167,6 @@ void LiveSettings::update_show_calendar()
 {
     const auto val = g_settings_get_boolean(m_settings, SETTINGS_SHOW_CALENDAR_S);
     show_calendar.set(val);
-}
-
-void LiveSettings::update_show_clock()
-{
-    show_clock.set(g_settings_get_boolean(m_settings, SETTINGS_SHOW_CLOCK_S));
 }
 
 void LiveSettings::update_show_date()
@@ -284,9 +274,7 @@ void LiveSettings::on_changed(GSettings* /*settings*/,
 
 void LiveSettings::update_key(const std::string& key)
 {
-    if (key == SETTINGS_SHOW_CLOCK_S)
-        update_show_clock();
-    else if (key == SETTINGS_LOCATIONS_S)
+    if (key == SETTINGS_LOCATIONS_S)
         update_locations();
     else if (key == SETTINGS_TIME_FORMAT_S)
         update_time_format_mode();

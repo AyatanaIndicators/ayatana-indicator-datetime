@@ -6,13 +6,6 @@
         <value nick="custom" value="3" />
     </enum>
     <schema id="org.ayatana.indicator.datetime" path="/org/ayatana/indicator/datetime/" gettext-domain="ayatana-indicator-datetime">
-        <key name="show-clock" type="b">
-            <default>true</default>
-            <summary>Show the clock in the panel</summary>
-            <description>
-              Controls whether the clock indicator appears in the panel or not.
-            </description>
-        </key>
         <key name="time-format" enum="time-enum">
             <default>'locale-default'</default>
             <summary>What the time format should be?</summary>
