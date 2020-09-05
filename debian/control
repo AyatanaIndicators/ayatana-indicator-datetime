@@ -45,6 +45,8 @@ Depends: ${shlibs:Depends},
 Recommends: indicator-applet | mate-indicator-applet | xfce4-indicator-plugin | indicator-renderer,
             evolution-data-server,
             geoclue-provider,
+Breaks: indicator-datetime,
+Replaces: indicator-datetime,
 Description: Ayatana Indicator providing clock and calendar
  This Ayatana Indicator provides a combined calendar, clock, alarm and
  event management tool.
