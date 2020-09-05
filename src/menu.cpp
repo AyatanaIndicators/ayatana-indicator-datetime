@@ -94,10 +94,6 @@ protected:
             update_section(Appointments); // uses formatter.relative_format()
             update_section(Locations); // uses formatter.relative_format()
         });
-        m_state->settings->show_clock.changed().connect([this](bool){
-            update_header(); // update header's label
-            update_section(Locations); // locations' relative time may have changed
-        });
         m_state->settings->show_calendar.changed().connect([this](bool){
             update_section(Calendar);
         });
@@ -465,7 +461,6 @@ protected:
 
     GVariant* create_header_state()
     {
-        const auto visible = m_state->settings->show_clock.get();
         const auto title = _("Date and Time");
         auto label = g_variant_new_string(m_formatter->header.get().c_str());
 
@@ -474,7 +469,7 @@ protected:
         g_variant_builder_add(&b, "{sv}", "accessible-desc", label);
         g_variant_builder_add(&b, "{sv}", "label", label);
         g_variant_builder_add(&b, "{sv}", "title", g_variant_new_string(title));
-        g_variant_builder_add(&b, "{sv}", "visible", g_variant_new_boolean(visible));
+        g_variant_builder_add(&b, "{sv}", "visible", g_variant_new_boolean(TRUE));
         return g_variant_builder_end(&b);
     }
 };

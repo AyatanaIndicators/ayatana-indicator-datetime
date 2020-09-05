@@ -138,7 +138,6 @@ TEST_F(SettingsFixture, BoolProperties)
 {
     TestBoolProperty(m_settings->show_seconds, SETTINGS_SHOW_SECONDS_S);
     TestBoolProperty(m_settings->show_calendar, SETTINGS_SHOW_CALENDAR_S);
-    TestBoolProperty(m_settings->show_clock, SETTINGS_SHOW_CLOCK_S);
     TestBoolProperty(m_settings->show_date, SETTINGS_SHOW_DATE_S);
     TestBoolProperty(m_settings->show_day, SETTINGS_SHOW_DAY_S);
     TestBoolProperty(m_settings->show_detected_location, SETTINGS_SHOW_DETECTED_S);

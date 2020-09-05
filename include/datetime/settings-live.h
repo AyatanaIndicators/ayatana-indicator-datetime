@@ -44,7 +44,6 @@ private:
     void update_custom_time_format();
     void update_locations();
     void update_show_calendar();
-    void update_show_clock();
     void update_show_date();
     void update_show_day();
     void update_show_detected_locations();
