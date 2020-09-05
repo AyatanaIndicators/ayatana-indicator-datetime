@@ -1,5 +1,10 @@
 # Ayatana Indicator DateTime
 
+## INSTALLATION
+
+When using the -datetime Ayatana Indicator, make sure that the -datetime
+Ubuntu Indicator (package name: indicator-datetime) is not installed.
+
 ## ACTIONS
 
  * **desktop.open-settings-app**<br />
