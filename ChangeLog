@@ -1,6 +1,69 @@
-2020-08-17 22:24:36 +0200 Mike Gabriel
+2020-09-10 21:17:25 +0200 Mike Gabriel
 
-	* release 0.8.0 (HEAD -> master, tag: 0.8.0)
+	* release 0.8.1 (HEAD -> master, tag: 0.8.1)
+
+2020-09-10 21:09:12 +0200 Mike Gabriel (2e680e59)
+
+	* Merge branch 'tari01-pr/trim-lcov-py3'
+
+2020-09-10 16:30:07 +0200 Robert Tari (a77a2bfd)
+
+	* trim-lcov.py: Port trim-lcov to Python 3
+
+2020-09-08 01:02:30 +0000 Milo Ivir (62d8eebd)
+
+	* Translated using Weblate (Croatian)
+
+2020-09-06 10:29:42 +0000 Baka Gaijin (dd36562e)
+
+	* Translated using Weblate (Japanese)
+
+2020-09-05 18:39:59 +0200 Robert Tari (3588f568)
+
+	* Merge branch 'sunweaver-pr/break-ubuntu-indicator' into master
+          Attributes GH PR
+          #18:https://github.com/AyatanaIndicators/ayatana-indicator-datetime/pull/18
+
+2020-09-05 13:01:50 +0200 Mike Gabriel (a4ca0056)
+
+	* README.md: Add a note that ayatana-indicator-datetime conflicts
+          with indicator-datetime as found in Ubuntu.
+
+2020-09-05 12:56:24 +0200 Mike Gabriel (467c0c83)
+
+	* debian/control: Add B:/R: indicator-datetime.
+
+2020-09-05 13:07:56 +0200 Mike Gabriel (d9923217)
+
+	* Merge branch 'tari01-pr/drop-show-clock'
+
+2020-09-03 00:41:17 +0200 Robert Tari (24d102c1)
+
+	* gsettings: Drop the 'show-clock' setting. Always show the clock.
+
+2020-09-03 00:26:40 +0200 Robert Tari (28ddb974)
+
+	* Whitespace fix
+
+2020-08-31 20:56:11 +0000 klausade (4aa2131e)
+
+	* Translated using Weblate (Norwegian Bokmål)
+
+2020-08-22 11:23:12 +0000 Anders Jonsson (9f87cade)
+
+	* Translated using Weblate (Swedish)
+
+2020-08-21 22:20:08 +0000 Mike Gabriel (c29768ec)
+
+	* Translated using Weblate (German)
+
+2020-08-22 00:12:00 +0200 Mike Gabriel (b10673aa)
+
+	* upload translation files
+
+2020-08-17 22:24:36 +0200 Mike Gabriel (f686848d)
+
+	* release 0.8.0 (tag: 0.8.0)
 
 2020-08-11 08:32:26 +0000 EminUZUN (335044df)
 
@@ -5608,7 +5671,7 @@
 
 2012-10-04 08:09:42 -0500 Charles Kerr (afa16b90)
 
-	* 12.10.2 (tag: 12.10.2)
+	* 12.10.2
 
 2012-10-04 07:56:59 -0500 Charles Kerr (f1c8a718)
 
@@ -5677,7 +5740,7 @@
 
 2012-09-20 11:22:17 -0500 Charles Kerr (3f6591ab)
 
-	* 12.10.1 (tag: 12.10.1)
+	* 12.10.1
 
 2012-09-20 12:13:34 +0000 Charles Kerr (cf60516d)
 
@@ -5791,7 +5854,7 @@
 
 2012-07-12 16:27:57 -0500 Charles Kerr (e2e14906)
 
-	* bump version to 12.10.0 (tag: 12.10.0)
+	* bump version to 12.10.0
 
 2012-07-12 12:59:44 -0500 Charles Kerr (eb1b4aa7)
 

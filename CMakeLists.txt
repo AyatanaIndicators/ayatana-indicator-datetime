@@ -5,7 +5,7 @@ list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 include (GNUInstallDirs)
 
-set (PROJECT_VERSION "0.8.0")
+set (PROJECT_VERSION "0.8.1")
 set (PACKAGE ${CMAKE_PROJECT_NAME})
 option (enable_tests "Build the package's automatic tests." ON)
 option (enable_lcov "Generate lcov code coverage reports." ON)

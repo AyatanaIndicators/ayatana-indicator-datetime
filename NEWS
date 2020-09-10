@@ -1,3 +1,10 @@
+Overview of changes in ayatana-indicator-datetime 0.8.1
+
+  - Drop the 'show-clock' gsetting, the clock is now always shown in
+    the panel.
+  - DEB packaging: Make sure to Break: and Replace: indicator-datetime.
+  - Translation updates.
+
 Overview of changes in ayatana-indicator-datetime 0.8.0
 
   - Version bump to bring all system indicator (and the
