@@ -8,20 +8,20 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2020-08-22 00:10+0200\n"
-"PO-Revision-Date: 2020-04-01 03:15+0000\n"
-"Last-Translator: Johntini <ekardian@gmail.com>\n"
-"Language-Team: Spanish <https://hosted.weblate.org/projects/ayatana-"
-"indicators/datetime-applet/es/>\n"
+"PO-Revision-Date: 2020-09-29 05:40+0000\n"
+"Last-Translator: Adolfo Jayme Barrientos <fitojb@ubuntu.com>\n"
+"Language-Team: Spanish <https://hosted.weblate.org/projects/"
+"ayatana-indicators/datetime-applet/es/>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.0-dev\n"
+"X-Generator: Weblate 4.3-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
 msgid "The calendar's default sound file."
-msgstr "Sonido predeterminado para la alarma."
+msgstr "Archivo de sonido predeterminado de la alarma."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:2
 msgid ""
@@ -130,7 +130,6 @@ msgid "Clock"
 msgstr "Reloj"
 
 #: ../src/menu.cpp:414
-#, fuzzy
 msgid "Time and Date Settings…"
 msgstr "Configuración de fecha y hora…"
 
@@ -139,9 +138,8 @@ msgid "Date and Time"
 msgstr "Fecha y hora"
 
 #: ../src/menu.cpp:520
-#, fuzzy
 msgid "Time and Date"
-msgstr "Fecha y hora"
+msgstr "Hora y fecha"
 
 #: ../src/menu.cpp:525
 #, c-format
