@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2020-08-22 00:10+0200\n"
-"PO-Revision-Date: 2020-09-30 11:40+0000\n"
+"PO-Revision-Date: 2020-10-01 21:41+0000\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <https://hosted.weblate.org/projects/"
 "ayatana-indicators/datetime-applet/he/>\n"
@@ -136,9 +136,8 @@ msgid "Date and Time"
 msgstr ""
 
 #: ../src/menu.cpp:520
-#, fuzzy
 msgid "Time and Date"
-msgstr "הגדרת שעה ותאריך..."
+msgstr "שעה ותאריך"
 
 #: ../src/menu.cpp:525
 #, c-format
