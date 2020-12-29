@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2020-08-22 00:10+0200\n"
-"PO-Revision-Date: 2020-02-26 17:33+0000\n"
+"PO-Revision-Date: 2020-12-31 03:29+0000\n"
 "Last-Translator: Wellington Terumi Uemura <wellingtonuemura@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://hosted.weblate.org/projects/"
 "ayatana-indicators/datetime-applet/pt_BR/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 4.0-dev\n"
+"X-Generator: Weblate 4.4.1-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
 msgid "The calendar's default sound file."
@@ -130,7 +130,6 @@ msgid "Clock"
 msgstr "Relógio"
 
 #: ../src/menu.cpp:414
-#, fuzzy
 msgid "Time and Date Settings…"
 msgstr "Configuração de data e hora…"
 
@@ -139,9 +138,8 @@ msgid "Date and Time"
 msgstr "Data e hora"
 
 #: ../src/menu.cpp:520
-#, fuzzy
 msgid "Time and Date"
-msgstr "Hora e Data"
+msgstr "Data e Hora"
 
 #: ../src/menu.cpp:525
 #, c-format
