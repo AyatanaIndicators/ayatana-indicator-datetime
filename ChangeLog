@@ -1,6 +1,179 @@
-2020-09-10 21:17:25 +0200 Mike Gabriel
+2021-01-28 17:03:06 +0100 Mike Gabriel
 
-	* release 0.8.1 (HEAD -> master, tag: 0.8.1)
+	* release 0.8.2 (HEAD -> master, tag: 0.8.2)
+
+2021-01-28 16:39:33 +0100 Mike Gabriel (74453558)
+
+	* debian/control: Make B-D on dh-systemd optional (fixes FTBFS in
+          Debian bullseye).
+
+2021-01-16 06:39:12 +0000 Kristjan Räts (540abf51)
+
+	* Translated using Weblate (Estonian)
+
+2020-12-30 03:08:56 +0000 J. Lavoie (ed06a843)
+
+	* Translated using Weblate (French (Canada))
+
+2020-12-30 03:10:25 +0000 J. Lavoie (9759f62a)
+
+	* Translated using Weblate (English (Canada))
+
+2020-12-29 13:52:35 +0000 Wellington Terumi Uemura (de91fe10)
+
+	* Translated using Weblate (Portuguese (Brazil))
+
+2020-12-30 02:57:41 +0000 J. Lavoie (a57750c7)
+
+	* Translated using Weblate (French)
+
+2020-12-02 01:50:18 +0000 Milo Ivir (3d8af26f)
+
+	* Translated using Weblate (Croatian)
+
+2020-11-29 16:14:21 +0000 Oğuz Ersen (c7c6f853)
+
+	* Translated using Weblate (Turkish)
+
+2020-11-27 08:02:57 +0000 Csaba (77ca55dd)
+
+	* Translated using Weblate (Hungarian)
+
+2020-11-26 13:27:53 +0000 Ács Zoltán (93bd7278)
+
+	* Translated using Weblate (Hungarian)
+
+2020-11-27 08:01:37 +0000 Csaba (d6b17bcd)
+
+	* Translated using Weblate (Hungarian)
+
+2020-11-10 16:35:05 +0000 mv87 (d739a5f3)
+
+	* Translated using Weblate (German)
+
+2020-11-02 00:48:55 +0000 Joan CiberSheep (073b3221)
+
+	* Translated using Weblate (Catalan)
+
+2020-11-01 12:26:35 +0100 Hosted Weblate (0a5e17f5)
+
+	* Update translation files
+
+2020-10-31 12:27:52 +0100 Weblate (6d1c3124)
+
+	* Added translation using Weblate (Italian)
+
+2020-10-31 12:27:51 +0100 Weblate (891a012c)
+
+	* Added translation using Weblate (Tamil (Sri Lanka))
+
+2020-10-31 12:27:47 +0100 Weblate (9902f842)
+
+	* Added translation using Weblate (Dhivehi)
+
+2020-10-31 12:27:45 +0100 Weblate (8fe5b519)
+
+	* Added translation using Weblate (Venetian)
+
+2020-10-31 12:27:36 +0100 Weblate (08cc451a)
+
+	* Added translation using Weblate (Kashubian)
+
+2020-10-31 12:27:30 +0100 Weblate (bcf94c92)
+
+	* Added translation using Weblate (Macedonian)
+
+2020-10-31 12:27:29 +0100 Weblate (3d857207)
+
+	* Added translation using Weblate (Friulian)
+
+2020-10-31 12:27:24 +0100 Weblate (b4b9ef5a)
+
+	* Added translation using Weblate (Tatar)
+
+2020-10-28 23:25:02 +0000 Milan Korecky (6fc0edc3)
+
+	* Translated using Weblate (Czech)
+
+2020-10-26 21:44:14 +0000 Adrià Martín (b6930204)
+
+	* Translated using Weblate (Sardinian)
+
+2020-10-27 12:26:35 +0100 Hosted Weblate (9ab080b2)
+
+	* Update translation files
+
+2020-10-26 12:23:07 +0000 Michele (80a31cfc)
+
+	* Translated using Weblate (Italian)
+
+2020-10-26 12:44:45 +0100 Weblate (006ab0ea)
+
+	* Added translation using Weblate (Manx)
+
+2020-10-26 12:44:36 +0100 Weblate (3f6bf177)
+
+	* Added translation using Weblate (Afar)
+
+2020-10-26 12:44:33 +0100 Weblate (b8635700)
+
+	* Added translation using Weblate (Nyanja)
+
+2020-10-26 12:44:29 +0100 Weblate (128e0b8c)
+
+	* Added translation using Weblate (Assamese)
+
+2020-10-26 12:44:28 +0100 Weblate (5be36cad)
+
+	* Added translation using Weblate (Wolof)
+
+2020-10-22 23:04:27 +0000 Luna Jernberg (90666259)
+
+	* Translated using Weblate (Swedish)
+
+2020-10-18 16:35:27 +0000 Quentin PAGÈS (849d2a8a)
+
+	* Translated using Weblate (Occitan)
+
+2020-10-10 00:50:48 +0000 Rob Pearson (854f1614)
+
+	* Translated using Weblate (English (United Kingdom))
+
+2020-10-10 00:49:07 +0000 Rob Pearson (9d1e1c96)
+
+	* Translated using Weblate (English (Australia))
+
+2020-10-08 11:11:16 +0000 koffevar (8b72750a)
+
+	* Translated using Weblate (Russian)
+
+2020-10-04 18:13:04 +0000 Moo (a84bcdbf)
+
+	* Translated using Weblate (Lithuanian)
+
+2020-09-30 21:20:03 +0000 Yaron Shahrabani (6ccc79de)
+
+	* Translated using Weblate (Hebrew)
+
+2020-09-29 11:38:29 +0000 Yaron Shahrabani (6d15b26c)
+
+	* Translated using Weblate (Hebrew)
+
+2020-09-28 05:21:30 +0000 Adolfo Jayme Barrientos (a37bc8e9)
+
+	* Translated using Weblate (Spanish)
+
+2020-09-25 17:26:20 +0000 Quentin PAGÈS (95d51f68)
+
+	* Translated using Weblate (Occitan)
+
+2020-09-23 20:03:16 +0000 Viktar Vauchkevich (81bf4474)
+
+	* Translated using Weblate (Belarusian)
+
+2020-09-10 21:17:25 +0200 Mike Gabriel (7d5b542b)
+
+	* release 0.8.1 (tag: 0.8.1)
 
 2020-09-10 21:09:12 +0200 Mike Gabriel (2e680e59)
 
