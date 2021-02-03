@@ -20,7 +20,7 @@
 #include <datetime/actions-live.h>
 
 #ifdef HAS_URLDISPATCHER
-#include <url-dispatcher.h>
+#include <lomiri-url-dispatcher.h>
 #endif
 
 #include <glib.h>
@@ -55,7 +55,7 @@ void LiveActions::dispatch_url(const std::string& url)
 {
     g_debug("Dispatching url '%s'", url.c_str());
 #ifdef HAS_URLDISPATCHER
-    url_dispatch_send(url.c_str(), nullptr, nullptr);
+    lomiri_url_dispatch_send(url.c_str(), nullptr, nullptr);
 #else
     // FIXME: Deal with this, if we build without liburl-dispatcher...
 #endif
