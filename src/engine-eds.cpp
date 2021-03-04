@@ -1210,7 +1210,7 @@ private:
                 }
             }
 
-            g_clear_pointer(&icc, icalcomponent_free);
+            g_clear_pointer(&icc, i_cal_component_free);
         }
     }
 
