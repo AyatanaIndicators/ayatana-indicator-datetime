@@ -272,6 +272,19 @@ private:
         for (int i=0, n=appointments.size(); i<n; i++)
             InspectAppointmentMenuItem(section, first_appt_index+i, appointments[i]);
 
+        // there shouldn't be any alarms when "show alarms" is false
+        bool has_alarms = false;
+
+        m_state->settings->show_alarms.set(false);
+
+        for (int i=0, n=appointments.size(); i<n; i++)
+            if((has_alarms = appointments[i].is_alarm()))
+                break;            
+
+        EXPECT_FALSE(has_alarms);
+
+        m_state->settings->show_alarms.set(true);
+
         //g_clear_object(&section);
         //g_clear_object(&submenu);
     }

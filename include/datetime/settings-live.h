@@ -52,6 +52,7 @@ private:
     void update_show_day();
     void update_show_detected_locations();
     void update_show_events();
+    void update_show_alarms();
     void update_show_locations();
     void update_show_seconds();
     void update_show_week_numbers();
