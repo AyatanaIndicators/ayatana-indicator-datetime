@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2020-08-22 00:11+0200\n"
-"PO-Revision-Date: 2021-03-12 06:02+0000\n"
+"PO-Revision-Date: 2021-04-16 17:26+0000\n"
 "Last-Translator: Boyuan Yang <073plan@gmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "ayatana-indicators/datetime-applet/zh_Hans/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.5.2-dev\n"
+"X-Generator: Weblate 4.6-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
 msgid "The calendar's default sound file."
@@ -135,7 +135,7 @@ msgstr "时间和日期设置…"
 
 #: ../src/menu.cpp:469
 msgid "Date and Time"
-msgstr "时间和日期"
+msgstr "日期和时间"
 
 #: ../src/menu.cpp:520
 msgid "Time and Date"
