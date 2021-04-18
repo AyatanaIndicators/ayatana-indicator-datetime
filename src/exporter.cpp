@@ -162,7 +162,7 @@ private:
 
     void on_bus_acquired(GDBusConnection* bus, const gchar* /*name*/)
     {
-        m_bus = static_cast<GDBusConnection*>(g_object_ref(G_OBJECT(bus)));
+        m_bus = static_cast<GDBusConnection*>(g_object_ref(bus));
 
         // export the alarm properties
         GError * error = nullptr;
