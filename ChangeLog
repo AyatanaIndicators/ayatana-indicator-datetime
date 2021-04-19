@@ -1,6 +1,81 @@
-2021-01-28 17:03:06 +0100 Mike Gabriel
+2021-04-19 22:40:09 +0200 Mike Gabriel
 
-	* release 0.8.2 (HEAD -> master, tag: 0.8.2)
+	* release 0.8.3 (HEAD -> master, tag: 0.8.3)
+
+2021-04-19 22:35:55 +0200 Mike Gabriel (3105ecd9)
+
+	* po/: Fix some date strings wrongly touched by release script.
+
+2021-04-18 19:52:45 +0200 Robert Tari (ac492703)
+
+	* Merge branch 'oSoMoN/fix-build-failures-hirsute'
+
+2021-04-15 16:53:09 +0000 Boyuan Yang (1d0e547b)
+
+	* Translated using Weblate (Chinese (Simplified))
+
+2021-03-30 15:02:47 +0200 Hosted Weblate (1fe741d5)
+
+	* Update translation files
+
+2021-03-29 19:44:35 +0200 Weblate (7d2ca0dc)
+
+	* Added translation using Weblate (Chinese (Simplified)
+          (zh_LATN@pinyin))
+
+2021-03-18 01:23:05 +0000 Reza Almanda (81710ca0)
+
+	* Translated using Weblate (Indonesian)
+
+2021-03-11 05:28:20 +0000 Boyuan Yang (3264e2de)
+
+	* Translated using Weblate (Chinese (Simplified))
+
+2021-04-15 16:53:09 +0000 Boyuan Yang (794e6c49)
+
+	* Translated using Weblate (Chinese (Simplified))
+
+2021-03-30 15:02:47 +0200 Hosted Weblate (752a941a)
+
+	* Update translation files
+
+2021-03-29 19:44:35 +0200 Weblate (b42333c0)
+
+	* Added translation using Weblate (Chinese (Simplified)
+          (zh_LATN@pinyin))
+
+2021-03-18 01:23:05 +0000 Reza Almanda (b071f766)
+
+	* Translated using Weblate (Indonesian)
+
+2021-03-11 05:28:20 +0000 Boyuan Yang (04379860)
+
+	* Translated using Weblate (Chinese (Simplified))
+
+2021-03-04 23:30:27 +0100 Olivier Tilloy (19923632)
+
+	* Fix a couple of build failures on Ubuntu hirsute:
+
+2021-02-04 22:24:44 +0000 Michalis (e3e400a1)
+
+	* Translated using Weblate (Greek)
+
+2021-02-03 11:53:43 +0100 Robert Tari (b5decb84)
+
+	* Merge branch 'sunweaver-pr/port-to-lomiri-url-dispatcher'
+
+2021-02-03 11:00:45 +0100 Mike Gabriel (1dec0b1a)
+
+	* debian/control: Switch from liburl-dispatcher1-dev to
+          liblomiri-url-dispatcher-dev in B-D field.
+
+2021-02-03 11:00:21 +0100 Mike Gabriel (348ff667)
+
+	* Port from URL Dispatcher to Lomiri URL Dispatcher.
+
+2021-01-28 17:03:06 +0100 Mike Gabriel (de8f1a71)
+
+	* release 0.8.2 (tag: 0.8.2)
 
 2021-01-28 16:39:33 +0100 Mike Gabriel (74453558)
 

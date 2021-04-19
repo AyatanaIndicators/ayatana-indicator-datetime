@@ -1,3 +1,10 @@
+Overview of changes in ayatana-indicator-datetime 0.8.3
+
+  - Fix a couple of build failures on Ubuntu hirsute
+    (due to updated evolution-data-server).
+  - Port from URL Dispatcher to Lomiri URL Dispatcher.
+  - Translation updates.
+
 Overview of changes in ayatana-indicator-datetime 0.8.2
 
   - Translation updates.
