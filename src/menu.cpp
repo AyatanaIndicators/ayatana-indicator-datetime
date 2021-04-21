@@ -25,6 +25,7 @@
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 
+#include <algorithm>
 #include <vector>
 
 namespace ayatana {
@@ -64,6 +65,7 @@ GMenuModel* Menu::menu_model()
 
 #define ALARM_ICON_NAME "alarm-clock"
 #define CALENDAR_ICON_NAME "calendar"
+#define MAXIMUM_MENU_ITEM_LENGTH 25
 
 class MenuImpl: public Menu
 {
@@ -308,7 +310,19 @@ private:
             auto fmt = m_formatter->relative_format(begin, end);
             auto unix_time = g_date_time_to_unix(begin);
 
-            auto menu_item = g_menu_item_new (appt.summary.c_str(), nullptr);
+            // Truncate long event summary assuming UTF-8.
+            std::size_t counter = 0;
+            auto tail = std::find_if(appt.summary.begin(), appt.summary.end(), [&counter](char ch) {
+                unsigned byte = static_cast<unsigned>(ch);
+                return (byte & 0xC0) != 0x80 && ++counter > MAXIMUM_MENU_ITEM_LENGTH;
+            });
+            std::string real_label(appt.summary.begin(), tail);
+            if (real_label.length() < appt.summary.length())
+            {
+                real_label += "…";
+            }
+
+            auto menu_item = g_menu_item_new (real_label.c_str(), nullptr);
             g_menu_item_set_attribute (menu_item, "x-ayatana-time", "x", unix_time);
             g_menu_item_set_attribute (menu_item, "x-ayatana-time-format", "s", fmt.c_str());
 
