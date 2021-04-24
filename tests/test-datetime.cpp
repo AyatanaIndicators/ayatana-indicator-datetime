@@ -58,12 +58,16 @@ class DateTimeFixture: public GlibFixture
 
     DateTime random_day()
     {
-        return DateTime::Local(g_rand_int_range(m_rand, 1970, 3000),
-                               g_rand_int_range(m_rand, 1, 13),
-                               g_rand_int_range(m_rand, 1, 29),
-                               g_rand_int_range(m_rand, 0, 24),
-                               g_rand_int_range(m_rand, 0, 60),
-                               g_rand_double_range(m_rand, 0, 60.0));
+        GTimeZone * universal = g_time_zone_new_utc();
+        DateTime point(universal,
+                       g_rand_int_range(m_rand, 1970, 3000),
+                       g_rand_int_range(m_rand, 1, 13),
+                       g_rand_int_range(m_rand, 1, 29),
+                       g_rand_int_range(m_rand, 0, 24),
+                       g_rand_int_range(m_rand, 0, 60),
+                       g_rand_double_range(m_rand, 0, 60.0));
+        g_time_zone_unref(universal);
+        return point;
     }
 };
 
