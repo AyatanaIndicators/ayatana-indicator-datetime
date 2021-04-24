@@ -245,7 +245,7 @@ TEST_F(ActionsFixture, SetLocation)
     EXPECT_EQ("Oklahoma City", m_mock_actions->name());
 }
 
-TEST_F(ActionsFixture, SetCalendarDate)
+TEST_F(ActionsFixture, DISABLED_SetCalendarDate)
 {
     // confirm that such an action exists
     const auto action_name = "calendar";
@@ -276,7 +276,7 @@ TEST_F(ActionsFixture, SetCalendarDate)
     EXPECT_TRUE(DateTime::is_same_day (now, m_state->calendar_month->month().get()));
 }
 
-TEST_F(ActionsFixture, ActivatingTheCalendarResetsItsDate)
+TEST_F(ActionsFixture, DISABLED_ActivatingTheCalendarResetsItsDate)
 {
     // Confirm that the GActions exist
     auto action_group = m_actions->action_group();
