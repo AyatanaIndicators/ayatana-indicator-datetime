@@ -88,8 +88,18 @@ add_custom_target (cppcheck COMMAND cppcheck --enable=all -q --error-exitcode=2 
 ##  Actual building
 ##
 
-set (CC_WARNING_ARGS " -Wall")
-set (CXX_WARNING_ARGS " -Wall")
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+
+    set(COMPILE_FLAGS "${COMPILE_FLAGS} -Weverything")
+    set(COMPILE_FLAGS "${COMPILE_FLAGS} -Wno-c++98-compat -Wno-padded")
+    set(COMPILE_FLAGS "${COMPILE_FLAGS} -Wno-documentation")
+
+else()
+
+    set(COMPILE_FLAGS "${COMPILE_FLAGS} -Wall")
+
+endif()
+
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/include)
@@ -120,4 +130,3 @@ add_subdirectory(po)
 if (${enable_tests})
   add_subdirectory(tests)
 endif ()
-

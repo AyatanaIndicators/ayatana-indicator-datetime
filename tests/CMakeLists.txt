@@ -3,9 +3,9 @@ add_library (gtest STATIC
              ${GTEST_SOURCE_DIR}/gtest-all.cc
              ${GTEST_SOURCE_DIR}/gtest_main.cc)
 set_target_properties (gtest PROPERTIES INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${GTEST_INCLUDE_DIR})
-set_target_properties (gtest PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS} -w)
+set_target_properties (gtest PROPERTIES COMPILE_FLAGS "${COMPILE_FLAGS} -w")
 
-SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g ${CC_WARNING_ARGS}")
+SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g ${COMPILE_FLAGS}")
 
 # dbustest
 pkg_check_modules(DBUSTEST REQUIRED
