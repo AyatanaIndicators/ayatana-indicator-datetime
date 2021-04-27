@@ -19,9 +19,9 @@
 
 #include <algorithm>
 
+#include <datetime/engine-eds.h>
 #include <datetime/alarm-queue-simple.h>
 #include <datetime/clock-mock.h>
-#include <datetime/engine-eds.h>
 #include <datetime/planner-range.h>
 
 #include <gtest/gtest.h>
