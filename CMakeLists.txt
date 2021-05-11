@@ -3,12 +3,14 @@ cmake_minimum_required (VERSION 2.8.9)
 
 list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
-include (GNUInstallDirs)
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    SET(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "..." FORCE)
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 set (PROJECT_VERSION "0.8.3")
 set (PACKAGE ${CMAKE_PROJECT_NAME})
-option (enable_tests "Build the package's automatic tests." ON)
-option (enable_lcov "Generate lcov code coverage reports." ON)
+option (ENABLE_TESTS "Build the package's automatic tests." OFF)
+option (ENABLE_COVERAGE "Generate lcov code coverage reports." OFF)
 
 ##
 ##  GNU standard installation directories
@@ -88,20 +90,30 @@ add_custom_target (cppcheck COMMAND cppcheck --enable=all -q --error-exitcode=2 
 ##  Actual building
 ##
 
-set (CC_WARNING_ARGS " -Wall")
-set (CXX_WARNING_ARGS " -Wall")
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+
+    set(COMPILE_FLAGS "${COMPILE_FLAGS} -Weverything")
+    set(COMPILE_FLAGS "${COMPILE_FLAGS} -Wno-c++98-compat -Wno-padded")
+    set(COMPILE_FLAGS "${COMPILE_FLAGS} -Wno-documentation")
+
+else()
+
+    set(COMPILE_FLAGS "${COMPILE_FLAGS} -Wall")
+
+endif()
+
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/include)
 
 # testing & coverage
-if (${enable_tests})
+if (${ENABLE_TESTS})
   pkg_check_modules (DBUSTEST REQUIRED dbustest-1>=14.04.0)
   set (GTEST_SOURCE_DIR /usr/src/gtest/src)
   set (GTEST_INCLUDE_DIR ${GTEST_SOURCE_DIR}/..)
   set (GTEST_LIBS -lpthread)
   enable_testing ()
-  if (${enable_lcov})
+  if (${ENABLE_COVERAGE})
     include(GCov)
   endif ()
 endif ()
@@ -111,7 +123,6 @@ add_subdirectory(include)
 add_subdirectory(src)
 add_subdirectory(data)
 add_subdirectory(po)
-if (${enable_tests})
+if (${ENABLE_TESTS})
   add_subdirectory(tests)
 endif ()
-

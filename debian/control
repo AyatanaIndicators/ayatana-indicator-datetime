@@ -19,15 +19,15 @@ Build-Depends: cmake,
                liblomiri-url-dispatcher-dev | hello,
                libproperties-cpp-dev,
 # for the test harness:
-               libgtest-dev,
-               libdbustest1-dev,
-               dbus-test-runner,
-               python3-dbusmock,
+               libgtest-dev <!nocheck>,
+               libdbustest1-dev <!nocheck>,
+               dbus-test-runner <!nocheck>,
+               python3-dbusmock <!nocheck>,
 # for 12h/24h locale unit tests:
-               locales,
+               locales <!nocheck>,
 # for running live EDS tests:
-               evolution-data-server,
-               gvfs-daemons,
+               evolution-data-server <!nocheck>,
+               gvfs-daemons <!nocheck>,
                systemd [linux-any],
 # for phone alarm/calendar notification sound tests:
                ubuntu-touch-sounds | hello,
