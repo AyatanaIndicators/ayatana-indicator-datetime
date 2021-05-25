@@ -176,7 +176,7 @@ public:
         b.set_closed_callback([appointment, alarm, on_response, sound, awake, haptic]
                               (const std::string& action){
             Snap::Response response;
-            if (action == ACTION_SNOOZE)
+            if ((action == ACTION_SNOOZE) || (appointment.is_ubuntu_alarm() && action.empty()))
                 response = Snap::Response::Snooze;
             else if (action == ACTION_SHOW_APP)
                 response = Snap::Response::ShowApp;
