@@ -18,7 +18,13 @@
  */
 
 #include "datetime/myself.h"
-#include <libaccounts-glib/accounts-glib.h>
+
+#if GLIB_CHECK_VERSION(2, 66, 0)
+    #include <libaccounts-glib.h>
+#else
+    #include <libaccounts-glib/accounts-glib.h>
+#endif
+
 #include <algorithm>
 
 namespace ayatana {
