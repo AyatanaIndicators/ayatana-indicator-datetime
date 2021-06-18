@@ -1,5 +1,6 @@
 /*
  * Copyright 2014 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <datetime/engine-eds.h>
@@ -913,7 +915,20 @@ private:
         if (identifier == nullptr)
             g_warning("Unrecognized TZID: '%s'", tzid);
         else
-            return g_time_zone_new(identifier);
+        {
+            #if GLIB_CHECK_VERSION(2, 68, 0)
+            auto pZone = g_time_zone_new_identifier(identifier);
+
+            if (pZone == NULL)
+            {
+                pZone = g_time_zone_new_utc();
+            }
+            #else
+            auto pZone = g_time_zone_new(identifier);
+            #endif
+
+            return pZone;
+        }
 
         return nullptr;
     }

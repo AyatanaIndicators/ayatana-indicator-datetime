@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <datetime/clock.h>
@@ -162,7 +164,16 @@ private:
     void setTimezone(const std::string& str)
     {
         g_clear_pointer(&m_gtimezone, g_time_zone_unref);
+        #if GLIB_CHECK_VERSION(2, 68, 0)
+        m_gtimezone = g_time_zone_new_identifier(str.c_str());
+
+        if (m_gtimezone == NULL)
+        {
+            m_gtimezone = g_time_zone_new_utc();
+        }
+        #else
         m_gtimezone = g_time_zone_new(str.c_str());
+        #endif
         m_owner.minute_changed();
     }
 

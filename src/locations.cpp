@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <datetime/locations.h>
@@ -47,7 +49,16 @@ Location::Location(const std::string& zone_, const std::string& name_):
     m_zone(zone_),
     m_name(name_)
 {
+    #if GLIB_CHECK_VERSION(2, 68, 0)
+    auto gzone = g_time_zone_new_identifier(zone().c_str());
+
+    if (gzone == NULL)
+    {
+        gzone = g_time_zone_new_utc();
+    }
+    #else
     auto gzone = g_time_zone_new (zone().c_str());
+    #endif
     auto gtime = g_date_time_new_now (gzone);
     m_offset = g_date_time_get_utc_offset (gtime);
     g_date_time_unref (gtime);

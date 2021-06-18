@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <datetime/clock.h>
@@ -77,8 +79,16 @@ TEST_F(ClockFixture, TimezoneChangeTriggersSkew)
     auto timezone_ = std::make_shared<MockTimezone>();
     timezone_->timezone.set("America/New_York");
     LiveClock clock(timezone_);
+    #if GLIB_CHECK_VERSION(2, 68, 0)
+    auto tz_nyc = g_time_zone_new_identifier("America/New_York");
 
+    if (tz_nyc == NULL)
+    {
+        tz_nyc = g_time_zone_new_utc();
+    }
+    #else
     auto tz_nyc = g_time_zone_new("America/New_York");
+    #endif
     auto now_nyc = g_date_time_new_now(tz_nyc);
     auto now = clock.localtime();
     EXPECT_EQ(g_date_time_get_utc_offset(now_nyc), g_date_time_get_utc_offset(now.get()));
@@ -95,8 +105,16 @@ TEST_F(ClockFixture, TimezoneChangeTriggersSkew)
                    return G_SOURCE_REMOVE;
                }, timezone_.get());
     g_main_loop_run(loop);
+    #if GLIB_CHECK_VERSION(2, 68, 0)
+    auto tz_la = g_time_zone_new_identifier("America/Los_Angeles");
 
+    if (tz_la == NULL)
+    {
+        tz_la = g_time_zone_new_utc();
+    }
+    #else
     auto tz_la = g_time_zone_new("America/Los_Angeles");
+    #endif
     auto now_la = g_date_time_new_now(tz_la);
     now = clock.localtime();
     EXPECT_EQ(g_date_time_get_utc_offset(now_la), g_date_time_get_utc_offset(now.get()));

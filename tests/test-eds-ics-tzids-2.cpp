@@ -1,5 +1,6 @@
 /*
  * Copyright 2015 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <algorithm>
@@ -46,7 +48,16 @@ TEST_F(VAlarmFixture, MultipleAppointments)
     // we need a consistent timezone for the planner and our local DateTimes
     constexpr char const * zone_str {"America/Los_Angeles"};
     auto tz = std::make_shared<MockTimezone>(zone_str);
+    #if GLIB_CHECK_VERSION(2, 68, 0)
+    auto gtz = g_time_zone_new_identifier(zone_str);
+
+    if (gtz == NULL)
+    {
+        gtz = g_time_zone_new_utc();
+    }
+    #else
     auto gtz = g_time_zone_new(zone_str);
+    #endif
 
     // make a planner that looks at the first half of 2015 in EDS
     auto planner = std::make_shared<SimpleRangePlanner>(engine, tz);

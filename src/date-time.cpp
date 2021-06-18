@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <datetime/date-time.h>
@@ -105,7 +107,16 @@ DateTime DateTime::Local(int year, int month, int day, int hour, int minute, dou
 
 DateTime DateTime::to_timezone(const std::string& zone) const
 {
+    #if GLIB_CHECK_VERSION(2, 68, 0)
+    auto gtz = g_time_zone_new_identifier(zone.c_str());
+
+    if (gtz == NULL)
+    {
+        gtz = g_time_zone_new_utc();
+    }
+    #else
     auto gtz = g_time_zone_new(zone.c_str());
+    #endif
     auto gdt = g_date_time_to_timezone(get(), gtz);
     DateTime dt(gtz, gdt);
     g_time_zone_unref(gtz);
