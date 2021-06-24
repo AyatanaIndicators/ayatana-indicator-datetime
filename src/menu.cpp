@@ -18,14 +18,16 @@
  */
 
 #include <datetime/menu.h>
-
 #include <datetime/formatter.h>
 #include <datetime/state.h>
-
 #include <glib/gi18n.h>
 #include <gio/gio.h>
-
 #include <vector>
+
+extern "C"
+{
+    #include <ayatana/common/utils.h>
+}
 
 namespace ayatana {
 namespace indicator {
@@ -56,7 +58,6 @@ GMenuModel* Menu::menu_model()
     return G_MENU_MODEL(m_menu);
 }
 
-
 /****
 *****
 ****/
@@ -78,6 +79,12 @@ protected:
         m_actions(actions),
         m_formatter(formatter)
     {
+        if (m_pSettings == NULL && profile_in != Phone && profile_in != PhoneGreeter)
+        {
+            m_pSettings = g_settings_new("org.ayatana.common");
+            g_signal_connect(m_pSettings, "changed::max-menu-text-length", G_CALLBACK(on_string_length_changed), this);
+        }
+
         // initialize the menu
         create_gmenu();
         for (int i=0; i<NUM_SECTIONS; i++)
@@ -123,9 +130,15 @@ protected:
         g_clear_object(&m_menu);
         g_clear_pointer(&m_serialized_alarm_icon, g_variant_unref);
         g_clear_pointer(&m_serialized_calendar_icon, g_variant_unref);
+        g_clear_object(&m_pSettings);
     }
 
     virtual GVariant* create_header_state() =0;
+
+    static void on_string_length_changed(GSettings *pSettings, gchar *sKey, gpointer pSelf)
+    {
+        static_cast<MenuImpl*>(pSelf)->update_section(Appointments);
+    }
 
     void update_header()
     {
@@ -308,6 +321,7 @@ private:
             auto fmt = m_formatter->relative_format(begin, end);
             auto unix_time = g_date_time_to_unix(begin);
 
+            ayatana_common_utils_ellipsize((char*)appt.summary.c_str());
             auto menu_item = g_menu_item_new (appt.summary.c_str(), nullptr);
             g_menu_item_set_attribute (menu_item, "x-ayatana-time", "x", unix_time);
             g_menu_item_set_attribute (menu_item, "x-ayatana-time-format", "s", fmt.c_str());
@@ -437,6 +451,7 @@ private:
 //private:
     GVariant * m_serialized_alarm_icon = nullptr;
     GVariant * m_serialized_calendar_icon = nullptr;
+    GSettings *m_pSettings = NULL;
 
 }; // class MenuImpl
 
