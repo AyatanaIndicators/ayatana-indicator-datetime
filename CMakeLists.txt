@@ -16,6 +16,7 @@ option (ENABLE_COVERAGE "Generate lcov code coverage reports." OFF)
 ##  GNU standard installation directories
 ##
 
+include (GNUInstallDirs)
 set (CMAKE_INSTALL_PKGLIBEXECDIR "${CMAKE_INSTALL_LIBEXECDIR}/${CMAKE_PROJECT_NAME}")
 set (CMAKE_INSTALL_FULL_PKGLIBEXECDIR "${CMAKE_INSTALL_FULL_LIBEXECDIR}/${CMAKE_PROJECT_NAME}")
 
@@ -41,6 +42,7 @@ include (CheckIncludeFile)
 include (FindPkgConfig)
 
 pkg_check_modules (SERVICE_DEPS REQUIRED
+                   libayatana-common>=0.9.3
                    glib-2.0>=2.36
                    gio-unix-2.0>=2.36
                    libical>=0.48
