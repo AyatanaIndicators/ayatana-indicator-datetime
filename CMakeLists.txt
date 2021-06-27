@@ -1,5 +1,5 @@
 project (ayatana-indicator-datetime C CXX)
-cmake_minimum_required (VERSION 2.8.9)
+cmake_minimum_required (VERSION 3.13)
 
 list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
@@ -9,8 +9,15 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 set (PROJECT_VERSION "0.8.3")
 set (PACKAGE ${CMAKE_PROJECT_NAME})
-option (ENABLE_TESTS "Build the package's automatic tests." OFF)
-option (ENABLE_COVERAGE "Generate lcov code coverage reports." OFF)
+option(ENABLE_TESTS "Enable all tests and checks" OFF)
+option(ENABLE_COVERAGE "Enable coverage reports (includes enabling all tests and checks)" OFF)
+
+if(ENABLE_COVERAGE)
+    set(ENABLE_TESTS ON)
+    set(CMAKE_BUILD_TYPE "Coverage")
+else()
+    set(CMAKE_BUILD_TYPE "Release")
+endif()
 
 ##
 ##  GNU standard installation directories
@@ -134,3 +141,8 @@ add_subdirectory(po)
 if (${ENABLE_TESTS})
   add_subdirectory(tests)
 endif ()
+
+# Display config info
+
+message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "Unit tests: ${ENABLE_TESTS}")
