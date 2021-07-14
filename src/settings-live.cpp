@@ -78,6 +78,11 @@ LiveSettings::LiveSettings():
         update_cal_notification_list();
         update_vibrate_silent_mode();
     }
+    else
+    {
+        m_settings_cal_notification = NULL;
+        m_settings_general_notification = NULL;
+    }
 
     // now listen for clients to change the properties s.t. we can sync update GSettings
 
