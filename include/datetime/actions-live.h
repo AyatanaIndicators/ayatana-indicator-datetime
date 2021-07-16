@@ -40,10 +40,10 @@ public:
     virtual ~LiveActions() =default;
 
     bool desktop_has_calendar_app() const override;
-    void open_alarm_app() override;
-    void open_appointment(const Appointment&, const DateTime&) override;
-    void open_calendar_app(const DateTime&) override;
-    void open_settings_app() override;
+    std::string open_alarm_app() override;
+    std::string open_appointment(const Appointment&, const DateTime&) override;
+    std::string open_calendar_app(const DateTime&) override;
+    std::string open_settings_app() override;
 
     void set_location(const std::string& zone, const std::string& name) override;
 

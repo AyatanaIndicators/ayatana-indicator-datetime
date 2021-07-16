@@ -45,10 +45,10 @@ public:
 
     virtual bool desktop_has_calendar_app() const =0;
 
-    virtual void open_alarm_app() =0;
-    virtual void open_appointment(const Appointment&, const DateTime&) =0;
-    virtual void open_calendar_app(const DateTime&) =0;
-    virtual void open_settings_app() =0;
+    virtual std::string open_alarm_app() =0;
+    virtual std::string open_appointment(const Appointment&, const DateTime&) =0;
+    virtual std::string open_calendar_app(const DateTime&) =0;
+    virtual std::string open_settings_app() =0;
 
     virtual void set_location(const std::string& zone, const std::string& name)=0;
 

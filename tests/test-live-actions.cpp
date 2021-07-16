@@ -22,13 +22,16 @@
 
 #include <datetime/actions-live.h>
 
+extern "C"
+{
+    #include <ayatana/common/utils.h>
+}
+
 using namespace ayatana::indicator::datetime;
 
 class MockLiveActions: public LiveActions
 {
 public:
-    std::string last_cmd;
-    std::string last_url;
 
     explicit MockLiveActions(const std::shared_ptr<State>& state_in): LiveActions(state_in) {}
     ~MockLiveActions() {}
@@ -109,9 +112,9 @@ TEST_F(TestLiveActionsFixture, SetLocation)
 
 TEST_F(TestLiveActionsFixture, DesktopOpenAlarmApp)
 {
-    m_actions->open_alarm_app();
+    std::string sReturn = m_actions->open_alarm_app();
     const std::string expected = "evolution -c calendar";
-    EXPECT_EQ(expected, m_live_actions->last_cmd);
+    EXPECT_EQ(expected, sReturn);
 }
 
 TEST_F(TestLiveActionsFixture, DesktopOpenAppointment)
@@ -119,23 +122,33 @@ TEST_F(TestLiveActionsFixture, DesktopOpenAppointment)
     Appointment a;
     a.uid = "some-uid";
     a.begin = DateTime::NowLocal();
-    m_actions->open_appointment(a, a.begin);
+    std::string sReturn = m_actions->open_appointment(a, a.begin);
     const std::string expected_substr = "evolution \"calendar:///?startdate=";
-    EXPECT_NE(m_live_actions->last_cmd.find(expected_substr), std::string::npos);
+    EXPECT_NE(sReturn.find(expected_substr), std::string::npos);
 }
 
 TEST_F(TestLiveActionsFixture, DesktopOpenCalendarApp)
 {
-    m_actions->open_calendar_app(DateTime::NowLocal());
+    std::string sReturn = m_actions->open_calendar_app(DateTime::NowLocal());
     const std::string expected_substr = "evolution \"calendar:///?startdate=";
-    EXPECT_NE(m_live_actions->last_cmd.find(expected_substr), std::string::npos);
+    EXPECT_NE(sReturn.find(expected_substr), std::string::npos);
 }
 
 TEST_F(TestLiveActionsFixture, DesktopOpenSettingsApp)
 {
-    m_actions->open_settings_app();
-    const std::string expected_substr = "control-center";
-    EXPECT_NE(m_live_actions->last_cmd.find(expected_substr), std::string::npos);
+    std::string sReturn = m_actions->open_settings_app();
+    std::string expected_substr = "gnome-control-center datetime";
+
+    if (ayatana_common_utils_is_unity())
+    {
+        expected_substr = "unity-control-center datetime";
+    }
+    else if (ayatana_common_utils_is_mate())
+    {
+        expected_substr = "mate-time-admin";
+    }
+
+    EXPECT_EQ(expected_substr, sReturn);
 }
 
 /***
@@ -149,12 +162,16 @@ namespace
 
 TEST_F(TestLiveActionsFixture, PhoneOpenAlarmApp)
 {
-    m_actions->open_alarm_app();
-    EXPECT_EQ(clock_app_url, m_live_actions->last_url);
+    setenv("XDG_CURRENT_DESKTOP", "Lomiri", 1);
+    std::string sReturn = m_actions->open_alarm_app();
+    EXPECT_EQ(clock_app_url, sReturn);
+    unsetenv("XDG_CURRENT_DESKTOP");
 }
 
 TEST_F(TestLiveActionsFixture, PhoneOpenAppointment)
 {
+    setenv("XDG_CURRENT_DESKTOP", "Lomiri", 1);
+
     Appointment a;
 
     a.uid = "event-uid";
@@ -162,29 +179,34 @@ TEST_F(TestLiveActionsFixture, PhoneOpenAppointment)
     a.begin = DateTime::NowLocal();
     a.type = Appointment::EVENT;
     auto ocurrenceDate = DateTime::Local(2014, 1, 1, 0, 0, 0);
-    m_actions->open_appointment(a, ocurrenceDate);
+    std::string sReturn = m_actions->open_appointment(a, ocurrenceDate);
     const std::string appointment_app_url =  ocurrenceDate.to_timezone("UTC").format("calendar://startdate=%Y-%m-%dT%H:%M:%S+00:00");
-    EXPECT_EQ(appointment_app_url, m_live_actions->last_url);
+    EXPECT_EQ(appointment_app_url, sReturn);
 
     a.type = Appointment::UBUNTU_ALARM;
-    m_actions->open_appointment(a, a.begin);
-    EXPECT_EQ(clock_app_url, m_live_actions->last_url);
+    sReturn = m_actions->open_appointment(a, a.begin);
+    EXPECT_EQ(clock_app_url, sReturn);
+    unsetenv("XDG_CURRENT_DESKTOP");
 }
 
 TEST_F(TestLiveActionsFixture, PhoneOpenCalendarApp)
 {
+    setenv("XDG_CURRENT_DESKTOP", "Lomiri", 1);
     auto now = DateTime::NowLocal();
-    m_actions->open_calendar_app(now);
+    std::string sReturn = m_actions->open_calendar_app(now);
     const std::string expected =  now.to_timezone("UTC").format("calendar://startdate=%Y-%m-%dT%H:%M:%S+00:00");
-    EXPECT_EQ(expected, m_live_actions->last_url);
+    EXPECT_EQ(expected, sReturn);
+    unsetenv("XDG_CURRENT_DESKTOP");
 }
 
 
 TEST_F(TestLiveActionsFixture, PhoneOpenSettingsApp)
 {
-    m_actions->open_settings_app();
+    setenv("XDG_CURRENT_DESKTOP", "Lomiri", 1);
+    std::string sReturn = m_actions->open_settings_app();
     const std::string expected = "settings:///system/time-date";
-    EXPECT_EQ(expected, m_live_actions->last_url);
+    EXPECT_EQ(expected, sReturn);
+    unsetenv("XDG_CURRENT_DESKTOP");
 }
 
 /***

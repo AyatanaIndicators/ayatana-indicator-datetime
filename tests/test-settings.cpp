@@ -22,11 +22,6 @@
 #include <datetime/settings-live.h>
 #include <datetime/settings-shared.h>
 
-extern "C"
-{
-    #include <ayatana/common/utils.h>
-}
-
 using namespace ayatana::indicator::datetime;
 
 /***
@@ -50,7 +45,18 @@ protected:
         super::SetUp();
 
         m_gsettings = g_settings_new(SETTINGS_INTERFACE);
-        m_gsettings_cal_notification = g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH);
+        GSettingsSchemaSource *pSource = g_settings_schema_source_get_default();
+        GSettingsSchema *pSchema = g_settings_schema_source_lookup(pSource, SETTINGS_NOTIFY_SCHEMA_ID, TRUE);
+
+        if (pSchema != NULL)
+        {
+            g_settings_schema_unref(pSchema);
+            m_gsettings_cal_notification = g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH);
+        }
+        else
+        {
+            m_gsettings_cal_notification = NULL;
+        }
 
         m_live.reset(new LiveSettings);
         m_settings = std::dynamic_pointer_cast<Settings>(m_live);

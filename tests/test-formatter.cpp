@@ -72,7 +72,7 @@ class FormatterFixture: public GlibFixture
         }
       else
         {
-          g_warning("Unable to set locale to %s; skipping %s locale tests. (Current LC_TIME: %s)",
+          g_message("Unable to set locale to %s; skipping %s locale tests. (Current LC_TIME: %s)",
                     expected_locale, name, setlocale(LC_TIME, nullptr));
           return false;
         }
