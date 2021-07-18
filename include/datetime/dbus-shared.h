@@ -24,9 +24,9 @@
 #define BUS_DATETIME_NAME    "org.ayatana.indicator.datetime"
 #define BUS_DATETIME_PATH    "/org/ayatana/indicator/datetime"
 
-#define BUS_POWERD_NAME      "com.canonical.powerd"
-#define BUS_POWERD_PATH      "/com/canonical/powerd"
-#define BUS_POWERD_INTERFACE "com.canonical.powerd"
+#define BUS_POWERD_NAME      "com.lomiri.Repowerd"
+#define BUS_POWERD_PATH      "/com/lomiri/Repowerd"
+#define BUS_POWERD_INTERFACE "com.lomiri.Repowerd"
 
 namespace Bus
 {
