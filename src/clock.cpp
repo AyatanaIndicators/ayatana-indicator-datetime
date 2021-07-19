@@ -155,7 +155,7 @@ private:
     }
 
     /**
-    ***  DBus Chatter: com.canonical.powerd
+    ***  DBus Chatter: com.lomiri.Repowerd
     ***
     ***  Fire Clock::minute_changed() signal when powerd says the system's
     ***  has awoken from sleep -- the old timestamp is likely out-of-date

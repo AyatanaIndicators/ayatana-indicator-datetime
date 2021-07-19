@@ -24,6 +24,7 @@
 #include <datetime/alarm-queue-simple.h>
 #include <datetime/clock-mock.h>
 #include <datetime/engine-eds.h>
+#include <datetime/myself.h>
 #include <datetime/planner-range.h>
 
 #include <gtest/gtest.h>
@@ -43,7 +44,7 @@ using VAlarmFixture = GlibFixture;
 TEST_F(VAlarmFixture, MultipleAppointments)
 {
     // start the EDS engine
-    auto engine = std::make_shared<EdsEngine>();
+    auto engine = std::make_shared<EdsEngine>(std::make_shared<Myself>());
 
     // we need a consistent timezone for the planner and our local DateTimes
     constexpr char const * zone_str {"America/Chicago"};
@@ -80,7 +81,7 @@ TEST_F(VAlarmFixture, MultipleAppointments)
 
     // what we expect to get...
     Appointment expected_appt;
-    expected_appt.uid = "20150520T000726Z-3878-32011-1770-81@ubuntu-phablet";
+    expected_appt.uid = "20150520T000726Z-3878-32011-1770-81@lomiri-phablet";
     expected_appt.color = "#becedd";
     expected_appt.summary = "Alarm";
     std::array<Alarm,1> expected_alarms = {

@@ -245,9 +245,19 @@ bool DateTime::operator<(const DateTime& that) const
     return g_date_time_compare(get(), that.get()) < 0;
 }
 
+bool DateTime::operator>(const DateTime& that) const
+{
+    return g_date_time_compare(get(), that.get()) > 0;
+}
+
 bool DateTime::operator<=(const DateTime& that) const
 {
     return g_date_time_compare(get(), that.get()) <= 0;
+}
+
+bool DateTime::operator>=(const DateTime& that) const
+{
+    return g_date_time_compare(get(), that.get()) >= 0;
 }
 
 bool DateTime::operator!=(const DateTime& that) const

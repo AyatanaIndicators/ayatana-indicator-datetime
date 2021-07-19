@@ -25,9 +25,9 @@
 #define BUS_SCREEN_PATH      "/com/canonical/Unity/Screen"
 #define BUS_SCREEN_INTERFACE "com.canonical.Unity.Screen"
 
-#define BUS_POWERD_NAME      "com.canonical.powerd"
-#define BUS_POWERD_PATH      "/com/canonical/powerd"
-#define BUS_POWERD_INTERFACE "com.canonical.powerd"
+#define BUS_POWERD_NAME      "com.lomiri.Repowerd"
+#define BUS_POWERD_PATH      "/com/lomiri/Repowerd"
+#define BUS_POWERD_INTERFACE "com.lomiri.Repowerd"
 
 #define BUS_HAPTIC_NAME      "com.canonical.usensord"
 #define BUS_HAPTIC_PATH      "/com/canonical/usensord/haptic"

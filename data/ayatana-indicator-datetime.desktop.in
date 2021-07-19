@@ -6,3 +6,4 @@ OnlyShowIn=MATE;Unity;XFCE;Pantheon;
 NoDisplay=true
 StartupNotify=false
 Terminal=false
+Icon=@messaging_menu_icon@

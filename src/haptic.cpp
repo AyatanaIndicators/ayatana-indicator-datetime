@@ -37,9 +37,10 @@ class Haptic::Impl
 {
 public:
 
-    Impl(const Mode& mode):
+    Impl(const Mode& mode, bool repeat):
         m_mode(mode),
-        m_cancellable(g_cancellable_new())
+        m_cancellable(g_cancellable_new()),
+        m_repeat(repeat)
     {
         g_bus_get (G_BUS_TYPE_SESSION, m_cancellable, on_bus_ready, this);
     }
@@ -93,11 +94,15 @@ private:
                 // one second on, one second off.
                 m_pattern = std::vector<uint32_t>({1000u, 1000u});
                 break;
+
         }
 
-        // Set up a loop to keep repeating the pattern
-        auto msec = std::accumulate(m_pattern.begin(), m_pattern.end(), 0u);
-        m_tag = g_timeout_add(msec, call_vibrate_pattern_static, this);
+        if (m_repeat)
+        {
+            // Set up a loop to keep repeating the pattern
+            auto msec = std::accumulate(m_pattern.begin(), m_pattern.end(), 0u);
+            m_tag = g_timeout_add(msec, call_vibrate_pattern_static, this);
+        }
         call_vibrate_pattern();
     }
 
@@ -146,14 +151,15 @@ private:
     GDBusConnection * m_bus = nullptr;
     std::vector<uint32_t> m_pattern;
     guint m_tag = 0;
+    bool m_repeat = false;
 };
 
 /***
 ****
 ***/
 
-Haptic::Haptic(const Mode& mode):
-    impl(new Impl (mode))
+Haptic::Haptic(const Mode& mode, bool repeat):
+    impl(new Impl (mode, repeat))
 {
 }
 

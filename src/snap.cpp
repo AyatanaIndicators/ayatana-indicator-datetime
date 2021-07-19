@@ -53,19 +53,25 @@ class Snap::Impl
 public:
 
     Impl(const std::shared_ptr<ayatana::indicator::notifications::Engine>& engine,
-         const std::shared_ptr<const Settings>& settings):
+         const std::shared_ptr<ayatana::indicator::notifications::SoundBuilder>& sound_builder,
+         const std::shared_ptr<const Settings>& settings,
+         GDBusConnection* system_bus):
       m_engine(engine),
+      m_sound_builder(sound_builder),
       m_settings(settings),
-      m_cancellable(g_cancellable_new())
+      m_cancellable(g_cancellable_new()),
+      m_system_bus{G_DBUS_CONNECTION(g_object_ref(system_bus))}
     {
         auto object_path = g_strdup_printf("/org/freedesktop/Accounts/User%lu", (gulong)getuid());
-        accounts_service_sound_proxy_new_for_bus(G_BUS_TYPE_SYSTEM,
-                                                 G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES,
-                                                 "org.freedesktop.Accounts",
-                                                 object_path,
-                                                 m_cancellable,
-                                                 on_sound_proxy_ready,
-                                                 this);
+
+
+        accounts_service_sound_proxy_new(m_system_bus,
+                                         G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES,
+                                         "org.freedesktop.Accounts",
+                                         object_path,
+                                         m_cancellable,
+                                         on_sound_proxy_ready,
+                                         this);
         g_free(object_path);
     }
 
@@ -74,6 +80,7 @@ public:
         g_cancellable_cancel(m_cancellable);
         g_clear_object(&m_cancellable);
         g_clear_object(&m_accounts_service_sound_proxy);
+        g_clear_object(&m_system_bus);
 
         for (const auto& key : m_notifications)
             m_engine->close (key);
@@ -81,9 +88,14 @@ public:
 
     void operator()(const Appointment& appointment,
                     const Alarm& alarm,
-                    appointment_func snooze,
-                    appointment_func ok)
+                    response_func on_response)
     {
+        // If calendar notifications are disabled, don't show them
+        if (!appointment.is_ubuntu_alarm() && !calendar_notifications_are_enabled()) {
+            g_debug("Skipping disabled calendar event '%s' notification", appointment.summary.c_str());
+            return;
+        }
+
         /* Alarms and calendar events are treated differently.
            Alarms should require manual intervention to dismiss.
            Calendar events are less urgent and shouldn't require manual
@@ -91,11 +103,14 @@ public:
         const bool interactive = appointment.is_ubuntu_alarm() && m_engine->supports_actions();
 
         // force the system to stay awake
-        auto awake = std::make_shared<ain::Awake>(m_engine->app_name());
+        std::shared_ptr<ain::Awake> awake;
+        if (appointment.is_ubuntu_alarm() || calendar_bubbles_enabled() || calendar_list_enabled()) {
+            awake = std::make_shared<ain::Awake>(m_system_bus, m_engine->app_name());
+        }
 
         // calendar events are muted in silent mode; alarm clocks never are
         std::shared_ptr<ain::Sound> sound;
-        if (appointment.is_ubuntu_alarm() || !silent_mode()) {
+        if (appointment.is_ubuntu_alarm() || (calendar_sounds_enabled() && !silent_mode())) {
             // create the sound.
             const auto role = appointment.is_ubuntu_alarm() ? "alarm" : "alert";
             const auto uri = get_alarm_uri(appointment, alarm, m_settings);
@@ -106,18 +121,22 @@ public:
 
         // create the haptic feedback...
         std::shared_ptr<ain::Haptic> haptic;
-        if (should_vibrate()) {
-            const auto haptic_mode = m_settings->alarm_haptic.get();
-            if (haptic_mode == "pulse")
-                haptic = std::make_shared<ain::Haptic>(ain::Haptic::MODE_PULSE);
+        if (should_vibrate() && (appointment.is_ubuntu_alarm() || calendar_vibrations_enabled())) {
+            // when in silent mode should only vibrate if user defined so
+            if (!silent_mode() || vibrate_in_silent_mode_enabled()) {
+                const auto haptic_mode = m_settings->alarm_haptic.get();
+                if (haptic_mode == "pulse")
+                    haptic = std::make_shared<ain::Haptic>(ain::Haptic::MODE_PULSE, appointment.is_ubuntu_alarm());
+            }
         }
 
         // show a notification...
         const auto minutes = std::chrono::minutes(m_settings->alarm_duration.get());
         ain::Builder b;
         b.set_body (appointment.summary);
-        b.set_icon_name ("alarm-clock");
+        b.set_icon_name (appointment.is_ubuntu_alarm() ? "alarm-clock" : "calendar-app");
         b.add_hint (ain::Builder::HINT_NONSHAPED_ICON);
+        b.set_start_time (appointment.begin.to_unix());
 
         const char * timefmt;
         if (is_locale_12h()) {
@@ -130,27 +149,52 @@ public:
             timefmt = _("%a, %H:%M");
         }
         const auto timestr = appointment.begin.format(timefmt);
-        auto title = g_strdup_printf(_("Alarm %s"), timestr.c_str());
+
+        const char * titlefmt;
+        if (appointment.is_ubuntu_alarm()) {
+            titlefmt = _("Alarm %s");
+        } else {
+            titlefmt = _("Event %s");
+        }
+        auto title = g_strdup_printf(titlefmt, timestr.c_str());
         b.set_title (title);
         g_free (title);
         b.set_timeout (std::chrono::duration_cast<std::chrono::seconds>(minutes));
         if (interactive) {
             b.add_hint (ain::Builder::HINT_SNAP);
             b.add_hint (ain::Builder::HINT_AFFIRMATIVE_HINT);
-            b.add_action ("ok", _("OK"));
-            b.add_action ("snooze", _("Snooze"));
+            b.add_action (ACTION_NONE, _("OK"));
+            b.add_action (ACTION_SNOOZE, _("Snooze"));
+        } else {
+            b.add_hint (ain::Builder::HINT_INTERACTIVE);
+            b.add_action (ACTION_SHOW_APP, _("OK"));
         }
 
         // add 'sound', 'haptic', and 'awake' objects to the capture so
         // they stay alive until the closed callback is called; i.e.,
         // for the lifespan of the notficiation
-        b.set_closed_callback([appointment, alarm, snooze, ok, sound, awake, haptic]
+        b.set_closed_callback([appointment, alarm, on_response, sound, awake, haptic]
                               (const std::string& action){
-            if (action == "snooze")
-                snooze(appointment, alarm);
+            Snap::Response response;
+            if ((action == ACTION_SNOOZE) || (appointment.is_ubuntu_alarm() && action.empty()))
+                response = Snap::Response::Snooze;
+            else if (action == ACTION_SHOW_APP)
+                response = Snap::Response::ShowApp;
             else
-                ok(appointment, alarm);
+                response = Snap::Response::None;
+
+            on_response(appointment, alarm, response);
         });
+
+        //TODO: we need to extend it to support alarms appointments
+        if (!appointment.is_ubuntu_alarm()) {
+            b.set_timeout_callback([appointment, alarm, on_response](){
+                on_response(appointment, alarm, Snap::Response::ShowApp);
+            });
+        }
+
+        b.set_show_notification_bubble(appointment.is_ubuntu_alarm() || calendar_bubbles_enabled());
+        b.set_post_to_messaging_menu(appointment.is_ubuntu_alarm() || calendar_list_enabled());
 
         const auto key = m_engine->show(b);
         if (key)
@@ -159,12 +203,42 @@ public:
 
 private:
 
+    bool calendar_notifications_are_enabled() const
+    {
+        return m_settings->cal_notification_enabled.get();
+    }
+
+    bool calendar_sounds_enabled() const
+    {
+        return m_settings->cal_notification_sounds.get();
+    }
+
+    bool calendar_vibrations_enabled() const
+    {
+        return m_settings->cal_notification_vibrations.get();
+    }
+
+    bool calendar_bubbles_enabled() const
+    {
+        return m_settings->cal_notification_bubbles.get();
+    }
+
+    bool calendar_list_enabled() const
+    {
+        return m_settings->cal_notification_list.get();
+    }
+
+    bool vibrate_in_silent_mode_enabled() const
+    {
+        return m_settings->vibrate_silent_mode.get();
+    }
+
     static void on_sound_proxy_ready(GObject* /*source_object*/, GAsyncResult* res, gpointer gself)
     {
         GError * error;
 
         error = nullptr;
-        auto proxy = accounts_service_sound_proxy_new_for_bus_finish (res, &error);
+        auto proxy = accounts_service_sound_proxy_new_finish (res, &error);
         if (error != nullptr)
         {
             if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
@@ -230,6 +304,11 @@ private:
     std::set<int> m_notifications;
     GCancellable * m_cancellable {nullptr};
     AccountsServiceSound * m_accounts_service_sound_proxy {nullptr};
+    GDBusConnection * m_system_bus {nullptr};
+
+    static constexpr char const * ACTION_NONE {"none"};
+    static constexpr char const * ACTION_SNOOZE {"snooze"};
+    static constexpr char const * ACTION_SHOW_APP {"show-app"};
 };
 
 /***
@@ -237,8 +316,10 @@ private:
 ***/
 
 Snap::Snap(const std::shared_ptr<ayatana::indicator::notifications::Engine>& engine,
-           const std::shared_ptr<const Settings>& settings):
-  impl(new Impl(engine, settings))
+           const std::shared_ptr<ayatana::indicator::notifications::SoundBuilder>& sound_builder,
+           const std::shared_ptr<const Settings>& settings,
+           GDBusConnection* system_bus):
+  impl(new Impl(engine, sound_builder, settings, system_bus))
 {
 }
 
@@ -249,10 +330,9 @@ Snap::~Snap()
 void
 Snap::operator()(const Appointment& appointment,
                  const Alarm& alarm,
-                 appointment_func show,
-                 appointment_func ok)
+                 response_func on_response)
 {
-  (*impl)(appointment, alarm, show, ok);
+  (*impl)(appointment, alarm, on_response);
 }
 
 /***
