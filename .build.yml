@@ -21,6 +21,7 @@ requires:
     - evolution-data-server
     - gsettings-desktop-schemas
     - properties-cpp
+    - ayatana-indicator-messages
 
   debian:
     # Useful URL: https://salsa.debian.org/debian-ayatana-team/ayatana-ido
@@ -41,8 +42,8 @@ requires:
     - libecal2.0-dev
     - libical-dev
     - libedataserver1.2-dev
-    - liblomiri-url-dispatcher-dev
     - libproperties-cpp-dev
+    - libmessaging-menu-dev
 # for the test harness:
     - libgtest-dev
     - libdbustest1-dev
@@ -74,8 +75,8 @@ requires:
     - libecal2.0-dev
     - libical-dev
     - libedataserver1.2-dev
-    - liblomiri-url-dispatcher-dev
     - libproperties-cpp-dev
+    - libmessaging-menu-dev
 
   ubuntu:focal:
     - autopoint
@@ -95,6 +96,7 @@ requires:
     - libical-dev
     - libedataserver1.2-dev
     - libproperties-cpp-dev
+    - libmessaging-menu-dev
 
 variables:
   - 'CHECKERS="
@@ -157,14 +159,14 @@ build_scripts:
   -     scan-build $CHECKERS --keep-cc -o html-report make
   - fi
 
-#after_scripts:
-#  - if [ ${BUILD_TYPE} == "scripts" ];then
-#  -     XVFB_RUN="$(which xvfb-run || true)"
-#  -     if [ ${DISTRO_NAME} == "debian" ];then
-#  -         if [ -e ./autogen.sh ]; then
-#  -             ${XVFB_RUN} make check
-#  -         elif [ -e ./CMakeLists.txt ]; then
-#  -             ${XVFB_RUN} make test
-#  -         fi
-#  -     fi
-#  - fi
+after_scripts:
+  - if [ ${BUILD_TYPE} == "scripts" ];then
+  -     XVFB_RUN="$(which xvfb-run || true)"
+  -     if [ ${DISTRO_NAME} == "debian" ];then
+  -         if [ -e ./autogen.sh ]; then
+  -             ${XVFB_RUN} make check
+  -         elif [ -e ./CMakeLists.txt ]; then
+  -             ${XVFB_RUN} make test
+  -         fi
+  -     fi
+  - fi

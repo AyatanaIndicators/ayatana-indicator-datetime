@@ -41,7 +41,7 @@ public:
       MODE_PULSE
     };
 
-    explicit Haptic(const Mode& mode = MODE_PULSE);
+    explicit Haptic(const Mode& mode = MODE_PULSE, bool repeat = false);
     ~Haptic();
 
 private:

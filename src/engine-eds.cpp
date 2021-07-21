@@ -1260,11 +1260,6 @@ private:
 ****
 ***/
 
-EdsEngine::EdsEngine():
-    p(new Impl(std::shared_ptr<Myself>(new Myself)))
-{
-}
-
 EdsEngine::EdsEngine(const std::shared_ptr<Myself> &myself):
     p(new Impl(myself))
 {

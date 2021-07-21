@@ -74,12 +74,14 @@ int main(int argc, const char* argv[])
     a.alarms.push_back(Alarm{"Alarm Text", "", a.begin});
 
     auto loop = g_main_loop_new(nullptr, false);
-    auto on_snooze = [loop](const Appointment& appt, const Alarm&){
-        g_message("You clicked 'Snooze' for appt url '%s'", appt.summary.c_str());
-        g_idle_add(quit_idle, loop);
-    };
-    auto on_ok = [loop](const Appointment&, const Alarm&){
-        g_message("You clicked 'OK'");
+    auto on_response = [loop](const Appointment& appt, const Alarm&, const Snap::Response& response){
+        const char* str {""};
+        switch(response) {
+            case Snap::Response::ShowApp: str = "show-app"; break;
+            case Snap::Response::Snooze: str = "snooze"; break;
+            case Snap::Response::None: str = "no-action"; break;
+        };
+        g_message("You clicked '%s' for appt url '%s'", str, appt.summary.c_str());
         g_idle_add(quit_idle, loop);
     };
 
@@ -92,10 +94,13 @@ int main(int argc, const char* argv[])
     settings->alarm_volume.set(volume);
 
     auto notification_engine = std::make_shared<ain::Engine>("ayatana-indicator-datetime-service");
-    Snap snap (notification_engine, settings);
-    snap(a, a.alarms.front(), on_snooze, on_ok);
+    auto sound_builder = std::make_shared<ain::DefaultSoundBuilder>();
+    auto system_bus = g_bus_get_sync(G_BUS_TYPE_SYSTEM, nullptr, nullptr);
+    Snap snap (notification_engine, sound_builder, settings, system_bus);
+    snap(a, a.alarms.front(), on_response);
     g_main_loop_run(loop);
 
     g_main_loop_unref(loop);
+    g_clear_object(&system_bus);
     return 0;
 }

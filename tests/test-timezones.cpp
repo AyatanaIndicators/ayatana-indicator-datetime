@@ -18,10 +18,10 @@
  */
 
 #include "geoclue-fixture.h"
-
+#include "timezone-mock.h"
 #include <datetime/settings.h>
 #include <datetime/timezones-live.h>
-
+#include <datetime/timezone-timedated.h>
 #include <memory> // std::shared_ptr
 
 #include <cstdio> // fopen()
@@ -53,7 +53,8 @@ TEST_F(TimezonesFixture, ManagerTest)
 
   set_file(timezone_file);
   auto settings = std::make_shared<Settings>();
-  LiveTimezones z(settings, TIMEZONE_FILE);
+  auto timezone = std::make_shared<MockTimezone>(timezone_file);
+  LiveTimezones z(settings, timezone);
   wait_msec(500); // wait for the bus to get set up
   EXPECT_EQ(timezone_file, z.timezone.get());
   auto zones = z.timezones.get();
@@ -100,20 +101,6 @@ TEST_F(TimezonesFixture, ManagerTest)
   setGeoclueTimezoneOnIdle(timezone_geo);
   g_main_loop_run(loop);
   EXPECT_FALSE(zone_changed);
-  EXPECT_TRUE(zones_changed);
-  EXPECT_EQ(timezone_file, z.timezone.get());
-  EXPECT_EQ(2, zones.size());
-  EXPECT_EQ(1, zones.count(timezone_file));
-  EXPECT_EQ(1, zones.count(timezone_geo));
-
-  // now set the file value... this should change both the primary property and set property
-  zone_changed = false;
-  zones_changed = false;
-  timezone_file = "America/Los_Angeles";
-  EXPECT_EQ(0, zones.count(timezone_file));
-  g_idle_add([](gpointer str) {set_file(static_cast<const char*>(str)); return G_SOURCE_REMOVE;}, const_cast<char*>(timezone_file.c_str()));
-  g_main_loop_run(loop);
-  EXPECT_TRUE(zone_changed);
   EXPECT_TRUE(zones_changed);
   EXPECT_EQ(timezone_file, z.timezone.get());
   EXPECT_EQ(2, zones.size());

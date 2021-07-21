@@ -21,6 +21,7 @@
 #define INDICATOR_DATETIME_TESTS_PRINT_TO
 
 #include <algorithm>
+#include <vector>
 
 #include <datetime/appointment.h>
 
@@ -68,6 +69,15 @@ PrintTo(const Appointment& appointment, std::ostream* os)
     for(const auto& alarm : appointment.alarms)
         PrintTo(alarm, os);
 
+    *os << '}';
+}
+
+void
+PrintTo(const std::vector<Appointment>& appointments, std::ostream* os)
+{
+    *os << '{';
+    for (const auto& appointment : appointments)
+        PrintTo(appointment, os);
     *os << '}';
 }
 

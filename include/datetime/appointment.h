@@ -43,7 +43,6 @@ struct Alarm
     bool has_text() const;
 };
 
-
 /**
  * \brief An instance of an appointment; e.g. a calendar event or clock-app alarm
  *

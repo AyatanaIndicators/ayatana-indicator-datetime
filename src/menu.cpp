@@ -22,6 +22,8 @@
 #include <datetime/state.h>
 #include <glib/gi18n.h>
 #include <gio/gio.h>
+#include <algorithm>
+#include <iterator>
 #include <vector>
 
 extern "C"
@@ -58,10 +60,89 @@ GMenuModel* Menu::menu_model()
     return G_MENU_MODEL(m_menu);
 }
 
+/**
+ * To avoid a giant menu on the PC, and to avoid pushing lower menu items
+ * off-screen on the phone, the menu should show the
+ * next five calendar events, if any.
+ *
+ * The list might include multiple occurrences of the same event (bug 1515821).
+ */
+std::vector<Appointment>
+Menu::get_display_appointments(const std::vector<Appointment>& appointments_in,
+                               const DateTime& now,
+                               unsigned int max_items)
+{
+    std::vector<Appointment> appointments;
+    std::copy_if(appointments_in.begin(),
+                 appointments_in.end(),
+                 std::back_inserter(appointments),
+                 [now](const Appointment& a){return a.end >= now;});
+
+    if (appointments.size() > max_items)
+    {
+        const auto next_minute = now.add_full(0,0,0,0,1,-now.seconds());
+        const auto start_of_day = now.start_of_day();
+        const auto end_of_day = now.end_of_day();
+
+        /*
+         * If there are more than five, the events shown should be, in order of priority:
+         * 1. any events that start or end (bug 1329048) after the current minute today;
+         * 2. any full-day events that span all of today (bug 1302004);
+         * 3. any events that start or end tomorrow;
+         * 4. any events that start or end the day after tomorrow; and so on.
+         */
+        auto compare = [next_minute, start_of_day, end_of_day](
+            const Appointment& a,
+            const Appointment& b)
+        {
+            const bool a_later_today = (a.begin >= next_minute) || (a.end <= end_of_day);
+            const bool b_later_today = (b.begin >= next_minute) || (b.end <= end_of_day);
+            if (a_later_today != b_later_today)
+                return a_later_today;
+
+            const bool a_full_day_today = (a.begin <= start_of_day) && (end_of_day <= a.end);
+            const bool b_full_day_today = (b.begin <= start_of_day) && (end_of_day <= b.end);
+            if (a_full_day_today != b_full_day_today)
+                return a_full_day_today;
+
+            const bool a_after_today = (a.begin > end_of_day) || (a.end > end_of_day);
+            const bool b_after_today = (a.begin > end_of_day) || (a.end > end_of_day);
+            if (a_after_today != b_after_today)
+                return a_after_today;
+            if (a.begin != b.begin)
+                return a.begin < b.begin;
+            if (b.end != b.end)
+                return a.end < b.end;
+
+            return false;
+        };
+        std::sort(appointments.begin(), appointments.end(), compare);
+        appointments.resize(max_items);
+    }
+
+    /*
+     * However, the display order should be the reverse: full-day events
+     * first (since they start first), part-day events afterward in
+     * chronological order. If multiple events have exactly the same start+end
+     * time, they should be sorted alphabetically.
+     */
+    auto compare = [](const Appointment& a, const Appointment& b)
+    {
+        if (a.begin != b.begin)
+            return a.begin < b.begin;
+
+        if (a.end != b.end)
+            return a.end < b.end;
+
+        return a.summary < b.summary;
+    };
+    std::sort(appointments.begin(), appointments.end(), compare);
+    return appointments;
+}
+
 /****
 *****
 ****/
-
 
 #define ALARM_ICON_NAME "alarm-clock"
 #define CALENDAR_ICON_NAME "calendar"
@@ -150,25 +231,19 @@ protected:
 
     void update_upcoming()
     {
-        // The usual case is on desktop (and /only/ case on phone)
-        // is that we're looking at the current date and want to see
-        // "the next five calendar events, if any."
-        //
-        // However on the Desktop when the user clicks onto a different
-        // calendar date, show the next five calendar events starting
-        // from the beginning of that clicked day.
-        DateTime begin;
+        // The usual case is to show events germane to the current time.
+        // However when the user clicks onto a different calendar date,
+        // we pick events starting from the beginning of that clicked day.
         const auto now = m_state->clock->localtime();
         const auto calendar_day = m_state->calendar_month->month().get();
-        if ((profile() == Desktop) && !DateTime::is_same_day(now, calendar_day))
-            begin = calendar_day.start_of_day();
-        else
-            begin = now.start_of_minute();
+        const auto begin = DateTime::is_same_day(now, calendar_day)
+            ? now.start_of_minute()
+            : calendar_day.start_of_day();
 
-        std::vector<Appointment> upcoming;
-        for(const auto& a : m_state->calendar_upcoming->appointments().get())
-            if (begin <= a.begin)
-                upcoming.push_back(a);
+        auto upcoming = get_display_appointments(
+            m_state->calendar_upcoming->appointments().get(),
+            begin
+        );
 
         if (m_upcoming != upcoming)
         {
@@ -339,9 +414,12 @@ private:
             if (!appt.color.empty())
                 g_menu_item_set_attribute (menu_item, "x-ayatana-color", "s", appt.color.c_str());
 
-            if (action_name != nullptr)
+            if (action_name != nullptr) {
                 g_menu_item_set_action_and_target_value (menu_item, action_name,
-                                                         g_variant_new_string (appt.uid.c_str()));
+                                                         g_variant_new ("(sx)",
+                                                                        appt.uid.c_str(),
+                                                                        unix_time));
+            }
 
             g_menu_append_item (menu, menu_item);
             g_object_unref (menu_item);
