@@ -130,7 +130,6 @@ if (ENABLE_TESTS)
 
     include(CTest)
     pkg_check_modules (DBUSTEST REQUIRED dbustest-1>=14.04.0)
-    enable_testing ()
     enable_testing()
     add_subdirectory(tests)
 
