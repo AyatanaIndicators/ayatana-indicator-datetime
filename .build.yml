@@ -53,6 +53,7 @@ requires:
     - libedataserver1.2-dev
     - libproperties-cpp-dev
     - libmessaging-menu-dev
+    - liblomiri-url-dispatcher-dev
 # for the test harness:
     - libgtest-dev
     - libdbustest1-dev

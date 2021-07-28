@@ -46,10 +46,6 @@ public:
     void open_settings_app() override;
 
     void set_location(const std::string& zone, const std::string& name) override;
-
-protected:
-
-    void lomiri_open_appointment(const Appointment& appt, const DateTime& date);
 };
 
 } // namespace datetime
