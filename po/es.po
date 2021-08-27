@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2020-08-22 00:10+0200\n"
-"PO-Revision-Date: 2020-09-29 05:40+0000\n"
+"PO-Revision-Date: 2021-08-28 05:33+0000\n"
 "Last-Translator: Adolfo Jayme Barrientos <fitojb@ubuntu.com>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/"
 "ayatana-indicators/datetime-applet/es/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.3-dev\n"
+"X-Generator: Weblate 4.8.1-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
 msgid "The calendar's default sound file."
@@ -28,8 +28,8 @@ msgid ""
 "If a calendar or reminder event doesn't specify its own sound file, this "
 "file will be used as the fallback sound."
 msgstr ""
-"Si un evento de recordatorio o alarma no se le especifica su archivo de "
-"sonido, este archivo será usado como sonido secundario."
+"Si un evento de recordatorio o alarma no especifica su propio archivo de "
+"sonido, este archivo se utilizará como sonido de reserva."
 
 #. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
 #: ../src/formatter.cpp:234
