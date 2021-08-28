@@ -14,6 +14,10 @@ requires:
     - mate-common
     - dbus
     - intltool
+#    - libayatana-common
+    - gobject-introspection
+#    - liblomiri-url-dispatcher
+    - vala
     - glib2
     - libnotify
     - gstreamer
@@ -36,6 +40,11 @@ requires:
     - mate-common
     - intltool
     - libaccounts-glib-dev
+#    - libayatana-common-dev
+    - gobject-introspection
+    - libgirepository1.0-dev
+    - liblomiri-url-dispatcher-dev
+    - valac
     - libglib2.0-dev
     - libnotify-dev
     - libgstreamer1.0-dev
@@ -69,6 +78,11 @@ requires:
     - mate-common
     - intltool
     - libaccounts-glib-dev
+#    - libayatana-common-dev
+    - gobject-introspection
+    - libgirepository1.0-dev
+    - liblomiri-url-dispatcher-dev
+    - valac
     - libglib2.0-dev
     - libnotify-dev
     - libgstreamer1.0-dev
@@ -89,6 +103,11 @@ requires:
     - mate-common
     - intltool
     - libaccounts-glib-dev
+#    - libayatana-common-dev
+    - gobject-introspection
+    - libgirepository1.0-dev
+#    - liblomiri-url-dispatcher-dev
+    - valac
     - libglib2.0-dev
     - libnotify-dev
     - libgstreamer1.0-dev
