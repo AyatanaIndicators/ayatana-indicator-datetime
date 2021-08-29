@@ -462,7 +462,7 @@ private:
 
     static std::string calendar_app_id()
     {
-        #ifdef HAS_URLDISPATCHER
+#ifdef HAS_URLDISPATCHER
         auto urls = g_strsplit("calendar://", ",", 0);
         auto appids = lomiri_url_dispatch_url_appid(const_cast<const gchar**>(urls));
         g_strfreev(urls);
@@ -473,9 +473,9 @@ private:
             g_strfreev(appids);
         }
         return result;
-        #else
+#else
         return std::string();
-        #endif
+#endif
     }
 
     static std::string calendar_app_icon()
