@@ -1,4 +1,4 @@
-# Ayatana System Indicator &mdash; DateTime [![Build Status](https://travis-ci.com/AyatanaIndicators/ayatana-indicator-datetime.svg)](https://travis-ci.com/AyatanaIndicators/ayatana-indicator-datetime)
+# Ayatana System Indicator &mdash; DateTime [![Build Status](https://api.travis-ci.com/AyatanaIndicators/ayatana-indicator-datetime.svg)](https://travis-ci.com/github/AyatanaIndicators/ayatana-indicator-datetime)
 
 ## About Ayatana Indicators
 
