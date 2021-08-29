@@ -71,7 +71,7 @@ public:
        @see Engine::supports_actions() */
     void add_action (const std::string& action, const std::string& label);
 
-    /** Sets the closed callback. This will be called exactly once. After notification dissapear */
+    /** Sets the closed callback. This will be called exactly once. After notification disappears */
     void set_closed_callback (std::function<void(const std::string& action)>);
 
     /** Sets the time-out callback. This will be called exactly once. */
