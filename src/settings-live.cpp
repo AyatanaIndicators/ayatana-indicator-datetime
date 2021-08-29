@@ -42,7 +42,7 @@ LiveSettings::~LiveSettings()
 LiveSettings::LiveSettings():
     m_settings(g_settings_new(SETTINGS_INTERFACE))
 {
-    g_signal_connect (m_settings,                      "changed", G_CALLBACK(on_changed_ccid), this);
+    g_signal_connect (m_settings, "changed", G_CALLBACK(on_changed_ccid), this);
 
     // init the Properties from the GSettings backend
     update_custom_time_format();
