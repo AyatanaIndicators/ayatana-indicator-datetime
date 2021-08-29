@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2013-2016 Canonical Ltd.
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
@@ -17,10 +17,12 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef INDICATOR_DATETIME_TESTS_GLIB_FIXTURE_H
-#define INDICATOR_DATETIME_TESTS_GLIB_FIXTURE_H
+#pragma once
 
+#include <chrono>
+#include <functional> // std::function
 #include <map>
+#include <memory> // std::shared_ptr
 
 #include <glib.h>
 #include <glib/gstdio.h>
@@ -109,7 +111,115 @@ class GlibFixture : public ::testing::Test
       g_source_remove(id);
     }
 
-    GMainLoop * loop;
+    bool wait_for(std::function<bool()> test_function, guint timeout_msec=1000)
+    {
+      auto timer = std::shared_ptr<GTimer>(g_timer_new(), [](GTimer* t){g_timer_destroy(t);});
+      const auto timeout_sec = timeout_msec / 1000.0;
+      for (;;) {
+        if (test_function())
+          return true;
+        //g_message("%f ... %f", g_timer_elapsed(timer.get(), nullptr), timeout_sec);
+        if (g_timer_elapsed(timer.get(), nullptr) >= timeout_sec)
+          return false;
+        wait_msec();
+      }
+    }
+
+    bool wait_for_name_owned(GDBusConnection* connection,
+                             const gchar* name,
+                             guint timeout_msec=1000,
+                             GBusNameWatcherFlags flags=G_BUS_NAME_WATCHER_FLAGS_AUTO_START)
+    {
+      struct Data {
+        GMainLoop* loop = nullptr;
+        bool owned = false;
+      };
+      Data data;
+
+      auto on_name_appeared = [](GDBusConnection* /*connection*/,
+                                 const gchar* /*name_*/,
+                                 const gchar* name_owner,
+                                 gpointer gdata)
+      {
+        if (name_owner == nullptr)
+          return;
+        auto tmp = static_cast<Data*>(gdata);
+        tmp->owned = true;
+        g_main_loop_quit(tmp->loop);
+      };
+
+      const auto timeout_id = g_timeout_add(timeout_msec, wait_msec__timeout, loop);
+      data.loop = loop;
+      const auto watch_id = g_bus_watch_name_on_connection(connection,
+                                                           name,
+                                                           flags,
+                                                           on_name_appeared,
+                                                           nullptr, /* name_vanished */
+                                                           &data,
+                                                           nullptr); /* user_data_free_func */
+      g_main_loop_run(loop);
+
+      g_bus_unwatch_name(watch_id);
+      g_source_remove(timeout_id);
+
+      return data.owned;
+    }
+
+    void EXPECT_NAME_OWNED_EVENTUALLY(GDBusConnection* connection,
+                                      const gchar* name,
+                                      guint timeout_msec=1000,
+                                      GBusNameWatcherFlags flags=G_BUS_NAME_WATCHER_FLAGS_AUTO_START)
+    {
+      EXPECT_TRUE(wait_for_name_owned(connection, name, timeout_msec, flags)) << "name: " << name;
+    }
+
+    void EXPECT_NAME_NOT_OWNED_EVENTUALLY(GDBusConnection* connection,
+                                          const gchar* name,
+                                          guint timeout_msec=1000,
+                                          GBusNameWatcherFlags flags=G_BUS_NAME_WATCHER_FLAGS_AUTO_START)
+    {
+      EXPECT_FALSE(wait_for_name_owned(connection, name, timeout_msec, flags)) << "name: " << name;
+    }
+
+    void ASSERT_NAME_OWNED_EVENTUALLY(GDBusConnection* connection,
+                                      const gchar* name,
+                                      guint timeout_msec=1000,
+                                      GBusNameWatcherFlags flags=G_BUS_NAME_WATCHER_FLAGS_AUTO_START)
+    {
+      ASSERT_TRUE(wait_for_name_owned(connection, name, timeout_msec, flags)) << "name: " << name;
+    }
+
+    void ASSERT_NAME_NOT_OWNED_EVENTUALLY(GDBusConnection* connection,
+                                          const gchar* name,
+                                          guint timeout_msec=1000,
+                                          GBusNameWatcherFlags flags=G_BUS_NAME_WATCHER_FLAGS_AUTO_START)
+    {
+      ASSERT_FALSE(wait_for_name_owned(connection, name, timeout_msec, flags)) << "name: " << name;
+    }
+
+    using source_func = std::function<gboolean()>;
+
+    guint idle_add(source_func&& func)
+    {
+      return g_idle_add_full(
+        G_PRIORITY_DEFAULT_IDLE,
+        [](gpointer gf){return (*static_cast<source_func*>(gf))();},
+        new std::function<gboolean()>(func),
+        [](gpointer gf){delete static_cast<source_func*>(gf);}
+      );
+    }
+
+    guint timeout_add(source_func&& func, std::chrono::milliseconds msec)
+    {
+      return g_timeout_add_full(
+        G_PRIORITY_DEFAULT,
+        msec.count(),
+        [](gpointer gf){return (*static_cast<source_func*>(gf))();},
+        new std::function<gboolean()>(func),
+        [](gpointer gf){delete static_cast<source_func*>(gf);}
+      );
+    }
+
+    GMainLoop* loop {};
 };
 
-#endif /* INDICATOR_DATETIME_TESTS_GLIB_FIXTURE_H */

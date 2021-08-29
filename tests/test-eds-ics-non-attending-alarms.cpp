@@ -1,6 +1,5 @@
 /*
  * Copyright 2015 Canonical Ltd.
- * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -16,7 +15,6 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
- *   Robert Tari <robert@tari.in>
  */
 
 #include <algorithm>
@@ -41,14 +39,15 @@ using VAlarmFixture = GlibFixture;
 ****
 ***/
 
-TEST_F(VAlarmFixture, MultipleAppointments)
+TEST_F(VAlarmFixture, NonAttendingEvent)
 {
     // start the EDS engine
     auto engine = std::make_shared<EdsEngine>(std::make_shared<Myself>());
 
     // we need a consistent timezone for the planner and our local DateTimes
-    constexpr char const * zone_str {"Europe/Berlin"};
+    constexpr char const * zone_str {"America/Recife"};
     auto tz = std::make_shared<MockTimezone>(zone_str);
+
     #if GLIB_CHECK_VERSION(2, 68, 0)
     auto gtz = g_time_zone_new_identifier(zone_str);
 
@@ -60,10 +59,10 @@ TEST_F(VAlarmFixture, MultipleAppointments)
     auto gtz = g_time_zone_new(zone_str);
     #endif
 
-    // make a planner that looks at the first half of 2015 in EDS
+    // make a planner that looks at the first half of 2016 in EDS
     auto planner = std::make_shared<SimpleRangePlanner>(engine, tz);
-    const DateTime range_begin {gtz, 2015,7, 1, 0, 0, 0.0};
-    const DateTime range_end   {gtz, 2015,7,31,23,59,59.5};
+    const DateTime range_begin {gtz, 2016,1, 1, 0, 0, 0.0};
+    const DateTime range_end   {gtz, 2016,6,30,23,59,59.5};
     planner->range().set(std::make_pair(range_begin, range_end));
 
     // give EDS a moment to load
@@ -79,20 +78,11 @@ TEST_F(VAlarmFixture, MultipleAppointments)
         wait_msec(max_wait_sec * G_TIME_SPAN_MILLISECOND);
     }
 
-    // what we expect to get...
-    std::array<Appointment,1> expected_appts;
-    auto appt = &expected_appts[0];
-    appt->uid = "8ggc30kh89qql8vjumgtug7l14@google.com";
-    appt->color = "#becedd";
-    appt->summary = "Hello";
-    appt->begin = DateTime{gtz,2015,7,1,20,0,0};
-    appt->end = DateTime{gtz,2015,7,1,22,0,0};
-
-    // compare it to what we actually loaded...
+    // the planner should match what we've got in the calendar.ics file
     const auto appts = planner->appointments().get();
-    EXPECT_EQ(expected_appts.size(), appts.size());
-    for (size_t i=0, n=std::min(appts.size(),expected_appts.size()); i<n; i++)
-        EXPECT_EQ(expected_appts[i], appts[i]);
+    EXPECT_EQ(2, appts.size());
+    EXPECT_EQ(appts[0].begin, DateTime(gtz, 2016, 4, 4, 16, 0, 0));
+    EXPECT_EQ(appts[1].begin, DateTime(gtz, 2016, 4, 6, 16, 0, 0));
 
     // cleanup
     g_time_zone_unref(gtz);

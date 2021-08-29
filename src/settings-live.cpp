@@ -19,6 +19,11 @@
 
 #include <datetime/settings-live.h>
 
+extern "C"
+{
+    #include <ayatana/common/utils.h>
+}
+
 namespace ayatana {
 namespace indicator {
 namespace datetime {
@@ -29,13 +34,15 @@ namespace datetime {
 
 LiveSettings::~LiveSettings()
 {
+    g_clear_object(&m_settings_general_notification);
+    g_clear_object(&m_settings_cal_notification);
     g_clear_object(&m_settings);
 }
 
 LiveSettings::LiveSettings():
     m_settings(g_settings_new(SETTINGS_INTERFACE))
 {
-    g_signal_connect (m_settings, "changed", G_CALLBACK(on_changed), this);
+    g_signal_connect (m_settings, "changed", G_CALLBACK(on_changed_ccid), this);
 
     // init the Properties from the GSettings backend
     update_custom_time_format();
@@ -57,6 +64,25 @@ LiveSettings::LiveSettings():
     update_alarm_duration();
     update_alarm_haptic();
     update_snooze_duration();
+
+    if (ayatana_common_utils_is_lomiri())
+    {
+        m_settings_cal_notification = g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH);
+        m_settings_general_notification = g_settings_new(SETTINGS_NOTIFY_APPS_SCHEMA_ID);
+        g_signal_connect (m_settings_cal_notification,     "changed", G_CALLBACK(on_changed_cal_notification), this);
+        g_signal_connect (m_settings_general_notification, "changed", G_CALLBACK(on_changed_general_notification), this);
+        update_cal_notification_enabled();
+        update_cal_notification_sounds();
+        update_cal_notification_vibrations();
+        update_cal_notification_bubbles();
+        update_cal_notification_list();
+        update_vibrate_silent_mode();
+    }
+    else
+    {
+        m_settings_cal_notification = NULL;
+        m_settings_general_notification = NULL;
+    }
 
     // now listen for clients to change the properties s.t. we can sync update GSettings
 
@@ -139,6 +165,30 @@ LiveSettings::LiveSettings():
 
     snooze_duration.changed().connect([this](unsigned int value){
         g_settings_set_uint(m_settings, SETTINGS_SNOOZE_DURATION_S, value);
+    });
+
+    cal_notification_enabled.changed().connect([this](bool value){
+        g_settings_set_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_ENABLED_KEY, value);
+    });
+
+    cal_notification_sounds.changed().connect([this](bool value){
+        g_settings_set_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_SOUNDS_KEY, value);
+    });
+
+    cal_notification_vibrations.changed().connect([this](bool value){
+        g_settings_set_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_VIBRATIONS_KEY, value);
+    });
+
+    cal_notification_bubbles.changed().connect([this](bool value){
+        g_settings_set_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_BUBBLES_KEY, value);
+    });
+
+    cal_notification_list.changed().connect([this](bool value){
+        g_settings_set_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_LIST_KEY, value);
+    });
+
+    vibrate_silent_mode.changed().connect([this](bool value){
+        g_settings_set_boolean(m_settings_general_notification, SETTINGS_VIBRATE_SILENT_KEY, value);
     });
 }
 
@@ -261,18 +311,91 @@ void LiveSettings::update_snooze_duration()
     snooze_duration.set(g_settings_get_uint(m_settings, SETTINGS_SNOOZE_DURATION_S));
 }
 
+void LiveSettings::update_cal_notification_enabled()
+{
+    cal_notification_enabled.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_ENABLED_KEY));
+}
+
+void LiveSettings::update_cal_notification_sounds()
+{
+    cal_notification_sounds.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_SOUNDS_KEY));
+}
+
+void LiveSettings::update_cal_notification_vibrations()
+{
+    cal_notification_vibrations.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_VIBRATIONS_KEY));
+}
+
+void LiveSettings::update_cal_notification_bubbles()
+{
+    cal_notification_bubbles.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_BUBBLES_KEY));
+}
+
+void LiveSettings::update_cal_notification_list()
+{
+    cal_notification_list.set(g_settings_get_boolean(m_settings_cal_notification, SETTINGS_NOTIFY_LIST_KEY));
+}
+
+void LiveSettings::update_vibrate_silent_mode()
+{
+    vibrate_silent_mode.set(g_settings_get_boolean(m_settings_general_notification, SETTINGS_VIBRATE_SILENT_KEY));
+}
+
 /***
 ****
 ***/
 
-void LiveSettings::on_changed(GSettings* /*settings*/,
-                              gchar*       key,
-                              gpointer     gself)
+void LiveSettings::on_changed_cal_notification(GSettings* /*settings*/,
+                                               gchar*     key,
+                                               gpointer   gself)
 {
-    static_cast<LiveSettings*>(gself)->update_key(key);
+    static_cast<LiveSettings*>(gself)->update_key_cal_notification(key);
 }
 
-void LiveSettings::update_key(const std::string& key)
+
+void LiveSettings::update_key_cal_notification(const std::string& key)
+{
+    if (key == SETTINGS_NOTIFY_ENABLED_KEY)
+        update_cal_notification_enabled();
+    else if (key == SETTINGS_NOTIFY_SOUNDS_KEY)
+        update_cal_notification_sounds();
+    else if (key == SETTINGS_NOTIFY_VIBRATIONS_KEY)
+        update_cal_notification_vibrations();
+    else if (key == SETTINGS_NOTIFY_BUBBLES_KEY)
+        update_cal_notification_bubbles();
+    else if (key == SETTINGS_NOTIFY_LIST_KEY)
+        update_cal_notification_list();
+}
+
+/***
+****
+***/
+
+void LiveSettings::on_changed_general_notification(GSettings* /*settings*/,
+                                                   gchar*     key,
+                                                   gpointer   gself)
+{
+    static_cast<LiveSettings*>(gself)->update_key_general_notification(key);
+}
+
+void LiveSettings::update_key_general_notification(const std::string& key)
+{
+    if (key == SETTINGS_VIBRATE_SILENT_KEY)
+        update_vibrate_silent_mode();
+}
+
+/***
+****
+***/
+
+void LiveSettings::on_changed_ccid(GSettings* /*settings*/,
+                                   gchar*       key,
+                                   gpointer     gself)
+{
+    static_cast<LiveSettings*>(gself)->update_key_ccid(key);
+}
+
+void LiveSettings::update_key_ccid(const std::string& key)
 {
     if (key == SETTINGS_LOCATIONS_S)
         update_locations();

@@ -1,11 +1,6 @@
-# build libgtest
-add_library (gtest STATIC
-             ${GTEST_SOURCE_DIR}/gtest-all.cc
-             ${GTEST_SOURCE_DIR}/gtest_main.cc)
-set_target_properties (gtest PROPERTIES INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${GTEST_INCLUDE_DIR})
-set_target_properties (gtest PROPERTIES COMPILE_FLAGS "${COMPILE_FLAGS} -w")
+find_package(GMock REQUIRED)
 
-SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g ${COMPILE_FLAGS}")
+SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ${COMPILE_FLAGS}")
 
 # dbustest
 pkg_check_modules(DBUSTEST REQUIRED
@@ -42,13 +37,17 @@ add_definitions (-DG_LOG_DOMAIN="ayatana-indicator-datetime")
 
 function(add_test_by_name name)
   set (TEST_NAME ${name})
+  set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME} PARENT_SCOPE)
   add_executable (${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
+  target_link_options(${TEST_NAME} PRIVATE -no-pie)
   add_test (${TEST_NAME} ${TEST_NAME})
-  target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS} ${URLDISPATCHER_LIBRARIES})
+  target_link_libraries (${TEST_NAME} indicatordatetimeservice ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 endfunction()
 add_test_by_name(test-datetime)
 if(HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS)
-add_test_by_name(test-snap)
+add_test_by_name(test-sound)
+add_test_by_name(test-notification)
+add_test_by_name(test-notification-response)
 endif()
 add_test_by_name(test-actions)
 add_test_by_name(test-alarm-queue)
@@ -58,6 +57,7 @@ add_test_by_name(test-exporter)
 add_test_by_name(test-formatter)
 add_test_by_name(test-live-actions)
 add_test_by_name(test-locations)
+add_test_by_name(test-menu-appointments)
 add_test_by_name(test-menus)
 add_test_by_name(test-planner)
 add_test_by_name(test-settings)
@@ -66,8 +66,10 @@ add_test_by_name(test-utils)
 
 if(HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS)
   set (TEST_NAME manual-test-snap)
+  set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME})
   add_executable (${TEST_NAME} ${TEST_NAME}.cpp)
-  target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
+  target_link_options(${TEST_NAME} PRIVATE -no-pie)
+  target_link_libraries (${TEST_NAME} indicatordatetimeservice ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 endif()
 
 ##
@@ -78,17 +80,20 @@ find_program(DBUS_RUNNER dbus-test-runner)
 
 function(add_eds_ics_test_by_name name)
   set (TEST_NAME ${name})
+  set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME} PARENT_SCOPE)
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.ics.in"
                  "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.ics")
   add_executable(${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
-  target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBS})
+  target_link_options(${TEST_NAME} PRIVATE -no-pie)
+  target_link_libraries (${TEST_NAME} indicatordatetimeservice ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
   add_test (${TEST_NAME}
             ${CMAKE_CURRENT_SOURCE_DIR}/run-eds-ics-test.sh
             ${DBUS_RUNNER}                                         # arg1: dbus-test-runner exec
             ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}               # arg2: test executable path
             ${TEST_NAME}                                           # arg3: test name
             ${CMAKE_CURRENT_SOURCE_DIR}/test-eds-ics-config-files  # arg4: base directory for config file template
-            ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.ics)          # arg5: the ical file for this test
+            ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.ics           # arg5: the ical file for this test
+            ${CMAKE_CURRENT_SOURCE_DIR}/accounts.db)               # arg6: online accounts database
 endfunction()
 add_eds_ics_test_by_name(test-eds-ics-all-day-events)
 add_eds_ics_test_by_name(test-eds-ics-repeating-events)
@@ -97,15 +102,25 @@ add_eds_ics_test_by_name(test-eds-ics-repeating-valarms)
 add_eds_ics_test_by_name(test-eds-ics-missing-trigger)
 add_eds_ics_test_by_name(test-eds-ics-tzids)
 add_eds_ics_test_by_name(test-eds-ics-tzids-2)
+add_eds_ics_test_by_name(test-eds-ics-tzids-utc)
+add_eds_ics_test_by_name(test-eds-ics-non-attending-alarms)
+add_eds_ics_test_by_name(test-eds-ics-repeating-events-with-individual-change)
 
 # disabling the timezone unit tests because they require
 # https://code.launchpad.net/~ted/dbus-test-runner/multi-interface-test/+merge/199724
 # which hasn't landed yet. These can be re-enabled as soon as that lands.
 #function(add_dbusmock_test_by_name name)
 #  set (TEST_NAME ${name})
+#  set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME} PARENT_SCOPE)
 #  add_executable (${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
 #  add_test (${TEST_NAME} ${TEST_NAME})
-#  target_link_libraries (${TEST_NAME} indicatordatetimeservice gtest ${SERVICE_DEPS_LIBRARIES} ${DBUSTEST_LIBRARIES} ${GTEST_LIBS})
+#  target_link_libraries (${TEST_NAME} indicatordatetimeservice ${SERVICE_DEPS_LIBRARIES} ${DBUSTEST_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 #endfunction()
 #add_dbusmock_test_by_name(test-timezone-geoclue)
 #add_dbusmock_test_by_name(test-timezones)
+
+set(
+  COVERAGE_TEST_TARGETS
+  ${COVERAGE_TEST_TARGETS}
+  PARENT_SCOPE
+)

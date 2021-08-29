@@ -1,3 +1,6 @@
-include (Translations)
-add_translations_directory ("${GETTEXT_PACKAGE}")
-add_translations_catalog ("${GETTEXT_PACKAGE}" ../src/)
+find_package(Intltool REQUIRED)
+
+intltool_install_translations(
+    ALL
+    GETTEXT_PACKAGE ${GETTEXT_PACKAGE}
+)

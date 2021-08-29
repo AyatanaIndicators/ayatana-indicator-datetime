@@ -25,6 +25,9 @@ requires:
     - evolution-data-server
     - gsettings-desktop-schemas
     - properties-cpp
+#    - ayatana-indicator-messages
+    - gtk-doc-tools
+    - libaccountsservice
 
   debian:
     # Useful URL: https://salsa.debian.org/debian-ayatana-team/ayatana-ido
@@ -51,6 +54,10 @@ requires:
     - libical-dev
     - libedataserver1.2-dev
     - libproperties-cpp-dev
+#    - libmessaging-menu-dev
+    - gtk-doc-tools
+    - libaccountsservice-dev
+    - liblomiri-url-dispatcher-dev
 # for the test harness:
     - libgtest-dev
     - libdbustest1-dev
@@ -87,8 +94,10 @@ requires:
     - libecal2.0-dev
     - libical-dev
     - libedataserver1.2-dev
-    - liblomiri-url-dispatcher-dev
     - libproperties-cpp-dev
+#    - libmessaging-menu-dev
+    - gtk-doc-tools
+    - libaccountsservice-dev
 
   ubuntu:focal:
     - autopoint
@@ -113,6 +122,9 @@ requires:
     - libical-dev
     - libedataserver1.2-dev
     - libproperties-cpp-dev
+#    - libmessaging-menu-dev
+    - gtk-doc-tools
+    - libaccountsservice-dev
 
 variables:
   - 'CHECKERS="
@@ -139,6 +151,15 @@ before_scripts:
   - fi
   - cd libayatana-common-build
   - cmake . -DCMAKE_INSTALL_PREFIX=/usr
+  - make
+  - make install
+  - cd ${START_DIR}
+  - if [ ! -d ayatana-indicator-messages-build ]; then
+  -     git clone --depth 1  https://github.com/AyatanaIndicators/ayatana-indicator-messages.git ayatana-indicator-messages-build
+  - fi
+  - cd ayatana-indicator-messages-build
+  - NOCONFIGURE=1 ./autogen.sh
+  - ./configure --disable-tests --prefix=/usr
   - make
   - make install
 

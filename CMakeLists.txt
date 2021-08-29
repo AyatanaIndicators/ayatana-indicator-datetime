@@ -66,16 +66,15 @@ pkg_check_modules (SERVICE_DEPS REQUIRED
                    gstreamer-1.0>=1.2
                    libnotify>=0.7.6
                    properties-cpp>=0.0.1
-                   libaccounts-glib>=1.18)
+                   libaccounts-glib>=1.18
+                   messaging-menu>=0.8.2)
 include_directories (SYSTEM ${SERVICE_DEPS_INCLUDE_DIRS})
 
-set(URL_DISPATCHER_REQUIRED_VERSION 0)
-pkg_check_modules(URLDISPATCHER
-                  lomiri-url-dispatcher>=${URL_DISPATCHER_REQUIRED_VERSION}
-)
+# lomiri-url-dispatcher
+
+pkg_check_modules(URLDISPATCHER lomiri-url-dispatcher>=0)
 include_directories(${URLDISPATCHER_INCLUDE_DIRS})
 
-# url-dispatcher support is optional...
 if(URLDISPATCHER_FOUND)
     add_definitions( -DHAS_URLDISPATCHER )
 endif()
@@ -95,9 +94,6 @@ set (ARCHIVE_NAME ${CMAKE_PROJECT_NAME}-${PROJECT_VERSION})
 add_custom_target (dist
                    COMMAND bzr export --root=${ARCHIVE_NAME} ${CMAKE_BINARY_DIR}/${ARCHIVE_NAME}.tar.gz
                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-
-add_custom_target (clean-coverage
-                   COMMAND find ${CMAKE_BINARY_DIR} -name '*.gcda' | xargs rm -f)
 
 add_custom_target (cppcheck COMMAND cppcheck --enable=all -q --error-exitcode=2 --inline-suppr
                    ${CMAKE_SOURCE_DIR}/src
@@ -123,32 +119,32 @@ endif()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/include)
 
-# testing & coverage
-if (${ENABLE_TESTS})
-  pkg_check_modules (DBUSTEST REQUIRED dbustest-1>=14.04.0)
-
-  if (EXISTS /usr/src/googletest/src)
-    set (GTEST_SOURCE_DIR /usr/src/googletest/src)
-  else ()
-    set (GTEST_SOURCE_DIR /usr/src/gtest/src)
-  endif ()
-
-  set (GTEST_INCLUDE_DIR ${GTEST_SOURCE_DIR}/..)
-  set (GTEST_LIBS -lpthread)
-  enable_testing ()
-  if (${ENABLE_COVERAGE})
-    include(GCov)
-  endif ()
-endif ()
-
 # actually build things
 add_subdirectory(include)
 add_subdirectory(src)
 add_subdirectory(data)
 add_subdirectory(po)
-if (${ENABLE_TESTS})
-  add_subdirectory(tests)
-endif ()
+
+# testing & coverage
+if (ENABLE_TESTS)
+
+    include(CTest)
+    pkg_check_modules (DBUSTEST REQUIRED dbustest-1>=14.04.0)
+    enable_testing()
+    add_subdirectory(tests)
+
+    if (ENABLE_COVERAGE)
+
+        find_package(CoverageReport)
+        ENABLE_COVERAGE_REPORT(
+        TARGETS indicatordatetimeservice ayatana-indicator-datetime-service
+        TESTS ${COVERAGE_TEST_TARGETS}
+        FILTER /usr/include ${CMAKE_BINARY_DIR}/*
+        )
+
+    endif()
+
+endif()
 
 # Display config info
 

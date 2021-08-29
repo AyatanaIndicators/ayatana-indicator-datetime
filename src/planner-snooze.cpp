@@ -59,7 +59,9 @@ public:
         appt.alarms.push_back(alarm);
 
         // reschedule the alarm to go off N minutes from now
-        const auto offset = std::chrono::minutes(m_settings->snooze_duration.get());
+        // also take into count every whole minute since the alarm went off
+        const auto offset_to_now = std::chrono::duration_cast<std::chrono::minutes>(std::chrono::microseconds(DateTime::NowLocal() - appt.begin));
+        const auto offset = offset_to_now + std::chrono::minutes(m_settings->snooze_duration.get());
         appt.begin += offset;
         appt.end += offset;
         appt.alarms[0].time += offset;

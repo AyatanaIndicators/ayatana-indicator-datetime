@@ -25,6 +25,7 @@
 #include <datetime/exporter.h>
 #include <datetime/locations-settings.h>
 #include <datetime/menu.h>
+#include <datetime/myself.h>
 #include <datetime/planner-aggregate.h>
 #include <datetime/planner-snooze.h>
 #include <datetime/planner-range.h>
@@ -60,7 +61,7 @@ namespace
         if (!g_strcmp0("lightdm", g_get_user_name()))
             engine.reset(new MockEngine);
         else
-            engine.reset(new EdsEngine);
+            engine.reset(new EdsEngine(std::shared_ptr<Myself>(new Myself)));
 
         return engine;
     }
@@ -70,7 +71,7 @@ namespace
     {
         // create the live objects
         auto live_settings = std::make_shared<LiveSettings>();
-        auto live_timezones = std::make_shared<LiveTimezones>(live_settings);
+        auto live_timezones = std::make_shared<LiveTimezones>(live_settings, timezone_);
         auto live_clock = std::make_shared<LiveClock>(timezone_);
 
         // create a full-month planner currently pointing to the current month
@@ -131,8 +132,17 @@ main(int /*argc*/, char** /*argv*/)
     bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
     textdomain(GETTEXT_PACKAGE);
 
+    // get the system bus
+    GError* error {};
+    auto system_bus = g_bus_get_sync(G_BUS_TYPE_SYSTEM, nullptr, &error);
+    if (error != nullptr) {
+        g_critical("Unable to get system bus: %s", error->message);
+        g_clear_error(&error);
+        return 0;
+    }
+
     auto engine = create_engine();
-    auto timezone_ = std::make_shared<TimedatedTimezone>();
+    auto timezone_ = std::make_shared<TimedatedTimezone>(system_bus);
     auto state = create_state(engine, timezone_);
     auto actions = std::make_shared<LiveActions>(state);
     MenuFactory factory(actions, state);
@@ -141,14 +151,23 @@ main(int /*argc*/, char** /*argv*/)
     // set up the snap decisions
     auto snooze_planner = std::make_shared<SnoozePlanner>(state->settings, state->clock);
     auto notification_engine = std::make_shared<ain::Engine>("ayatana-indicator-datetime-service");
-    std::unique_ptr<Snap> snap (new Snap(notification_engine, state->settings));
+    auto sound_builder = std::make_shared<uin::DefaultSoundBuilder>();
+    std::unique_ptr<Snap> snap (new Snap(notification_engine, sound_builder, state->settings, system_bus));
     auto alarm_queue = create_simple_alarm_queue(state->clock, snooze_planner, engine, timezone_);
-    auto on_snooze = [snooze_planner](const Appointment& appointment, const Alarm& alarm) {
-        snooze_planner->add(appointment, alarm);
+    auto on_response = [snooze_planner, actions](const Appointment& appointment, const Alarm& alarm, const Snap::Response& response) {
+        switch(response) {
+            case Snap::Response::Snooze:
+                snooze_planner->add(appointment, alarm);
+                break;
+            case Snap::Response::ShowApp:
+                actions->open_appointment(appointment, appointment.begin);
+                break;
+            case Snap::Response::None:
+                break;
+        }
     };
-    auto on_ok = [](const Appointment&, const Alarm&){};
-    auto on_alarm_reached = [&engine, &snap, &on_snooze, &on_ok](const Appointment& appointment, const Alarm& alarm) {
-        (*snap)(appointment, alarm, on_snooze, on_ok);
+    auto on_alarm_reached = [&engine, &snap, &on_response](const Appointment& appointment, const Alarm& alarm) {
+        (*snap)(appointment, alarm, on_response);
         engine->disable_ubuntu_alarm(appointment);
     };
     alarm_queue->alarm_reached().connect(on_alarm_reached);
@@ -170,5 +189,6 @@ main(int /*argc*/, char** /*argv*/)
     g_main_loop_run(loop);
 
     g_main_loop_unref(loop);
+    g_clear_object(&system_bus);
     return 0;
 }

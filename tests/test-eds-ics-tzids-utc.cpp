@@ -1,6 +1,5 @@
 /*
  * Copyright 2015 Canonical Ltd.
- * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -16,7 +15,6 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
- *   Robert Tari <robert@tari.in>
  */
 
 #include <algorithm>
@@ -41,14 +39,15 @@ using VAlarmFixture = GlibFixture;
 ****
 ***/
 
-TEST_F(VAlarmFixture, MultipleAppointments)
+TEST_F(VAlarmFixture, UTCAppointments)
 {
     // start the EDS engine
     auto engine = std::make_shared<EdsEngine>(std::make_shared<Myself>());
 
     // we need a consistent timezone for the planner and our local DateTimes
-    constexpr char const * zone_str {"Europe/Berlin"};
+    constexpr char const * zone_str {"America/Recife"};
     auto tz = std::make_shared<MockTimezone>(zone_str);
+
     #if GLIB_CHECK_VERSION(2, 68, 0)
     auto gtz = g_time_zone_new_identifier(zone_str);
 
@@ -62,8 +61,8 @@ TEST_F(VAlarmFixture, MultipleAppointments)
 
     // make a planner that looks at the first half of 2015 in EDS
     auto planner = std::make_shared<SimpleRangePlanner>(engine, tz);
-    const DateTime range_begin {gtz, 2015,7, 1, 0, 0, 0.0};
-    const DateTime range_end   {gtz, 2015,7,31,23,59,59.5};
+    const DateTime range_begin {gtz, 2016,1, 1, 0, 0, 0.0};
+    const DateTime range_end   {gtz, 2017,1, 1, 0, 0, 0.0};
     planner->range().set(std::make_pair(range_begin, range_end));
 
     // give EDS a moment to load
@@ -82,11 +81,11 @@ TEST_F(VAlarmFixture, MultipleAppointments)
     // what we expect to get...
     std::array<Appointment,1> expected_appts;
     auto appt = &expected_appts[0];
-    appt->uid = "8ggc30kh89qql8vjumgtug7l14@google.com";
+    appt->uid = "20160322T132738Z";
     appt->color = "#becedd";
-    appt->summary = "Hello";
-    appt->begin = DateTime{gtz,2015,7,1,20,0,0};
-    appt->end = DateTime{gtz,2015,7,1,22,0,0};
+    appt->summary = "UTC event";
+    appt->begin = DateTime{gtz,2016,3,22,15,0,0};
+    appt->end = DateTime{gtz,2016,3,22,16,0,0};
 
     // compare it to what we actually loaded...
     const auto appts = planner->appointments().get();

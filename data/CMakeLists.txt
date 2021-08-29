@@ -55,7 +55,7 @@ set (XDG_AUTOSTART_FILE_IN "${CMAKE_CURRENT_SOURCE_DIR}/${XDG_AUTOSTART_NAME}.in
 set (pkglibexecdir "${CMAKE_INSTALL_FULL_PKGLIBEXECDIR}")
 configure_file ("${XDG_AUTOSTART_FILE_IN}" "${XDG_AUTOSTART_FILE}")
 
-# install it
+# install XDG autostart
 install (FILES "${XDG_AUTOSTART_FILE}"
          DESTINATION "${XDG_AUTOSTART_DIR}")
 

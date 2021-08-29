@@ -24,6 +24,9 @@
 #include <datetime/settings.h>
 
 #include <notifications/notifications.h>
+#include <notifications/sound.h>
+
+#include <gio/gio.h> // GDBusConnection
 
 #include <functional>
 #include <memory>
@@ -39,14 +42,16 @@ class Snap
 {
 public:
     Snap(const std::shared_ptr<ayatana::indicator::notifications::Engine>& engine,
-         const std::shared_ptr<const Settings>& settings);
+         const std::shared_ptr<ayatana::indicator::notifications::SoundBuilder>& sound_builder,
+         const std::shared_ptr<const Settings>& settings,
+         GDBusConnection* system_bus);
     virtual ~Snap();
 
-    typedef std::function<void(const Appointment&, const Alarm&)> appointment_func;
+    enum class Response { None, Snooze, ShowApp };
+    typedef std::function<void(const Appointment&, const Alarm&, const Response&)> response_func;
     void operator()(const Appointment& appointment,
                     const Alarm& alarm,
-                    appointment_func snooze,
-                    appointment_func ok);
+                    response_func on_response);
 
 private:
     class Impl;

@@ -44,15 +44,11 @@ class Actions
 public:
 
     virtual bool desktop_has_calendar_app() const =0;
-    virtual void desktop_open_alarm_app() =0;
-    virtual void desktop_open_appointment(const Appointment&) =0;
-    virtual void desktop_open_calendar_app(const DateTime&) =0;
-    virtual void desktop_open_settings_app() =0;
 
-    virtual void phone_open_alarm_app() =0;
-    virtual void phone_open_appointment(const Appointment&) =0;
-    virtual void phone_open_calendar_app(const DateTime&) =0;
-    virtual void phone_open_settings_app() =0;
+    virtual void open_alarm_app() =0;
+    virtual void open_appointment(const Appointment&, const DateTime&) =0;
+    virtual void open_calendar_app(const DateTime&) =0;
+    virtual void open_settings_app() =0;
 
     virtual void set_location(const std::string& zone, const std::string& name)=0;
 

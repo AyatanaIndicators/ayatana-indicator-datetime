@@ -1,8 +1,5 @@
 /*
- * Copyright 2014 Canonical Ltd.
- *
- * Authors:
- *   Charles Kerr <charles.kerr@canonical.com>
+ * Copyright 2014-2016 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,7 +12,14 @@
  *
  * You should have received a copy of the GNU General Public License along
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Authors:
+ *   Charles Kerr <charles.kerr@canonical.com>
  */
+
+#pragma once
+
+#include "libdbusmock-fixture.h"
 
 #include <datetime/appointment.h>
 #include <datetime/dbus-shared.h>
@@ -27,37 +31,24 @@
 
 #include <libdbustest/dbus-test.h>
 
-#include <glib.h>
-
 #include <unistd.h> // getuid()
 #include <sys/types.h> // getuid()
-
-using namespace ayatana::indicator::datetime;
-
-#include "glib-fixture.h"
 
 /***
 ****
 ***/
 
-namespace
-{
-  static constexpr char const * APP_NAME {"ayatana-indicator-datetime-service"};
-}
-
-using namespace ayatana::indicator::datetime;
-
-class SnapFixture: public GlibFixture
+class NotificationFixture: public LibdbusmockFixture
 {
 private:
 
-  typedef GlibFixture super;
+  typedef LibdbusmockFixture super;
+
+protected:
 
   static constexpr char const * NOTIFY_BUSNAME   {"org.freedesktop.Notifications"};
   static constexpr char const * NOTIFY_INTERFACE {"org.freedesktop.Notifications"};
   static constexpr char const * NOTIFY_PATH      {"/org/freedesktop/Notifications"};
-
-protected:
 
   static constexpr char const * HAPTIC_METHOD_VIBRATE_PATTERN {"VibratePattern"};
 
@@ -87,15 +78,13 @@ protected:
   static constexpr char const * HINT_TIMEOUT {"x-canonical-snap-decisions-timeout"};
 
   static constexpr char const * AS_BUSNAME            {"org.freedesktop.Accounts"};
-  static constexpr char const * AS_INTERFACE          {"com.ubuntu.touch.AccountsService.Sound"};
+  static constexpr char const * AS_INTERFACE          {"com.lomiri.touch.AccountsService.Sound"};
   static constexpr char const * PROP_OTHER_VIBRATIONS {"OtherVibrate"};
   static constexpr char const * PROP_SILENT_MODE      {"SilentMode"};
 
-  Appointment appt;
-  Appointment ualarm;
-  GDBusConnection * system_bus = nullptr;
-  GDBusConnection * session_bus = nullptr;
-  DbusTestService * service = nullptr;
+  ayatana::indicator::datetime::Appointment appt;
+  ayatana::indicator::datetime::Appointment ualarm;
+
   DbusTestDbusMock * as_mock = nullptr;
   DbusTestDbusMock * notify_mock = nullptr;
   DbusTestDbusMock * powerd_mock = nullptr;
@@ -118,23 +107,21 @@ protected:
     appt.color = "green";
     appt.summary = "Christmas";
     appt.uid = "D4B57D50247291478ED31DED17FF0A9838DED402";
-    appt.type = Appointment::EVENT;
-    const auto christmas = DateTime::Local(2015,12,25,0,0,0);
+    appt.type = ayatana::indicator::datetime::Appointment::EVENT;
+    const auto christmas = ayatana::indicator::datetime::DateTime::Local(2015,12,25,0,0,0);
     appt.begin = christmas.start_of_day();
     appt.end = christmas.end_of_day();
-    appt.alarms.push_back(Alarm{"Ho Ho Ho!", "", appt.begin});
+    appt.alarms.push_back(ayatana::indicator::datetime::Alarm{"Ho Ho Ho!", CALENDAR_DEFAULT_SOUND, appt.begin});
 
-    // init an Ubuntu Alarm
+    // init a Lomiri Alarm
     ualarm.color = "red";
     ualarm.summary = "Wakeup";
     ualarm.uid = "E4B57D50247291478ED31DED17FF0A9838DED403";
-    ualarm.type = Appointment::UBUNTU_ALARM;
-    const auto tomorrow = DateTime::NowLocal().add_days(1);
+    ualarm.type = ayatana::indicator::datetime::Appointment::UBUNTU_ALARM;
+    const auto tomorrow = ayatana::indicator::datetime::DateTime::NowLocal().add_days(1);
     ualarm.begin = tomorrow;
     ualarm.end = tomorrow;
-    ualarm.alarms.push_back(Alarm{"It's Tomorrow!", "", appt.begin});
-
-    service = dbus_test_service_new(nullptr);
+    ualarm.alarms.push_back(ayatana::indicator::datetime::Alarm{"It's Tomorrow!", "", appt.begin});
 
     ///
     ///  Add the AccountsService mock
@@ -311,23 +298,7 @@ protected:
     g_assert_no_error (error);
     dbus_test_service_add_task(service, DBUS_TEST_TASK(haptic_mock));
 
-
-    // start 'em up.
-    // make the system bus work off the mock bus too, since that's
-    // where the upower and screen are on the system bus...
-
-    dbus_test_service_start_tasks(service);
-    g_setenv("DBUS_SYSTEM_BUS_ADDRESS", g_getenv("DBUS_SESSION_BUS_ADDRESS"), TRUE);
-
-    session_bus = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, nullptr);
-    ASSERT_NE(nullptr, session_bus);
-    g_dbus_connection_set_exit_on_close(session_bus, false);
-    g_object_add_weak_pointer(G_OBJECT(session_bus), (gpointer *)&session_bus);
-
-    system_bus = g_bus_get_sync(G_BUS_TYPE_SYSTEM, nullptr, nullptr);
-    ASSERT_NE(nullptr, system_bus);
-    g_dbus_connection_set_exit_on_close(system_bus, FALSE);
-    g_object_add_weak_pointer(G_OBJECT(system_bus), (gpointer *)&system_bus);
+    startDbusMock();
   }
 
   void TearDown() override
@@ -337,20 +308,6 @@ protected:
     g_clear_object(&powerd_mock);
     g_clear_object(&notify_mock);
     g_clear_object(&as_mock);
-    g_clear_object(&service);
-    g_object_unref(session_bus);
-    g_object_unref(system_bus);
-
-    // wait a little while for the scaffolding to shut down,
-    // but don't block on it forever...
-    unsigned int cleartry = 0;
-    while (((system_bus != nullptr) || (session_bus != nullptr)) && (cleartry < 50))
-      {
-        g_usleep(100000);
-        while (g_main_context_pending(nullptr))
-          g_main_context_iteration(nullptr, true);
-        cleartry++;
-      }
 
     super::TearDown();
   }
@@ -371,213 +328,15 @@ protected:
                                           &error);
     g_assert_no_error (error);
   }
+
+  std::shared_ptr<ayatana::indicator::datetime::Snap>
+  create_snap(const std::shared_ptr<ayatana::indicator::notifications::Engine>& ne,
+              const std::shared_ptr<ayatana::indicator::notifications::SoundBuilder>& sb,
+              const std::shared_ptr<ayatana::indicator::datetime::Settings>& settings)
+  {
+    auto snap = std::make_shared<ayatana::indicator::datetime::Snap>(ne, sb, settings, system_bus);
+    wait_msec(100); // wait a moment for the Snap to finish its async dbus bootstrapping
+    return snap;
+  }
 };
 
-/***
-****
-***/
-
-namespace
-{
-  gboolean quit_idle (gpointer gloop)
-  {
-    g_main_loop_quit(static_cast<GMainLoop*>(gloop));
-    return G_SOURCE_REMOVE;
-  };
-}
-
-TEST_F(SnapFixture, InteractiveDuration)
-{
-  static constexpr int duration_minutes = 120;
-  auto settings = std::make_shared<Settings>();
-  settings->alarm_duration.set(duration_minutes);
-  auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
-  Snap snap (ne, settings);
-
-  make_interactive();
-
-  // call the Snap Decision
-  auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
-  snap(appt, appt.alarms.front(), func, func);
-
-  // confirm that Notify got called once
-  guint len = 0;
-  GError * error = nullptr;
-  const auto calls = dbus_test_dbus_mock_object_get_method_calls (notify_mock,
-                                                                  notify_obj,
-                                                                  METHOD_NOTIFY,
-                                                                  &len,
-                                                                  &error);
-  g_assert_no_error(error);
-  ASSERT_EQ(1, len);
-
-  // confirm that the app_name passed to Notify was APP_NAME
-  const auto& params = calls[0].params;
-  ASSERT_EQ(8, g_variant_n_children(params));
-  const char * str = nullptr;
-  g_variant_get_child (params, 0, "&s", &str);
-  ASSERT_STREQ(APP_NAME, str);
-
-  // confirm that the icon passed to Notify was "alarm-clock"
-  g_variant_get_child (params, 2, "&s", &str);
-  ASSERT_STREQ("alarm-clock", str);
-
-  // confirm that the hints passed to Notify included a timeout matching duration_minutes
-  int32_t i32;
-  bool b;
-  auto hints = g_variant_get_child_value (params, 6);
-  b = g_variant_lookup (hints, HINT_TIMEOUT, "i", &i32);
-  EXPECT_TRUE(b);
-  const auto duration = std::chrono::minutes(duration_minutes);
-  EXPECT_EQ(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count(), i32);
-  g_variant_unref(hints);
-  ne.reset();
-}
-
-/***
-****
-***/
-
-TEST_F(SnapFixture, InhibitSleep)
-{
-  auto settings = std::make_shared<Settings>();
-  auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
-  auto snap = new Snap (ne, settings);
-
-  make_interactive();
-
-  // invoke the notification
-  auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
-  (*snap)(appt, appt.alarms.front(), func, func);
-
-  wait_msec(1000);
-
-  // confirm that sleep got inhibited
-  GError * error = nullptr;
-  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (powerd_mock,
-                                                             powerd_obj,
-                                                             POWERD_METHOD_REQUEST_SYS_STATE,
-                                                             g_variant_new("(si)", APP_NAME, POWERD_SYS_STATE_ACTIVE),
-                                                             &error));
-
-  // confirm that the screen got forced on
-  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (screen_mock,
-                                                             screen_obj,
-                                                             SCREEN_METHOD_KEEP_DISPLAY_ON,
-                                                             nullptr,
-                                                             &error));
-
-  // force-close the snap
-  wait_msec(100);
-  delete snap;
-  wait_msec(100);
-
-  // confirm that sleep got uninhibted
-  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (powerd_mock,
-                                                             powerd_obj,
-                                                             POWERD_METHOD_CLEAR_SYS_STATE,
-                                                             g_variant_new("(s)", POWERD_COOKIE),
-                                                             &error));
-
-  // confirm that the screen's no longer forced on
-  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (screen_mock,
-                                                             screen_obj,
-                                                             SCREEN_METHOD_REMOVE_DISPLAY_ON_REQUEST,
-                                                             g_variant_new("(i)", SCREEN_COOKIE),
-                                                             &error));
-
-  g_assert_no_error (error);
-}
-
-/***
-****
-***/
-
-TEST_F(SnapFixture, ForceScreen)
-{
-  auto settings = std::make_shared<Settings>();
-  auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
-  auto snap = new Snap (ne, settings);
-
-  make_interactive();
-
-  // invoke the notification
-  auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
-  (*snap)(appt, appt.alarms.front(), func, func);
-
-  wait_msec(1000);
-
-  // confirm that sleep got inhibited
-  GError * error = nullptr;
-  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (powerd_mock,
-                                                             powerd_obj,
-                                                             POWERD_METHOD_REQUEST_SYS_STATE,
-                                                             g_variant_new("(si)", APP_NAME, POWERD_SYS_STATE_ACTIVE),
-                                                             &error));
-  g_assert_no_error(error);
-
-  // force-close the snap
-  wait_msec(100);
-  delete snap;
-  wait_msec(100);
-
-  // confirm that sleep got uninhibted
-  EXPECT_TRUE (dbus_test_dbus_mock_object_check_method_call (powerd_mock,
-                                                             powerd_obj,
-                                                             POWERD_METHOD_CLEAR_SYS_STATE,
-                                                             g_variant_new("(s)", POWERD_COOKIE),
-                                                             &error));
-  g_assert_no_error(error);
-}
-
-/***
-****
-***/
-
-TEST_F(SnapFixture,Vibrate)
-{
-  auto settings = std::make_shared<Settings>();
-  auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
-  auto func = [this](const Appointment&, const Alarm&){g_idle_add(quit_idle, loop);};
-  GError * error = nullptr;
-
-  struct {
-      bool other_vibrations; // the com.ubuntu.touch.AccountsService.Sound "other vibrations" setting
-      const char* haptic_mode;  // supported values: "none", "pulse"
-      bool expected_vibrate_called; // do we expect the phone to vibrate?
-  } test_cases[] = {
-      { false, "none",  false },
-      { true,  "none",  false },
-      { false, "pulse", false },
-      { true,  "pulse", true  }
-  };
-
-  auto snap = std::make_shared<Snap>(ne, settings);
-
-  for(const auto& test_case : test_cases)
-  {
-    // clear out any previous iterations' noise
-    dbus_test_dbus_mock_object_clear_method_calls(haptic_mock, haptic_obj, &error);
-
-    // set the properties to match the test case
-    settings->alarm_haptic.set(test_case.haptic_mode);
-    dbus_test_dbus_mock_object_update_property(as_mock,
-                                               as_obj,
-                                               PROP_OTHER_VIBRATIONS,
-                                               g_variant_new_boolean(test_case.other_vibrations),
-                                               &error);
-    g_assert_no_error(error);
-    wait_msec(100);
-
-    // run the test
-    (*snap)(appt, appt.alarms.front(), func, func);
-    wait_msec(100);
-    const bool vibrate_called = dbus_test_dbus_mock_object_check_method_call(haptic_mock,
-                                                                             haptic_obj,
-                                                                             HAPTIC_METHOD_VIBRATE_PATTERN,
-                                                                             nullptr,
-                                                                             &error);
-    g_assert_no_error(error);
-    EXPECT_EQ(test_case.expected_vibrate_called, vibrate_called);
-  }
-}

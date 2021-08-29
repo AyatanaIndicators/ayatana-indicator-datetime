@@ -21,9 +21,10 @@
 
 #include <algorithm>
 
-#include <datetime/engine-eds.h>
 #include <datetime/alarm-queue-simple.h>
 #include <datetime/clock-mock.h>
+#include <datetime/engine-eds.h>
+#include <datetime/myself.h>
 #include <datetime/planner-range.h>
 
 #include <gtest/gtest.h>
@@ -43,7 +44,7 @@ using VAlarmFixture = GlibFixture;
 TEST_F(VAlarmFixture, MissingTriggers)
 {
     // start the EDS engine
-    auto engine = std::make_shared<EdsEngine>();
+    auto engine = std::make_shared<EdsEngine>(std::make_shared<Myself>());
 
     // we need a consistent timezone for the planner and our local DateTimes
     constexpr char const * zone_str {"America/Chicago"};
@@ -62,7 +63,7 @@ TEST_F(VAlarmFixture, MissingTriggers)
     // make a planner that looks at the first half of 2015 in EDS
     auto planner = std::make_shared<SimpleRangePlanner>(engine, tz);
     const DateTime range_begin {gtz, 2015,1, 1, 0, 0, 0.0};
-    const DateTime range_end   {gtz, 2015,6,30,23,59,59.5};
+    const DateTime range_end   {gtz, 2015,7,1,23,59,59.5};
     planner->range().set(std::make_pair(range_begin, range_end));
 
     // give EDS a moment to load

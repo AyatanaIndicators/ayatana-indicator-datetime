@@ -23,7 +23,6 @@
 #include <datetime/settings.h>
 #include <datetime/timezones.h>
 #include <datetime/timezone-geoclue.h>
-#include <datetime/timezone-timedated.h>
 
 #include <memory> // shared_ptr<>
 
@@ -38,13 +37,13 @@ namespace datetime {
 class LiveTimezones: public Timezones
 {
 public:
-    LiveTimezones(const std::shared_ptr<const Settings>& settings);
+    LiveTimezones(const std::shared_ptr<const Settings>& settings, const std::shared_ptr<Timezone>& primary_timezone);
 
 private:
     void update_geolocation();
     void update_timezones();
 
-    TimedatedTimezone m_file;
+    std::shared_ptr<Timezone> m_primary_timezone;
     std::shared_ptr<const Settings> m_settings;
     std::shared_ptr<GeoclueTimezone> m_geo;
 };

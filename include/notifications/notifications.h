@@ -50,6 +50,8 @@ public:
 
     void set_icon_name (const std::string& icon_name);
 
+    void set_start_time(uint64_t time);
+
     /* Set an interval, after which the notification will automatically
        be closed. If not set, the notification server's default timeout
        is used. */
@@ -62,14 +64,25 @@ public:
     static constexpr char const * HINT_NONSHAPED_ICON {"x-canonical-non-shaped-icon"};
     static constexpr char const * HINT_AFFIRMATIVE_HINT {"x-canonical-private-affirmative-tint"};
     static constexpr char const * HINT_REJECTION_TINT {"x-canonical-private-rejection-tint"};
+    static constexpr char const * HINT_INTERACTIVE {"x-canonical-switch-to-application"};
 
     /* Add an action button.
        This may fail if the Engine doesn't support actions.
        @see Engine::supports_actions() */
     void add_action (const std::string& action, const std::string& label);
 
-    /** Sets the closed callback. This will be called exactly once. */
+    /** Sets the closed callback. This will be called exactly once. After notification disappears */
     void set_closed_callback (std::function<void(const std::string& action)>);
+
+    /** Sets the time-out callback. This will be called exactly once. */
+    void set_timeout_callback (std::function<void()>);
+
+    /** Sets if a notification bubble should be displayed. */
+    void set_show_notification_bubble (bool show);
+
+    /** Sets if notification should be posted to messaging menu after it is closed. */
+    void set_post_to_messaging_menu (bool post);
+
 
 private:
     friend class Engine;

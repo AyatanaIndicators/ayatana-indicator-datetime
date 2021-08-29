@@ -20,9 +20,9 @@
 #ifndef INDICATOR_DATETIME_TIMEDATED_TIMEZONE_H
 #define INDICATOR_DATETIME_TIMEDATED_TIMEZONE_H
 
-#define DEFAULT_FILENAME "/etc/timezone"
-
 #include <datetime/timezone.h> // base class
+
+#include <gio/gio.h> // GDBusConnection*
 
 #include <string> // std::string
 
@@ -31,12 +31,12 @@ namespace indicator {
 namespace datetime {
 
 /**
- * \brief A #Timezone that gets its information from monitoring a file, such as /etc/timezone
+ * \brief A #Timezone that gets its information from org.freedesktop.timedate1
  */
 class TimedatedTimezone: public Timezone
 {
 public:
-    TimedatedTimezone(std::string filename = DEFAULT_FILENAME);
+    TimedatedTimezone(GDBusConnection* connection);
     ~TimedatedTimezone();
 
 private:

@@ -68,7 +68,9 @@ public:
     int64_t to_unix() const;
 
     bool operator<(const DateTime& that) const;
+    bool operator>(const DateTime& that) const;
     bool operator<=(const DateTime& that) const;
+    bool operator>=(const DateTime& that) const;
     bool operator!=(const DateTime& that) const;
     bool operator==(const DateTime& that) const;
     int64_t operator- (const DateTime& that) const;

@@ -25,6 +25,8 @@
     #include <libaccounts-glib/accounts-glib.h>
 #endif
 
+#include <libaccounts-glib/ag-account.h>
+
 #include <algorithm>
 
 namespace ayatana {

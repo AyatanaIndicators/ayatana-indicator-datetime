@@ -34,14 +34,10 @@ public:
     explicit MockActions(const std::shared_ptr<State>& state_in): Actions(state_in) {}
     ~MockActions() =default;
 
-    enum Action { DesktopOpenAlarmApp,
-                  DesktopOpenAppt,
-                  DesktopOpenCalendarApp,
-                  DesktopOpenSettingsApp,
-                  PhoneOpenAlarmApp,
-                  PhoneOpenAppt,
-                  PhoneOpenCalendarApp,
-                  PhoneOpenSettingsApp,
+    enum Action { OpenAlarmApp,
+                  OpenAppt,
+                  OpenCalendarApp,
+                  OpenSettingsApp,
                   SetLocation };
 
     const std::vector<Action>& history() const { return m_history; }
@@ -54,34 +50,20 @@ public:
     bool desktop_has_calendar_app() const {
         return m_desktop_has_calendar_app;
     }
-    void desktop_open_alarm_app() {
-        m_history.push_back(DesktopOpenAlarmApp);
+    void open_alarm_app() {
+        m_history.push_back(OpenAlarmApp);
     }
-    void desktop_open_appointment(const Appointment& appt) {
+    void open_appointment(const Appointment& appt, const DateTime& dt) {
         m_appt = appt;
-        m_history.push_back(DesktopOpenAppt);
-    }
-    void desktop_open_calendar_app(const DateTime& dt) {
         m_date_time = dt;
-        m_history.push_back(DesktopOpenCalendarApp);
+        m_history.push_back(OpenAppt);
     }
-    void desktop_open_settings_app() {
-        m_history.push_back(DesktopOpenSettingsApp);
-    }
-
-    void phone_open_alarm_app() {
-        m_history.push_back(PhoneOpenAlarmApp);
-    }
-    void phone_open_appointment(const Appointment& appt) {
-        m_appt = appt;
-        m_history.push_back(PhoneOpenAppt);
-    }
-    void phone_open_calendar_app(const DateTime& dt) {
+    void open_calendar_app(const DateTime& dt) {
         m_date_time = dt;
-        m_history.push_back(PhoneOpenCalendarApp);
+        m_history.push_back(OpenCalendarApp);
     }
-    void phone_open_settings_app() {
-        m_history.push_back(PhoneOpenSettingsApp);
+    void open_settings_app() {
+        m_history.push_back(OpenSettingsApp);
     }
 
     void set_location(const std::string& zone_, const std::string& name_) {

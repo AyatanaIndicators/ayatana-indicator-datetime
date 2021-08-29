@@ -25,11 +25,14 @@ namespace ayatana {
 namespace indicator {
 namespace datetime {
 
-LiveTimezones::LiveTimezones(const std::shared_ptr<const Settings>& settings):
-    m_file(),
+LiveTimezones::LiveTimezones(
+    const std::shared_ptr<const Settings>& settings,
+    const std::shared_ptr<Timezone>& primary_timezone
+):
+    m_primary_timezone(primary_timezone),
     m_settings(settings)
 {
-    m_file.timezone.changed().connect([this](const std::string&){update_timezones();});
+    m_primary_timezone->timezone.changed().connect([this](const std::string&){update_timezones();});
 
     m_settings->show_detected_location.changed().connect([this](bool){update_geolocation();});
     update_geolocation();
@@ -53,7 +56,7 @@ void LiveTimezones::update_geolocation()
 
 void LiveTimezones::update_timezones()
 {
-    const auto a = m_file.timezone.get();
+    const auto a = m_primary_timezone->timezone.get();
     const auto b = m_geo ? m_geo->timezone.get() : "";
 
     timezone.set(a.empty() ? b : a);
