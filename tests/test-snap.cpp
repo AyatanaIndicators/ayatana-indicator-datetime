@@ -347,8 +347,8 @@ protected:
     while (((system_bus != nullptr) || (session_bus != nullptr)) && (cleartry < 50))
       {
         g_usleep(100000);
-        while (g_main_pending())
-          g_main_iteration(true);
+        while (g_main_context_pending(nullptr))
+          g_main_context_iteration(nullptr, true);
         cleartry++;
       }
 
