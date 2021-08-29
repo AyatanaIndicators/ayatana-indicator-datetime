@@ -1,6 +1,6 @@
 find_package(GMock REQUIRED)
 
-SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -no-pie -std=c++11 ${COMPILE_FLAGS}")
+SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ${COMPILE_FLAGS}")
 
 # dbustest
 pkg_check_modules(DBUSTEST REQUIRED
@@ -39,6 +39,7 @@ function(add_test_by_name name)
   set (TEST_NAME ${name})
   set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME} PARENT_SCOPE)
   add_executable (${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
+  target_link_options(${TEST_NAME} PRIVATE -no-pie)
   add_test (${TEST_NAME} ${TEST_NAME})
   target_link_libraries (${TEST_NAME} indicatordatetimeservice ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 endfunction()
@@ -75,6 +76,7 @@ if(HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS)
   set (TEST_NAME manual-test-snap)
   set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME})
   add_executable (${TEST_NAME} ${TEST_NAME}.cpp)
+  target_link_options(${TEST_NAME} PRIVATE -no-pie)
   target_link_libraries (${TEST_NAME} indicatordatetimeservice ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 endif()
 
@@ -90,6 +92,7 @@ function(add_eds_ics_test_by_name name)
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.ics.in"
                  "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.ics")
   add_executable(${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
+  target_link_options(${TEST_NAME} PRIVATE -no-pie)
   target_link_libraries (${TEST_NAME} indicatordatetimeservice ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
   add_test (${TEST_NAME}
             ${CMAKE_CURRENT_SOURCE_DIR}/run-eds-ics-test.sh
