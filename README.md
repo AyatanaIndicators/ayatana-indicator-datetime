@@ -35,7 +35,7 @@ https://ayatana-indicators.org
 When using the -datetime Ayatana Indicator, make sure that the -datetime
 Ubuntu Indicator (package name: indicator-datetime) is not installed.
 
-## The Session Ayatana System Indicator
+## The Datetime Ayatana System Indicator
 
 ### Actions
 
