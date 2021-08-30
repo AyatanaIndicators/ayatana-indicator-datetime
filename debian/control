@@ -19,6 +19,7 @@ Build-Depends: cmake,
                accountsservice-ubuntu-schemas | hello,
                libproperties-cpp-dev,
                liblomiri-url-dispatcher-dev | hello,
+               libmessaging-menu-dev,
 # for the test harness:
                libgtest-dev <!nocheck>,
                libdbustest1-dev <!nocheck>,
