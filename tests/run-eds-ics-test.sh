@@ -71,5 +71,3 @@ rv=$?
 if [ $rv -eq 0 ]; then
     rm -rf $TEST_TMP_DIR
 fi
-
-return $rv

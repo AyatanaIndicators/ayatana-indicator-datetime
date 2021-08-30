@@ -50,20 +50,28 @@ public:
     bool desktop_has_calendar_app() const {
         return m_desktop_has_calendar_app;
     }
-    void open_alarm_app() {
+    std::string open_alarm_app() {
         m_history.push_back(OpenAlarmApp);
+
+        return "";
     }
-    void open_appointment(const Appointment& appt, const DateTime& dt) {
+    std::string open_appointment(const Appointment& appt, const DateTime& dt) {
         m_appt = appt;
         m_date_time = dt;
         m_history.push_back(OpenAppt);
+
+        return "";
     }
-    void open_calendar_app(const DateTime& dt) {
+    std::string open_calendar_app(const DateTime& dt) {
         m_date_time = dt;
         m_history.push_back(OpenCalendarApp);
+
+        return "";
     }
-    void open_settings_app() {
+    std::string open_settings_app() {
         m_history.push_back(OpenSettingsApp);
+
+        return "";
     }
 
     void set_location(const std::string& zone_, const std::string& name_) {

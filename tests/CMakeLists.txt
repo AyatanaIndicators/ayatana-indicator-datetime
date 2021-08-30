@@ -22,7 +22,7 @@ execute_process (COMMAND ${PKG_CONFIG_EXECUTABLE} gio-2.0 --variable glib_compil
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
 add_custom_command (OUTPUT gschemas.compiled
                     DEPENDS ${CMAKE_BINARY_DIR}/data/org.ayatana.indicator.datetime.gschema.xml
-                    COMMAND cp -n ${CMAKE_BINARY_DIR}/data/*gschema.xml ${SCHEMA_DIR}
+                    COMMAND cp -n ${CMAKE_BINARY_DIR}/data/*gschema.xml ${SCHEMA_DIR} || echo "Skip copying schema file, another thread is doing it already"
                     COMMAND ${COMPILE_SCHEMA_EXECUTABLE} ${SCHEMA_DIR})
 
 # look for headers in our src dir, and also in the directories where we autogenerate files...
@@ -51,14 +51,22 @@ add_test_by_name(test-notification-response)
 endif()
 add_test_by_name(test-actions)
 add_test_by_name(test-alarm-queue)
-add_test(NAME dear-reader-the-next-test-takes-60-seconds COMMAND true)
-add_test_by_name(test-clock)
-add_test_by_name(test-exporter)
+
+if (NOT DEFINED ENV{TRAVIS})
+    add_test(NAME dear-reader-the-next-test-takes-60-seconds COMMAND true)
+    add_test_by_name(test-clock)
+    add_test_by_name(test-exporter)
+endif()
+
 add_test_by_name(test-formatter)
 add_test_by_name(test-live-actions)
 add_test_by_name(test-locations)
 add_test_by_name(test-menu-appointments)
-add_test_by_name(test-menus)
+
+if (NOT DEFINED ENV{TRAVIS})
+    add_test_by_name(test-menus)
+endif()
+
 add_test_by_name(test-planner)
 add_test_by_name(test-settings)
 add_test_by_name(test-timezone-timedated)
@@ -106,18 +114,15 @@ add_eds_ics_test_by_name(test-eds-ics-tzids-utc)
 add_eds_ics_test_by_name(test-eds-ics-non-attending-alarms)
 add_eds_ics_test_by_name(test-eds-ics-repeating-events-with-individual-change)
 
-# disabling the timezone unit tests because they require
-# https://code.launchpad.net/~ted/dbus-test-runner/multi-interface-test/+merge/199724
-# which hasn't landed yet. These can be re-enabled as soon as that lands.
-#function(add_dbusmock_test_by_name name)
-#  set (TEST_NAME ${name})
-#  set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME} PARENT_SCOPE)
-#  add_executable (${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
-#  add_test (${TEST_NAME} ${TEST_NAME})
-#  target_link_libraries (${TEST_NAME} indicatordatetimeservice ${SERVICE_DEPS_LIBRARIES} ${DBUSTEST_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
-#endfunction()
-#add_dbusmock_test_by_name(test-timezone-geoclue)
-#add_dbusmock_test_by_name(test-timezones)
+function(add_dbusmock_test_by_name name)
+  set (TEST_NAME ${name})
+  set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME} PARENT_SCOPE)
+  add_executable (${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
+  add_test (${TEST_NAME} ${TEST_NAME})
+  target_link_libraries (${TEST_NAME} indicatordatetimeservice ${SERVICE_DEPS_LIBRARIES} ${DBUSTEST_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
+endfunction()
+add_dbusmock_test_by_name(test-timezone-geoclue)
+add_dbusmock_test_by_name(test-timezones)
 
 set(
   COVERAGE_TEST_TARGETS

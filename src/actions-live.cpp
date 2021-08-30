@@ -46,52 +46,70 @@ LiveActions::LiveActions(const std::shared_ptr<State>& state_in):
 ****
 ***/
 
-void LiveActions::open_alarm_app()
+std::string LiveActions::open_alarm_app()
 {
+    std::string sReturn = "";
+
     if (ayatana_common_utils_is_lomiri())
     {
-        ayatana_common_utils_open_url("alarm://");
+        sReturn = "alarm://";
+        ayatana_common_utils_open_url(sReturn.c_str());
     }
     else
     {
-        ayatana_common_utils_execute_command("evolution -c calendar");
+        sReturn = "evolution -c calendar";
+        ayatana_common_utils_execute_command(sReturn.c_str());
     }
+
+    return sReturn;
 }
 
-void LiveActions::open_calendar_app(const DateTime& dt)
+std::string LiveActions::open_calendar_app(const DateTime& dt)
 {
+    std::string sReturn = "";
+
     if (ayatana_common_utils_is_lomiri())
     {
         const auto utc = dt.to_timezone("UTC");
-        auto cmd = utc.format("calendar://startdate=%Y-%m-%dT%H:%M:%S+00:00");
-        ayatana_common_utils_open_url(cmd.c_str());
+        sReturn = utc.format("calendar://startdate=%Y-%m-%dT%H:%M:%S+00:00");
+        ayatana_common_utils_open_url(sReturn.c_str());
     }
     else
     {
         const auto utc = dt.start_of_day().to_timezone("UTC");
-        auto cmd = utc.format("evolution \"calendar:///?startdate=%Y%m%dT%H%M%SZ\"");
-        ayatana_common_utils_execute_command(cmd.c_str());
+        sReturn = utc.format("evolution \"calendar:///?startdate=%Y%m%dT%H%M%SZ\"");
+        ayatana_common_utils_execute_command(sReturn.c_str());
     }
+
+    return sReturn;
 }
 
-void LiveActions::open_settings_app()
+std::string LiveActions::open_settings_app()
 {
+    std::string sReturn = "";
+
     if (ayatana_common_utils_is_lomiri())
     {
-        ayatana_common_utils_open_url("settings:///system/time-date");
+        sReturn = "settings:///system/time-date";
+        ayatana_common_utils_open_url(sReturn.c_str());
     }
     else if (ayatana_common_utils_is_unity())
     {
-        ayatana_common_utils_execute_command("unity-control-center datetime");
+        sReturn = "unity-control-center datetime";
+        ayatana_common_utils_execute_command(sReturn.c_str());
     }
     else if (ayatana_common_utils_is_mate())
     {
-        ayatana_common_utils_execute_command("mate-time-admin");
+        sReturn = "mate-time-admin";
+        ayatana_common_utils_execute_command(sReturn.c_str());
     }
     else
     {
-        ayatana_common_utils_execute_command("gnome-control-center datetime");
+        sReturn = "gnome-control-center datetime";
+        ayatana_common_utils_execute_command(sReturn.c_str());
     }
+
+    return sReturn;
 }
 
 bool LiveActions::desktop_has_calendar_app() const
@@ -126,23 +144,28 @@ bool LiveActions::desktop_has_calendar_app() const
     return have_calendar;
 }
 
-void LiveActions::open_appointment(const Appointment& appt, const DateTime& date)
+std::string LiveActions::open_appointment(const Appointment& appt, const DateTime& date)
 {
+    std::string sReturn = "";
+
     if (!appt.activation_url.empty())
     {
-        ayatana_common_utils_open_url(appt.activation_url.c_str());
+        sReturn = appt.activation_url;
+        ayatana_common_utils_open_url(sReturn.c_str());
     }
     else switch (appt.type)
     {
         case Appointment::UBUNTU_ALARM:
-            open_alarm_app();
+            sReturn = open_alarm_app();
             break;
 
         case Appointment::EVENT:
         default:
-            open_calendar_app(date);
+            sReturn = open_calendar_app(date);
             break;
     }
+
+    return sReturn;
 }
 
 /***
