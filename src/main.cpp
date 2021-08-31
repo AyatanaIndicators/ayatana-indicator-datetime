@@ -151,7 +151,7 @@ main(int /*argc*/, char** /*argv*/)
     // set up the snap decisions
     auto snooze_planner = std::make_shared<SnoozePlanner>(state->settings, state->clock);
     auto notification_engine = std::make_shared<ain::Engine>("ayatana-indicator-datetime-service");
-    auto sound_builder = std::make_shared<uin::DefaultSoundBuilder>();
+    auto sound_builder = std::make_shared<ain::DefaultSoundBuilder>();
     std::unique_ptr<Snap> snap (new Snap(notification_engine, sound_builder, state->settings, system_bus));
     auto alarm_queue = create_simple_alarm_queue(state->clock, snooze_planner, engine, timezone_);
     auto on_response = [snooze_planner, actions](const Appointment& appointment, const Alarm& alarm, const Snap::Response& response) {

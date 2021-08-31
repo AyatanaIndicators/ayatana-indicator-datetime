@@ -300,6 +300,7 @@ private:
     }
 
     const std::shared_ptr<ayatana::indicator::notifications::Engine> m_engine;
+    const std::shared_ptr<ayatana::indicator::notifications::SoundBuilder> m_sound_builder;
     const std::shared_ptr<const Settings> m_settings;
     std::set<int> m_notifications;
     GCancellable * m_cancellable {nullptr};
