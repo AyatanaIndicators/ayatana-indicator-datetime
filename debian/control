@@ -20,6 +20,7 @@ Build-Depends: cmake,
                libproperties-cpp-dev,
                liblomiri-url-dispatcher-dev | hello,
                libmessaging-menu-dev,
+               uuid-dev,
 # for the test harness:
                libgtest-dev <!nocheck>,
                libdbustest1-dev <!nocheck>,
