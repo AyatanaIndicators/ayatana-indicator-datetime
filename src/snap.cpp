@@ -116,7 +116,7 @@ public:
             const auto uri = get_alarm_uri(appointment, alarm, m_settings);
             const auto volume = m_settings->alarm_volume.get();
             const bool loop = interactive;
-            sound = std::make_shared<ain::Sound>(role, uri, volume, loop);
+            sound = m_sound_builder->create(role, uri, volume, loop);
         }
 
         // create the haptic feedback...
