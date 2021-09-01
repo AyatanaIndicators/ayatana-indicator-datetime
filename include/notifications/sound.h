@@ -53,6 +53,28 @@ private:
 ****
 ***/
 
+class SoundBuilder
+{
+public:
+    SoundBuilder() =default;
+    virtual ~SoundBuilder() =default;
+    virtual std::shared_ptr<Sound> create(const std::string& role, const std::string& uri, unsigned int volume, bool loop) =0;
+};
+
+class DefaultSoundBuilder: public SoundBuilder
+{
+public:
+    DefaultSoundBuilder() =default;
+    ~DefaultSoundBuilder() =default;
+    virtual std::shared_ptr<Sound> create(const std::string& role, const std::string& uri, unsigned int volume, bool loop) override {
+        return std::make_shared<Sound>(role, uri, volume, loop);
+    }
+};
+
+/***
+****
+***/
+
 } // namespace notifications
 } // namespace indicator
 } // namespace ayatana
