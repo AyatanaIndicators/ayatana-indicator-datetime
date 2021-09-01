@@ -19,11 +19,6 @@
 
 #include <datetime/settings-live.h>
 
-extern "C"
-{
-    #include <ayatana/common/utils.h>
-}
-
 namespace ayatana {
 namespace indicator {
 namespace datetime {
@@ -65,7 +60,10 @@ LiveSettings::LiveSettings():
     update_alarm_haptic();
     update_snooze_duration();
 
-    if (ayatana_common_utils_is_lomiri())
+    GSettingsSchemaSource *pSource = g_settings_schema_source_get_default();
+    GSettingsSchema *pSchema = g_settings_schema_source_lookup(pSource, SETTINGS_NOTIFY_SCHEMA_ID, TRUE);
+
+    if (pSchema != NULL)
     {
         m_settings_cal_notification = g_settings_new_with_path(SETTINGS_NOTIFY_SCHEMA_ID, SETTINGS_NOTIFY_CALENDAR_PATH);
         m_settings_general_notification = g_settings_new(SETTINGS_NOTIFY_APPS_SCHEMA_ID);
