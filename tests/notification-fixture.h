@@ -78,7 +78,7 @@ protected:
   static constexpr char const * HINT_TIMEOUT {"x-canonical-snap-decisions-timeout"};
 
   static constexpr char const * AS_BUSNAME            {"org.freedesktop.Accounts"};
-  static constexpr char const * AS_INTERFACE          {"com.lomiri.touch.AccountsService.Sound"};
+  static constexpr char const * AS_INTERFACE          {"com.ubuntu.touch.AccountsService.Sound"};
   static constexpr char const * PROP_OTHER_VIBRATIONS {"OtherVibrate"};
   static constexpr char const * PROP_SILENT_MODE      {"SilentMode"};
 
@@ -112,7 +112,7 @@ protected:
     appt.end = christmas.end_of_day();
     appt.alarms.push_back(ayatana::indicator::datetime::Alarm{"Ho Ho Ho!", CALENDAR_DEFAULT_SOUND, appt.begin});
 
-    // init a Lomiri Alarm
+    // init an Ubuntu Alarm
     ualarm.color = "red";
     ualarm.summary = "Wakeup";
     ualarm.uid = "E4B57D50247291478ED31DED17FF0A9838DED403";
