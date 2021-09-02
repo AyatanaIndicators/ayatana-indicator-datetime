@@ -51,10 +51,10 @@ add_test_by_name(test-notification-response)
 endif()
 add_test_by_name(test-actions)
 add_test_by_name(test-alarm-queue)
+add_test(NAME dear-reader-the-next-test-takes-60-seconds COMMAND true)
+add_test_by_name(test-clock)
 
-if (NOT DEFINED ENV{TRAVIS})
-    add_test(NAME dear-reader-the-next-test-takes-60-seconds COMMAND true)
-    add_test_by_name(test-clock)
+if (NOT DEFINED ENV{CI})
     add_test_by_name(test-exporter)
 endif()
 
@@ -63,7 +63,7 @@ add_test_by_name(test-live-actions)
 add_test_by_name(test-locations)
 add_test_by_name(test-menu-appointments)
 
-if (NOT DEFINED ENV{TRAVIS})
+if (NOT DEFINED ENV{CI})
     add_test_by_name(test-menus)
 endif()
 
