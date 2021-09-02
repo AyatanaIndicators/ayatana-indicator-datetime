@@ -77,6 +77,7 @@ requires:
     - clang
     - clang-tools
     - g++
+    - cppcheck
     - git
     - cmake
     - cmake-extras
@@ -98,12 +99,26 @@ requires:
 #    - libmessaging-menu-dev
     - gtk-doc-tools
     - libaccountsservice-dev
+# for the test harness:
+    - libgtest-dev
+    - libdbustest1-dev
+    - dbus-test-runner
+    - python3-dbusmock
+# for 12h/24h locale unit tests:
+    - locales
+# for running live EDS tests:
+    - evolution-data-server
+    - gvfs-daemons
+    - systemd
+    - lcov
+    - gcovr
 
   ubuntu:focal:
     - autopoint
     - clang
     - clang-tools
     - g++
+    - cppcheck
     - git
     - cmake
     - cmake-extras
@@ -125,6 +140,19 @@ requires:
 #    - libmessaging-menu-dev
     - gtk-doc-tools
     - libaccountsservice-dev
+# for the test harness:
+    - libgtest-dev
+    - libdbustest1-dev
+    - dbus-test-runner
+    - python3-dbusmock
+# for 12h/24h locale unit tests:
+    - locales
+# for running live EDS tests:
+    - evolution-data-server
+    - gvfs-daemons
+    - systemd
+    - lcov
+    - gcovr
 
 variables:
   - 'CHECKERS="
