@@ -69,5 +69,6 @@ rv=$?
 
 # if the test passed, blow away the tmpdir
 if [ $rv -eq 0 ]; then
-    rm -rfd $TEST_TMP_DIR
+    sleep 5
+    rm -rf $TEST_TMP_DIR
 fi
