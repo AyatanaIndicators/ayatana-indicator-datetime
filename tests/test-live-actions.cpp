@@ -113,12 +113,24 @@ TEST_F(TestLiveActionsFixture, SetLocation)
 TEST_F(TestLiveActionsFixture, DesktopOpenAlarmApp)
 {
     std::string sReturn = m_actions->open_alarm_app();
-    const std::string expected = "evolution -c calendar";
+    std::string expected = "evolution -c calendar";
+
+    if (ayatana_common_utils_is_lomiri())
+    {
+        expected = "alarm://";
+    }
+
     EXPECT_EQ(expected, sReturn);
 }
 
 TEST_F(TestLiveActionsFixture, DesktopOpenAppointment)
 {
+    if (ayatana_common_utils_is_lomiri())
+    {
+        // PhoneOpenAppointment will handle this
+        return;
+    }
+
     Appointment a;
     a.uid = "some-uid";
     a.begin = DateTime::NowLocal();
@@ -129,6 +141,12 @@ TEST_F(TestLiveActionsFixture, DesktopOpenAppointment)
 
 TEST_F(TestLiveActionsFixture, DesktopOpenCalendarApp)
 {
+    if (ayatana_common_utils_is_lomiri())
+    {
+        // PhoneOpenCalendarApp will handle this
+        return;
+    }
+
     std::string sReturn = m_actions->open_calendar_app(DateTime::NowLocal());
     const std::string expected_substr = "evolution \"calendar:///?startdate=";
     EXPECT_NE(sReturn.find(expected_substr), std::string::npos);
@@ -146,6 +164,10 @@ TEST_F(TestLiveActionsFixture, DesktopOpenSettingsApp)
     else if (ayatana_common_utils_is_mate())
     {
         expected_substr = "mate-time-admin";
+    }
+    else if (ayatana_common_utils_is_lomiri())
+    {
+        expected_substr = "settings:///system/time-date";
     }
 
     EXPECT_EQ(expected_substr, sReturn);
