@@ -19,7 +19,6 @@ Build-Depends: cmake,
                accountsservice-ubuntu-schemas | hello,
                libproperties-cpp-dev,
                liblomiri-url-dispatcher-dev | hello,
-               ubuntu-touch-sounds | hello,
                libmessaging-menu-dev,
                uuid-dev,
 # for the test harness:
