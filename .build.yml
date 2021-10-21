@@ -186,8 +186,7 @@ before_scripts:
   -     git clone --depth 1  https://github.com/AyatanaIndicators/ayatana-indicator-messages.git ayatana-indicator-messages-build
   - fi
   - cd ayatana-indicator-messages-build
-  - NOCONFIGURE=1 ./autogen.sh
-  - ./configure --disable-tests --prefix=/usr
+  - cmake . -DCMAKE_INSTALL_PREFIX=/usr
   - make
   - make install
 
