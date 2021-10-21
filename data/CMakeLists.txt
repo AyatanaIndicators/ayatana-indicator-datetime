@@ -9,8 +9,9 @@ set (SCHEMA_FILE       "${CMAKE_CURRENT_BINARY_DIR}/${SCHEMA_NAME}")
 # generate the .xml.in file so cmake constants are included
 configure_file(${SCHEMA_FILE_IN_IN} ${SCHEMA_FILE_IN})
 # generate the .xml file using intltool
+find_package(Intltool REQUIRED)
 set (ENV{LC_ALL} "C")
-execute_process (COMMAND intltool-merge -quiet --xml-style --utf8 --no-translations "${SCHEMA_FILE_IN}" "${SCHEMA_FILE}")
+intltool_merge_translations("${SCHEMA_FILE_IN}" "${SCHEMA_FILE}" ALL UTF8 STYLE "xml" NO_TRANSLATIONS)
 
 # let GSettings do the rest
 find_package(GSettings REQUIRED)
