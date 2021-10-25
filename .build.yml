@@ -212,13 +212,9 @@ build_scripts:
   -     fi
   -     scan-build $CHECKERS --keep-cc -o html-report make
   - fi
-
-after_scripts:
-  - if [ ${BUILD_TYPE} == "scripts" ];then
-  -     XVFB_RUN="$(which xvfb-run || true)"
-  -     if [ ${DISTRO_NAME} == "debian" ] || [ ${DISTRO_NAME} == "ubuntu" ];then
-  -         if [ -e ./CMakeLists.txt ]; then
-  -             ${XVFB_RUN} make test
-  -         fi
+  - XVFB_RUN="$(which xvfb-run || true)"
+  - if [ ${DISTRO_NAME} == "debian" ] || [ ${DISTRO_NAME} == "ubuntu" ];then
+  -     if [ -e ./CMakeLists.txt ]; then
+  -         ${XVFB_RUN} make test
   -     fi
   - fi
