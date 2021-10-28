@@ -1,5 +1,6 @@
 /*
  * Copyright 2014 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #ifdef HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS
@@ -91,7 +93,7 @@ public:
                     response_func on_response)
     {
         // If calendar notifications are disabled, don't show them
-        if (!appointment.is_ubuntu_alarm() && !calendar_notifications_are_enabled()) {
+        if (!appointment.is_alarm() && !calendar_notifications_are_enabled()) {
             g_debug("Skipping disabled calendar event '%s' notification", appointment.summary.c_str());
             return;
         }
@@ -100,19 +102,19 @@ public:
            Alarms should require manual intervention to dismiss.
            Calendar events are less urgent and shouldn't require manual
            intervention and shouldn't loop the sound. */
-        const bool interactive = appointment.is_ubuntu_alarm() && m_engine->supports_actions();
+        const bool interactive = appointment.is_alarm() && m_engine->supports_actions();
 
         // force the system to stay awake
         std::shared_ptr<ain::Awake> awake;
-        if (appointment.is_ubuntu_alarm() || calendar_bubbles_enabled() || calendar_list_enabled()) {
+        if (appointment.is_alarm() || calendar_bubbles_enabled() || calendar_list_enabled()) {
             awake = std::make_shared<ain::Awake>(m_system_bus, m_engine->app_name());
         }
 
         // calendar events are muted in silent mode; alarm clocks never are
         std::shared_ptr<ain::Sound> sound;
-        if (appointment.is_ubuntu_alarm() || (calendar_sounds_enabled() && !silent_mode())) {
+        if (appointment.is_alarm() || (calendar_sounds_enabled() && !silent_mode())) {
             // create the sound.
-            const auto role = appointment.is_ubuntu_alarm() ? "alarm" : "alert";
+            const auto role = appointment.is_alarm() ? "alarm" : "alert";
             const auto uri = get_alarm_uri(appointment, alarm, m_settings);
             const auto volume = m_settings->alarm_volume.get();
             const bool loop = interactive;
@@ -121,12 +123,12 @@ public:
 
         // create the haptic feedback...
         std::shared_ptr<ain::Haptic> haptic;
-        if (should_vibrate() && (appointment.is_ubuntu_alarm() || calendar_vibrations_enabled())) {
+        if (should_vibrate() && (appointment.is_alarm() || calendar_vibrations_enabled())) {
             // when in silent mode should only vibrate if user defined so
             if (!silent_mode() || vibrate_in_silent_mode_enabled()) {
                 const auto haptic_mode = m_settings->alarm_haptic.get();
                 if (haptic_mode == "pulse")
-                    haptic = std::make_shared<ain::Haptic>(ain::Haptic::MODE_PULSE, appointment.is_ubuntu_alarm());
+                    haptic = std::make_shared<ain::Haptic>(ain::Haptic::MODE_PULSE, appointment.is_alarm());
             }
         }
 
@@ -134,7 +136,7 @@ public:
         const auto minutes = std::chrono::minutes(m_settings->alarm_duration.get());
         ain::Builder b;
         b.set_body (appointment.summary);
-        b.set_icon_name (appointment.is_ubuntu_alarm() ? "alarm-clock" : "calendar-app");
+        b.set_icon_name (appointment.is_alarm() ? "alarm-clock" : "calendar-app");
         b.add_hint (ain::Builder::HINT_NONSHAPED_ICON);
         b.set_start_time (appointment.begin.to_unix());
 
@@ -151,7 +153,7 @@ public:
         const auto timestr = appointment.begin.format(timefmt);
 
         const char * titlefmt;
-        if (appointment.is_ubuntu_alarm()) {
+        if (appointment.is_alarm()) {
             titlefmt = _("Alarm %s");
         } else {
             titlefmt = _("Event %s");
@@ -176,7 +178,7 @@ public:
         b.set_closed_callback([appointment, alarm, on_response, sound, awake, haptic]
                               (const std::string& action){
             Snap::Response response;
-            if ((action == ACTION_SNOOZE) || (appointment.is_ubuntu_alarm() && action.empty()))
+            if ((action == ACTION_SNOOZE) || (appointment.is_alarm() && action.empty()))
                 response = Snap::Response::Snooze;
             else if (action == ACTION_SHOW_APP)
                 response = Snap::Response::ShowApp;
@@ -187,14 +189,14 @@ public:
         });
 
         //TODO: we need to extend it to support alarms appointments
-        if (!appointment.is_ubuntu_alarm()) {
+        if (!appointment.is_alarm()) {
             b.set_timeout_callback([appointment, alarm, on_response](){
                 on_response(appointment, alarm, Snap::Response::ShowApp);
             });
         }
 
-        b.set_show_notification_bubble(appointment.is_ubuntu_alarm() || calendar_bubbles_enabled());
-        b.set_post_to_messaging_menu(appointment.is_ubuntu_alarm() || calendar_list_enabled());
+        b.set_show_notification_bubble(appointment.is_alarm() || calendar_bubbles_enabled());
+        b.set_post_to_messaging_menu(appointment.is_alarm() || calendar_list_enabled());
 
         const auto key = m_engine->show(b);
         if (key)
@@ -268,7 +270,7 @@ private:
                               const Alarm& alarm,
                               const std::shared_ptr<const Settings>& settings) const
     {
-        const auto is_alarm = appointment.is_ubuntu_alarm();
+        const auto is_alarm = appointment.is_alarm();
         const std::string candidates[] = {
             alarm.audio_url,
             is_alarm ? settings->alarm_sound.get() : settings->calendar_sound.get(),

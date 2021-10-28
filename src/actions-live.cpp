@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <datetime/dbus-shared.h>
@@ -155,7 +157,7 @@ std::string LiveActions::open_appointment(const Appointment& appt, const DateTim
     }
     else switch (appt.type)
     {
-        case Appointment::UBUNTU_ALARM:
+        case Appointment::ALARM:
             sReturn = open_alarm_app();
             break;
 

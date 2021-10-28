@@ -1,5 +1,6 @@
 /*
  * Copyright 2016 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include "glib-fixture.h"
@@ -51,7 +53,7 @@ namespace
 TEST_F(MenuAppointmentFixture, DisplayEvents)
 {
     const auto airport = create_appointment(
-        Appointment::UBUNTU_ALARM,
+        Appointment::ALARM,
         "uid-airport",
         "Pick Aunt Mabel up at the airport",
         DateTime::Local(2016,12,24,10,0,0),
@@ -75,7 +77,7 @@ TEST_F(MenuAppointmentFixture, DisplayEvents)
     );
 
     const auto santa = create_appointment(
-        Appointment::UBUNTU_ALARM,
+        Appointment::ALARM,
         "uid-santa",
         "Time to set out cookies and milk for Santa",
         DateTime::Local(2016,12,25,1,0,0),
@@ -83,7 +85,7 @@ TEST_F(MenuAppointmentFixture, DisplayEvents)
     );
 
     const auto bike = create_appointment(
-        Appointment::UBUNTU_ALARM,
+        Appointment::ALARM,
         "uid-bike",
         "Remember to put out the bike, it's in the garage",
         DateTime::Local(2016,12,25,1,0,0),
@@ -132,7 +134,7 @@ TEST_F(MenuAppointmentFixture, DisplayEvents)
     );
 
     const auto weekday_wakeup_alarm = create_appointment(
-        Appointment::UBUNTU_ALARM,
+        Appointment::ALARM,
         "wakeup-alarm",
         "Wake Up",
         DateTime::Local(2017,1,3,6,0,0),
@@ -172,7 +174,7 @@ TEST_F(MenuAppointmentFixture, DisplayEvents)
     );
 
     const auto pub_with_pawel = create_appointment(
-        Appointment::UBUNTU_ALARM,
+        Appointment::ALARM,
         "uid-pawel",
         "Meet Pawel at the Pub",
         DateTime::Local(2017,2,4,19,0,0),

@@ -82,7 +82,7 @@ TEST_F(VAlarmFixture, MissingTriggers)
     // build expected: one-time alarm
     std::vector<Appointment> expected;
     Appointment a;
-    a.type = Appointment::UBUNTU_ALARM;
+    a.type = Appointment::ALARM;
     a.uid = "20150617T211838Z-6217-32011-2036-1@ubuntu-phablet";
     a.color = "#becedd";
     a.summary = "One Time Alarm";

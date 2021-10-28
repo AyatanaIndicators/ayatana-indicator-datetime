@@ -1,5 +1,6 @@
 /*
  * Copyright 2014-2016 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <datetime/appointment.h>
@@ -93,10 +95,10 @@ TEST_F(NotificationFixture,Notification)
     std::set<Appointment::Type> expected_notify_called; // do we expect the notification to show?
     std::set<Appointment::Type> expected_vibrate_called; // do we expect the phone to vibrate?
   } test_cal_disabled[] = {
-    { true,  std::set<Appointment::Type>{ Appointment::Type::UBUNTU_ALARM, Appointment::Type::EVENT },
-             std::set<Appointment::Type>{ Appointment::Type::UBUNTU_ALARM, Appointment::Type::EVENT } },
-    { false, std::set<Appointment::Type>{ Appointment::Type::UBUNTU_ALARM },
-             std::set<Appointment::Type>{ Appointment::Type::UBUNTU_ALARM } }
+    { true,  std::set<Appointment::Type>{ Appointment::Type::ALARM, Appointment::Type::EVENT },
+             std::set<Appointment::Type>{ Appointment::Type::ALARM, Appointment::Type::EVENT } },
+    { false, std::set<Appointment::Type>{ Appointment::Type::ALARM },
+             std::set<Appointment::Type>{ Appointment::Type::ALARM } }
   };
 
   for (const auto& test_appt : test_appts)

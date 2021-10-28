@@ -1,5 +1,6 @@
 /*
  * Copyright 2014-2016 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #pragma once
@@ -112,11 +114,11 @@ protected:
     appt.end = christmas.end_of_day();
     appt.alarms.push_back(ayatana::indicator::datetime::Alarm{"Ho Ho Ho!", CALENDAR_DEFAULT_SOUND, appt.begin});
 
-    // init an Ubuntu Alarm
+    // init an Alarm
     ualarm.color = "red";
     ualarm.summary = "Wakeup";
     ualarm.uid = "E4B57D50247291478ED31DED17FF0A9838DED403";
-    ualarm.type = ayatana::indicator::datetime::Appointment::UBUNTU_ALARM;
+    ualarm.type = ayatana::indicator::datetime::Appointment::ALARM;
     const auto tomorrow = ayatana::indicator::datetime::DateTime::NowLocal().add_days(1);
     ualarm.begin = tomorrow;
     ualarm.end = tomorrow;

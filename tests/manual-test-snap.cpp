@@ -1,9 +1,11 @@
 
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -68,7 +70,7 @@ int main(int argc, const char* argv[])
     a.color = "green";
     a.summary = "Alarm";
     a.uid = "D4B57D50247291478ED31DED17FF0A9838DED402";
-    a.type = Appointment::UBUNTU_ALARM;
+    a.type = Appointment::ALARM;
     a.begin = DateTime::Local(2014, 12, 25, 0, 0, 0);
     a.end = a.begin.end_of_day();
     a.alarms.push_back(Alarm{"Alarm Text", "", a.begin});

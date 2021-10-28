@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include "state-mock.h"
@@ -205,7 +207,7 @@ TEST_F(TestLiveActionsFixture, PhoneOpenAppointment)
     const std::string appointment_app_url =  ocurrenceDate.to_timezone("UTC").format("calendar://startdate=%Y-%m-%dT%H:%M:%S+00:00");
     EXPECT_EQ(appointment_app_url, sReturn);
 
-    a.type = Appointment::UBUNTU_ALARM;
+    a.type = Appointment::ALARM;
     sReturn = m_actions->open_appointment(a, a.begin);
     EXPECT_EQ(clock_app_url, sReturn);
     unsetenv("XDG_CURRENT_DESKTOP");

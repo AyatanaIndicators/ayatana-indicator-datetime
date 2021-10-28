@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #ifndef INDICATOR_DATETIME_APPOINTMENT_H
@@ -51,9 +53,9 @@ struct Alarm
 struct Appointment
 {
 public:
-    enum Type { EVENT, UBUNTU_ALARM };
+    enum Type { EVENT, ALARM };
     Type type = EVENT;
-    bool is_ubuntu_alarm() const { return type == UBUNTU_ALARM; }
+    bool is_alarm() const { return type == ALARM; }
 
     std::string uid;
     std::string source_uid;

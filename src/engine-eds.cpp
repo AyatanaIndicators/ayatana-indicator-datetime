@@ -139,9 +139,9 @@ public:
         }
     }
 
-    void disable_ubuntu_alarm(const Appointment& appointment)
+    void disable_alarm(const Appointment& appointment)
     {
-        if (appointment.is_ubuntu_alarm())
+        if (appointment.is_alarm())
         {
             for (auto& kv : m_clients) // find the matching icalcomponent
             {
@@ -1081,7 +1081,7 @@ private:
         for (GSList * l=categ_list; l!=nullptr; l=l->next) {
             auto tag = static_cast<const char*>(l->data);
             if (!g_strcmp0(tag, TAG_ALARM))
-                baseline.type = Appointment::UBUNTU_ALARM;
+                baseline.type = Appointment::ALARM;
         }
         g_slist_free_full(categ_list, g_free);
 
@@ -1141,7 +1141,7 @@ private:
                 alarm.text = get_alarm_text(a);
 
             if (alarm.audio_url.empty())
-                alarm.audio_url = get_alarm_sound_url(a,  (baseline.is_ubuntu_alarm() ?
+                alarm.audio_url = get_alarm_sound_url(a,  (baseline.is_alarm() ?
                                                          "file://" ALARM_DEFAULT_SOUND :
                                                          "file://" CALENDAR_DEFAULT_SOUND));
 
@@ -1280,9 +1280,9 @@ void EdsEngine::get_appointments(const DateTime& begin,
     p->get_appointments(begin, end, tz, func);
 }
 
-void EdsEngine::disable_ubuntu_alarm(const Appointment& appointment)
+void EdsEngine::disable_alarm(const Appointment& appointment)
 {
-    p->disable_ubuntu_alarm(appointment);
+    p->disable_alarm(appointment);
 }
 
 /***
