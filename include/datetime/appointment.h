@@ -61,7 +61,6 @@ public:
     std::string source_uid;
     std::string color;
     std::string summary;
-    std::string activation_url;
     DateTime begin;
     DateTime end;
 

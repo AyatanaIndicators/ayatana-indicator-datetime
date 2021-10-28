@@ -40,8 +40,6 @@ namespace datetime {
 static constexpr char const * TAG_ALARM    {"x-ayatana-alarm"};
 static constexpr char const * TAG_DISABLED {"x-ayatana-disabled"};
 
-static constexpr char const * X_PROP_ACTIVATION_URL {"X-CANONICAL-ACTIVATION-URL"};
-
 /****
 *****
 ****/
@@ -1062,21 +1060,9 @@ private:
         }
         g_clear_pointer (&eccdt_tmp, e_cal_component_datetime_free);
 
-        // get appointment.activation_url from x-props
-        auto icc = e_cal_component_get_icalcomponent(component); // icc owned by component
-        auto icalprop = i_cal_component_get_first_property(icc, I_CAL_X_PROPERTY);
-        while (icalprop != nullptr) {
-            const char * x_name = i_cal_property_get_x_name(icalprop);
-            if ((x_name != nullptr) && !g_ascii_strcasecmp(x_name, X_PROP_ACTIVATION_URL)) {
-                const char * url = i_cal_property_get_value_as_string(icalprop);
-                if ((url != nullptr) && baseline.activation_url.empty())
-                    baseline.activation_url = url;
-            }
-            icalprop = i_cal_component_get_next_property(icc, I_CAL_X_PROPERTY);
-        }
-
         // get appointment.type
         baseline.type = Appointment::EVENT;
+        auto icc = e_cal_component_get_icalcomponent(component); // icc owned by component
         auto categ_list = e_cal_component_get_categories_list (component);
         for (GSList * l=categ_list; l!=nullptr; l=l->next) {
             auto tag = static_cast<const char*>(l->data);

@@ -150,12 +150,7 @@ std::string LiveActions::open_appointment(const Appointment& appt, const DateTim
 {
     std::string sReturn = "";
 
-    if (!appt.activation_url.empty())
-    {
-        sReturn = appt.activation_url;
-        ayatana_common_utils_open_url(sReturn.c_str());
-    }
-    else switch (appt.type)
+    switch (appt.type)
     {
         case Appointment::ALARM:
             sReturn = open_alarm_app();
