@@ -279,6 +279,8 @@ protected:
     g_assert_no_error (error);
     dbus_test_service_add_task(service, DBUS_TEST_TASK(screen_mock));
 
+    //TODO: Reimplement using hfd-service
+    /*
     ///
     ///  Add the haptic mock
     ///
@@ -296,7 +298,7 @@ protected:
                                           "",
                                           &error);
     g_assert_no_error (error);
-    dbus_test_service_add_task(service, DBUS_TEST_TASK(haptic_mock));
+    dbus_test_service_add_task(service, DBUS_TEST_TASK(haptic_mock));*/
 
     startDbusMock();
   }
