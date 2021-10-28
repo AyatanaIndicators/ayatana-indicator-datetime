@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -16,6 +17,7 @@
  * Authors:
  *   Ted Gould <ted@canonical.com>
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #ifndef AYATANA_INDICATOR_NOTIFICATIONS_DBUS_SHARED_H
@@ -29,8 +31,9 @@
 #define BUS_POWERD_PATH      "/com/lomiri/Repowerd"
 #define BUS_POWERD_INTERFACE "com.lomiri.Repowerd"
 
-#define BUS_HAPTIC_NAME      "com.canonical.usensord"
-#define BUS_HAPTIC_PATH      "/com/canonical/usensord/haptic"
-#define BUS_HAPTIC_INTERFACE "com.canonical.usensord.haptic"
+//TODO: Reimplement using hfd-service
+//#define BUS_HAPTIC_NAME      ""
+//#define BUS_HAPTIC_PATH      ""
+//#define BUS_HAPTIC_INTERFACE ""
 
 #endif /* INDICATOR_NOTIFICATIONS_DBUS_SHARED_H */

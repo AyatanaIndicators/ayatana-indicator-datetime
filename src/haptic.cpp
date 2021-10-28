@@ -1,5 +1,6 @@
 /*
  * Copyright 2014 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <notifications/dbus-shared.h>
@@ -130,7 +132,8 @@ private:
         g_variant_builder_init (&builder, G_VARIANT_TYPE_TUPLE);
         g_variant_builder_add_value (&builder, pattern_array);
         g_variant_builder_add_value (&builder, repeat_count);
-        auto vibrate_pattern_args = g_variant_builder_end (&builder);
+        //TODO: Reimplement using hfd-service
+        /*auto vibrate_pattern_args = g_variant_builder_end (&builder);
 
         g_dbus_connection_call (m_bus,
                                 BUS_HAPTIC_NAME,
@@ -143,7 +146,7 @@ private:
                                 -1,
                                 m_cancellable,
                                 nullptr,
-                                nullptr);
+                                nullptr);*/
     }
 
     const Mode m_mode;
