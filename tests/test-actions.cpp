@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <datetime/actions.h>
@@ -37,7 +39,7 @@ class ActionsFixture: public StateFixture
         a1.summary = "Alarm";
         a1.summary = "http://www.example.com/";
         a1.uid = "example";
-        a1.type = Appointment::UBUNTU_ALARM;
+        a1.type = Appointment::ALARM;
         a1.begin = a1.end = tomorrow;
 
         Appointment a2; // a non-alarm appointment

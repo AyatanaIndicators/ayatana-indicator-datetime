@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 
@@ -187,7 +189,7 @@ private:
         a1.summary = "Alarm";
         a1.summary = "http://www.example.com/";
         a1.uid = "example";
-        a1.type = Appointment::UBUNTU_ALARM;
+        a1.type = Appointment::ALARM;
         a1.begin = a1.end = tomorrow;
 
         Appointment a2; // a non-alarm appointment
@@ -208,7 +210,7 @@ private:
         //  confirm it has the right x-ayatana-type
         gchar * str = nullptr;
         g_menu_model_get_item_attribute(section, index, "x-ayatana-type", "s", &str);
-        if (appt.is_ubuntu_alarm())
+        if (appt.is_alarm())
             EXPECT_STREQ("org.ayatana.indicator.alarm", str);
         else
             EXPECT_STREQ("org.ayatana.indicator.appointment", str);
@@ -241,7 +243,7 @@ private:
         g_clear_pointer(&str, g_free);
 
         // confirm that alarms have an icon
-        if (appt.is_ubuntu_alarm())
+        if (appt.is_alarm())
         {
             auto v = g_menu_model_get_item_attribute_value(section,
                                                            index,

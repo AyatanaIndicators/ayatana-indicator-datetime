@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <datetime/menu.h>
@@ -401,7 +403,7 @@ private:
             g_menu_item_set_attribute (menu_item, "x-ayatana-time", "x", unix_time);
             g_menu_item_set_attribute (menu_item, "x-ayatana-time-format", "s", fmt.c_str());
 
-            if (appt.is_ubuntu_alarm())
+            if (appt.is_alarm())
             {
                 g_menu_item_set_attribute (menu_item, "x-ayatana-type", "s", "org.ayatana.indicator.alarm");
                 g_menu_item_set_attribute_value(menu_item, G_MENU_ATTRIBUTE_ICON, get_serialized_alarm_icon());
@@ -598,16 +600,16 @@ protected:
     GVariant* create_header_state()
     {
         // are there alarms?
-        bool has_ubuntu_alarms = false;
+        bool has_alarms = false;
         for(const auto& appointment : m_upcoming)
-            if((has_ubuntu_alarms = appointment.is_ubuntu_alarm()))
+            if((has_alarms = appointment.is_alarm()))
                 break;
 
         GVariantBuilder b;
         g_variant_builder_init(&b, G_VARIANT_TYPE_VARDICT);
         g_variant_builder_add(&b, "{sv}", "title", g_variant_new_string (_("Time and Date")));
         g_variant_builder_add(&b, "{sv}", "visible", g_variant_new_boolean (TRUE));
-        if (has_ubuntu_alarms)
+        if (has_alarms)
         {
             auto label = m_formatter->header.get();
             auto a11y = g_strdup_printf(_("%s (has alarms)"), label.c_str());

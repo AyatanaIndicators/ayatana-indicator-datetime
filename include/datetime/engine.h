@@ -1,5 +1,6 @@
 /*
  * Copyright 2014 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #ifndef INDICATOR_DATETIME_ENGINE_H
@@ -50,7 +52,7 @@ public:
                                   const DateTime& end,
                                   const Timezone& default_timezone,
                                   std::function<void(const std::vector<Appointment>&)> appointment_func) =0;
-    virtual void disable_ubuntu_alarm(const Appointment&) =0;
+    virtual void disable_alarm(const Appointment&) =0;
 
     virtual core::Signal<>& changed() =0;
 
