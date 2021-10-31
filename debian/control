@@ -16,7 +16,7 @@ Build-Depends: cmake,
                libecal2.0-dev (>= 3.16),
                libical-dev (>= 1.0),
                libedataserver1.2-dev (>= 3.5),
-               accountsservice-ubuntu-schemas | hello,
+               lomiri-common-schemas | hello,
                libproperties-cpp-dev,
                liblomiri-url-dispatcher-dev | hello,
                libmessaging-menu-dev,
@@ -56,6 +56,5 @@ Description: Ayatana Indicator providing clock and calendar
  This Ayatana Indicator provides a combined calendar, clock, alarm and
  event management tool.
  .
- On Ubuntu systems, this Indicator supports phone devices based on
- Ubuntu. On non-Ubuntu systems, the phone support has been disabled at
- build-time.
+ On Lomiri, this Indicator supports phone devices. On other systems,
+ the phone support has been disabled at build-time.
