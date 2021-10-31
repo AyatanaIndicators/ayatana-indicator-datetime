@@ -81,10 +81,9 @@ if(URLDISPATCHER_FOUND)
 endif()
 
 if(EXISTS "/usr/share/accountsservice/interfaces/com.lomiri.touch.AccountsService.Sound.xml")
-  set (HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS ON)
-  add_definitions ( -DHAS_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS )
+  set (HAS_LOMIRI_ACCTSERVICE_SOUND ON)
 else()
-  set (HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS OFF)
+  set (HAS_LOMIRI_ACCTSERVICE_SOUND OFF)
 endif()
 
 ##

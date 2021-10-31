@@ -19,7 +19,7 @@
  *   Robert Tari <robert@tari.in>
  */
 
-#ifdef HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS
+#ifdef HAS_LOMIRI_ACCTSERVICE_SOUND
 #include "dbus-accounts-sound.h"
 
 #include <datetime/snap.h>
