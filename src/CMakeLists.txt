@@ -50,7 +50,7 @@ add_gdbus_codegen(SERVICE_GENERATED_SOURCES dbus-alarm-properties
 if(HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS)
         add_gdbus_codegen(SERVICE_GENERATED_SOURCES dbus-accounts-sound
                           com.lomiri.touch
-                          ${CMAKE_SOURCE_DIR}/src/com.lomiri.touch.AccountsService.Sound.xml)
+                          /usr/share/accountsservice/interfaces/com.lomiri.touch.AccountsService.Sound.xml)
         add_definitions (-DHAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS)
 endif()
 
