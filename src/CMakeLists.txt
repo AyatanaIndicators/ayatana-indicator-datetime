@@ -49,8 +49,8 @@ add_gdbus_codegen(SERVICE_GENERATED_SOURCES dbus-alarm-properties
                   ${CMAKE_SOURCE_DIR}/data/org.ayatana.indicator.datetime.AlarmProperties.xml)
 if(HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS)
         add_gdbus_codegen(SERVICE_GENERATED_SOURCES dbus-accounts-sound
-                          com.ubuntu.touch
-                          ${CMAKE_SOURCE_DIR}/src/com.ubuntu.touch.AccountsService.Sound.xml)
+                          com.lomiri.touch
+                          ${CMAKE_SOURCE_DIR}/src/com.lomiri.touch.AccountsService.Sound.xml)
         add_definitions (-DHAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS)
 endif()
 

@@ -80,7 +80,7 @@ protected:
   static constexpr char const * HINT_TIMEOUT {"x-ayatana-snap-decisions-timeout"};
 
   static constexpr char const * AS_BUSNAME            {"org.freedesktop.Accounts"};
-  static constexpr char const * AS_INTERFACE          {"com.ubuntu.touch.AccountsService.Sound"};
+  static constexpr char const * AS_INTERFACE          {"com.lomiri.touch.AccountsService.Sound"};
   static constexpr char const * PROP_OTHER_VIBRATIONS {"OtherVibrate"};
   static constexpr char const * PROP_SILENT_MODE      {"SilentMode"};
 
