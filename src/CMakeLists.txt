@@ -47,11 +47,11 @@ set(SERVICE_GENERATED_SOURCES)
 add_gdbus_codegen(SERVICE_GENERATED_SOURCES dbus-alarm-properties
                   org.ayatana.indicator
                   ${CMAKE_SOURCE_DIR}/data/org.ayatana.indicator.datetime.AlarmProperties.xml)
-if(HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS)
+if(HAS_LOMIRI_ACCTSERVICE_SOUND)
         add_gdbus_codegen(SERVICE_GENERATED_SOURCES dbus-accounts-sound
-                          com.ubuntu.touch
-                          ${CMAKE_SOURCE_DIR}/src/com.ubuntu.touch.AccountsService.Sound.xml)
-        add_definitions (-DHAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS)
+                          com.lomiri.touch
+                          /usr/share/accountsservice/interfaces/com.lomiri.touch.AccountsService.Sound.xml)
+        add_definitions (-DHAS_LOMIRI_ACCTSERVICE_SOUND)
 endif()
 
 # add warnings/coverage info on handwritten files

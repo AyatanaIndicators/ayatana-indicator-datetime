@@ -80,11 +80,10 @@ if(URLDISPATCHER_FOUND)
     add_definitions( -DHAS_URLDISPATCHER )
 endif()
 
-if(EXISTS "/usr/share/accountsservice/interfaces/com.ubuntu.touch.AccountsService.Sound.xml")
-  set (HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS ON)
-  add_definitions ( -DHAS_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS )
+if(EXISTS "/usr/share/accountsservice/interfaces/com.lomiri.touch.AccountsService.Sound.xml")
+  set (HAS_LOMIRI_ACCTSERVICE_SOUND ON)
 else()
-  set (HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS OFF)
+  set (HAS_LOMIRI_ACCTSERVICE_SOUND OFF)
 endif()
 
 ##

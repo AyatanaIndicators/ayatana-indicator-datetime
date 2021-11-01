@@ -33,4 +33,3 @@ src/timezone-timedated.cpp
 src/wakeup-timer-mainloop.cpp
 src/wakeup-timer-powerd.cpp
 src/utils.c
-src/com.ubuntu.touch.AccountsService.Sound.xml
