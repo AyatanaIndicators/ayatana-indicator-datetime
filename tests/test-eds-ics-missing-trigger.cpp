@@ -83,7 +83,7 @@ TEST_F(VAlarmFixture, MissingTriggers)
     std::vector<Appointment> expected;
     Appointment a;
     a.type = Appointment::ALARM;
-    a.uid = "20150617T211838Z-6217-32011-2036-1@ubuntu-phablet";
+    a.uid = "20150617T211838Z-6217-32011-2036-1@lomiri-phablet";
     a.color = "#becedd";
     a.summary = "One Time Alarm";
     a.begin = DateTime { gtz, 2015, 6, 18, 10, 0, 0};
@@ -95,7 +95,7 @@ TEST_F(VAlarmFixture, MissingTriggers)
     expected.push_back(a);
 
     // build expected: recurring alarm
-    a.uid = "20150617T211913Z-6217-32011-2036-5@ubuntu-phablet";
+    a.uid = "20150617T211913Z-6217-32011-2036-5@lomiri-phablet";
     a.summary = "Recurring Alarm";
     a.alarms[0].text = a.summary;
     std::array<DateTime,13> recurrences {
