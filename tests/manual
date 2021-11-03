@@ -1,25 +1,25 @@
 
-Test-case ayatana-indicator-datetime/unity7-items-check
+Test-case ayatana-indicator-datetime/mate-items-check
 <dl>
-	<dt>Log in to a Unity 7 user session</dt>
-	<dt>Go to the panel and click on the DateTime indicator</dt>
-		<dd>Ensure there are items in the menu</dd>
+    <dt>Log in to a desktop user session</dt>
+    <dt>Go to the panel and click on the DateTime indicator</dt>
+        <dd>Ensure there are items in the menu</dd>
 </dl>
 
-Test-case ayatana-indicator-datetime/unity7-greeter-items-check
+Test-case ayatana-indicator-datetime/arctica-greeter-items-check
 <dl>
-	<dt>Start a system and wait for the greeter or logout of the current user session</dt>
-	<dt>Go to the panel and click on the DateTime indicator</dt>
-		<dd>Ensure there are items in the menu</dd>
+    <dt>Start a system and wait for the greeter or logout of the current user session</dt>
+    <dt>Go to the panel and click on the DateTime indicator</dt>
+        <dd>Ensure there are items in the menu</dd>
 </dl>
 
-Test-case ayatana-indicator-datetime/unity8-items-check
+Test-case ayatana-indicator-datetime/lomiri-items-check
 <dl>
-	<dt>Login to a user session running Unity 8</dt>
-	<dt>Pull down the top panel until it sticks open</dt>
-	<dt>Navigate through the tabs until "Time and Date" is shown</dt>
-		<dd>Upcoming is at the top of the menu</dd>
-		<dd>The menu is populated with items</dd>
+    <dt>Login to a user session running Lomiri</dt>
+    <dt>Pull down the top panel until it sticks open</dt>
+    <dt>Navigate through the tabs until "Time and Date" is shown</dt>
+        <dd>Upcoming is at the top of the menu</dd>
+        <dd>The menu is populated with items</dd>
 </dl>
 
 Test-case ayatana-indicator-datetime/timestamp-wakeup
@@ -31,116 +31,116 @@ Test-case ayatana-indicator-datetime/timestamp-wakeup
 
 Test-case ayatana-indicator-datetime/new-alarm-wakeup
 <dl>
-	<dt>Create and save an upcoming alarm in ubuntu-clock-app</dt>
-	<dt>Unplug the phone from any USB connection and put it to sleep</dt>
-		<dd>Confirm that the alarm sounds on time even if the phone is asleep.  (Note: if in doubt about sleep you can see in the syslog whether the device actually suspended or whether the suspend was aborted)</dd>
-		<dd>Confirm that the screen comes on when the alarm is triggered.<dd>
-		<dd>If the device supports haptic feedback, confirm the alarm vibrates.</dd>
+    <dt>Create and save an upcoming alarm in lomiri-clock-app</dt>
+    <dt>Unplug the phone from any USB connection and put it to sleep</dt>
+        <dd>Confirm that the alarm sounds on time even if the phone is asleep.  (Note: if in doubt about sleep you can see in the syslog whether the device actually suspended or whether the suspend was aborted)</dd>
+        <dd>Confirm that the screen comes on when the alarm is triggered.<dd>
+        <dd>[FIXME: No haptic support right now. Remove this comment after https://github.com/AyatanaIndicators/ayatana-indicator-datetime/issues/67 is resolved] If the device supports haptic feedback, confirm the alarm vibrates.</dd>
 </dl>
 
 Test-case ayatana-indicator-datetime/disabled-alarms
 <dl>
-	<dt>Create and save an upcoming alarm in ubuntu-clock-app</dt>
-		<dd>Confirm that the alarm icon appears next to the current time in unity's indicator display</dd>
-	<dt>Disable the alarm in ubuntu-clock-app</dt>
-		<dd>When all alarms are disabled or removed, the alarm icon should disappear.</dd>
-	<dt>Re-enable the alarm in ubuntu-clock-app</dt>
-		<dd>When the alarm is enabled, the alarm icon should reappear.</dd>
+    <dt>Create and save an upcoming alarm in lomiri-clock-app</dt>
+        <dd>Confirm that the alarm icon appears next to the current time in Lomiri's indicator display</dd>
+    <dt>Disable the alarm in lomiri-clock-app</dt>
+        <dd>When all alarms are disabled or removed, the alarm icon should disappear.</dd>
+    <dt>Re-enable the alarm in lomiri-clock-app</dt>
+        <dd>When the alarm is enabled, the alarm icon should reappear.</dd>
 </dl>
 
 Test-case ayatana-indicator-datetime/disable-one-time-alarms-after-notification
 <dl>
-	<dt>Create and save an upcoming nonrepeating alarm in ubuntu-clock-app</dt>
-		<dd>Confirm that the alarm icon appears next to the current time in unity's indicator display</dd>
-	<dt>Wait until the alarm time is reached</dt>
-		<dd>Confirm that the alarm notification is shown</dd>
-		<dd>Confirm that the alarm's sound is played while the alarm notification is present</dd>
-		<dd>Confirm that the one-time alarm is disabled after the notification is shown. NOTE: due to a refresh bug in clock-app you may need to refresh its alarms page (by swapping back to the main page, then the alarm page again, this is tracked in #1362341) in order to see the alarm change from enabled to disabled.</dd>
-	<dt>Create and save an upcoming repeating alarm in ubuntu-clock-app</dt>
-		<dd>Confirm that the alarm icon appears next to the current time in unity's indicator display</dd>
-	<dt>Wait until the alarm time is reached</dt>
-		<dd>Confirm that the alarm notification is shown</dd>
-		<dd>Confirm that the alarm's sound is played while the alarm notification is present</dd>
-		<dd>Confirm that the repeating alarm is not disabled after the notification is shown. NOTE: due to a refresh bug in clock-app you may need to refresh its alarms page (by swapping back to the main page, then the alarm page again, this is tracked in #1362341) in order to see the alarm change from enabled to disabled.</dd>
+    <dt>Create and save an upcoming nonrepeating alarm in lomiri-clock-app</dt>
+        <dd>Confirm that the alarm icon appears next to the current time in Lomiri's indicator display</dd>
+    <dt>Wait until the alarm time is reached</dt>
+        <dd>Confirm that the alarm notification is shown</dd>
+        <dd>Confirm that the alarm's sound is played while the alarm notification is present</dd>
+        <dd>Confirm that the one-time alarm is disabled after the notification is shown. NOTE: due to a refresh bug in clock-app you may need to refresh its alarms page (by swapping back to the main page, then the alarm page again, this is tracked in #1362341) in order to see the alarm change from enabled to disabled.</dd>
+    <dt>Create and save an upcoming repeating alarm in lomiri-clock-app</dt>
+        <dd>Confirm that the alarm icon appears next to the current time in Lomiri's indicator display</dd>
+    <dt>Wait until the alarm time is reached</dt>
+        <dd>Confirm that the alarm notification is shown</dd>
+        <dd>Confirm that the alarm's sound is played while the alarm notification is present</dd>
+        <dd>Confirm that the repeating alarm is not disabled after the notification is shown. NOTE: due to a refresh bug in clock-app you may need to refresh its alarms page (by swapping back to the main page, then the alarm page again, this is tracked in #1362341) in order to see the alarm change from enabled to disabled.</dd>
 </dl>
 
 Test-case ayatana-indicator-datetime/calendar-event-notification
 <dl>
-	<dt>In the calendar app, create and save a new upcoming calendar event that will occur in the next few minutes.</dt>
-		<dd>The datetime indicator's event list should update itself to show this new event.</dd>
-		<dd>Calendar events do not get the alarm icon, so no alarm icon should be shown in the header unless there is also an upcoming alarm set.</dd>
-	<dt>Wait for the event's time to be reached</dt>
-		<dd>The datetime indicator should pop up a non-interactive notification that plays a nonlooping sound.</dd>
-		<dd>The notification should disappear after a moment without requiring user intervention.</dd>
+    <dt>In the calendar app, create and save a new upcoming calendar event that will occur in the next few minutes.</dt>
+        <dd>The datetime indicator's event list should update itself to show this new event.</dd>
+        <dd>Calendar events do not get the alarm icon, so no alarm icon should be shown in the header unless there is also an upcoming alarm set.</dd>
+    <dt>Wait for the event's time to be reached</dt>
+        <dd>The datetime indicator should pop up a non-interactive notification that plays a nonlooping sound.</dd>
+        <dd>The notification should disappear after a moment without requiring user intervention.</dd>
 </dl>
 
 Test-case ayatana-indicator-datetime/alarm-timezone
 <dl>
-	<dt>In ubuntu-system-settings, change your timezone to a zone you're not in</dt>
-	<dt>In ubuntu-clock-app, create and save an upcoming alarm</dt>
-		<dd>The indicator's menu should show the alarm to click at the specified time</dd>
-	<dt>In ubuntu-system-settings, change back to your correct timezone</dt>
-		<dd>The indicator's menu should still show the alarm to click at the specified time</dd>
+    <dt>In lomiri-system-settings, change your timezone to a zone you're not in</dt>
+    <dt>In lomiri-clock-app, create and save an upcoming alarm</dt>
+        <dd>The indicator's menu should show the alarm to click at the specified time</dd>
+    <dt>In lomiri-system-settings, change back to your correct timezone</dt>
+        <dd>The indicator's menu should still show the alarm to click at the specified time</dd>
 </dl>
 
 Test-case ayatana-indicator-datetime/snooze
 <dl>
-	<dt>Create and save an upcoming alarm in ubuntu-clock-app</dt>
-	<dt>When the alarm goes off, press the 'Snooze' button</dt>
-		<dd>The alarm should go away, then reappear N minutes later. By default the N is 5 minutes but will be configurable from ubuntu-clock-app.</dd>
-	<dt>When the snoozed alarm reappears, press the 'OK' button</dt>
-		<dd>This time when the alarm is dismissed, it should not reappear.</dd>
+    <dt>Create and save an upcoming alarm in lomiri-clock-app</dt>
+    <dt>When the alarm goes off, press the 'Snooze' button</dt>
+        <dd>The alarm should go away, then reappear N minutes later. By default the N is 5 minutes but will be configurable from lomiri-clock-app.</dd>
+    <dt>When the snoozed alarm reappears, press the 'OK' button</dt>
+        <dd>This time when the alarm is dismissed, it should not reappear.</dd>
 </dl>
 
 Test-case ayatana-indicator-datetime/edited-alarm-wakeup
 <dl>
-	<dt>Edit an alarm that's already passed. (see previous test)</dt>
-	<dt>Unplug the phone from any USB connection and put it to sleep</dt>
-		<dd>Confirm that the alarm sounds on time even if the phone is asleep. (Note: if in doubt about sleep you can see in the syslog whether the device actually suspended or whether the suspend was aborted)</dd>
-		<dd>Confirm that the screen comes on when the alarm is triggered.<dd>
-		<dd>If the device supports haptic feedback, confirm the alarm vibrates.</dd>
+    <dt>Edit an alarm that's already passed. (see previous test)</dt>
+    <dt>Unplug the phone from any USB connection and put it to sleep</dt>
+        <dd>Confirm that the alarm sounds on time even if the phone is asleep. (Note: if in doubt about sleep you can see in the syslog whether the device actually suspended or whether the suspend was aborted)</dd>
+        <dd>Confirm that the screen comes on when the alarm is triggered.<dd>
+        <dd>If the device supports haptic feedback, confirm the alarm vibrates.</dd>
 </dl>
 
 Test-case ayatana-indicator-datetime/tell-snap-decision-to-dismiss
 <dl>
-	<dt>Set an alarm and wait for it to arrive.</dt>
-		<dd>Alarm should go off at the specified time</dd>
-	<dt>Press the 'Dismiss' button in the alarm's snap decision popup before the sound stops.</dt>
-		<dd>Popup should disappear</dd>
-		<dd>Sound should stop at the same time, rather than playing til the end of the file.</dd>
+    <dt>Set an alarm and wait for it to arrive.</dt>
+        <dd>Alarm should go off at the specified time</dd>
+    <dt>Press the 'Dismiss' button in the alarm's snap decision popup before the sound stops.</dt>
+        <dd>Popup should disappear</dd>
+        <dd>Sound should stop at the same time, rather than playing til the end of the file.</dd>
 </dl>
 
 Test-case ayatana-indicator-datetime/change-alarm-sound
 <dl>
-	<dt>Open the clock app</dt>
-	<dt>Swipe up from the bottom</dt>
-	<dt>Click on the + symbol</dt>
-	<dt>Save an alarm for a few minutes time leave everything on default settings</dt>
-	<dt>Click on save</dt>
-	<dt>Click on the alarm</dt>
-	<dt>Change the sound of the alarm</dt>
-	<dt>Click on save</dt>
-	<dt>Let the alarm go off</dt>
-		<dd>The newly-selected sound should play, rather than the previous sound.</dd>
+    <dt>Open the clock app</dt>
+    <dt>Swipe up from the bottom</dt>
+    <dt>Click on the + symbol</dt>
+    <dt>Save an alarm for a few minutes time leave everything on default settings</dt>
+    <dt>Click on save</dt>
+    <dt>Click on the alarm</dt>
+    <dt>Change the sound of the alarm</dt>
+    <dt>Click on save</dt>
+    <dt>Let the alarm go off</dt>
+        <dd>The newly-selected sound should play, rather than the previous sound.</dd>
 </dl>
 
 Test-case ayatana-indicator-datetime/silent-mode
 <dl>
-	<dt>Set an alarm and wait for it to arrive.</dt>
-	<dt>From the sound indicator, turn on silent mode.</dt>
-		<dd>Alarm should go off at the specified time and play its sound regardless of silent mode.</dd>
-	<dt>From the sound indicator, turn on silent mode.</dt>
-	<dt>Create a calendar event from the calendar app and wait for it to arrive.</dt>
-		<dd>The calendar event notification should be silent.</dd>
-	<dt>From the sound indicator, turn off silent mode.</dt>
-	<dt>Create a calendar event from the calendar app and wait for it to arrive.</dt>
-		<dd>The calendar event notification should play a sound.</dd>
+    <dt>Set an alarm and wait for it to arrive.</dt>
+    <dt>From the sound indicator, turn on silent mode.</dt>
+        <dd>Alarm should go off at the specified time and play its sound regardless of silent mode.</dd>
+    <dt>From the sound indicator, turn on silent mode.</dt>
+    <dt>Create a calendar event from the calendar app and wait for it to arrive.</dt>
+        <dd>The calendar event notification should be silent.</dd>
+    <dt>From the sound indicator, turn off silent mode.</dt>
+    <dt>Create a calendar event from the calendar app and wait for it to arrive.</dt>
+        <dd>The calendar event notification should play a sound.</dd>
 </dl>
 
 Test-case ayatana-indicator-datetime/manual-time
 <dl>
-	<dt>In System Settings > Time and Date, manually change the time to an arbitrary time.</dt>
-		<dd>The indicator's timestamp should change right after the time manual time is set.</dd>
+    <dt>In your system's Time and Date Settings, manually change the time to an arbitrary time.</dt>
+        <dd>The indicator's timestamp should change right after the time manual time is set.</dd>
 </dl>
 
 <strong>
