@@ -27,6 +27,7 @@ requires:
 #    - ayatana-indicator-messages
     - gtk-doc-tools
     - libaccountsservice
+#    - lomiri-schemas
 
   debian:
     # Useful URL: https://salsa.debian.org/debian-ayatana-team/ayatana-ido
@@ -68,6 +69,7 @@ requires:
     - systemd
     - lcov
     - gcovr
+#    - lomiri-schemas
 
   ubuntu:
     - clang
@@ -107,6 +109,7 @@ requires:
     - systemd
     - lcov
     - gcovr
+#    - lomiri-schemas
 
   ubuntu:focal:
     - clang
@@ -146,6 +149,7 @@ requires:
     - systemd
     - lcov
     - gcovr
+#    - lomiri-schemas
 
 variables:
   - 'CHECKERS="
@@ -187,6 +191,17 @@ before_scripts:
   - make install
   - cd -
   - rm -Rf ayatana-indicator-messages-build/
+  -
+  - cd ${START_DIR}
+  - if [ ! -d lomiri-schemas-build ]; then
+  -     git clone --depth 1  https://gitlab.com/ubports/core/lomiri-schemas.git lomiri-schemas-build
+  - fi
+  - cd lomiri-schemas-build
+  - cmake . -DCMAKE_INSTALL_PREFIX=/usr
+  - make
+  - make install
+  - cd -
+  - rm -Rf lomiri-schemas-build/
 
 build_scripts:
   - if [ ${DISTRO_NAME} == "debian" ];then
