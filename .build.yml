@@ -202,6 +202,17 @@ before_scripts:
   - make install
   - cd -
   - rm -Rf lomiri-schemas-build/
+  -
+  - cd ${START_DIR}
+  - if [ ! -d lomiri-url-dispatcher-build ]; then
+  -     git clone --depth 1  https://gitlab.com/ubports/core/lomiri-url-dispatcher.git lomiri-url-dispatcher-build
+  - fi
+  - cd lomiri-url-dispatcher-build
+  - cmake . -DCMAKE_INSTALL_PREFIX=/usr
+  - make
+  - make install
+  - cd -
+  - rm -Rf lomiri-url-dispatcher-build/
 
 build_scripts:
   - if [ ${DISTRO_NAME} == "debian" ];then
