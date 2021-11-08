@@ -43,7 +43,7 @@ requires:
 #    - libayatana-common-dev
     - gobject-introspection
     - libgirepository1.0-dev
-    - liblomiri-url-dispatcher-dev
+#    - liblomiri-url-dispatcher-dev
     - valac
     - libglib2.0-dev
     - libnotify-dev
@@ -72,46 +72,6 @@ requires:
 #    - lomiri-schemas
 
   ubuntu:
-    - clang
-    - clang-tools
-    - g++
-    - cppcheck
-    - git
-    - cmake
-    - cmake-extras
-    - intltool
-    - libaccounts-glib-dev
-#    - libayatana-common-dev
-    - gobject-introspection
-    - libgirepository1.0-dev
-    - liblomiri-url-dispatcher-dev
-    - valac
-    - libglib2.0-dev
-    - libnotify-dev
-    - libgstreamer1.0-dev
-    - libecal2.0-dev
-    - libical-dev
-    - libedataserver1.2-dev
-    - libproperties-cpp-dev
-#    - libmessaging-menu-dev
-    - gtk-doc-tools
-    - libaccountsservice-dev
-# for the test harness:
-    - libgtest-dev
-    - libdbustest1-dev
-    - dbus-test-runner
-    - python3-dbusmock
-# for 12h/24h locale unit tests:
-    - locales
-# for running live EDS tests:
-    - evolution-data-server
-    - gvfs-daemons
-    - systemd
-    - lcov
-    - gcovr
-#    - lomiri-schemas
-
-  ubuntu:focal:
     - clang
     - clang-tools
     - g++
