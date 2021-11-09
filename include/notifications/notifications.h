@@ -60,11 +60,11 @@ public:
     /* Add a notification hint.
        These keys may be dependent on the notification server. */
     void add_hint (const std::string& name);
-    static constexpr char const * HINT_SNAP {"x-ayatana-snap-decisions"};
-    static constexpr char const * HINT_NONSHAPED_ICON {"x-ayatana-non-shaped-icon"};
-    static constexpr char const * HINT_AFFIRMATIVE_HINT {"x-ayatana-private-affirmative-tint"};
-    static constexpr char const * HINT_REJECTION_TINT {"x-ayatana-private-rejection-tint"};
-    static constexpr char const * HINT_INTERACTIVE {"x-ayatana-switch-to-application"};
+    static constexpr char const * HINT_SNAP {"x-lomiri-snap-decisions"};
+    static constexpr char const * HINT_NONSHAPED_ICON {"x-lomiri-non-shaped-icon"};
+    static constexpr char const * HINT_AFFIRMATIVE_HINT {"x-lomiri-private-affirmative-tint"};
+    static constexpr char const * HINT_REJECTION_TINT {"x-lomiri-private-rejection-tint"};
+    static constexpr char const * HINT_INTERACTIVE {"x-lomiri-switch-to-application"};
 
     /* Add an action button.
        This may fail if the Engine doesn't support actions.
