@@ -33,7 +33,7 @@ Build-Depends: cmake,
                gvfs-daemons <!nocheck>,
                systemd [linux-any],
 # for phone alarm/calendar notification sound tests:
-               ubuntu-touch-sounds | hello,
+               lomiri-sounds | hello,
 # tests that require the org.ayatana.common GSchema
                ayatana-indicator-common,
 Standards-Version: 4.1.3
