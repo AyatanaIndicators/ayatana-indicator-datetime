@@ -52,7 +52,7 @@ protected:
   static constexpr char const * NOTIFY_INTERFACE {"org.freedesktop.Notifications"};
   static constexpr char const * NOTIFY_PATH      {"/org/freedesktop/Notifications"};
 
-  static constexpr char const * HAPTIC_METHOD_VIBRATE_PATTERN {"VibratePattern"};
+  static constexpr char const * HAPTIC_METHOD_VIBRATE {"vibrate"};
 
   static constexpr int SCREEN_COOKIE {8675309};
   static constexpr char const * SCREEN_METHOD_KEEP_DISPLAY_ON {"keepDisplayOn"};
@@ -279,8 +279,6 @@ protected:
     g_assert_no_error (error);
     dbus_test_service_add_task(service, DBUS_TEST_TASK(screen_mock));
 
-    //TODO: Reimplement using hfd-service
-    /*
     ///
     ///  Add the haptic mock
     ///
@@ -292,13 +290,13 @@ protected:
                                                 &error);
     dbus_test_dbus_mock_object_add_method(haptic_mock,
                                           haptic_obj,
-                                          HAPTIC_METHOD_VIBRATE_PATTERN,
-                                          G_VARIANT_TYPE("(auu)"),
+                                          HAPTIC_METHOD_VIBRATE,
+                                          G_VARIANT_TYPE("i"),
                                           nullptr,
                                           "",
                                           &error);
     g_assert_no_error (error);
-    dbus_test_service_add_task(service, DBUS_TEST_TASK(haptic_mock));*/
+    dbus_test_service_add_task(service, DBUS_TEST_TASK(haptic_mock));
 
     startDbusMock();
   }
