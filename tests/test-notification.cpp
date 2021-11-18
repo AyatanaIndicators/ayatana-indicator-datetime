@@ -158,9 +158,9 @@ TEST_F(NotificationFixture,Notification)
 
     // confirm that the vibration was as expected
     if (expected_vibrate_called) {
-      EXPECT_METHOD_CALLED_EVENTUALLY(haptic_mock, haptic_obj, HAPTIC_METHOD_VIBRATE_PATTERN);
+      EXPECT_METHOD_CALLED_EVENTUALLY(haptic_mock, haptic_obj, HAPTIC_METHOD_VIBRATE);
     } else {
-      EXPECT_METHOD_NOT_CALLED_EVENTUALLY(haptic_mock, haptic_obj, HAPTIC_METHOD_VIBRATE_PATTERN);
+      EXPECT_METHOD_NOT_CALLED_EVENTUALLY(haptic_mock, haptic_obj, HAPTIC_METHOD_VIBRATE);
     }
 
     // confirm that the notification was as expected

@@ -128,7 +128,7 @@ public:
             if (!silent_mode() || vibrate_in_silent_mode_enabled()) {
                 const auto haptic_mode = m_settings->alarm_haptic.get();
                 if (haptic_mode == "pulse")
-                    haptic = std::make_shared<ain::Haptic>(ain::Haptic::MODE_PULSE, appointment.is_alarm());
+                    haptic = std::make_shared<ain::Haptic>(appointment.is_alarm());
             }
         }
 

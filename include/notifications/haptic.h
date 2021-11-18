@@ -1,5 +1,6 @@
 /*
  * Copyright 2014 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #ifndef AYATANA_INDICATOR_NOTIFICATIONS_HAPTIC_H
@@ -36,12 +38,8 @@ namespace notifications {
 class Haptic
 {
 public:
-    enum Mode
-    {
-      MODE_PULSE
-    };
 
-    explicit Haptic(const Mode& mode = MODE_PULSE, bool repeat = false);
+    explicit Haptic(bool repeat = false);
     ~Haptic();
 
 private:

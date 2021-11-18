@@ -35,7 +35,7 @@ Test-case ayatana-indicator-datetime/new-alarm-wakeup
     <dt>Unplug the phone from any USB connection and put it to sleep</dt>
         <dd>Confirm that the alarm sounds on time even if the phone is asleep.  (Note: if in doubt about sleep you can see in the syslog whether the device actually suspended or whether the suspend was aborted)</dd>
         <dd>Confirm that the screen comes on when the alarm is triggered.<dd>
-        <dd>[FIXME: No haptic support right now. Remove this comment after https://github.com/AyatanaIndicators/ayatana-indicator-datetime/issues/67 is resolved] If the device supports haptic feedback, confirm the alarm vibrates.</dd>
+        <dd>If the device supports haptic feedback, confirm the alarm vibrates.</dd>
 </dl>
 
 Test-case ayatana-indicator-datetime/disabled-alarms

@@ -39,8 +39,7 @@ class Haptic::Impl
 {
 public:
 
-    Impl(const Mode& mode, bool repeat):
-        m_mode(mode),
+    Impl(bool repeat):
         m_cancellable(g_cancellable_new()),
         m_repeat(repeat)
     {
@@ -89,70 +88,47 @@ private:
     {
         g_return_if_fail (m_tag == 0);
 
-        switch (m_mode)
-        {
-            case MODE_PULSE: // the only mode currently supported... :)
-
-                // one second on, one second off.
-                m_pattern = std::vector<uint32_t>({1000u, 1000u});
-                break;
-
-        }
-
         if (m_repeat)
         {
-            // Set up a loop to keep repeating the pattern
-            auto msec = std::accumulate(m_pattern.begin(), m_pattern.end(), 0u);
-            m_tag = g_timeout_add(msec, call_vibrate_pattern_static, this);
+            // Set up a loop to keep repeating the pattern: one second on, one second off.
+            m_tag = g_timeout_add(2000, call_vibrate_static, this);
         }
-        call_vibrate_pattern();
+
+        call_vibrate();
     }
 
-    static gboolean call_vibrate_pattern_static (gpointer gself)
+    static gboolean call_vibrate_static (gpointer gself)
     {
-        static_cast<Impl*>(gself)->call_vibrate_pattern();
+        static_cast<Impl*>(gself)->call_vibrate();
         return G_SOURCE_CONTINUE;
     }
 
-    void call_vibrate_pattern()
+    void call_vibrate()
     {
-        // build the vibrate pattern
         GVariantBuilder builder;
-        g_variant_builder_init (&builder, G_VARIANT_TYPE_ARRAY);
-        for (const auto& msec : m_pattern)
-            g_variant_builder_add_value (&builder, g_variant_new_uint32(msec));
-        auto pattern_array = g_variant_builder_end (&builder);
+        auto duration = g_variant_new_int32 (1000);
 
-        /* Use a repeat_count of 1 here because we handle looping ourselves.
-           NB: VibratePattern could do it for us, but doesn't let us cancel
-           a running loop -- we could keep vibrating even after "this" was
-           destructed */
-        auto repeat_count = g_variant_new_uint32 (1u);
+        g_variant_builder_init (&builder, G_VARIANT_TYPE_INT32);
+        g_variant_builder_add_value (&builder, duration);
 
-        g_variant_builder_init (&builder, G_VARIANT_TYPE_TUPLE);
-        g_variant_builder_add_value (&builder, pattern_array);
-        g_variant_builder_add_value (&builder, repeat_count);
-        //TODO: Reimplement using hfd-service
-        /*auto vibrate_pattern_args = g_variant_builder_end (&builder);
+        auto vibrate_arg = g_variant_builder_end (&builder);
 
         g_dbus_connection_call (m_bus,
                                 BUS_HAPTIC_NAME,
                                 BUS_HAPTIC_PATH,
                                 BUS_HAPTIC_INTERFACE,
-                                "VibratePattern",
-                                vibrate_pattern_args,
+                                "vibrate",
+                                vibrate_arg,
                                 nullptr,
                                 G_DBUS_CALL_FLAGS_NONE,
                                 -1,
                                 m_cancellable,
                                 nullptr,
-                                nullptr);*/
+                                nullptr);
     }
 
-    const Mode m_mode;
     GCancellable * m_cancellable = nullptr;
     GDBusConnection * m_bus = nullptr;
-    std::vector<uint32_t> m_pattern;
     guint m_tag = 0;
     bool m_repeat = false;
 };
@@ -161,8 +137,8 @@ private:
 ****
 ***/
 
-Haptic::Haptic(const Mode& mode, bool repeat):
-    impl(new Impl (mode, repeat))
+Haptic::Haptic(bool repeat):
+    impl(new Impl (repeat))
 {
 }
 

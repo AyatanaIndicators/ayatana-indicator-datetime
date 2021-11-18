@@ -31,9 +31,8 @@
 #define BUS_POWERD_PATH      "/com/lomiri/Repowerd"
 #define BUS_POWERD_INTERFACE "com.lomiri.Repowerd"
 
-//TODO: Reimplement using hfd-service
-//#define BUS_HAPTIC_NAME      ""
-//#define BUS_HAPTIC_PATH      ""
-//#define BUS_HAPTIC_INTERFACE ""
+#define BUS_HAPTIC_NAME      "com.lomiri.hfd"
+#define BUS_HAPTIC_PATH      "/com/lomiri/hfd"
+#define BUS_HAPTIC_INTERFACE "com.lomiri.hfd.Vibrator"
 
 #endif /* INDICATOR_NOTIFICATIONS_DBUS_SHARED_H */
