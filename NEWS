@@ -1,5 +1,59 @@
 Overview of changes in ayatana-indicator-datetime 0.8.3
 
+  - Rename Lomiri-specific properties to x-lomiri.
+  - Re-enable haptic using hfd-service.
+  - Rename com.ubuntu.calendar.
+  - tests/manual: Update and fix text.
+  - Fix ringtones path + drop unused definition.
+  - Rename HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS to
+    HAS_LOMIRI_ACCTSERVICE_SOUND.
+  - Drop local file and generate code from
+    system-wide installed com.lomiri.touch.AccountsService.Sound.xml.
+  - Rename com.ubuntu.touch.AccountsService.Sound to
+    com.lomiri.touch.AccountsService.Sound.
+  - Use lomiri-phablet instead of ubuntu-phablet.
+  - Remove com.canonical.usensord and disable haptic.
+  - tests/test-live-actions: Handle case when the test is run on Lomiri.
+  - Resolve problems with some unit tests.
+  - Link to lomiri-url-dispatcher where needed.
+  - src/snap.cpp: Create Sound object via SoundBuilder.
+  - src/settings-live.cpp: Check for schema instead of Lomiri.
+  - tests/CMakeLists.txt: Build DBusMock tests with -no-pie.
+  - po/CMakeLists.txt: Don't update .pot file during builds.
+  - Rename com.canonical.powerd -> com.lomiri.Repowerd.
+  - Add a DBusMock test Fixture with helper functions to wait for arbitrary
+    bus method calls
+  - Move notifications tests into a new unit test. Extract notifications
+    test fixture into a reusable header.
+  - Replace deprecated pre-processor symbols.
+  - Alarm snoozes after timeout.
+  - Snooze starts from the current minute.
+  - Replace lal with lomiri-url-dispatcher.
+  - Fix clock app URL.
+  - Remove the hard-coding of -g compiler flag.
+  - Use cmake-extras intltool module, and keep pot file in vcs.
+  - Switch to using gmock module from cmake-extras.
+  - UpcomingPlanner: don't get events from the day before of the selected one.
+  - Various backports from UBports' indicator-datetime originated from Unity8
+    development at Canonical Ltd. (see ChangeLog file for details).
+  - Drop myself.[h|cpp].
+  - src/settings-live.cpp: initialise m_settings_cal_notification and
+    m_settings_general_notification to NULL if we are not on Lomiri
+  - Add install instructions + update documentation.
+  - If possible, avoid deprecated g_time_zone_new.
+  - src/menu.cpp: Pipe appointment strings through
+    ayatana_common_utils_ellipsize + add GSettings watcher for
+    max-menu-text-length.
+  - tests/test-dbus-fixture.h: Turn TestDBusFixture::TestDBusFixture into an
+    explicitly declared constructor.
+  - tests/test-eds-ics-missing-trigger.cpp: Include engine-eds.h prio to
+    alarm-queue-simple.h.
+  - src/clock-live.cpp: Replace 'signed size_t' by 'ssize_t'.
+  - Add Travis CI configuration.
+  - Translation updates.
+
+Overview of changes in ayatana-indicator-datetime 0.8.3
+
   - Fix a couple of build failures on Ubuntu hirsute
     (due to updated evolution-data-server).
   - Port from URL Dispatcher to Lomiri URL Dispatcher.
