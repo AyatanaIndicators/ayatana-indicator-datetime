@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2020-08-22 00:10+0200\n"
-"PO-Revision-Date: 2021-11-19 13:52+0000\n"
+"PO-Revision-Date: 2021-11-22 22:35+0000\n"
 "Last-Translator: phlostically <phlostically@mailinator.com>\n"
 "Language-Team: Esperanto <https://hosted.weblate.org/projects/"
 "ayatana-indicators/datetime-applet/eo/>\n"
@@ -17,11 +17,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.9.1-dev\n"
+"X-Generator: Weblate 4.10-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
 msgid "The calendar's default sound file."
-msgstr ""
+msgstr "La implicita sondosiero de la kalendaro."
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:2
 msgid ""
@@ -142,24 +142,24 @@ msgstr "Horo kaj dato"
 #: ../src/menu.cpp:525
 #, c-format
 msgid "%s (has alarms)"
-msgstr ""
+msgstr "%s (havas alarmojn)"
 
 #. * strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 12h locale; e.g. Wed, 2:00 PM
 #: ../src/snap.cpp:126
 msgid "%a, %l:%M %p"
-msgstr ""
+msgstr "%a, %l:%M %P"
 
 #. * A strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 24h locale; e.g. Wed, 14:00
 #: ../src/snap.cpp:130
 msgid "%a, %H:%M"
-msgstr ""
+msgstr "%a, %H:%M"
 
 #: ../src/snap.cpp:133
 #, c-format
 msgid "Alarm %s"
-msgstr ""
+msgstr "Alarmo %s"
 
 #: ../src/snap.cpp:140
 msgid "OK"
@@ -167,7 +167,7 @@ msgstr "Bone"
 
 #: ../src/snap.cpp:141
 msgid "Snooze"
-msgstr ""
+msgstr "Dormeti"
 
 #: ../src/utils.c:274
 msgid "Today"
@@ -181,7 +181,7 @@ msgstr "Morgaŭ"
 #: ../src/utils.c:283
 #, c-format
 msgid "%A"
-msgstr ""
+msgstr "%A"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing full-day events that are over a week away.
@@ -190,7 +190,7 @@ msgstr ""
 #. zh_CN example(?): "%m月%d日 周%a" --> "10月31日 周六"
 #: ../src/utils.c:292
 msgid "%a %d %b"
-msgstr ""
+msgstr "%a %da de %b"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 12-hour clock, events/appointments that happen tomorrow.
@@ -218,7 +218,7 @@ msgstr "%a %l:%M %P"
 #. en_GB example: "%a %d %b %l:%M %p" --> "Fri 31 Oct 1:00 PM"
 #: ../src/utils.c:332
 msgid "%a %d %b %l:%M %p"
-msgstr ""
+msgstr "%a %da de %b %l:%M %P"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 24-hour clock, events/appointments that happen tomorrow.
@@ -227,7 +227,7 @@ msgstr ""
 #. en_US example: "Tomorrow %l:%M %p" --> "Tomorrow 13:00"
 #: ../src/utils.c:353
 msgid "Tomorrow %H:%M"
-msgstr ""
+msgstr "Morgaŭ %H:%M"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 24-hour clock, events/appointments that happen this week.
@@ -236,7 +236,7 @@ msgstr ""
 #. en_US example: "%a %H:%M" --> "Fri 13:00"
 #: ../src/utils.c:362
 msgid "%a %H:%M"
-msgstr ""
+msgstr "%a %H:%M"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 24-hour clock, events/appointments that happen over a week from now.
@@ -246,4 +246,4 @@ msgstr ""
 #. en_GB example: "%a %d %b %H:%M" --> "Fri 31 Oct 13:00"
 #: ../src/utils.c:372
 msgid "%a %d %b %H:%M"
-msgstr ""
+msgstr "%a %da de %b %H:%M"
