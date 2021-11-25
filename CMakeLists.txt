@@ -81,12 +81,7 @@ if(URLDISPATCHER_FOUND)
 endif()
 
 pkg_check_modules(LOMIRI_SOUNDS lomiri-sounds)
-
-if(EXISTS "/usr/share/accountsservice/interfaces/com.lomiri.touch.AccountsService.Sound.xml")
-  set (HAS_LOMIRI_ACCTSERVICE_SOUND ON)
-else()
-  set (HAS_LOMIRI_ACCTSERVICE_SOUND OFF)
-endif()
+pkg_check_modules(LOMIRI_SCHEMAS lomiri-schemas)
 
 ##
 ##  custom targets
