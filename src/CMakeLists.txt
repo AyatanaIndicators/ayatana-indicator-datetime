@@ -47,11 +47,11 @@ set(SERVICE_GENERATED_SOURCES)
 add_gdbus_codegen(SERVICE_GENERATED_SOURCES dbus-alarm-properties
                   org.ayatana.indicator
                   ${CMAKE_SOURCE_DIR}/data/org.ayatana.indicator.datetime.AlarmProperties.xml)
-if(LOMIRI_SCHEMAS_FOUND)
+
+if (ENABLE_LOMIRI_FEATURES)
         add_gdbus_codegen(SERVICE_GENERATED_SOURCES dbus-accounts-sound
                           com.lomiri.touch
                           /usr/share/accountsservice/interfaces/com.lomiri.touch.AccountsService.Sound.xml)
-        add_definitions (-DHAS_LOMIRI_SCHEMAS)
 endif()
 
 # add warnings/coverage info on handwritten files
@@ -70,5 +70,5 @@ link_directories (${SERVICE_DEPS_LIBRARY_DIRS})
 
 add_executable (${SERVICE_EXEC} main.cpp)
 set_source_files_properties(${SERVICE_SOURCES} main.cpp PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
-target_link_libraries (${SERVICE_EXEC} ${SERVICE_LIB} ${SERVICE_DEPS_LIBRARIES} ${URLDISPATCHER_LIBRARIES})
+target_link_libraries (${SERVICE_EXEC} ${SERVICE_LIB} ${SERVICE_DEPS_LIBRARIES})
 install (TARGETS ${SERVICE_EXEC} RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_PKGLIBEXECDIR})

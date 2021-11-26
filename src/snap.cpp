@@ -19,7 +19,7 @@
  *   Robert Tari <robert@tari.in>
  */
 
-#ifdef HAS_LOMIRI_SCHEMAS
+#ifdef LOMIRI_FEATURES_ENABLED
 #include "dbus-accounts-sound.h"
 
 #include <datetime/snap.h>

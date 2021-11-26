@@ -1,5 +1,6 @@
 /*
  * Copyright 2014 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <notifications/notifications.h>
@@ -24,7 +26,7 @@
 #include <messaging-menu/messaging-menu-app.h>
 #include <messaging-menu/messaging-menu-message.h>
 
-#ifdef HAS_URLDISPATCHER
+#ifdef LOMIRI_FEATURES_ENABLED
 #include <lomiri-url-dispatcher.h>
 #endif
 
@@ -462,7 +464,7 @@ private:
 
     static std::string calendar_app_id()
     {
-#ifdef HAS_URLDISPATCHER
+#ifdef LOMIRI_FEATURES_ENABLED
         auto urls = g_strsplit("calendar://", ",", 0);
         auto appids = lomiri_url_dispatch_url_appid(const_cast<const gchar**>(urls));
         g_strfreev(urls);

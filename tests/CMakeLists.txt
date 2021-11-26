@@ -41,45 +41,40 @@ function(add_test_by_name name)
   add_executable (${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
   target_link_options(${TEST_NAME} PRIVATE -no-pie)
   add_test (${TEST_NAME} ${TEST_NAME})
-  target_link_libraries (${TEST_NAME} indicatordatetimeservice ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${URLDISPATCHER_LIBRARIES})
+  target_link_libraries (${TEST_NAME} indicatordatetimeservice ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 endfunction()
 add_test_by_name(test-datetime)
-if(LOMIRI_SCHEMAS_FOUND)
-    if(LOMIRI_SOUNDS_FOUND)
-        add_test_by_name(test-sound)
-        add_test_by_name(test-notification)
-    endif()
+
+if (ENABLE_LOMIRI_FEATURES)
+    add_test_by_name(test-sound)
+    # This one only succeeds on Lomiri because it needs hfd-service
+    # add_test_by_name(test-notification)
     add_test_by_name(test-notification-response)
 endif()
+
 add_test_by_name(test-actions)
 add_test_by_name(test-alarm-queue)
 add_test(NAME dear-reader-the-next-test-takes-60-seconds COMMAND true)
 add_test_by_name(test-clock)
-
-if (NOT DEFINED ENV{CI})
-    #add_test_by_name(test-exporter)
-endif()
-
+# This one is fine, but hangs on Travis CI
+# add_test_by_name(test-exporter)
 add_test_by_name(test-formatter)
 add_test_by_name(test-live-actions)
 add_test_by_name(test-locations)
 add_test_by_name(test-menu-appointments)
-
-if (NOT DEFINED ENV{CI})
-    #add_test_by_name(test-menus)
-endif()
-
+# This one is fine, but hangs on Travis CI
+# add_test_by_name(test-menus)
 add_test_by_name(test-planner)
 add_test_by_name(test-settings)
 add_test_by_name(test-timezone-timedated)
 add_test_by_name(test-utils)
 
-if(LOMIRI_SCHEMAS_FOUND)
+if (ENABLE_LOMIRI_FEATURES)
   set (TEST_NAME manual-test-snap)
   set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME})
   add_executable (${TEST_NAME} ${TEST_NAME}.cpp)
   target_link_options(${TEST_NAME} PRIVATE -no-pie)
-  target_link_libraries (${TEST_NAME} indicatordatetimeservice ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${URLDISPATCHER_LIBRARIES})
+  target_link_libraries (${TEST_NAME} indicatordatetimeservice ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 endif()
 
 ##
