@@ -28,6 +28,7 @@ requires:
     - gtk-doc-tools
     - libaccountsservice
 #    - lomiri-schemas
+#    - lomiri-sounds
 
   debian:
     # Useful URL: https://salsa.debian.org/debian-ayatana-team/ayatana-ido
@@ -56,6 +57,8 @@ requires:
     - gtk-doc-tools
     - libaccountsservice-dev
     - liblomiri-url-dispatcher-dev
+#    - lomiri-schemas
+#    - lomiri-sounds
 # for the test harness:
     - libgtest-dev
     - libdbustest1-dev
@@ -69,7 +72,6 @@ requires:
     - systemd
     - lcov
     - gcovr
-#    - lomiri-schemas
 
   ubuntu:
     - clang
@@ -85,6 +87,8 @@ requires:
     - gobject-introspection
     - libgirepository1.0-dev
     - liblomiri-url-dispatcher-dev
+#    - lomiri-schemas
+#    - lomiri-sounds
     - valac
     - libglib2.0-dev
     - libnotify-dev
@@ -109,7 +113,6 @@ requires:
     - systemd
     - lcov
     - gcovr
-#    - lomiri-schemas
 
   ubuntu:focal:
     - clang
@@ -125,6 +128,8 @@ requires:
     - gobject-introspection
     - libgirepository1.0-dev
 #    - liblomiri-url-dispatcher-dev
+#    - lomiri-schemas
+#    - lomiri-sounds
     - valac
     - libglib2.0-dev
     - libnotify-dev
@@ -149,7 +154,6 @@ requires:
     - systemd
     - lcov
     - gcovr
-#    - lomiri-schemas
 
 variables:
   - 'CHECKERS="
@@ -192,25 +196,41 @@ before_scripts:
   - cd -
   - rm -Rf ayatana-indicator-messages-build/
   -
-  - cd ${START_DIR}
-  - if [ ! -d lomiri-schemas-build ]; then
-  -     git clone --depth 1  https://gitlab.com/ubports/core/lomiri-schemas.git lomiri-schemas-build
+  - if [ ${DISTRO_NAME} == "debian" ];then
+  -    cd ${START_DIR}
+  -    if [ ! -d lomiri-schemas-build ]; then
+  -         git clone --depth 1  https://gitlab.com/ubports/core/lomiri-schemas.git lomiri-schemas-build
+  -    fi
+  -    cd lomiri-schemas-build
+  -    cmake . -DCMAKE_INSTALL_PREFIX=/usr
+  -    make
+  -    make install
+  -    cd -
+  -    rm -Rf lomiri-schemas-build/
+  -
+  -    cd ${START_DIR}
+  -    if [ ! -d lomiri-sounds-build ]; then
+  -        git clone --depth 1  https://gitlab.com/ubports/core/lomiri-sounds.git lomiri-sounds-build
+  -    fi
+  -    cd lomiri-sounds-build
+  -    cmake . -DCMAKE_INSTALL_PREFIX=/usr
+  -    make
+  -    make install
+  -    cd -
+  -    rm -Rf lomiri-sounds-build/
   - fi
-  - cd lomiri-schemas-build
-  - cmake . -DCMAKE_INSTALL_PREFIX=/usr
-  - make
-  - make install
-  - cd -
-  - rm -Rf lomiri-schemas-build/
 
 build_scripts:
   - if [ ${DISTRO_NAME} == "debian" ];then
   -     export CFLAGS+=" -Wsign-compare -Wunused-parameter"
-  -     cppcheck --enable=warning,style,performance,portability,information,missingInclude .
+# FIXME: uninitMemberVar can perhaps be fixed in the source and dropped here
+  -     cppcheck --enable=warning,style,performance,portability,information --suppress=uninitMemberVar --suppress=missingInclude .
   - fi
   -
   - if [ -e ./CMakeLists.txt ]; then
-  -     if [ ${DISTRO_NAME} == "debian" ] || [ ${DISTRO_NAME} == "ubuntu" ]; then
+  -     if [ ${DISTRO_NAME} == "debian" ]; then
+  -         scan-build $CHECKERS cmake . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTS=ON -DENABLE_LOMIRI_FEATURES=ON
+  -     elif [ ${DISTRO_NAME} == "ubuntu" ]; then
   -         scan-build $CHECKERS cmake . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTS=ON
   -     else
   -         scan-build $CHECKERS cmake . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=ON

@@ -73,8 +73,6 @@ if (ENABLE_LOMIRI_FEATURES)
         APPEND
         SERVICE_DEPS
         lomiri-url-dispatcher>=0
-        lomiri-sounds
-        lomiri-schemas
     )
 
     add_definitions (
