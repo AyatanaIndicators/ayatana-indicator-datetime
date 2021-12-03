@@ -14,6 +14,7 @@ set (PACKAGE ${CMAKE_PROJECT_NAME})
 option(ENABLE_TESTS "Enable all tests and checks" OFF)
 option(ENABLE_COVERAGE "Enable coverage reports (includes enabling all tests and checks)" OFF)
 option(ENABLE_WERROR "Treat all build warnings as errors" OFF)
+option(ENABLE_LOMIRI_FEATURES "Build with Lomiri-specific libraries, schemas and media" OFF)
 
 if(ENABLE_COVERAGE)
     set(ENABLE_TESTS ON)
@@ -43,11 +44,6 @@ set (GETTEXT_PACKAGE "ayatana-indicator-datetime")
 add_definitions (-DGETTEXT_PACKAGE="${GETTEXT_PACKAGE}"
                  -DLOCALEDIR="${CMAKE_INSTALL_FULL_LOCALEDIR}")
 
-set(ALARM_DEFAULT_SOUND    "/usr/share/sounds/lomiri/ringtones/Alarm clock.ogg")
-set(CALENDAR_DEFAULT_SOUND "/usr/share/sounds/lomiri/ringtones/Marimbach.ogg")
-add_definitions(-DALARM_DEFAULT_SOUND="${ALARM_DEFAULT_SOUND}"
-                -DCALENDAR_DEFAULT_SOUND="${CALENDAR_DEFAULT_SOUND}")
-
 ##
 ##  Check for prerequisites
 ##
@@ -56,32 +52,43 @@ find_package (PkgConfig REQUIRED)
 include (CheckIncludeFile)
 include (FindPkgConfig)
 
-pkg_check_modules (SERVICE_DEPS REQUIRED
-                   libayatana-common>=0.9.3
-                   glib-2.0>=2.36
-                   gio-unix-2.0>=2.36
-                   libical>=0.48
-                   libecal-2.0>=3.16
-                   libedataserver-1.2>=3.5
-                   gstreamer-1.0>=1.2
-                   libnotify>=0.7.6
-                   properties-cpp>=0.0.1
-                   libaccounts-glib>=1.18
-                   messaging-menu>=0.8.2
-                   uuid>=2.25)
+set (
+    SERVICE_DEPS
+    libayatana-common>=0.9.3
+    glib-2.0>=2.36
+    gio-unix-2.0>=2.36
+    libical>=0.48
+    libecal-2.0>=3.16
+    libedataserver-1.2>=3.5
+    gstreamer-1.0>=1.2
+    libnotify>=0.7.6
+    properties-cpp>=0.0.1
+    libaccounts-glib>=1.18
+    messaging-menu>=0.8.2
+    uuid>=2.25
+)
+
+if (ENABLE_LOMIRI_FEATURES)
+    list (
+        APPEND
+        SERVICE_DEPS
+        lomiri-url-dispatcher>=0
+    )
+
+    add_definitions (
+        -DLOMIRI_FEATURES_ENABLED
+        -DALARM_DEFAULT_SOUND="/usr/share/sounds/lomiri/ringtones/Alarm clock.ogg"
+        -DCALENDAR_DEFAULT_SOUND="/usr/share/sounds/lomiri/ringtones/Marimbach.ogg"
+    )
+else ()
+    add_definitions (
+        -DALARM_DEFAULT_SOUND="dummy"
+        -DCALENDAR_DEFAULT_SOUND="dummy"
+    )
+endif ()
+
+pkg_check_modules (SERVICE_DEPS REQUIRED ${SERVICE_DEPS})
 include_directories (SYSTEM ${SERVICE_DEPS_INCLUDE_DIRS})
-
-# lomiri-url-dispatcher
-
-pkg_check_modules(URLDISPATCHER lomiri-url-dispatcher>=0)
-include_directories(${URLDISPATCHER_INCLUDE_DIRS})
-
-if(URLDISPATCHER_FOUND)
-    add_definitions( -DHAS_URLDISPATCHER )
-endif()
-
-pkg_check_modules(LOMIRI_SOUNDS lomiri-sounds)
-pkg_check_modules(LOMIRI_SCHEMAS lomiri-schemas)
 
 ##
 ##  custom targets
@@ -148,3 +155,4 @@ endif()
 message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "Unit tests: ${ENABLE_TESTS}")
 message(STATUS "Build with -Werror: ${ENABLE_WERROR}")
+message(STATUS "Build with Lomiri features: ${ENABLE_LOMIRI_FEATURES}")

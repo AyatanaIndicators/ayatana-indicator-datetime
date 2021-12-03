@@ -32,7 +32,7 @@
 #include <datetime/planner-snooze.h>
 #include <datetime/planner-range.h>
 #include <datetime/settings-live.h>
-#ifdef HAS_LOMIRI_SCHEMAS
+#ifdef LOMIRI_FEATURES_ENABLED
 #include <datetime/snap.h>
 #endif
 #include <datetime/state.h>
@@ -95,7 +95,7 @@ namespace
         return state;
     }
 
-#ifdef HAS_LOMIRI_SCHEMAS
+#ifdef LOMIRI_FEATURES_ENABLED
     std::shared_ptr<AlarmQueue> create_simple_alarm_queue(const std::shared_ptr<Clock>& clock,
                                                           const std::shared_ptr<Planner>& snooze_planner,
                                                           const std::shared_ptr<Engine>& engine,
@@ -149,7 +149,7 @@ main(int /*argc*/, char** /*argv*/)
     auto actions = std::make_shared<LiveActions>(state);
     MenuFactory factory(actions, state);
 
-#ifdef HAS_LOMIRI_SCHEMAS
+#ifdef LOMIRI_FEATURES_ENABLED
     // set up the snap decisions
     auto snooze_planner = std::make_shared<SnoozePlanner>(state->settings, state->clock);
     auto notification_engine = std::make_shared<ain::Engine>("ayatana-indicator-datetime-service");
