@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <datetime/dbus-shared.h>
@@ -37,7 +39,7 @@ class Exporter::Impl
 {
 public:
 
-    Impl(const std::shared_ptr<Settings>& settings):
+    explicit Impl(const std::shared_ptr<Settings>& settings):
         m_settings(settings),
         m_alarm_props(datetime_alarm_properties_skeleton_new())
     {
@@ -190,10 +192,10 @@ private:
         for(auto& menu : m_menus)
         {
             const auto path = std::string(BUS_DATETIME_PATH) + "/" + menu->name();
-            const auto id = g_dbus_connection_export_menu_model(m_bus, path.c_str(), menu->menu_model(), &error);
-            if (id)
+            const auto nId = g_dbus_connection_export_menu_model(m_bus, path.c_str(), menu->menu_model(), &error);
+            if (nId)
             {
-                m_exported_menu_ids.insert(id);
+                m_exported_menu_ids.insert(nId);
             }
             else
             {

@@ -1,8 +1,10 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -142,10 +144,9 @@ TEST_F(FormatterFixture, DISABLED_TestDesktopHeader)
   auto now = DateTime::Local(2020, 10, 31, 18, 30, 59);
   auto clock = std::make_shared<MockClock>(now);
 
-  bool locale_set = false;
   for(const auto& test_case : test_cases)
     {
-      test_case.is_12h ? locale_set = Set12hLocale() : locale_set = Set24hLocale();
+      bool locale_set = test_case.is_12h ? Set12hLocale() : Set24hLocale();
       DesktopFormatter f(clock, m_settings);
 
       m_settings->show_day.set(test_case.show_day);

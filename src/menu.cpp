@@ -550,7 +550,7 @@ protected:
         update_header();
     }
 
-    GVariant* create_header_state()
+    GVariant* create_header_state() override
     {
         const auto title = _("Date and Time");
         auto label = g_variant_new_string(m_formatter->header.get().c_str());
@@ -593,13 +593,19 @@ protected:
         update_header();
     }
 
-    GVariant* create_header_state()
+    GVariant* create_header_state() override
     {
         // are there alarms?
         bool has_alarms = false;
         for(const auto& appointment : m_upcoming)
-            if((has_alarms = appointment.is_alarm()))
+        {
+            has_alarms = appointment.is_alarm();
+
+            if (has_alarms)
+            {
                 break;
+            }
+        }
 
         GVariantBuilder b;
         g_variant_builder_init(&b, G_VARIANT_TYPE_VARDICT);

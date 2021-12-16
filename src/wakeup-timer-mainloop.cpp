@@ -1,5 +1,6 @@
 /*
  * Copyright 2014 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <datetime/wakeup-timer-mainloop.h>
@@ -36,7 +38,7 @@ class MainloopWakeupTimer::Impl
 
 public:
 
-    Impl(const std::shared_ptr<Clock>& clock):
+    explicit Impl(const std::shared_ptr<Clock>& clock):
         m_clock(clock)
     {
     }

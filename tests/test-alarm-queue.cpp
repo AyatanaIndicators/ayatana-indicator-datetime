@@ -42,7 +42,7 @@ protected:
     std::shared_ptr<RangePlanner> m_range_planner;
     std::shared_ptr<UpcomingPlanner> m_upcoming;
 
-    void SetUp()
+    void SetUp() override
     {
         super::SetUp();
 
@@ -57,7 +57,7 @@ protected:
         EXPECT_TRUE(m_triggered.empty());
     }
 
-    void TearDown()
+    void TearDown() override
     {
         m_triggered.clear();
         m_watcher.reset();
@@ -75,7 +75,6 @@ protected:
 
         Appointment a1; // an alarm
         a1.color = "red";
-        a1.summary = "Alarm";
         a1.summary = "http://www.example.com/";
         a1.uid = "example";
         a1.type = Appointment::ALARM;
@@ -88,7 +87,6 @@ protected:
 
         Appointment a2; // something else
         a2.color = "green";
-        a2.summary = "Other Text";
         a2.summary = "http://www.monkey.com/";
         a2.uid = "monkey";
         a2.type = Appointment::EVENT;

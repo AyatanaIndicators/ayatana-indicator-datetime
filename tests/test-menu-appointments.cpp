@@ -23,7 +23,7 @@
 
 #include <datetime/appointment.h>
 #include <datetime/menu.h>
-
+#include <algorithm>
 #include <vector>
 
 using MenuAppointmentFixture = GlibFixture;

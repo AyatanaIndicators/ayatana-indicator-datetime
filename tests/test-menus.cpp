@@ -186,7 +186,6 @@ private:
 
         Appointment a1; // an alarm clock appointment
         a1.color = "red";
-        a1.summary = "Alarm";
         a1.summary = "http://www.example.com/";
         a1.uid = "example";
         a1.type = Appointment::ALARM;
@@ -194,10 +193,9 @@ private:
 
         Appointment a2; // a non-alarm appointment
         a2.color = "green";
-        a2.summary = "Other Text";
         a2.summary = "http://www.monkey.com/";
         a2.uid = "monkey";
-        a1.type = Appointment::EVENT;
+        a2.type = Appointment::EVENT;
         a2.begin = a2.end = tomorrow;
 
         return std::vector<Appointment>({a1, a2});

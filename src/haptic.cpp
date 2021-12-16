@@ -39,7 +39,7 @@ class Haptic::Impl
 {
 public:
 
-    Impl(bool repeat):
+    explicit Impl(bool repeat):
         m_cancellable(g_cancellable_new()),
         m_repeat(repeat)
     {
