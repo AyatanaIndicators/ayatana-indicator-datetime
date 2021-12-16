@@ -227,8 +227,7 @@ before_scripts:
 build_scripts:
   - if [ ${DISTRO_NAME} == "debian" ];then
   -     export CFLAGS+=" -Wsign-compare -Wunused-parameter"
-# FIXME: uninitMemberVar can perhaps be fixed in the source and dropped here
-  -     cppcheck --enable=warning,style,performance,portability,information --suppress=uninitMemberVar --suppress=missingInclude .
+  -     cppcheck --enable=warning,style,performance,portability,information --suppress=missingInclude .
   - fi
   -
   - if [ -e ./CMakeLists.txt ]; then
