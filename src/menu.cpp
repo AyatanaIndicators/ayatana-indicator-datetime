@@ -107,10 +107,6 @@ Menu::get_display_appointments(const std::vector<Appointment>& appointments_in,
             if (a_full_day_today != b_full_day_today)
                 return a_full_day_today;
 
-            const bool a_after_today = (a.begin > end_of_day) || (a.end > end_of_day);
-            const bool b_after_today = (a.begin > end_of_day) || (a.end > end_of_day);
-            if (a_after_today != b_after_today)
-                return a_after_today;
             if (a.begin != b.begin)
                 return a.begin < b.begin;
             if (b.end != b.end)
