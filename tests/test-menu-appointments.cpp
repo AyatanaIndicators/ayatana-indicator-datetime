@@ -20,7 +20,6 @@
  */
 
 #include "glib-fixture.h"
-#include "print-to.h"
 
 #include <datetime/appointment.h>
 #include <datetime/menu.h>
