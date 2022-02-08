@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <datetime/locations-settings.h>
@@ -59,10 +61,10 @@ SettingsLocations::reload()
     }
 
     // add the other detected timezones
-    for(const auto& zone : m_timezones->timezones.get())
+    for(const auto& sZone : m_timezones->timezones.get())
     {
-        gchar * name = get_beautified_timezone_name(zone.c_str(), timezone_name.c_str());
-        Location l(zone, name);
+        gchar * name = get_beautified_timezone_name(sZone.c_str(), timezone_name.c_str());
+        Location l(sZone, name);
         if (std::find(v.begin(), v.end(), l) == v.end())
             v.push_back(l);
         g_free(name);
@@ -73,14 +75,14 @@ SettingsLocations::reload()
     {
         for(const auto& locstr : m_settings->locations.get())
         {
-            gchar* zone;
+            gchar* sZone;
             gchar* name;
-            split_settings_location(locstr.c_str(), &zone, &name);
-            Location loc(zone, name);
+            split_settings_location(locstr.c_str(), &sZone, &name);
+            Location loc(sZone, name);
             if (std::find(v.begin(), v.end(), loc) == v.end())
                 v.push_back(loc);
             g_free(name);
-            g_free(zone);
+            g_free(sZone);
         }
     }
 

@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #ifndef INDICATOR_DATETIME_TESTS_DBUS_FIXTURE_H
@@ -65,8 +67,8 @@ class TestDBusFixture: public GlibFixture
 
   protected:
 
-    GTestDBus * test_dbus;
-    GDBusConnection * system_bus;
+    GTestDBus * test_dbus = NULL;
+    GDBusConnection * system_bus = NULL;
     const std::vector<std::string> service_dirs;
 
     virtual void SetUp() override

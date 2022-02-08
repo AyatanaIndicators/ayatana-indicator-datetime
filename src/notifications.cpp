@@ -165,7 +165,7 @@ class Engine::Impl
 
 public:
 
-    Impl(const std::string& app_name):
+    explicit Impl(const std::string& app_name):
         m_app_name(app_name)
     {
         if (!notify_init(app_name.c_str()))

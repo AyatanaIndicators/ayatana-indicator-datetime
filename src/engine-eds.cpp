@@ -19,6 +19,10 @@
  *   Robert Tari <robert@tari.in>
  */
 
+#ifndef ALARM_DEFAULT_SOUND
+#define ALARM_DEFAULT_SOUND "dummy"
+#endif
+
 #include <datetime/engine-eds.h>
 #include <datetime/myself.h>
 #include <libical/ical.h>
@@ -48,7 +52,7 @@ class EdsEngine::Impl
 {
 public:
 
-    Impl(const std::shared_ptr<Myself> &myself)
+    explicit Impl(const std::shared_ptr<Myself> &myself)
         : m_myself(myself)
     {
         auto cancellable_deleter = [](GCancellable * c) {
@@ -473,14 +477,14 @@ private:
         // for each component..
         for (auto l=components; l!=nullptr; l=l->next)
         {
-            bool changed = false;
+            bool bChanged = false;
 
             // for each alarm...
             auto component = E_CAL_COMPONENT(l->data);
             auto auids = e_cal_component_get_alarm_uids(component);
-            for(auto l=auids; l!=nullptr; l=l->next)
+            for(auto lAlarms=auids; lAlarms!=nullptr; lAlarms=lAlarms->next)
             {
-                auto auid = static_cast<const char*>(l->data);
+                auto auid = static_cast<const char*>(lAlarms->data);
                 auto alarm = e_cal_component_get_alarm(component, auid);
                 if (alarm == nullptr)
                     continue;
@@ -490,13 +494,13 @@ private:
                 {
                     e_cal_component_remove_alarm (component, auid);
                     e_cal_component_add_alarm (component, new_alarm);
-                    changed = true;
+                    bChanged = true;
                     g_clear_pointer (&new_alarm, e_cal_component_alarm_free);
                 }
             }
             g_slist_free_full (auids, g_free);
 
-            if (changed)
+            if (bChanged)
             {
                 auto icc = e_cal_component_get_icalcomponent(component); // icc owned by ecc
                 modify_slist = g_slist_prepend(modify_slist, icc);
@@ -1127,9 +1131,9 @@ private:
                 alarm.text = get_alarm_text(a);
 
             if (alarm.audio_url.empty())
-                alarm.audio_url = get_alarm_sound_url(a,  (baseline.is_alarm() ?
-                                                         "file://" ALARM_DEFAULT_SOUND :
-                                                         "file://" CALENDAR_DEFAULT_SOUND));
+            {
+                alarm.audio_url = get_alarm_sound_url(a,  (baseline.is_alarm() ? "file://" ALARM_DEFAULT_SOUND : "file://" CALENDAR_DEFAULT_SOUND));
+            }
 
             if (!alarm.time.is_set())
                 alarm.time = trigger_time;

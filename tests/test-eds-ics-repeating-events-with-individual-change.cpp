@@ -1,5 +1,6 @@
 /*
  * Copyright 2016 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Renato Araujo Oliveira Filho <renato.filho@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <algorithm>
@@ -28,7 +30,6 @@
 #include <gtest/gtest.h>
 
 #include "glib-fixture.h"
-#include "print-to.h"
 #include "timezone-mock.h"
 #include "wakeup-timer-mock.h"
 

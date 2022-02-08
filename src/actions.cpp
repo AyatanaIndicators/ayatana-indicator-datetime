@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2021 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,11 +16,12 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <datetime/actions.h>
 #include <datetime/utils.h> // split_settings_location()
-
+#include <algorithm>
 #include <glib.h>
 #include <gio/gio.h>
 
@@ -50,16 +52,18 @@ DateTime datetime_from_timet_variant(GVariant* v)
 
 bool lookup_appointment_by_uid(const std::shared_ptr<State>& state, const gchar* uid, Appointment& setme)
 {
-    for(const auto& appt : state->calendar_upcoming->appointments().get())
+    bool bRet = false;
+
+    std::for_each(state->calendar_upcoming->appointments().get().begin(), state->calendar_upcoming->appointments().get().end(), [uid, &setme, &bRet](const Appointment& appt)
     {
         if (appt.uid == uid)
         {
             setme = appt;
-            return true;
+            bRet = true;
         }
-    }
+    });
 
-    return false;
+    return bRet;
 }
 
 void on_appointment_activated (GSimpleAction*, GVariant *vdata, gpointer gself)

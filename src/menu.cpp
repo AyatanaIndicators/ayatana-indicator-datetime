@@ -107,10 +107,6 @@ Menu::get_display_appointments(const std::vector<Appointment>& appointments_in,
             if (a_full_day_today != b_full_day_today)
                 return a_full_day_today;
 
-            const bool a_after_today = (a.begin > end_of_day) || (a.end > end_of_day);
-            const bool b_after_today = (a.begin > end_of_day) || (a.end > end_of_day);
-            if (a_after_today != b_after_today)
-                return a_after_today;
             if (a.begin != b.begin)
                 return a.begin < b.begin;
             if (b.end != b.end)
@@ -554,7 +550,7 @@ protected:
         update_header();
     }
 
-    GVariant* create_header_state()
+    GVariant* create_header_state() override
     {
         const auto title = _("Date and Time");
         auto label = g_variant_new_string(m_formatter->header.get().c_str());
@@ -597,13 +593,19 @@ protected:
         update_header();
     }
 
-    GVariant* create_header_state()
+    GVariant* create_header_state() override
     {
         // are there alarms?
         bool has_alarms = false;
         for(const auto& appointment : m_upcoming)
-            if((has_alarms = appointment.is_alarm()))
+        {
+            has_alarms = appointment.is_alarm();
+
+            if (has_alarms)
+            {
                 break;
+            }
+        }
 
         GVariantBuilder b;
         g_variant_builder_init(&b, G_VARIANT_TYPE_VARDICT);

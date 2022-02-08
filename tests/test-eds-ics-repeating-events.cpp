@@ -30,7 +30,6 @@
 #include <gtest/gtest.h>
 
 #include "glib-fixture.h"
-#include "print-to.h"
 #include "timezone-mock.h"
 #include "wakeup-timer-mock.h"
 
