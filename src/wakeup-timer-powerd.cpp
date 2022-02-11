@@ -1,6 +1,6 @@
 /*
  * Copyright 2014 Canonical Ltd.
- * Copyright 2021 Robert Tari
+ * Copyright 2021-2022 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -41,7 +41,6 @@ class PowerdWakeupTimer::Impl
 public:
 
     explicit Impl(const std::shared_ptr<Clock>& clock):
-        m_clock(clock),
         m_cancellable(g_cancellable_new())
     {
         g_bus_get(G_BUS_TYPE_SYSTEM, m_cancellable, on_bus_ready, this);
@@ -271,7 +270,6 @@ private:
     ***/
 
     core::Signal<> m_timeout;
-    const std::shared_ptr<Clock>& m_clock;
     DateTime m_wakeup_time;
 
     std::shared_ptr<GDBusConnection> m_bus;
