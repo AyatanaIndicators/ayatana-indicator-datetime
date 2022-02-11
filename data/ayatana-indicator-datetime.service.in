@@ -4,7 +4,7 @@ PartOf=graphical-session.target
 PartOf=ayatana-indicators.target
 
 [Service]
-ExecStart=@pkglibexecdir@/ayatana-indicator-datetime-service
+ExecStart=@CMAKE_INSTALL_FULL_LIBEXECDIR@/ayatana-indicator-datetime/ayatana-indicator-datetime-service
 Restart=on-failure
 
 [Install]

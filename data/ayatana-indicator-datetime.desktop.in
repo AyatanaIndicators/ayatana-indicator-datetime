@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=Ayatana Indicator Date & Time
-Exec=@pkglibexecdir@/ayatana-indicator-datetime-service
+Exec=@CMAKE_INSTALL_FULL_LIBEXECDIR@/ayatana-indicator-datetime/ayatana-indicator-datetime-service
 OnlyShowIn=MATE;Unity;XFCE;Pantheon;Budgie
 NoDisplay=true
 StartupNotify=false
