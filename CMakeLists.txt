@@ -24,8 +24,13 @@ else()
 endif()
 
 if(ENABLE_WERROR)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+    add_definitions("-Werror")
+endif()
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    add_definitions("-Weverything")
+else()
+    add_definitions("-Wall")
 endif()
 
 ##
@@ -106,19 +111,6 @@ add_custom_target (cppcheck COMMAND cppcheck --enable=all -q --error-exitcode=2 
 ##
 ##  Actual building
 ##
-
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-
-    set(COMPILE_FLAGS "${COMPILE_FLAGS} -Weverything")
-    set(COMPILE_FLAGS "${COMPILE_FLAGS} -Wno-c++98-compat -Wno-padded")
-    set(COMPILE_FLAGS "${COMPILE_FLAGS} -Wno-documentation")
-
-else()
-
-    set(COMPILE_FLAGS "${COMPILE_FLAGS} -Wall")
-
-endif()
-
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/include)

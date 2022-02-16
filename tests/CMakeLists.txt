@@ -1,7 +1,5 @@
 find_package(GMock REQUIRED)
 
-SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMPILE_FLAGS}")
-
 # dbustest
 pkg_check_modules(DBUSTEST REQUIRED
                   dbustest-1>=14.04.0)
