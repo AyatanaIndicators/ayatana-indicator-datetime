@@ -33,6 +33,8 @@ else()
     add_definitions("-Wall")
 endif()
 
+add_definitions("-Wno-sign-compare") # Needed for GTest on Ubuntu
+
 ##
 ##  GNU standard installation directories
 ##

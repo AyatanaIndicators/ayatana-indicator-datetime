@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2022 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #ifndef INDICATOR_DATETIME_GEOCLUE_TIMEZONE_H
@@ -36,7 +38,7 @@ public:
     ~GeoclueTimezone();
 
 private:
-    struct Impl;
+    class Impl;
     std::unique_ptr<Impl> impl;
 
     // we've got pointers in here, so don't allow copying
