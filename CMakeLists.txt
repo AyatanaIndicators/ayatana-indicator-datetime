@@ -78,12 +78,19 @@ if (ENABLE_LOMIRI_FEATURES)
         APPEND
         SERVICE_DEPS
         lomiri-url-dispatcher>=0
+        lomiri-sounds
+        lomiri-schemas
     )
+
+    pkg_get_variable(ALARM_DEFAULT_SOUND lomiri-sounds alarm_default_sound)
+    pkg_get_variable(CALENDAR_DEFAULT_SOUND lomiri-sounds calendar_default_sound)
+    string(REPLACE ";" " " ALARM_DEFAULT_SOUND "${ALARM_DEFAULT_SOUND}")
+    string(REPLACE ";" " " ALARM_DEFAULT_SOUND "${ALARM_DEFAULT_SOUND}")
 
     add_definitions (
         -DLOMIRI_FEATURES_ENABLED
-        -DALARM_DEFAULT_SOUND="/usr/share/sounds/lomiri/ringtones/Alarm clock.ogg"
-        -DCALENDAR_DEFAULT_SOUND="/usr/share/sounds/lomiri/ringtones/Marimbach.ogg"
+        -DALARM_DEFAULT_SOUND="${ALARM_DEFAULT_SOUND}"
+        -DCALENDAR_DEFAULT_SOUND="${CALENDAR_DEFAULT_SOUND}"
     )
 else ()
     add_definitions (
