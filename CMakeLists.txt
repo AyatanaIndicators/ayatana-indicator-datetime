@@ -84,8 +84,8 @@ if (ENABLE_LOMIRI_FEATURES)
 
     pkg_get_variable(ALARM_DEFAULT_SOUND lomiri-sounds alarm_default_sound)
     pkg_get_variable(CALENDAR_DEFAULT_SOUND lomiri-sounds calendar_default_sound)
-    string(REPLACE ";" " " ALARM_DEFAULT_SOUND "${ALARM_DEFAULT_SOUND}")
-    string(REPLACE ";" " " ALARM_DEFAULT_SOUND "${ALARM_DEFAULT_SOUND}")
+    string(JOIN " " ALARM_DEFAULT_SOUND ${ALARM_DEFAULT_SOUND})
+    string(JOIN " " CALENDAR_DEFAULT_SOUND ${CALENDAR_DEFAULT_SOUND})
 
     add_definitions (
         -DLOMIRI_FEATURES_ENABLED
