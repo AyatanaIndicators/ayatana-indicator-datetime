@@ -1,6 +1,140 @@
+2022-02-19 Mike Gabriel
+
+        * release 22.2.0 (HEAD -> main, tag: 22.2.0)
+        * Merge branch 'tari01-pr/fix-list-conversion' (5b8f9a2b)
+
+2022-02-19 Robert Tari
+
+        * CMakeLists.txt: Fix list conversion typo (6fe762b2)
+
+2022-02-18 Mike Gabriel
+
+        * Merge branch 'tari01-pr/read-default-sounds-from-lomiri-sounds'
+          (7d478107)
+
+2022-02-18 Robert Tari
+
+        * CMakeLists.txt: Read default sounds from lomiri-sounds pkg-config
+          file (dbdcf14f)
+
+2022-02-16 Mike Gabriel
+
+        * Merge branch 'tari01-pr/drop-cmake-install-full-pkglibexecdir'
+          (3589ed80)
+
+2022-02-11 Robert Tari
+
+        * Drop pkglibexecdir and use native CMake file configuration
+          (aebb056a)
+
+2022-02-16 Mike Gabriel
+
+        * Merge branch 'tari01-pr/build-with-werror' (ba692f8e)
+
+2022-02-11 Robert Tari
+
+        * .build.yml: Build with -Werror (20dbe77b)
+        * Fix build warnings (bfc0251b)
+
+2022-02-16 Mike Gabriel
+
+        * Merge branch 'tari01-pr/cleanup-compile-flags' (adb447d7)
+
+2022-02-11 Robert Tari
+
+        * .build.yml: Drop extra compilation flags (e4b6f9ac)
+        * Clean up compilation flags (0ae2ec89)
+
+2022-02-08 Mike Gabriel
+
+        * Merge branch 'tari01-pr/fix-cppcheck-suppressions' (b439ad04)
+
+2021-12-16 Robert Tari
+
+        * .build.yml: Remove cppcheck suppressions (91af5e28)
+        * Fix cppcheck errors/warnings (7f380782)
+
+2021-12-17 Robert Tari
+
+        * src/menu.cpp: Remove redundant code block: (b7df5a95)
+        * tests/test-menu-appointments.cpp: Remove unused variables
+          (02cc4073)
+        * Remove unused print-to.h (cd920da7)
+
+2021-12-16 Robert Tari
+
+        * Whitespace fix (3aec729d)
+
+2022-02-08 Robert Tari
+
+        * .travis.yml: Run CI builds on Travis CI's Ubuntu focal base system
+          (4e9da1fb)
+
+2022-01-07 wigy
+
+        * Translated using Weblate (Hungarian) (0f867872)
+
+2022-01-02 ssantos
+
+        * Translated using Weblate (Portuguese) (41c5ce08)
+
+2021-12-15 Mike Gabriel
+
+        * Merge branch
+          'tari01-pr/build-libayatana-common-with-enable-lomiri-features'
+          (1d577a01)
+
+2021-12-06 Robert Tari
+
+        * .build.yml: Build libayatana-common with ENABLE_LOMIRI_FEATURES
+          (89f313da)
+
+2021-12-03 Mike Gabriel
+
+        * Merge branch 'tari01-pr/add-lomiri-features-flag' (291efbd3)
+
+2021-11-26 Robert Tari
+
+        * .build.yml: Add ENABLE_LOMIRI_FEATURES flag and adapt build flow
+          (22268331)
+        * Make Lomiri features configurable at build time (5544dd0e)
+
+2021-11-25 Mike Gabriel
+
+        * Merge branch 'tari01-pr/detect-lomiri-schemas' (87bbf6da)
+
+2021-11-24 Robert Tari
+
+        * Check for lomiri-schemas package instead of individual files
+          (8e098813)
+
+2021-11-25 Mike Gabriel
+
+        * Merge branch 'tari01-pr/drop-std-version' (2c843c5b)
+
+2021-11-23 Robert Tari
+
+        * Remove C(++) std version constraint (463ab0d2)
+
+2021-11-23 phlostically
+
+        * Translated using Weblate (Esperanto) (20d3b8ec)
+
+2021-11-21 phlostically
+
+        * Translated using Weblate (Esperanto) (b725cae4)
+
+2021-11-22 Mike Gabriel
+
+        * Merge branch 'tari01-pr/check-for-lomiri-sounds' (bc5c2ac7)
+
+2021-11-22 Robert Tari
+
+        * Check for the lomiri-sounds package (8f2a75a0)
+
 2021-11-20 Mike Gabriel
 
-        * release 0.9.0 (HEAD -> main, tag: 0.9.0)
+        * release 0.9.0 (ffc328ce) (tag: 0.9.0)
 
 2021-11-19 Mike Gabriel
 

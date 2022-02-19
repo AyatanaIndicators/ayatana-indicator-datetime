@@ -1,3 +1,150 @@
+Overview of changes in ayatana-indicator-datetime 22.2.0
+
+  - CMakeLists.txt: Read default sounds from lomiri-sounds pkg-config file.
+  - Drop pkglibexecdir and use native CMake file configuration.
+  - Fix build warnings.
+  - Clean up compilation flags.
+  - Fix cppcheck errors/warnings.
+  - Some code removals.
+  - Make Lomiri features configurable at build time.
+  - Check for lomiri-schemas package instead of individual files.
+  - Remove C(++) std version constraint.
+  - Check for the lomiri-sounds package.
+  - Translation updates.
+
+Overview of changes in ayatana-indicator-datetime 0.9.0
+
+  - Re-enable haptic using hfd-service.
+  - Rename Lomiri-specific properties to x-lomiri.
+  - include/datetime/settings-shared.h: Rename com.ubuntu.calendar.
+  - Fix ringtones path + drop unused definition.
+  - Rename HAVE_UT_ACCTSERVICE_SYSTEMSOUND_SETTINGS to
+    HAS_LOMIRI_ACCTSERVICE_SOUND.
+  - Rename com.ubuntu.touch.AccountsService.Sound to
+    com.lomiri.touch.AccountsService.Sound.
+  - Use lomiri-phablet instead of ubuntu.
+  - Remove com.canonical.usensord and disable haptic.
+  - Remove the activation_url from the Appointment class.
+  - Drop the 'ubuntu' prefix from the alarm types and functions.
+  - Rename com.ubuntu.notifications to com.lomiri.notifications.
+  - Rename x-canonical properties to x-ayatana.
+  - data/CMakeLists.txt: Do not use automatic GSchema compilation.
+  - Use native CMake GSettings module.
+  - Allow autostart for Budgie Desktop.
+  - tests/test-live-actions: Handle case when the test is run on Lomiri.
+  - Link to lomiri-url-dispatcher where needed.
+  - src/snap.cpp: Create Sound object via SoundBuilder.
+  - src/settings-live.cpp: Check for schema instead of Lomiri.
+  - include/notifications/sound.h: Add SoundBuider class.
+  - src/snap.cpp: Add m_sound_builder variable.
+  - src/main.cpp: Fix uin -> ain typo.
+  - CMakeLists.txt: Add uuid dependency.
+  - tests/CMakeLists.txt: Build DBusMock tests with -no-pie.
+  - po/CMakeLists.txt: Don't update .pot file during builds.
+  - Some fixes in UBports patches after a review.
+  - Rename com.canonical.powerd -> com.lomiri.Repowerd.
+  - Add -DENABLE_WERROR CMake option.
+  - Calls 'calendar://eventId=<event-id>' when clicking on an event in the
+    indicator.
+  - Resolve some test timing issues by deferring Snap object creation until
+    it's needed
+  - src/actions-live.cpp: Make open_alarm_app, open_appointment,
+    open_calendar_app and open_settings_app return the uri/command.
+  - tests/test-live-actions.cpp: Drop last_cmd and last_url variables + use
+    return values of actions-live functions for testing + test phone functions
+    on Lomiri only.
+  - tests/test-live-actions.cpp: test phone functions after setting
+    XDG_CURRENT_DESKTOP.
+  - tests/test-settings.cpp: Use SETTINGS_NOTIFY_SCHEMA_ID only if it exists.
+  - tests/run-eds-ics-test.sh: Remove return statement.
+  - tests/CMakeLists.txt: Enable the timezone unit tests.
+  - tests/CMakeLists.txt: Catch race condition while attempting to copy
+    schemas.
+  - tests/CMakeLists.txt: Exclude blocking tests on Travis for now.
+  - tests/tests-timezones.cpp: Use MockTimezone to construct LiveTimezones +
+    drop section expecting changes after /timezone is modified (not monitored)
+  - tests/test-formater: Change warning to plain message otherwise it can crash
+    the test.
+  - tests/CMakeLists.txt: add -no-pie compile flag.
+  - src/settings-live.cpp: initialise m_settings_cal_notification and
+    m_settings_general_notification to NULL if we are not on Lomiri.
+  - Alarm snoozes after timeout.
+  - Snooze starts from the current minute.
+  - Fix the EDS tests that were failing.
+  - Replace ual with url-dispatcher.
+  - Fix clock app URL.
+  - Use cmake-extras intltool module, and keep pot file in vcs.
+  - Use cmake-extras for coverage support and always enable testing.
+  - Switch to using gmock module from cmake-extras.
+  - UpcomingPlanner: don't get events from the day before of the selected one.
+  - Should not use sounds notifications for calendar in silent mode.
+  - If in silent mode should only vibrate if the settings say so.
+  - Only wake device if bubbles notifications are enabled.
+  - Do not fail tests if schema is not installed.
+  - Make sure that calendar settings do not affect alarm notifications.
+  - Set calendar notification settings to true in case GSettings schema is not
+    available. Make sure calendar notification settings are correct during
+    tests.
+  - Detect desktop to launch applications.
+  - Only create messaging menu if calendar app is installed.
+    Update tests.
+  - Update notifications to use the new calendar icon.
+  - Vibrate only once when notification about calendar events.
+  - Fix memory leak on messaging_menu.
+  - Only play sounds for alarms.
+  - Fixed crash when clicking on messaging menu.
+  - Post message on messaging menu if the notification get timeout.
+  - Pull the timezone from timedate1 regardless of whether it appears on
+    the bus before or after we startup
+  - Do not play sound for events without a sound set.
+  - Rebuild events list in case of accounts changed.
+  - Create a constructor for Alarm class.
+  - Only play a sound alert if the event contains a SOUND reminder.
+  - Ignore alarms for events marked as not attending.
+  - Make sure that the ocurrence time is used to build the url to launch
+    external application.
+  - Lauch calendar app using the event start time.
+  - Get event selection up-to-date with the spec, including showing in-progress
+    events. Add unit tests to cover event priority and display order.
+  - Call 'calendar://eventId=<event-id>' when clicking on an event in the
+    indicator.
+  - Resolve some test timing issues by deferring Snap object creation until
+    it's needed.
+  - In test-notifications we do need one wait() wart after all, because the
+    Snap is building its impl proxies asynchronously and hasn't any public
+    way of notifying when they're built.
+  - Update notification tests to wait for the needed bus events instead of
+    waiting for arbitrary time intervals.
+  - Add a DBusMock test Fixture with helper functions to wait for arbitrary bus
+    method calls.
+  - Add notification title, icon checks to test-notification's battery of test
+    combinations.
+  - Adjust title and notification icon according to the event type.
+  - Move notifications tests into a new unit test. Extract notifications test
+    fixture into a reusable header.
+  - Various fixes for test-snap.
+  - tests/CMakeLists.txt: Try to fix build failure on Debian Testing where
+    cp -f is performed.
+  - Add install instructions + update documentation.
+  - If possible, avoid deprecated g_time_zone_new.
+  - src/myself.cpp: Fix libaccounts-glib.h include warning.
+  - src/menu.cpp: Pipe appointment strings through
+    ayatana_common_utils_ellipsize and add GSettings watcher for
+    max-menu-text-length.
+  - CMakeLists.txt: Add libayatana-common (>= 0.9.3) dependency.
+  - tests/test-dbus-fixture.h: Turn TestDBusFixture::TestDBusFixture into an
+    explicitly declared constructor.
+  - tests/test-eds-ics-missing-trigger.cpp: Include engine-eds.h prio to
+    alarm-queue-simple.h.
+  - Various tests fixes. (Thanks to Nicholas Guriev).
+  - CMakeLists.txt: Drop GNUInstallDirs. Use PREFIX initialization hack.
+  - CMakeLists.txt: Rename CMake options 'enable_tests' to 'ENABLE_TESTS' and
+    'enable_lcov' to 'ENABLE_COVERAGE' (both defaulting to 'OFF')
+  - src/clock-live.cpp: Replace 'signed size_t' by 'ssize_t'.
+  - CMakeLists.txt: Add Clang support.
+  - CMakeLists.txt: Fix GTest path
+  - Translation updates.
+
 Overview of changes in ayatana-indicator-datetime 0.8.3
 
   - Rename Lomiri-specific properties to x-lomiri.
