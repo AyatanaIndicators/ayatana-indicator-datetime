@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2020-08-22 00:10+0200\n"
-"PO-Revision-Date: 2022-03-01 12:56+0000\n"
+"PO-Revision-Date: 2022-03-17 13:57+0000\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <https://hosted.weblate.org/projects/"
 "ayatana-indicators/datetime-applet/he/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Weblate 4.11.1-dev\n"
+"X-Generator: Weblate 4.12-dev\n"
 
 #: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
 msgid "The calendar's default sound file."
@@ -109,7 +109,7 @@ msgstr ""
 #. This strftime(3) format string shows the year.
 #: ../src/formatter-desktop.cpp:176
 msgid "%Y"
-msgstr ""
+msgstr "%Y"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. Format string for the day on the first menuitem in the datetime indicator.
