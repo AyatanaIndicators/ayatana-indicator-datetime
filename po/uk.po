@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: ted@canonical.com\n"
 "POT-Creation-Date: 2020-08-22 00:11+0200\n"
-"PO-Revision-Date: 2022-04-23 10:12+0000\n"
+"PO-Revision-Date: 2022-04-23 10:54+0000\n"
 "Last-Translator: Sergii Horichenko <m@sgg.im>\n"
 "Language-Team: Ukrainian <https://hosted.weblate.org/projects/"
 "ayatana-indicators/datetime-applet/uk/>\n"
@@ -29,11 +29,13 @@ msgid ""
 "If a calendar or reminder event doesn't specify its own sound file, this "
 "file will be used as the fallback sound."
 msgstr ""
+"Якщо подія календаря або нагадування не вказує на власний звуковий файл, в "
+"якості звуку буде використовуватися цей файл."
 
 #. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
 #: ../src/formatter.cpp:234
 msgid "%l:%M:%S %p"
-msgstr ""
+msgstr "%l:%M:%S %p"
 
 #. TRANSLATORS: a strftime(3) format for 12hr time
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
@@ -41,12 +43,12 @@ msgstr ""
 #. en_US example: "%l:%M %p" --> "1:00 PM"
 #: ../src/formatter.cpp:237 ../src/utils.c:304
 msgid "%l:%M %p"
-msgstr ""
+msgstr "%H:%M"
 
 #. TRANSLATORS: a strftime(3) format for 24hr time w/seconds
 #: ../src/formatter.cpp:240
 msgid "%H:%M:%S"
-msgstr ""
+msgstr "%H:%M:%S"
 
 #. TRANSLATORS: a strftime(3) format for 24hr time
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
@@ -54,7 +56,7 @@ msgstr ""
 #. en_US example: "%H:%M" --> "13:00"
 #: ../src/formatter.cpp:243 ../src/utils.c:344
 msgid "%H:%M"
-msgstr ""
+msgstr "%H:%M"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
@@ -64,7 +66,7 @@ msgstr ""
 #. zh_CN example(?): "%Y年%m月%d日 周%a" --> "2020年10月31日 周六"
 #: ../src/formatter-desktop.cpp:138
 msgid "%a %b %e %Y"
-msgstr ""
+msgstr "%a, %e %b %Y"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
@@ -74,7 +76,7 @@ msgstr ""
 #. zh_CN example(?): "%m月%d日 周%a" --> "03月27日 周六"
 #: ../src/formatter-desktop.cpp:147
 msgid "%a %b %e"
-msgstr ""
+msgstr "%a, %e %b"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. That will fix bug #1001595 for your locale and make the date/time in the upper-right corner of your screen look beautiful :)
