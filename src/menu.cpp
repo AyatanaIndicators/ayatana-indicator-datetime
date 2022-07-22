@@ -561,6 +561,7 @@ protected:
         g_variant_builder_add(&b, "{sv}", "label", label);
         g_variant_builder_add(&b, "{sv}", "title", g_variant_new_string(title));
         g_variant_builder_add(&b, "{sv}", "visible", g_variant_new_boolean(TRUE));
+        g_variant_builder_add(&b, "{sv}", "tooltip", g_variant_new_string (_("Time & date settings, quick calendar access")));
         return g_variant_builder_end(&b);
     }
 };
