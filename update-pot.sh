@@ -21,11 +21,21 @@ GETTEXT_DOMAIN=$(cat CMakeLists.txt | grep 'set.*(.*GETTEXT_PACKAGE' | sed -r -e
 # (in time formatter code).
 cd src/ && for file in *.cpp *.c; do sed -e "s/ T_/ T _/g" -i $file; done && cd - 1>/dev/null
 
+# Yet another hack to include .gschema.xml translations
+sed -i po/POTFILES.in -e 's/org.ayatana.indicator.datetime.gschema.xml.in.in$/org.ayatana.indicator.datetime.gschema.xml/g'
+cp data/org.ayatana.indicator.datetime.gschema.xml.in.in data/org.ayatana.indicator.datetime.gschema.xml
+
 # Run the intltool-update...
 cd po/ && intltool-update --gettext-package ${GETTEXT_DOMAIN} --pot && cd - 1>/dev/null
 
+# And revert...
+sed -i po/POTFILES.in -e 's/org.ayatana.indicator.datetime.gschema.xml$/org.ayatana.indicator.datetime.gschema.xml.in.in/g'
+rm data/org.ayatana.indicator.datetime.gschema.xml
+
 # And undo the renamings again.
 cd src/ && for file in *.cpp *.c; do sed -e "s/ T _/ T_/g" -i $file; done && cd - 1>/dev/null
+
+
 
 sed -e 's/\.xml\.in\.h:/.xml.in:/g'	\
     -e 's/\.ini\.in\.h:/.ini.in:/g'	\
