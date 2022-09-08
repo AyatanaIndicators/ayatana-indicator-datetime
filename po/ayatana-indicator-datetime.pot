@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: ted@canonical.com\n"
-"POT-Creation-Date: 2020-08-22 00:09+0200\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-09-08 22:27+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,14 +17,186 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
-msgid "The calendar's default sound file."
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:1
+msgid "What the time format should be?"
 msgstr ""
 
-#: ../data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:2
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:2
 msgid ""
-"If a calendar or reminder event doesn't specify its own sound file, this "
-"file will be used as the fallback sound."
+"Controls the time format that is displayed in the indicator. For almost all "
+"users this should be the default for their locale. If you think the setting "
+"is wrong for your locale please join or talk to the translation team for "
+"your language. If you just want something different you can adjust this to "
+"be either 12 or 24 time. Or, you can use a custom format string and set the "
+"custom-time-format setting."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:3
+msgid "The format string passed to strftime"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:4
+msgid ""
+"The format of the time and/or date that is visible on the panel when using "
+"the indicator. For most users this will be a set of predefined values as "
+"determined by the configuration utility, but advanced users can change it to "
+"anything strftime can accept. Look at the man page on strftime for more "
+"information."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:5
+msgid "Show the number of seconds in the indicator"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:6
+msgid ""
+"Makes the datetime indicator show the number of seconds in the indicator. "
+"It's important to note that this will cause additional battery drain as the "
+"time will update 60 times as often, so it is not recommended. Also, this "
+"setting will be ignored if the time-format value is set to custom."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:7
+msgid "Show the day of the week in the indicator"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:8
+msgid ""
+"Puts the day of the week on the panel along with the time and/or date "
+"depending on settings. This setting will be ignored if the time-format value "
+"is set to custom."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:9
+msgid "Show the month and date in the indicator"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:10
+msgid ""
+"Puts the month and the date in the panel along with the time and/or day of "
+"the week depending on settings. This setting will be ignored if the time-"
+"format value is set to custom."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:11
+msgid "Show the year in the indicator"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:12
+msgid ""
+"Puts the year in the panel along with the month and the date. This setting "
+"will be ignored if either the time-format value is set to custom or if show-"
+"date is set to false."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:13
+msgid "Show the monthly calendar in the indicator"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:14
+msgid "Puts the monthly calendar in indicator-datetime's menu."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:15
+msgid "Show week numbers in calendar"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:16
+msgid ""
+"Shows the week numbers in the monthly calendar in indicator-datetime's menu."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:17
+msgid "Show events in the indicator"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:18
+msgid "Shows events from Evolution in indicator-datetime's menu."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:19
+msgid "Show the auto-detected location in the indicator"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:20
+msgid ""
+"Shows your current location (determined from geoclue and /etc/timezone) in "
+"indicator-datetime's menu."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:21
+msgid "Show locations in the indicator"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:22
+msgid "Shows custom defined locations in indicator-datetime's menu."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:23
+msgid "A List of locations"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:24
+msgid ""
+"Adds the list of locations the user has configured to display in the "
+"indicator-datetime menu."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:25
+msgid "The name of the current timezone"
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:26
+msgid ""
+"Some timezones can be known by many different cities or names. This setting "
+"describes how the current zone prefers to be named. Format is \"TIMEZONE NAME"
+"\" (e.g. \"America/New_York Boston\" to name the New_York zone Boston)."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:27
+msgid "What kind of haptic feedback, if any, to trigger with an alarm."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:28
+msgid ""
+"What kind of haptic feedback, if any, to trigger with an alarm. Two modes "
+"are currently supported: 'pulse', 'none'."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:29
+msgid "The alarm's default sound file."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:30
+msgid ""
+"If an alarm doesn't specify its own sound file, this file will be used as "
+"the fallback sound."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:31
+msgid "The alarm's default volume level."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:32
+msgid "The volume at which alarms will be played."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:33
+msgid "The alarm's duration."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:34
+msgid ""
+"How long the alarm's sound will be looped if its snap decision is not "
+"dismissed by the user."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:35
+msgid "The snooze duration."
+msgstr ""
+
+#: ../data/org.ayatana.indicator.datetime.gschema.xml:36
+msgid "How long to wait when the user hits the Snooze button."
 msgstr ""
 
 #. TRANSLATORS: a strftime(3) format for 12hr time w/seconds
@@ -112,58 +284,67 @@ msgstr ""
 #. This format string gives the full weekday, date, month, and year.
 #. en_US example: "%A, %B %e %Y" --> Saturday, October 31 2020"
 #. en_GB example: "%A, %e %B %Y" --> Saturday, 31 October 2020"
-#: ../src/menu.cpp:255
+#: ../src/menu.cpp:337
 msgid "%A, %e %B %Y"
 msgstr ""
 
 #. add the 'Add Event…' menuitem
-#: ../src/menu.cpp:352
+#: ../src/menu.cpp:438
 msgid "Add Event…"
 msgstr ""
 
-#: ../src/menu.cpp:362
+#: ../src/menu.cpp:448
 msgid "Clock"
 msgstr ""
 
-#: ../src/menu.cpp:414
+#: ../src/menu.cpp:500
 msgid "Time and Date Settings…"
 msgstr ""
 
-#: ../src/menu.cpp:469
+#: ../src/menu.cpp:555
 msgid "Date and Time"
 msgstr ""
 
-#: ../src/menu.cpp:520
+#: ../src/menu.cpp:564
+msgid "Time & date settings, quick calendar access"
+msgstr ""
+
+#: ../src/menu.cpp:613
 msgid "Time and Date"
 msgstr ""
 
-#: ../src/menu.cpp:525
+#: ../src/menu.cpp:618
 #, c-format
 msgid "%s (has alarms)"
 msgstr ""
 
 #. * strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 12h locale; e.g. Wed, 2:00 PM
-#: ../src/snap.cpp:126
+#: ../src/snap.cpp:147
 msgid "%a, %l:%M %p"
 msgstr ""
 
 #. * A strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 24h locale; e.g. Wed, 14:00
-#: ../src/snap.cpp:130
+#: ../src/snap.cpp:151
 msgid "%a, %H:%M"
 msgstr ""
 
-#: ../src/snap.cpp:133
+#: ../src/snap.cpp:157
 #, c-format
 msgid "Alarm %s"
 msgstr ""
 
-#: ../src/snap.cpp:140
+#: ../src/snap.cpp:159
+#, c-format
+msgid "Event %s"
+msgstr ""
+
+#: ../src/snap.cpp:168 ../src/snap.cpp:172
 msgid "OK"
 msgstr ""
 
-#: ../src/snap.cpp:141
+#: ../src/snap.cpp:169
 msgid "Snooze"
 msgstr ""
 
