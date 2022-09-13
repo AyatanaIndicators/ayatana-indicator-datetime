@@ -35,10 +35,9 @@ rm data/org.ayatana.indicator.datetime.gschema.xml
 # And undo the renamings again.
 cd src/ && for file in *.cpp *.c; do sed -e "s/ T _/ T_/g" -i $file; done && cd - 1>/dev/null
 
-
-
 sed -e 's/\.xml\.in\.h:/.xml.in:/g'	\
     -e 's/\.ini\.in\.h:/.ini.in:/g'	\
     -e 's/\.xml\.h:/.xml:/g'		\
     -e 's/\.ini\.h:/.ini:/g'		\
+    -e 's@#: \.\./@#: @g'		\
     -i po/${GETTEXT_DOMAIN}.pot
