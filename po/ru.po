@@ -8,17 +8,17 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-09-14 08:37+0200\n"
-"PO-Revision-Date: 2020-10-09 11:26+0000\n"
-"Last-Translator: koffevar <egor.kafisov@gmail.com>\n"
-"Language-Team: Russian <https://hosted.weblate.org/projects/ayatana-"
-"indicators/datetime-applet/ru/>\n"
+"PO-Revision-Date: 2022-09-15 22:17+0000\n"
+"Last-Translator: Sergii Horichenko <m@sgg.im>\n"
+"Language-Team: Russian <https://hosted.weblate.org/projects/"
+"ayatana-indicators/datetime-applet/ru/>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.3-dev\n"
+"X-Generator: Weblate 4.14.1-dev\n"
 
 #: data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
 msgid "The calendar's default sound file."
@@ -60,7 +60,7 @@ msgstr "Дата и время"
 
 #: src/menu.cpp:564
 msgid "Time & date settings, quick calendar access"
-msgstr ""
+msgstr "Настройки времени и даты, быстрый доступ к календарю"
 
 #: src/menu.cpp:613
 msgid "Time and Date"
@@ -91,7 +91,7 @@ msgstr "Будильник %s"
 #: src/snap.cpp:159
 #, c-format
 msgid "Event %s"
-msgstr ""
+msgstr "Событие %s"
 
 #: src/snap.cpp:168 src/snap.cpp:172
 msgid "OK"
