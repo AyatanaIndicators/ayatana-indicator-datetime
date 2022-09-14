@@ -1,6 +1,73 @@
+2022-09-14 Mike Gabriel
+
+        * release 22.9.0 (HEAD -> main, tag: 22.9.0)
+        * Translated using Weblate (German) (b2312b61)
+
+2022-09-14 Milan Korecky
+
+        * Translated using Weblate (Czech) (8d0f3244)
+
+2022-09-14 Mike Gabriel
+
+        * po/*.po{,t}: Translation strings update (esp. source file
+          references). (df40ea2d)
+        * update-po{,t}.sh: Also catch multi-file source file references.
+          (463e6b96)
+        * po/*.po{,t}: Translation strings update. (f5b71f1f)
+
+2022-09-13 Robert Tari
+
+        * Merge branch 'sunweaver-pr/beautify-paths-in-pot-file' (0bdd75c9)
+
+2022-09-11 Mike Gabriel
+
+        * po/ayatana-indicator-datetime.pot: Update file. (1add999d)
+        * update-po{,t}.sh: Omit ../ at beginning of file names in .pot file.
+          (e70cba40)
+
+2022-09-08 Mike Gabriel
+
+        * po/ayatana-indicator-datetime.pot: Update translation strings.
+          (9f193262)
+        * update-pot.sh: Include org.ayatana.indicator.datetime.gschema.xml
+          strings into .pot file. (0e63c5cb)
+        * update-pot.sh: Implement a hack to successfully catch T_([...])
+          functions, as well. (2e979b47)
+        * Merge branch 'sunweaver-pr/tooltip-support' (bb0f985d)
+
+2022-07-22 Mike Gabriel
+
+        * src/menu.cpp: Add tooltip. (cc458235)
+
+2022-05-07 Rondy Andersson
+
+        * Translated using Weblate (Swedish) (483841ee)
+
+2022-04-23 Sergii Horichenko
+
+        * Translated using Weblate (Ukrainian) (7f50d736)
+        * Translated using Weblate (Ukrainian) (240dec46)
+        * Translated using Weblate (Ukrainian) (a362212b)
+
+2022-03-21 Yaron Shahrabani
+
+        * Translated using Weblate (Hebrew) (7130cee1)
+
+2022-03-16 Yaron Shahrabani
+
+        * Translated using Weblate (Hebrew) (27f905c8)
+
+2022-02-27 이정희
+
+        * Translated using Weblate (Korean) (7b354c64)
+
+2022-02-28 Yaron Shahrabani
+
+        * Translated using Weblate (Hebrew) (ca09e5f6)
+
 2022-02-19 Mike Gabriel
 
-        * release 22.2.0 (HEAD -> main, tag: 22.2.0)
+        * release 22.2.0 (132bfd50) (tag: 22.2.0)
         * Merge branch 'tari01-pr/fix-list-conversion' (5b8f9a2b)
 
 2022-02-19 Robert Tari

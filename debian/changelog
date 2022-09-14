@@ -1,4 +1,11 @@
-ayatana-indicator-datetime (22.2.0-1) unstable; urgency=medium
+ayatana-indicator-datetime (22.9.0-0) unstable; urgency=medium
+
+  * Upstream-provided Debian package for ayatana-indicator-datetime.
+    See upstream ChangeLog for recent changes.
+
+ -- Mike Gabriel <mike.gabriel@das-netzwerkteam.de>  Wed, 14 Sep 2022 14:03:06 +0200
+
+ayatana-indicator-datetime (22.2.0-0) unstable; urgency=medium
 
   * Upstream-provided Debian package for ayatana-indicator-datetime.
     See upstream ChangeLog for recent changes.
