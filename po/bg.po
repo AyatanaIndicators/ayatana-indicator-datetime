@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 07:43+0200\n"
+"POT-Creation-Date: 2022-09-14 08:37+0200\n"
 "PO-Revision-Date: 2020-04-14 12:11+0000\n"
 "Last-Translator: geni <me@geni.site>\n"
 "Language-Team: Bulgarian <https://hosted.weblate.org/projects/ayatana-"
@@ -93,7 +93,7 @@ msgstr ""
 msgid "Event %s"
 msgstr ""
 
-#: src/snap.cpp:168 ../src/snap.cpp:172
+#: src/snap.cpp:168 src/snap.cpp:172
 msgid "OK"
 msgstr ""
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 07:43+0200\n"
+"POT-Creation-Date: 2022-09-14 08:37+0200\n"
 "PO-Revision-Date: 2017-10-12 07:36+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -89,7 +89,7 @@ msgstr ""
 msgid "Event %s"
 msgstr ""
 
-#: src/snap.cpp:168 ../src/snap.cpp:172
+#: src/snap.cpp:168 src/snap.cpp:172
 msgid "OK"
 msgstr ""
 

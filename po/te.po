@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 07:44+0200\n"
+"POT-Creation-Date: 2022-09-14 08:37+0200\n"
 "PO-Revision-Date: 2019-08-26 04:24+0000\n"
 "Last-Translator: leela <53352@protonmail.com>\n"
 "Language-Team: Telugu <https://hosted.weblate.org/projects/ayatana-"
@@ -90,7 +90,7 @@ msgstr ""
 msgid "Event %s"
 msgstr ""
 
-#: src/snap.cpp:168 ../src/snap.cpp:172
+#: src/snap.cpp:168 src/snap.cpp:172
 msgid "OK"
 msgstr ""
 

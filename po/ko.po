@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 07:43+0200\n"
+"POT-Creation-Date: 2022-09-14 08:37+0200\n"
 "PO-Revision-Date: 2022-03-01 12:56+0000\n"
 "Last-Translator: 이정희 <daemul72@gmail.com>\n"
 "Language-Team: Korean <https://hosted.weblate.org/projects/ayatana-"
@@ -92,7 +92,7 @@ msgstr "알람 %s"
 msgid "Event %s"
 msgstr ""
 
-#: src/snap.cpp:168 ../src/snap.cpp:172
+#: src/snap.cpp:168 src/snap.cpp:172
 msgid "OK"
 msgstr "확인"
 

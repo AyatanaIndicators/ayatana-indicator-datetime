@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-11 13:34+0200\n"
+"POT-Creation-Date: 2022-09-14 08:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -208,7 +208,7 @@ msgstr ""
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 12-hour clock, events/appointments that happen today.
 #. en_US example: "%l:%M %p" --> "1:00 PM"
-#: src/formatter.cpp:237 ../src/utils.c:304
+#: src/formatter.cpp:237 src/utils.c:304
 msgid "%l:%M %p"
 msgstr ""
 
@@ -221,7 +221,7 @@ msgstr ""
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. This format string is used for showing, on a 24-hour clock, events/appointments that happen today.
 #. en_US example: "%H:%M" --> "13:00"
-#: src/formatter.cpp:243 ../src/utils.c:344
+#: src/formatter.cpp:243 src/utils.c:344
 msgid "%H:%M"
 msgstr ""
 
@@ -340,7 +340,7 @@ msgstr ""
 msgid "Event %s"
 msgstr ""
 
-#: src/snap.cpp:168 ../src/snap.cpp:172
+#: src/snap.cpp:168 src/snap.cpp:172
 msgid "OK"
 msgstr ""
 
