@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Canonical Ltd.
- * Copyright 2021 Robert Tari
+ * Copyright 2021-2022 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -20,7 +20,7 @@
  */
 
 #include <algorithm>
-
+#include <array>
 #include <datetime/alarm-queue-simple.h>
 #include <datetime/clock-mock.h>
 #include <datetime/engine-eds.h>
