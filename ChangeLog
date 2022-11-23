@@ -1,6 +1,60 @@
+2022-11-23 Mike Gabriel
+
+        * release 22.9.1 (HEAD -> main, tag: 22.9.1)
+        * Merge branch 'tari01-pr/fix-lomiri-schemas-name' (d7c2ce7f)
+
+2022-11-14 Robert Tari
+
+        * debian/control: Correct lomiri-schemas name (985e82a7)
+
+2022-11-23 Mike Gabriel
+
+        * Merge branch 'tari01-pr/fix-haptic-dbus-data' (a1063ca8)
+
+2022-11-13 Robert Tari
+
+        * Fix build failure due to missing #include (de62f549)
+        * src/haptic.cpp: Fix data type sent to hfd-service (8452a9e5)
+
+2022-10-19 Kristjan Räts
+
+        * Translated using Weblate (Estonian) (10505c6b)
+
+2022-10-17 Gediminas Murauskas
+
+        * Translated using Weblate (Lithuanian) (3ce3c636)
+
+2022-09-29 이정희
+
+        * Translated using Weblate (Korean) (3df059ee)
+
+2022-09-25 Oğuz Ersen
+
+        * Translated using Weblate (Turkish) (af10395a)
+
+2022-09-22 Yaron Shahrabani
+
+        * Translated using Weblate (Hebrew) (3df9d34e)
+
+2022-09-14 Sergii Horichenko
+
+        * Translated using Weblate (Ukrainian) (6ab01f49)
+
+2022-09-14 Quentin PAGÈS
+
+        * Translated using Weblate (Occitan) (2041eedf)
+
+2022-09-14 Sergii Horichenko
+
+        * Translated using Weblate (Russian) (f5e72781)
+
+2022-09-14 Wellington Terumi Uemura
+
+        * Translated using Weblate (Portuguese (Brazil)) (e8fe69d3)
+
 2022-09-14 Mike Gabriel
 
-        * release 22.9.0 (HEAD -> main, tag: 22.9.0)
+        * release 22.9.0 (d9d1a471) (tag: 22.9.0)
         * Translated using Weblate (German) (b2312b61)
 
 2022-09-14 Milan Korecky

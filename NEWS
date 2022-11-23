@@ -1,3 +1,9 @@
+Overview of changes in ayatana-indicator-datetime 22.9.1
+
+  - src/haptic.cpp: Fix data type sent to hfd-service
+  - Fix build failure due to missing #include
+  - Translation updates.
+
 Overview of changes in ayatana-indicator-datetime 22.9.0
 
   - Add tooltip support.
