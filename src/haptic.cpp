@@ -1,6 +1,6 @@
 /*
  * Copyright 2014 Canonical Ltd.
- * Copyright 2021 Robert Tari
+ * Copyright 2021-2022 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -43,7 +43,7 @@ public:
         m_cancellable(g_cancellable_new()),
         m_repeat(repeat)
     {
-        g_bus_get (G_BUS_TYPE_SESSION, m_cancellable, on_bus_ready, this);
+        g_bus_get (G_BUS_TYPE_SYSTEM, m_cancellable, on_bus_ready, this);
     }
 
     ~Impl()
@@ -105,20 +105,14 @@ private:
 
     void call_vibrate()
     {
-        GVariantBuilder builder;
-        auto duration = g_variant_new_int32 (1000);
-
-        g_variant_builder_init (&builder, G_VARIANT_TYPE_INT32);
-        g_variant_builder_add_value (&builder, duration);
-
-        auto vibrate_arg = g_variant_builder_end (&builder);
+        auto duration = g_variant_new ("(i)", 1000);
 
         g_dbus_connection_call (m_bus,
                                 BUS_HAPTIC_NAME,
                                 BUS_HAPTIC_PATH,
                                 BUS_HAPTIC_INTERFACE,
                                 "vibrate",
-                                vibrate_arg,
+                                duration,
                                 nullptr,
                                 G_DBUS_CALL_FLAGS_NONE,
                                 -1,
