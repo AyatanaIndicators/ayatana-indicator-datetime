@@ -8,17 +8,17 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-09-14 08:37+0200\n"
-"PO-Revision-Date: 2020-12-03 02:29+0000\n"
+"PO-Revision-Date: 2022-12-31 15:49+0000\n"
 "Last-Translator: Milo Ivir <mail@milotype.de>\n"
-"Language-Team: Croatian <https://hosted.weblate.org/projects/ayatana-"
-"indicators/datetime-applet/hr/>\n"
+"Language-Team: Croatian <https://hosted.weblate.org/projects/"
+"ayatana-indicators/datetime-applet/hr/>\n"
 "Language: hr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.4-dev\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 4.15.1-dev\n"
 
 #: data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
 msgid "The calendar's default sound file."
@@ -60,7 +60,7 @@ msgstr "Datum i vrijeme"
 
 #: src/menu.cpp:564
 msgid "Time & date settings, quick calendar access"
-msgstr ""
+msgstr "Postavke za vrijeme i datum. Brz pristup kalendaru"
 
 #: src/menu.cpp:613
 msgid "Time and Date"
@@ -91,7 +91,7 @@ msgstr "Alarm %s"
 #: src/snap.cpp:159
 #, c-format
 msgid "Event %s"
-msgstr ""
+msgstr "Događaj %s"
 
 #: src/snap.cpp:168 src/snap.cpp:172
 msgid "OK"
