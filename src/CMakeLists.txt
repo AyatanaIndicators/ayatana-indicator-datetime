@@ -44,9 +44,6 @@ set (SERVICE_CXX_SOURCES
 # generated sources
 include (GdbusCodegen)
 set(SERVICE_GENERATED_SOURCES)
-add_gdbus_codegen(SERVICE_GENERATED_SOURCES dbus-alarm-properties
-                  org.ayatana.indicator
-                  ${CMAKE_SOURCE_DIR}/data/org.ayatana.indicator.datetime.AlarmProperties.xml)
 
 if (ENABLE_LOMIRI_FEATURES)
         add_gdbus_codegen(SERVICE_GENERATED_SOURCES dbus-accounts-sound
