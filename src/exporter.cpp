@@ -1,6 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
- * Copyright 2021 Robert Tari
+ * Copyright 2021-2023 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -22,8 +22,6 @@
 #include <datetime/dbus-shared.h>
 #include <datetime/exporter.h>
 
-#include "dbus-alarm-properties.h"
-
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 
@@ -40,10 +38,8 @@ class Exporter::Impl
 public:
 
     explicit Impl(const std::shared_ptr<Settings>& settings):
-        m_settings(settings),
-        m_alarm_props(datetime_alarm_properties_skeleton_new())
+        m_settings(settings)
     {
-        alarm_properties_init();
     }
 
     ~Impl()
@@ -56,9 +52,6 @@ public:
             if (m_exported_actions_id)
                 g_dbus_connection_unexport_action_group(m_bus, m_exported_actions_id);
         }
-
-        g_dbus_interface_skeleton_unexport(G_DBUS_INTERFACE_SKELETON(m_alarm_props));
-        g_clear_object(&m_alarm_props);
 
         if (m_own_id)
             g_bus_unown_name(m_own_id);
@@ -140,16 +133,6 @@ private:
         });
     }
 
-
-    void alarm_properties_init()
-    {
-        bind_uint_property(m_alarm_props, "duration", m_settings->alarm_duration);
-        bind_uint_property(m_alarm_props, "default-volume", m_settings->alarm_volume);
-        bind_string_property(m_alarm_props, "default-sound", m_settings->alarm_sound);
-        bind_string_property(m_alarm_props, "haptic-feedback", m_settings->alarm_haptic);
-        bind_uint_property(m_alarm_props, "snooze-duration", m_settings->snooze_duration);
-    }
-
     /***
     ****
     ***/
@@ -168,10 +151,6 @@ private:
 
         // export the alarm properties
         GError * error = nullptr;
-        g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(m_alarm_props),
-                                         m_bus,
-                                         BUS_DATETIME_PATH"/AlarmProperties",
-                                         &error);
 
         // export the actions
         const auto id = g_dbus_connection_export_action_group(m_bus,
@@ -227,7 +206,6 @@ private:
     GDBusConnection* m_bus = nullptr;
     std::shared_ptr<Actions> m_actions;
     std::vector<std::shared_ptr<Menu>> m_menus;
-    DatetimeAlarmProperties* m_alarm_props = nullptr;
 };
 
 
