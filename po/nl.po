@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-09-14 08:37+0200\n"
-"PO-Revision-Date: 2023-03-16 10:38+0000\n"
+"PO-Revision-Date: 2023-03-17 11:37+0000\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: Dutch <https://hosted.weblate.org/projects/ayatana-indicators/"
 "datetime-applet/nl/>\n"
@@ -85,12 +85,12 @@ msgstr "%a, %H:%M"
 #: src/snap.cpp:157
 #, c-format
 msgid "Alarm %s"
-msgstr "Alarm %s"
+msgstr "Wekker %s"
 
 #: src/snap.cpp:159
 #, c-format
 msgid "Event %s"
-msgstr ""
+msgstr "Afspraak %s"
 
 #: src/snap.cpp:168 src/snap.cpp:172
 msgid "OK"
