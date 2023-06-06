@@ -108,6 +108,7 @@ add_eds_ics_test_by_name(test-eds-ics-tzids-2)
 add_eds_ics_test_by_name(test-eds-ics-tzids-utc)
 add_eds_ics_test_by_name(test-eds-ics-non-attending-alarms)
 add_eds_ics_test_by_name(test-eds-ics-repeating-events-with-individual-change)
+add_eds_ics_test_by_name(test-eds-ics-alarm-custom-sound)
 
 function(add_dbusmock_test_by_name name)
   set (TEST_NAME ${name})
