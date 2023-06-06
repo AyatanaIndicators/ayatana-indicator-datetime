@@ -635,19 +635,18 @@ private:
         auto action = e_cal_component_alarm_get_action(alarm);
         if (action == E_CAL_COMPONENT_ALARM_AUDIO)
         {
-            ICalAttach *attach = nullptr;
             auto attachments = e_cal_component_alarm_get_attachments(alarm);
 
-            if (attachments != nullptr && attachments->next != nullptr)
-                attach = I_CAL_ATTACH (attachments->data);
+            for (; attachments != nullptr; attachments = attachments->next) {
+                ICalAttach *attach = I_CAL_ATTACH (attachments->data);
 
-            if (attach != nullptr)
-            {
-                if (i_cal_attach_get_is_url (attach))
+                if (attach != nullptr && i_cal_attach_get_is_url (attach))
                 {
                     const char* url = i_cal_attach_get_url(attach);
-                    if (url != nullptr)
+                    if (url != nullptr) {
                         ret = url;
+                        break;
+                    }
                 }
             }
             if (ret.empty())
