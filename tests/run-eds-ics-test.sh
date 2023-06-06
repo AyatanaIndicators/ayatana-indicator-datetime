@@ -72,3 +72,6 @@ if [ $rv -eq 0 ]; then
     sleep 5
     rm -rf $TEST_TMP_DIR
 fi
+
+# pass the test's return code to the caller.
+exit "$rv"
