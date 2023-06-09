@@ -1,6 +1,50 @@
+2023-06-09 Mike Gabriel
+
+        * release 23.6.0 (HEAD -> main, tag: 23.6.0)
+
+2023-06-08 Robert Tari
+
+        * Merge branch
+          'ubports-personal/peat-psuwit/for-upstream_alarm-sound'
+          (ed6a9a21)
+
+2023-06-06 Ratchanan Srirattanamet
+
+        * engine-eds: fix retrieving custom alarm sound path (e089a84b)
+
+2023-04-06 ssantos
+
+        * Translated using Weblate (Portuguese) (254bd7f7)
+
+2023-03-16 Heimen Stoffels
+
+        * Translated using Weblate (Dutch) (607f0185)
+        * Translated using Weblate (Dutch) (bc64f2d0)
+
+2023-03-03 gallegonovato
+
+        * Translated using Weblate (Spanish) (c18c1c8b)
+        * Translated using Weblate (Spanish) (eddb5c6c)
+
+2023-02-12 Anders Jonsson
+
+        * Translated using Weblate (Swedish) (6074d9ad)
+
+2023-02-10 Luna Jernberg
+
+        * Translated using Weblate (Swedish) (b80f23b5)
+
+2022-12-30 Milo Ivir
+
+        * Translated using Weblate (Croatian) (29608576)
+
+2022-12-09 taoky
+
+        * Translated using Weblate (Chinese (Simplified)) (73944bb1)
+
 2022-11-23 Mike Gabriel
 
-        * release 22.9.1 (HEAD -> main, tag: 22.9.1)
+        * release 22.9.1 (25143e60) (tag: 22.9.1)
         * Merge branch 'tari01-pr/fix-lomiri-schemas-name' (d7c2ce7f)
 
 2022-11-14 Robert Tari

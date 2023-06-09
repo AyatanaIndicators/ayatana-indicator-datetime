@@ -1,5 +1,10 @@
 Overview of changes in ayatana-indicator-datetime 22.9.1
 
+  - engine-eds: fix retrieving custom alarm sound path.
+  - Translation updates.
+
+Overview of changes in ayatana-indicator-datetime 22.9.1
+
   - src/haptic.cpp: Fix data type sent to hfd-service
   - Fix build failure due to missing #include
   - Translation updates.
