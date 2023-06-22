@@ -8,16 +8,16 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-09-14 08:37+0200\n"
-"PO-Revision-Date: 2020-11-03 01:26+0000\n"
+"PO-Revision-Date: 2023-06-23 22:48+0000\n"
 "Last-Translator: Joan CiberSheep <cibersheep@gmail.com>\n"
-"Language-Team: Catalan <https://hosted.weblate.org/projects/ayatana-"
-"indicators/datetime-applet/ca/>\n"
+"Language-Team: Catalan <https://hosted.weblate.org/projects/"
+"ayatana-indicators/datetime-applet/ca/>\n"
 "Language: ca\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.3.2-dev\n"
+"X-Generator: Weblate 4.18.1\n"
 
 #: data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
 msgid "The calendar's default sound file."
@@ -59,7 +59,7 @@ msgstr "Data i hora"
 
 #: src/menu.cpp:564
 msgid "Time & date settings, quick calendar access"
-msgstr ""
+msgstr "Paràmetres d'hora i data, accés ràpid al calendari"
 
 #: src/menu.cpp:613
 msgid "Time and Date"
@@ -90,7 +90,7 @@ msgstr "Alarma %s"
 #: src/snap.cpp:159
 #, c-format
 msgid "Event %s"
-msgstr ""
+msgstr "Esdeveniment %s"
 
 #: src/snap.cpp:168 src/snap.cpp:172
 msgid "OK"
