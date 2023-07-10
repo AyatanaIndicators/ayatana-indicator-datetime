@@ -1,5 +1,5 @@
-project (ayatana-indicator-datetime C CXX)
 cmake_minimum_required (VERSION 3.13)
+project (ayatana-indicator-datetime VERSION 23.6.0 LANGUAGES C CXX)
 
 list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
@@ -7,7 +7,6 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     SET(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "..." FORCE)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
-set (PROJECT_VERSION "23.6.0")
 set (PACKAGE ${CMAKE_PROJECT_NAME})
 
 # Options
