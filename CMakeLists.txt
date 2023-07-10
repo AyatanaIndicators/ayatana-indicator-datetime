@@ -97,6 +97,8 @@ else ()
         -DALARM_DEFAULT_SOUND="dummy"
         -DCALENDAR_DEFAULT_SOUND="dummy"
     )
+
+    set (ALARM_DEFAULT_SOUND "dummy")
 endif ()
 
 pkg_check_modules (SERVICE_DEPS REQUIRED ${SERVICE_DEPS})
