@@ -45,8 +45,7 @@ add_test_by_name(test-datetime)
 
 if (ENABLE_LOMIRI_FEATURES)
     add_test_by_name(test-sound)
-    # This one only succeeds on Lomiri because it needs hfd-service
-    # add_test_by_name(test-notification)
+    add_test_by_name(test-notification)
     add_test_by_name(test-notification-response)
 endif()
 
@@ -54,18 +53,15 @@ add_test_by_name(test-actions)
 add_test_by_name(test-alarm-queue)
 add_test(NAME dear-reader-the-next-test-takes-60-seconds COMMAND true)
 add_test_by_name(test-clock)
-# This one is fine, but hangs on Travis CI
-# add_test_by_name(test-exporter)
+add_test_by_name(test-exporter)
 add_test_by_name(test-formatter)
 add_test_by_name(test-live-actions)
 add_test_by_name(test-locations)
 add_test_by_name(test-menu-appointments)
-# This one is fine, but hangs on Travis CI
-# add_test_by_name(test-menus)
+add_test_by_name(test-menus)
 add_test_by_name(test-planner)
 add_test_by_name(test-settings)
-# This one is fine, but hangs on Travis CI
-# add_test_by_name(test-timezone-timedated)
+add_test_by_name(test-timezone-timedated)
 add_test_by_name(test-utils)
 
 if (ENABLE_LOMIRI_FEATURES)
