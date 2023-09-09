@@ -1,6 +1,6 @@
 /*
  * Copyright 2014 Canonical Ltd.
- * Copyright 2021 Robert Tari
+ * Copyright 2021-2023 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -248,10 +248,7 @@ public:
         {
             const auto& d= info.m_duration;
             auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(d);
-
-            notify_notification_set_hint (nn.get(),
-                                          HINT_TIMEOUT,
-                                          g_variant_new_int32(ms.count()));
+            notify_notification_set_timeout (nn.get (), ms.count ());
         }
 
         for (const auto& hint : info.m_string_hints)
@@ -512,8 +509,6 @@ private:
     // server capabilities.
     // as the name indicates, don't use this directly: use server_caps() instead
     mutable std::set<std::string> m_lazy_caps;
-
-    static constexpr char const * HINT_TIMEOUT {"x-lomiri-snap-decisions-timeout"};
 };
 
 /***

@@ -1,5 +1,6 @@
 /*
  * Copyright 2014-2016 Canonical Ltd.
+ * Copyright 2023 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <datetime/appointment.h>
@@ -89,19 +91,15 @@ TEST_F(NotificationFixture, InteractiveDuration)
   g_variant_get_child (params, 0, "&s", &str);
   ASSERT_STREQ(APP_NAME, str);
 
-  // confirm that the icon passed to Notify was "alarm-clock"
+  // confirm that the icon passed to Notify was "calendar-app"
   g_variant_get_child (params, 2, "&s", &str);
   ASSERT_STREQ("calendar-app", str);
 
-  // confirm that the hints passed to Notify included a timeout matching duration_minutes
+  // confirm that the timeout passed to Notify matches duration_minutes
   int32_t i32;
-  bool b;
-  auto hints = g_variant_get_child_value (params, 6);
-  b = g_variant_lookup (hints, HINT_TIMEOUT, "i", &i32);
-  EXPECT_TRUE(b);
+  g_variant_get_child (params, 7, "i", &i32);
   const auto duration = std::chrono::minutes(duration_minutes);
   EXPECT_EQ(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count(), i32);
-  g_variant_unref(hints);
   ne.reset();
 }
 
