@@ -1,6 +1,6 @@
 /*
  * Copyright 2014-2016 Canonical Ltd.
- * Copyright 2021 Robert Tari
+ * Copyright 2021-2023 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -76,8 +76,6 @@ protected:
   static constexpr char const * METHOD_NOTIFY {"Notify"};
 
   static constexpr char const * SIGNAL_CLOSED {"NotificationClosed"};
-
-  static constexpr char const * HINT_TIMEOUT {"x-lomiri-snap-decisions-timeout"};
 
   static constexpr char const * AS_BUSNAME            {"org.freedesktop.Accounts"};
   static constexpr char const * AS_INTERFACE          {"com.lomiri.touch.AccountsService.Sound"};
@@ -315,8 +313,8 @@ protected:
   void make_interactive()
   {
     // GetCapabilities returns an array containing 'actions',
-    // so our snap decision will be interactive.
-    // For this test, it means we should get a timeout Notify Hint
+    // so our notifications will be interactive.
+    // For this test, it means we should get an expire_timeout
     // that matches duration_minutes
     GError * error = nullptr;
     dbus_test_dbus_mock_object_add_method(notify_mock,
