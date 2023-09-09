@@ -13,9 +13,9 @@ requires:
     - cmake-extras
     - dbus
     - intltool
-#    - libayatana-common
+    - libayatana-common
     - gobject-introspection
-#    - liblomiri-url-dispatcher
+#    - lomiri-url-dispatcher
     - vala
     - glib2
     - libnotify
@@ -24,7 +24,7 @@ requires:
     - evolution-data-server
     - gsettings-desktop-schemas
     - properties-cpp
-#    - ayatana-indicator-messages
+    - ayatana-indicator-messages
     - gtk-doc-tools
     - libaccountsservice
 #    - lomiri-schemas
@@ -41,7 +41,8 @@ requires:
     - cmake-extras
     - intltool
     - libaccounts-glib-dev
-#    - libayatana-common-dev
+    - libayatana-common-dev
+    - ayatana-indicator-common
     - gobject-introspection
     - libgirepository1.0-dev
     - liblomiri-url-dispatcher-dev
@@ -53,12 +54,12 @@ requires:
     - libical-dev
     - libedataserver1.2-dev
     - libproperties-cpp-dev
-#    - libmessaging-menu-dev
+    - libmessaging-menu-dev
     - gtk-doc-tools
     - libaccountsservice-dev
     - liblomiri-url-dispatcher-dev
-#    - lomiri-schemas
-#    - lomiri-sounds
+    - lomiri-schemas
+    - lomiri-sounds
 # for the test harness:
     - libgtest-dev
     - libdbustest1-dev
@@ -83,12 +84,13 @@ requires:
     - cmake-extras
     - intltool
     - libaccounts-glib-dev
-#    - libayatana-common-dev
+    - libayatana-common-dev
+    - ayatana-indicator-common
     - gobject-introspection
     - libgirepository1.0-dev
     - liblomiri-url-dispatcher-dev
-#    - lomiri-schemas
-#    - lomiri-sounds
+    - lomiri-schemas
+    - lomiri-sounds
     - valac
     - libglib2.0-dev
     - libnotify-dev
@@ -97,7 +99,7 @@ requires:
     - libical-dev
     - libedataserver1.2-dev
     - libproperties-cpp-dev
-#    - libmessaging-menu-dev
+    - libmessaging-menu-dev
     - gtk-doc-tools
     - libaccountsservice-dev
 # for the test harness:
@@ -125,6 +127,7 @@ requires:
     - intltool
     - libaccounts-glib-dev
 #    - libayatana-common-dev
+    - ayatana-indicator-common
     - gobject-introspection
     - libgirepository1.0-dev
 #    - liblomiri-url-dispatcher-dev
@@ -200,29 +203,27 @@ before_scripts:
   - cd -
   - rm -Rf ayatana-indicator-messages-build/
   -
-  - if [ ${DISTRO_NAME} == "debian" ];then
-  -    cd ${START_DIR}
-  -    if [ ! -d lomiri-schemas-build ]; then
-  -         git clone --depth 1  https://gitlab.com/ubports/core/lomiri-schemas.git lomiri-schemas-build
-  -    fi
-  -    cd lomiri-schemas-build
-  -    cmake . -DCMAKE_INSTALL_PREFIX=/usr
-  -    make
-  -    make install
-  -    cd -
-  -    rm -Rf lomiri-schemas-build/
-  -
-  -    cd ${START_DIR}
-  -    if [ ! -d lomiri-sounds-build ]; then
-  -        git clone --depth 1  https://gitlab.com/ubports/core/lomiri-sounds.git lomiri-sounds-build
-  -    fi
-  -    cd lomiri-sounds-build
-  -    cmake . -DCMAKE_INSTALL_PREFIX=/usr
-  -    make
-  -    make install
-  -    cd -
-  -    rm -Rf lomiri-sounds-build/
+  - cd ${START_DIR}
+  - if [ ! -d lomiri-schemas-build ]; then
+  -      git clone --depth 1  https://gitlab.com/ubports/core/lomiri-schemas.git lomiri-schemas-build
   - fi
+  - cd lomiri-schemas-build
+  - cmake . -DCMAKE_INSTALL_PREFIX=/usr
+  - make
+  - make install
+  - cd -
+  - rm -Rf lomiri-schemas-build/
+  -
+  - cd ${START_DIR}
+  - if [ ! -d lomiri-sounds-build ]; then
+  -     git clone --depth 1  https://gitlab.com/ubports/core/lomiri-sounds.git lomiri-sounds-build
+  - fi
+  - cd lomiri-sounds-build
+  - cmake . -DCMAKE_INSTALL_PREFIX=/usr
+  - make
+  - make install
+  - cd -
+  - rm -Rf lomiri-sounds-build/
 
 build_scripts:
   - if [ ${DISTRO_NAME} == "debian" ];then
