@@ -1,5 +1,5 @@
 data/org.ayatana.indicator.datetime.AlarmProperties.xml
-data/org.ayatana.indicator.datetime.gschema.xml.in.in
+data/org.ayatana.indicator.datetime.gschema.xml.in
 src/actions.cpp
 src/actions-live.cpp
 src/alarm-queue-simple.cpp
