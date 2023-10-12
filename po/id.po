@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 08:37+0200\n"
+"POT-Creation-Date: 2023-10-10 23:55+0200\n"
 "PO-Revision-Date: 2021-03-18 17:29+0000\n"
 "Last-Translator: Reza Almanda <rezaalmanda27@gmail.com>\n"
 "Language-Team: Indonesian <https://hosted.weblate.org/projects/ayatana-"
@@ -18,18 +18,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Weblate 4.5.2-dev\n"
-
-#: data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
-msgid "The calendar's default sound file."
-msgstr "Berkas suara standar kalender."
-
-#: data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:2
-msgid ""
-"If a calendar or reminder event doesn't specify its own sound file, this "
-"file will be used as the fallback sound."
-msgstr ""
-"Jika kalender atau pengingat acara tidak menentukan berkas suaranya sendiri, "
-"berkas ini akan digunakan sebagai pengganti."
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. Format string for the day on the first menuitem in the datetime indicator.
@@ -99,6 +87,16 @@ msgstr "Oke"
 #: src/snap.cpp:169
 msgid "Snooze"
 msgstr "Senyap"
+
+#~ msgid "The calendar's default sound file."
+#~ msgstr "Berkas suara standar kalender."
+
+#~ msgid ""
+#~ "If a calendar or reminder event doesn't specify its own sound file, this "
+#~ "file will be used as the fallback sound."
+#~ msgstr ""
+#~ "Jika kalender atau pengingat acara tidak menentukan berkas suaranya "
+#~ "sendiri, berkas ini akan digunakan sebagai pengganti."
 
 #~ msgid "%l:%M:%S %p"
 #~ msgstr "%l:%M:%S %p"

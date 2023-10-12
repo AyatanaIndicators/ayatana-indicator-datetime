@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 08:37+0200\n"
+"POT-Creation-Date: 2023-10-10 23:55+0200\n"
 "PO-Revision-Date: 2018-10-24 16:29+0000\n"
 "Last-Translator: Iván Seoane <ivanrsm1997@gmail.com>\n"
 "Language-Team: Galician <https://hosted.weblate.org/projects/ayatana-"
@@ -18,20 +18,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 3.3-dev\n"
-
-#: data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
-#, fuzzy
-msgid "The calendar's default sound file."
-msgstr "Ficheiro de son predeterminado da alarma."
-
-#: data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:2
-#, fuzzy
-msgid ""
-"If a calendar or reminder event doesn't specify its own sound file, this "
-"file will be used as the fallback sound."
-msgstr ""
-"Se unha alarma non especifica o seu propio ficheiro de son, este ficheiro "
-"empregarase coma o son da reserva."
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. Format string for the day on the first menuitem in the datetime indicator.
@@ -103,6 +89,18 @@ msgstr "Feito"
 #: src/snap.cpp:169
 msgid "Snooze"
 msgstr "Repetición"
+
+#, fuzzy
+#~ msgid "The calendar's default sound file."
+#~ msgstr "Ficheiro de son predeterminado da alarma."
+
+#, fuzzy
+#~ msgid ""
+#~ "If a calendar or reminder event doesn't specify its own sound file, this "
+#~ "file will be used as the fallback sound."
+#~ msgstr ""
+#~ "Se unha alarma non especifica o seu propio ficheiro de son, este ficheiro "
+#~ "empregarase coma o son da reserva."
 
 #~ msgid "%l:%M:%S %p"
 #~ msgstr "%l:%M:%S %p"

@@ -7,29 +7,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 08:37+0200\n"
+"POT-Creation-Date: 2023-10-10 23:55+0200\n"
 "PO-Revision-Date: 2023-02-13 16:39+0000\n"
 "Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
-"Language-Team: Swedish <https://hosted.weblate.org/projects/"
-"ayatana-indicators/datetime-applet/sv/>\n"
+"Language-Team: Swedish <https://hosted.weblate.org/projects/ayatana-"
+"indicators/datetime-applet/sv/>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 4.16-dev\n"
-
-#: data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
-msgid "The calendar's default sound file."
-msgstr "Standardljudfilen för kalendern."
-
-#: data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:2
-msgid ""
-"If a calendar or reminder event doesn't specify its own sound file, this "
-"file will be used as the fallback sound."
-msgstr ""
-"Om en kalender eller påminnelse inte anger sin egen ljudfil kommer denna fil "
-"att användas som ljudet att falla tillbaka på."
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. Format string for the day on the first menuitem in the datetime indicator.
@@ -99,6 +87,16 @@ msgstr "OK"
 #: src/snap.cpp:169
 msgid "Snooze"
 msgstr "Somna in"
+
+#~ msgid "The calendar's default sound file."
+#~ msgstr "Standardljudfilen för kalendern."
+
+#~ msgid ""
+#~ "If a calendar or reminder event doesn't specify its own sound file, this "
+#~ "file will be used as the fallback sound."
+#~ msgstr ""
+#~ "Om en kalender eller påminnelse inte anger sin egen ljudfil kommer denna "
+#~ "fil att användas som ljudet att falla tillbaka på."
 
 #~ msgid "%l:%M:%S %p"
 #~ msgstr "%H:%M:%S"

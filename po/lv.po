@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 08:37+0200\n"
+"POT-Creation-Date: 2023-10-10 23:55+0200\n"
 "PO-Revision-Date: 2017-10-12 07:36+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -17,16 +17,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
 "2);\n"
-
-#: data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
-msgid "The calendar's default sound file."
-msgstr ""
-
-#: data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:2
-msgid ""
-"If a calendar or reminder event doesn't specify its own sound file, this "
-"file will be used as the fallback sound."
-msgstr ""
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. Format string for the day on the first menuitem in the datetime indicator.

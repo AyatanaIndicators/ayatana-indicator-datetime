@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 08:37+0200\n"
+"POT-Creation-Date: 2023-10-10 23:55+0200\n"
 "PO-Revision-Date: 2020-04-02 21:09+0000\n"
 "Last-Translator: Davit Mayilyan <davit.mayilyan@protonmail.ch>\n"
 "Language-Team: Armenian <https://hosted.weblate.org/projects/ayatana-"
@@ -18,16 +18,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
 "X-Generator: Weblate 4.0-dev\n"
-
-#: data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:1
-msgid "The calendar's default sound file."
-msgstr ""
-
-#: data/org.ayatana.indicator.datetime.gschema.xml.in.in.h:2
-msgid ""
-"If a calendar or reminder event doesn't specify its own sound file, this "
-"file will be used as the fallback sound."
-msgstr ""
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. Format string for the day on the first menuitem in the datetime indicator.

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 08:36+0200\n"
+"POT-Creation-Date: 2023-10-10 23:54+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -149,8 +149,8 @@ msgstr ""
 #: data/org.ayatana.indicator.datetime.gschema.xml:26
 msgid ""
 "Some timezones can be known by many different cities or names. This setting "
-"describes how the current zone prefers to be named. Format is \"TIMEZONE NAME"
-"\" (e.g. \"America/New_York Boston\" to name the New_York zone Boston)."
+"describes how the current zone prefers to be named. Format is \"TIMEZONE "
+"NAME\" (e.g. \"America/New_York Boston\" to name the New_York zone Boston)."
 msgstr ""
 
 #: data/org.ayatana.indicator.datetime.gschema.xml:27
@@ -164,38 +164,48 @@ msgid ""
 msgstr ""
 
 #: data/org.ayatana.indicator.datetime.gschema.xml:29
-msgid "The alarm's default sound file."
+msgid "The calendar's default sound file."
 msgstr ""
 
 #: data/org.ayatana.indicator.datetime.gschema.xml:30
+msgid ""
+"If a calendar or reminder event doesn't specify its own sound file, this "
+"file will be used as the fallback sound."
+msgstr ""
+
+#: data/org.ayatana.indicator.datetime.gschema.xml:31
+msgid "The alarm's default sound file."
+msgstr ""
+
+#: data/org.ayatana.indicator.datetime.gschema.xml:32
 msgid ""
 "If an alarm doesn't specify its own sound file, this file will be used as "
 "the fallback sound."
 msgstr ""
 
-#: data/org.ayatana.indicator.datetime.gschema.xml:31
+#: data/org.ayatana.indicator.datetime.gschema.xml:33
 msgid "The alarm's default volume level."
 msgstr ""
 
-#: data/org.ayatana.indicator.datetime.gschema.xml:32
+#: data/org.ayatana.indicator.datetime.gschema.xml:34
 msgid "The volume at which alarms will be played."
 msgstr ""
 
-#: data/org.ayatana.indicator.datetime.gschema.xml:33
+#: data/org.ayatana.indicator.datetime.gschema.xml:35
 msgid "The alarm's duration."
 msgstr ""
 
-#: data/org.ayatana.indicator.datetime.gschema.xml:34
+#: data/org.ayatana.indicator.datetime.gschema.xml:36
 msgid ""
 "How long the alarm's sound will be looped if its snap decision is not "
 "dismissed by the user."
 msgstr ""
 
-#: data/org.ayatana.indicator.datetime.gschema.xml:35
+#: data/org.ayatana.indicator.datetime.gschema.xml:37
 msgid "The snooze duration."
 msgstr ""
 
-#: data/org.ayatana.indicator.datetime.gschema.xml:36
+#: data/org.ayatana.indicator.datetime.gschema.xml:38
 msgid "How long to wait when the user hits the Snooze button."
 msgstr ""
 
