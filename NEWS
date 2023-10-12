@@ -1,3 +1,23 @@
+Overview of changes in ayatana-indicator-datetime 23.10.0
+
+  - tests/run-eds-ics-test: don't eat away test's result.
+  - Remove osd-notify remnants and use native notification timeout.
+  - Fix gschema file translation.
+  - Fix failing tests.
+  - Enable all tests.
+  - CMakeLists.txt: Minor CMake warning fix.
+  - update-pot.sh: Adjust to rename .gschema.xml file.
+  - Update translations.
+
+Overview of changes in ayatana-indicator-datetime 23.6.0
+
+  - engine-eds: fix retrieving custom alarm sound path
+    ECal 2.0 returns the list of attachments as a GSList (a singly linked
+    list). I'm not sure why, but the logic for iterating the list is
+    completely incorrect. Fixing that fixes custom alarm sound.
+    A test is added to catch this case.
+  - Translation updates.
+
 Overview of changes in ayatana-indicator-datetime 22.9.1
 
   - engine-eds: fix retrieving custom alarm sound path.

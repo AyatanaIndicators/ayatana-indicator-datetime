@@ -1,12 +1,106 @@
+2023-10-12 Mike Gabriel
+
+        * release 23.10.0 (HEAD -> main, tag: 23.10.0)
+        * po/: Update translation files. (3e66ea9a)
+
+2023-10-10 Mike Gabriel
+
+        * update-pot.sh: Adjust to rename .gschema.xml file. (f934dbf4)
+
+2023-10-09 Tomáš Marný
+
+        * Translated using Weblate (Czech) (dfc4f56a)
+
+2023-09-09 Mike Gabriel
+
+        * Merge branch 'tari01-pr/fix-tests' (246c706c)
+
+2023-07-10 Robert Tari
+
+        * CMakeLists.txt: Minor CMake warning fix (7113c51b)
+        * Enable all tests (069175a5)
+        * Fix failing tests (bae39a93)
+
+2023-09-09 Mike Gabriel
+
+        * Merge branch 'tari01-pr/fix-schema-translation' (18e9350d)
+
+2023-09-07 Robert Tari
+
+        * Fix gschema file translation (1536c23e)
+
+2023-09-09 Mike Gabriel
+
+        * Merge branch 'tari01-pr/notification-cleanup' (0d2c8f74)
+
+2023-09-09 Robert Tari
+
+        * Remove osd-notify remnants and use native notification timeout
+          (0a88a8d7)
+
+2023-07-30 Eryk Michalak
+
+        * Translated using Weblate (Polish) (36d648b2)
+
+2023-07-10 Robert Tari
+
+        * Merge branch
+          'ubports-personal/peat-psuwit/for-upstream_eds-ics-test-returncode'
+          (e5be480f)
+
+2023-07-01 spnux
+
+        * Translated using Weblate (French) (4044d282)
+
+2023-06-27 Sylke Vicious
+
+        * Translated using Weblate (Italian) (b5d43ad2)
+
+2023-06-22 Joan CiberSheep
+
+        * Translated using Weblate (Catalan) (765578e9)
+
+2023-06-22 Wellington Terumi Uemura
+
+        * Translated using Weblate (Portuguese (Brazil)) (6ecb125a)
+
 2023-06-09 Mike Gabriel
 
-        * release 23.6.0 (HEAD -> main, tag: 23.6.0)
+        * release 23.6.0 (c91b376f)
+
+2023-06-06 Ratchanan Srirattanamet
+
+        * engine-eds: fix retrieving custom alarm sound path (bfc2e365)
+
+2023-07-01 spnux
+
+        * Translated using Weblate (French) (3cd3991f)
+
+2023-06-27 Sylke Vicious
+
+        * Translated using Weblate (Italian) (48f44dcb)
+
+2023-06-22 Joan CiberSheep
+
+        * Translated using Weblate (Catalan) (6c3898cb)
+
+2023-06-22 Wellington Terumi Uemura
+
+        * Translated using Weblate (Portuguese (Brazil)) (c13bf380)
+
+2023-06-09 Mike Gabriel
+
+        * release 23.6.0 (5f8a86ad) (tag: 23.6.0)
 
 2023-06-08 Robert Tari
 
         * Merge branch
           'ubports-personal/peat-psuwit/for-upstream_alarm-sound'
           (ed6a9a21)
+
+2023-06-07 Ratchanan Srirattanamet
+
+        * tests/run-eds-ics-test: don't eat away test's result (3e65062b)
 
 2023-06-06 Ratchanan Srirattanamet
 
