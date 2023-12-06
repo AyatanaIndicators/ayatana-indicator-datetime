@@ -100,6 +100,16 @@ TEST_F(NotificationFixture, InteractiveDuration)
   g_variant_get_child (params, 7, "i", &i32);
   const auto duration = std::chrono::minutes(duration_minutes);
   EXPECT_EQ(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count(), i32);
+
+  // Due to custom logic in Lomiri, also make sure custom timeout hint is set.
+  bool b;
+  auto hints = g_variant_get_child_value (params, 6);
+  i32 = 0;
+  b = g_variant_lookup (hints, HINT_LOMIRI_TIMEOUT, "i", &i32);
+  EXPECT_TRUE(b);
+  EXPECT_EQ(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count(), i32);
+  g_variant_unref(hints);
+
   ne.reset();
 }
 
