@@ -40,6 +40,7 @@ TimeFormatMode;
 #define SETTINGS_SHOW_CALENDAR_S        "show-calendar"
 #define SETTINGS_SHOW_WEEK_NUMBERS_S    "show-week-numbers"
 #define SETTINGS_SHOW_EVENTS_S          "show-events"
+#define SETTINGS_SHOW_ALARMS_S          "show-alarms"
 #define SETTINGS_SHOW_LOCATIONS_S       "show-locations"
 #define SETTINGS_SHOW_DETECTED_S        "show-auto-detected-location"
 #define SETTINGS_LOCATIONS_S            "locations"

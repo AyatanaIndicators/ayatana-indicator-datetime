@@ -87,6 +87,13 @@
               Shows events from Evolution in indicator-datetime's menu.
             </description>
         </key>
+        <key name="show-alarms" type="b">
+            <default>true</default>
+            <summary>Show alarms in the indicator</summary>
+            <description>
+              Shows alarms in the events list in indicator-datetime's menu.
+            </description>
+        </key>
         <key name="show-auto-detected-location" type="b">
             <default>false</default>
             <summary>Show the auto-detected location in the indicator</summary>

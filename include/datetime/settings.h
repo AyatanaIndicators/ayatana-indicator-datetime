@@ -49,6 +49,7 @@ public:
     core::Property<bool> show_day;
     core::Property<bool> show_detected_location;
     core::Property<bool> show_events;
+    core::Property<bool> show_alarms;
     core::Property<bool> show_locations;
     core::Property<bool> show_seconds;
     core::Property<bool> show_week_numbers;

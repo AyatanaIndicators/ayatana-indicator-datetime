@@ -53,7 +53,8 @@ public:
     static std::vector<Appointment> get_display_appointments(
         const std::vector<Appointment>&,
         const DateTime& start,
-        unsigned int max_items=5);
+        unsigned int max_items=5,
+        const bool include_alarms=true);
 
 protected:
     Menu (Profile profile_in, const std::string& name_in);
