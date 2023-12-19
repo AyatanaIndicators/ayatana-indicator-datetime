@@ -428,29 +428,32 @@ private:
     {
         auto menu = g_menu_new();
 
-        if ((profile==Desktop) && m_state->settings->show_events.get())
+        if (m_state->settings->show_events.get())
         {
-            add_appointments (menu, profile);
-
-            if (m_actions->desktop_has_calendar_app())
+            if (profile==Desktop)
             {
-                // add the 'Add Event…' menuitem
-                auto menu_item = g_menu_item_new(_("Add Event…"), nullptr);
-                const gchar* action_name = "indicator.desktop.open-calendar-app";
-                auto v = g_variant_new_int64(0);
-                g_menu_item_set_action_and_target_value(menu_item, action_name, v);
-                g_menu_append_item(menu, menu_item);
-                g_object_unref(menu_item);
-            }
-        }
-        else if (profile==Phone)
-        {
-            auto menu_item = g_menu_item_new (_("Clock"), "indicator.phone.open-alarm-app");
-            g_menu_item_set_attribute_value (menu_item, G_MENU_ATTRIBUTE_ICON, get_serialized_alarm_icon());
-            g_menu_append_item (menu, menu_item);
-            g_object_unref (menu_item);
+                add_appointments (menu, profile);
 
-            add_appointments (menu, profile);
+                if (m_actions->desktop_has_calendar_app())
+                {
+                    // add the 'Add Event…' menuitem
+                    auto menu_item = g_menu_item_new(_("Add Event…"), nullptr);
+                    const gchar* action_name = "indicator.desktop.open-calendar-app";
+                    auto v = g_variant_new_int64(0);
+                    g_menu_item_set_action_and_target_value(menu_item, action_name, v);
+                    g_menu_append_item(menu, menu_item);
+                    g_object_unref(menu_item);
+                }
+            }
+            else if (profile==Phone)
+            {
+                auto menu_item = g_menu_item_new (_("Clock"), "indicator.phone.open-alarm-app");
+                g_menu_item_set_attribute_value (menu_item, G_MENU_ATTRIBUTE_ICON, get_serialized_alarm_icon());
+                g_menu_append_item (menu, menu_item);
+                g_object_unref (menu_item);
+
+                add_appointments (menu, profile);
+            }
         }
 
         return G_MENU_MODEL(menu);
