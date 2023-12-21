@@ -47,7 +47,7 @@ namespace
 TEST_F(NotificationFixture,Response)
 {
   // create the world
-  make_interactive();
+  mock_capabilities();
   auto ne = std::make_shared<ayatana::indicator::notifications::Engine>(APP_NAME);
   auto sb = std::make_shared<ayatana::indicator::notifications::DefaultSoundBuilder>();
   auto settings = std::make_shared<Settings>();

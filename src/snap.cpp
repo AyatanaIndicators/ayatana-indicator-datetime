@@ -21,6 +21,7 @@
 
 #ifdef LOMIRI_FEATURES_ENABLED
 #include "dbus-accounts-sound.h"
+#endif
 
 #include <datetime/snap.h>
 #include <datetime/utils.h> // is_locale_12h()
@@ -64,6 +65,7 @@ public:
       m_cancellable(g_cancellable_new()),
       m_system_bus{G_DBUS_CONNECTION(g_object_ref(system_bus))}
     {
+    #ifdef LOMIRI_FEATURES_ENABLED
         auto object_path = g_strdup_printf("/org/freedesktop/Accounts/User%lu", (gulong)getuid());
 
 
@@ -75,13 +77,16 @@ public:
                                          on_sound_proxy_ready,
                                          this);
         g_free(object_path);
+    #endif
     }
 
     ~Impl()
     {
         g_cancellable_cancel(m_cancellable);
         g_clear_object(&m_cancellable);
+    #ifdef LOMIRI_FEATURES_ENABLED
         g_clear_object(&m_accounts_service_sound_proxy);
+    #endif
         g_clear_object(&m_system_bus);
 
         for (const auto& key : m_notifications)
@@ -235,6 +240,7 @@ private:
         return m_settings->vibrate_silent_mode.get();
     }
 
+#ifdef LOMIRI_FEATURES_ENABLED
     static void on_sound_proxy_ready(GObject* /*source_object*/, GAsyncResult* res, gpointer gself)
     {
         GError * error;
@@ -253,17 +259,26 @@ private:
             static_cast<Impl*>(gself)->m_accounts_service_sound_proxy = proxy;
         }
     }
+#endif
 
     bool silent_mode() const
     {
+#ifdef LOMIRI_FEATURES_ENABLED
         return (m_accounts_service_sound_proxy != nullptr)
             && (accounts_service_sound_get_silent_mode(m_accounts_service_sound_proxy));
+#else
+        return false;
+#endif
     }
 
     bool should_vibrate() const
     {
+#ifdef LOMIRI_FEATURES_ENABLED
         return (m_accounts_service_sound_proxy != nullptr)
             && (accounts_service_sound_get_other_vibrate(m_accounts_service_sound_proxy));
+#else
+        return true;
+#endif
     }
 
     std::string get_alarm_uri(const Appointment& appointment,
@@ -306,7 +321,9 @@ private:
     const std::shared_ptr<const Settings> m_settings;
     std::set<int> m_notifications;
     GCancellable * m_cancellable {nullptr};
+#ifdef LOMIRI_FEATURES_ENABLED
     AccountsServiceSound * m_accounts_service_sound_proxy {nullptr};
+#endif
     GDBusConnection * m_system_bus {nullptr};
 
     static constexpr char const * ACTION_NONE {"none"};
@@ -345,5 +362,3 @@ Snap::operator()(const Appointment& appointment,
 } // namespace datetime
 } // namespace indicator
 } // namespace ayatana
-
-#endif
