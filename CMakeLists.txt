@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.13)
-project (ayatana-indicator-datetime VERSION 23.10.0 LANGUAGES C CXX)
+project (ayatana-indicator-datetime VERSION 23.10.1 LANGUAGES C CXX)
 
 list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 

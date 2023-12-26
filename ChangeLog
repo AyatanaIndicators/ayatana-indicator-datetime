@@ -1,6 +1,26 @@
+2023-12-26 Mike Gabriel
+
+        * release 23.10.1 (HEAD -> main, tag: 23.10.1)
+
+2023-12-19 Mike Gabriel
+
+        * Merge branch 'luigi311-toggle_alarm' (d0ebe529)
+
+2021-03-20 kugiigi
+
+        * Add option to show/hide alarms (63a57fde)
+
+2023-12-19 Mike Gabriel
+
+        * Merge branch 'luigi311-toggle_events' (ecaaccca)
+
+2021-03-18 kugiigi
+
+        * Also apply show-events to Phone profile (4d984d26)
+
 2023-10-12 Mike Gabriel
 
-        * release 23.10.0 (HEAD -> main, tag: 23.10.0)
+        * release 23.10.0 (2aace153) (tag: 23.10.0)
         * po/: Update translation files. (3e66ea9a)
 
 2023-10-10 Mike Gabriel
