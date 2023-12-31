@@ -338,11 +338,11 @@ private:
     void InspectPhoneAppointments(GMenuModel* menu_model, bool can_open_planner)
     {
         auto submenu = g_menu_model_get_item_link(menu_model, 0, G_MENU_LINK_SUBMENU);
-        
+
         // there shouldn't be any menuitems when "show events" is false
         m_state->settings->show_events.set(false);
         wait_msec();
-        section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
+        auto section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
         EXPECT_EQ(0, g_menu_model_get_n_items(section));
         g_clear_object(&section);
 
@@ -353,7 +353,7 @@ private:
         wait_msec(); // wait a moment for the menu to update
 
         // check that there's a "clock app" menuitem even when there are no appointments
-        auto section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
+        section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
         const char* expected_action = "phone.open-alarm-app";
         EXPECT_EQ(1, g_menu_model_get_n_items(section));
         gchar* action = nullptr;
