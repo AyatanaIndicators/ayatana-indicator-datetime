@@ -1,29 +1,6 @@
-2024-01-31 Mike Gabriel
-
-        * release 24.1.0 (HEAD -> main, tag: 24.1.0)
-        * Merge branch 'luigi311-fix-tests' (ddabb4a6)
-
-2024-01-19 Luigi311
-
-        * Tests: Fix show_alarms tests (54802146)
-
-2023-12-31 OPNA2608
-
-        * tests/test-menus: Fix build (dcfaedfd)
-
-2024-01-31 Mike Gabriel
-
-        * Merge branch 'personal/peat-psuwit/bring-back-lomiri-hints'
-          (2a2db70b)
-
-2023-12-21 Ratchanan Srirattanamet
-
-        * src, tests: enable notification code path without Lomiri deps
-          (30b2de45)
-
 2023-12-26 Mike Gabriel
 
-        * release 23.10.1 (d8debd70) (tag: 23.10.1)
+        * release 23.10.1 (HEAD -> main, tag: 23.10.1)
 
 2023-12-19 Mike Gabriel
 
@@ -40,10 +17,6 @@
 2021-03-18 kugiigi
 
         * Also apply show-events to Phone profile (4d984d26)
-
-2023-12-07 Ratchanan Srirattanamet
-
-        * Bring back Lomiri-specific notification hints (6f1c3f7f)
 
 2023-10-12 Mike Gabriel
 
