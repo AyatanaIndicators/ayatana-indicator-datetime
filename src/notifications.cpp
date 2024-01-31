@@ -199,6 +199,13 @@ public:
         return server_caps().count("actions") != 0;
     }
 
+#ifdef LOMIRI_FEATURES_ENABLED
+    bool requires_hint_lomiri_timeout() const
+    {
+        return server_caps().count(HINT_LOMIRI_TIMEOUT) != 0;
+    }
+#endif
+
     void close_all ()
     {
         // call close() on all our keys
@@ -249,6 +256,14 @@ public:
             const auto& d= info.m_duration;
             auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(d);
             notify_notification_set_timeout (nn.get (), ms.count ());
+#ifdef LOMIRI_FEATURES_ENABLED
+            if (requires_hint_lomiri_timeout()) {
+                // Lomiri has its own logic regarding timeout.
+                notify_notification_set_hint (nn.get(),
+                                              HINT_LOMIRI_TIMEOUT,
+                                              g_variant_new_int32(ms.count()));
+            }
+#endif
         }
 
         for (const auto& hint : info.m_string_hints)
@@ -509,6 +524,10 @@ private:
     // server capabilities.
     // as the name indicates, don't use this directly: use server_caps() instead
     mutable std::set<std::string> m_lazy_caps;
+
+#ifdef LOMIRI_FEATURES_ENABLED
+    static constexpr char const * HINT_LOMIRI_TIMEOUT {"x-lomiri-snap-decisions-timeout"};
+#endif
 };
 
 /***

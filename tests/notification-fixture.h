@@ -77,6 +77,10 @@ protected:
 
   static constexpr char const * SIGNAL_CLOSED {"NotificationClosed"};
 
+#ifdef LOMIRI_FEATURES_ENABLED
+  static constexpr char const * HINT_LOMIRI_TIMEOUT {"x-lomiri-snap-decisions-timeout"};
+#endif
+
   static constexpr char const * AS_BUSNAME            {"org.freedesktop.Accounts"};
   static constexpr char const * AS_INTERFACE          {"com.lomiri.touch.AccountsService.Sound"};
   static constexpr char const * PROP_OTHER_VIBRATIONS {"OtherVibrate"};
@@ -310,20 +314,31 @@ protected:
     super::TearDown();
   }
 
-  void make_interactive()
+  void mock_capabilities(bool mock_lomiri_caps = false)
   {
     // GetCapabilities returns an array containing 'actions',
     // so our notifications will be interactive.
-    // For this test, it means we should get an expire_timeout
-    // that matches duration_minutes
+
+  #ifndef LOMIRI_FEATURES_ENABLED
+    g_assert_false(mock_lomiri_caps);
+  #endif
+
+    std::string python_code =
+      std::string("ret = ['actions', 'body'") +
+  #ifdef LOMIRI_FEATURES_ENABLED
+      (mock_lomiri_caps ? std::string(", '") + HINT_LOMIRI_TIMEOUT + "'" : "") +
+  #endif
+      "]";
+
     GError * error = nullptr;
     dbus_test_dbus_mock_object_add_method(notify_mock,
                                           notify_obj,
                                           METHOD_GET_CAPS,
                                           nullptr,
                                           G_VARIANT_TYPE_STRING_ARRAY,
-                                          "ret = ['actions', 'body']",
+                                          python_code.c_str(),
                                           &error);
+
     g_assert_no_error (error);
   }
 

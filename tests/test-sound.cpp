@@ -46,13 +46,22 @@ namespace
     g_main_loop_quit(static_cast<GMainLoop*>(gloop));
     return G_SOURCE_REMOVE;
   };
+
+  class SoundNotificationFixture : public NotificationFixture,
+                                   public testing::WithParamInterface<bool>
+  {
+  public:
+    bool IsLomiri() {
+      return GetParam();
+    }
+  };
 }
 
 /***
 ****
 ***/
 
-TEST_F(NotificationFixture, InteractiveDuration)
+TEST_P(SoundNotificationFixture, InteractiveDuration)
 {
   static constexpr int duration_minutes = 120;
   auto settings = std::make_shared<Settings>();
@@ -67,7 +76,7 @@ TEST_F(NotificationFixture, InteractiveDuration)
   settings->cal_notification_bubbles.set(true);
   settings->cal_notification_list.set(true);
 
-  make_interactive();
+  mock_capabilities(IsLomiri());
 
   // call the Snap Decision
   auto func = [this](const Appointment&, const Alarm&, const Snap::Response&){g_idle_add(quit_idle, loop);};
@@ -100,8 +109,31 @@ TEST_F(NotificationFixture, InteractiveDuration)
   g_variant_get_child (params, 7, "i", &i32);
   const auto duration = std::chrono::minutes(duration_minutes);
   EXPECT_EQ(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count(), i32);
+
+#ifdef LOMIRI_FEATURES_ENABLED
+  if (IsLomiri()) {
+    // Due to custom logic in Lomiri, also make sure custom timeout hint is set.
+    bool b;
+    auto hints = g_variant_get_child_value (params, 6);
+    i32 = 0;
+    b = g_variant_lookup (hints, HINT_LOMIRI_TIMEOUT, "i", &i32);
+    EXPECT_TRUE(b);
+    EXPECT_EQ(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count(), i32);
+    g_variant_unref(hints);
+  }
+#endif
+
   ne.reset();
 }
+
+INSTANTIATE_TEST_SUITE_P(SoundNotificationTest,
+                         SoundNotificationFixture,
+                         testing::Values(
+#ifdef LOMIRI_FEATURES_ENABLED
+                          true,
+#endif
+                          false
+                         ));
 
 /***
 ****
@@ -137,12 +169,17 @@ private:
     uin::DefaultSoundBuilder m_impl;
 };
 
-std::string path_to_uri(const std::string& path)
+std::string path_to_uri_if_exists(const std::string& path)
 {
+  std::string uri;
   auto file = g_file_new_for_path(path.c_str());
-  auto uri_cstr = g_file_get_uri(file);
-  std::string uri = uri_cstr;
-  g_free(uri_cstr);
+
+  if (g_file_query_exists(file, /* cancellable */ nullptr)) {
+    auto uri_cstr = g_file_get_uri(file);
+    uri = std::string(uri_cstr);
+    g_free(uri_cstr);
+  }
+
   g_clear_pointer(&file, g_object_unref);
   return uri;
 }
@@ -165,9 +202,9 @@ TEST_F(NotificationFixture,DefaultSounds)
       std::string expected_role;
       std::string expected_uri;
   } test_cases[] = {
-      { ualarm, "alarm", path_to_uri(ALARM_DEFAULT_SOUND) }
+      { ualarm, "alarm", path_to_uri_if_exists(ALARM_DEFAULT_SOUND) }
     // No sound for appointments
-    //  { appt, "alert", path_to_uri(CALENDAR_DEFAULT_SOUND) }
+    //  { appt, "alert", path_to_uri_if_exists(CALENDAR_DEFAULT_SOUND) }
   };
 
   auto snap = create_snap(ne, sb, settings);
