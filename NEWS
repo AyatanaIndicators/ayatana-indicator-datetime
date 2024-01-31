@@ -1,3 +1,10 @@
+Overview of changes in ayatana-indicator-datetime 24.1.0
+
+  - Bring back Lomiri-specific notification hints.
+  - src, tests: enable notification code path without Lomiri deps.
+  - tests/test-menus: Fix build.
+  - Tests: Fix show_alarms tests.
+
 Overview of changes in ayatana-indicator-datetime 23.10.1
 
   - Also apply show-events to Phone profile.
