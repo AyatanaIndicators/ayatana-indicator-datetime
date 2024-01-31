@@ -274,16 +274,25 @@ private:
 
         // there shouldn't be any alarms when "show alarms" is false
         bool has_alarms = false;
-
         m_state->settings->show_alarms.set(false);
+        wait_msec();
 
-        for (int i=0, n=appointments.size(); i<n; i++)
-            if((has_alarms = appointments[i].is_alarm()))
-                break;            
+        std::vector<Appointment> display_appointments = Menu::get_display_appointments(appointments, m_state->clock->localtime(), 5, m_state->settings->show_alarms.get());
+        for (int i=0, n=display_appointments.size(); i<n; i++)
+            if ((has_alarms = display_appointments[i].is_alarm()))
+               break;
 
         EXPECT_FALSE(has_alarms);
 
         m_state->settings->show_alarms.set(true);
+        wait_msec();
+
+        display_appointments = Menu::get_display_appointments(appointments, m_state->clock->localtime(), 5, m_state->settings->show_alarms.get());
+        for (int i=0, n=display_appointments.size(); i<n; i++)
+            if ((has_alarms = display_appointments[i].is_alarm()))
+                break;
+
+        EXPECT_TRUE(has_alarms);
 
         //g_clear_object(&section);
         //g_clear_object(&submenu);
@@ -291,6 +300,7 @@ private:
 
     void InspectDesktopAppointments(GMenuModel* menu_model, bool can_open_planner)
     {
+        m_state->settings->show_alarms.set(true);
         const int n_add_event_buttons = can_open_planner ? 1 : 0;
 
         // get the Appointments section
@@ -337,12 +347,13 @@ private:
 
     void InspectPhoneAppointments(GMenuModel* menu_model, bool can_open_planner)
     {
+        m_state->settings->show_alarms.set(true);
         auto submenu = g_menu_model_get_item_link(menu_model, 0, G_MENU_LINK_SUBMENU);
         
         // there shouldn't be any menuitems when "show events" is false
         m_state->settings->show_events.set(false);
         wait_msec();
-        section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
+        auto section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
         EXPECT_EQ(0, g_menu_model_get_n_items(section));
         g_clear_object(&section);
 
@@ -353,7 +364,7 @@ private:
         wait_msec(); // wait a moment for the menu to update
 
         // check that there's a "clock app" menuitem even when there are no appointments
-        auto section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
+        section = g_menu_model_get_item_link(submenu, Menu::Appointments, G_MENU_LINK_SECTION);
         const char* expected_action = "phone.open-alarm-app";
         EXPECT_EQ(1, g_menu_model_get_n_items(section));
         gchar* action = nullptr;
