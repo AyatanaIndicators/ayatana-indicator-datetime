@@ -1,6 +1,6 @@
 /*
  * Copyright 2014 Canonical Ltd.
- * Copyright 2021 Robert Tari
+ * Copyright 2021-2024 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -1073,6 +1073,34 @@ private:
                 baseline.type = Appointment::ALARM;
         }
         g_slist_free_full(categ_list, g_free);
+
+        // Get the colour - we might need this override in the future
+
+        /*if (icc)
+        {
+            ECalComponentPropertyBag *pBag = e_cal_component_property_bag_new_from_component (icc, NULL, NULL);
+
+            if (pBag)
+            {
+                guint nProperties = e_cal_component_property_bag_get_count (pBag);
+
+                for (guint nProperty = 0; nProperty < nProperties; nProperty++)
+                {
+                    ICalProperty *pProperty = e_cal_component_property_bag_get (pBag, nProperty);
+                    gchar *sName = i_cal_property_get_property_name (pProperty);
+                    gboolean bColour = !g_strcmp0 (sName, "COLOR");
+
+                    if (bColour)
+                    {
+                        baseline.color = i_cal_property_get_value_as_string (pProperty);
+
+                        break;
+                    }
+                }
+
+                e_cal_component_property_bag_free (pBag);
+            }
+        }*/
 
         g_debug("%s got appointment from %s to %s: %s", G_STRLOC,
                 baseline.begin.format("%F %T %z").c_str(),

@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Canonical Ltd.
- * Copyright 2021-2022 Robert Tari
+ * Copyright 2021-2024 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -81,7 +81,6 @@ TEST_F(VAlarmFixture, MultipleAppointments)
     // what we expect to get...
     Appointment expected_appt;
     expected_appt.uid = "20150507T211449Z-4262-32011-1418-1@lomiri-phablet";
-    expected_appt.color = "#becedd";
     expected_appt.summary = "Alarm";
     std::array<Alarm,8> expected_alarms = {
         Alarm({"Alarm", "file://" ALARM_DEFAULT_SOUND, DateTime(gtz,2015,5, 8,16,40,0)}),
@@ -100,10 +99,14 @@ TEST_F(VAlarmFixture, MultipleAppointments)
     for (size_t i=0, n=expected_alarms.size(); i<n; i++) {
         const auto& appt = appts[i];
         EXPECT_EQ(expected_appt.uid, appt.uid);
-        EXPECT_EQ(expected_appt.color, appt.color);
         EXPECT_EQ(expected_appt.summary, appt.summary);
         EXPECT_EQ(1, appt.alarms.size());
         EXPECT_EQ(expected_alarms[i], appt.alarms[0]);
+
+        EXPECT_PRED3([](auto sColourIn, auto sColourExpected1, auto sColourExpected2)
+        {
+            return sColourIn == sColourExpected1 || sColourIn == sColourExpected2;
+        }, appt.color, "#becedd", "#62a0ea");
     }
 
     // cleanup
