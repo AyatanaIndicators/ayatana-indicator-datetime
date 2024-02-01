@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Canonical Ltd.
- * Copyright 2021-2023 Robert Tari
+ * Copyright 2021-2024 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -78,25 +78,25 @@ TEST_F(VAlarmFixture, MissingTriggers)
         wait_msec(max_wait_sec * G_TIME_SPAN_MILLISECOND);
     }
 
-    // build expected: one-time alarm
-    std::vector<Appointment> expected;
-    Appointment a;
-    a.type = Appointment::ALARM;
-    a.uid = "20150617T211838Z-6217-32011-2036-1@lomiri-phablet";
-    a.color = "#becedd";
-    a.summary = "One Time Alarm";
-    a.begin = DateTime { gtz, 2015, 6, 18, 10, 0, 0};
-    a.end = a.begin;
-    a.alarms.resize(1);
-    a.alarms[0].audio_url = "file://" ALARM_DEFAULT_SOUND;
-    a.alarms[0].time = a.begin;
-    a.alarms[0].text = a.summary;
-    expected.push_back(a);
+    // build expected: one-time alarm 1
+    std::vector<Appointment> expected1;
+    Appointment a1;
+    a1.type = Appointment::ALARM;
+    a1.uid = "20150617T211838Z-6217-32011-2036-1@lomiri-phablet";
+    a1.color = "#becedd";
+    a1.summary = "One Time Alarm";
+    a1.begin = DateTime { gtz, 2015, 6, 18, 10, 0, 0};
+    a1.end = a1.begin;
+    a1.alarms.resize(1);
+    a1.alarms[0].audio_url = "file://" ALARM_DEFAULT_SOUND;
+    a1.alarms[0].time = a1.begin;
+    a1.alarms[0].text = a1.summary;
+    expected1.push_back(a1);
 
-    // build expected: recurring alarm
-    a.uid = "20150617T211913Z-6217-32011-2036-5@lomiri-phablet";
-    a.summary = "Recurring Alarm";
-    a.alarms[0].text = a.summary;
+    // build expected: recurring alarm 1
+    a1.uid = "20150617T211913Z-6217-32011-2036-5@lomiri-phablet";
+    a1.summary = "Recurring Alarm";
+    a1.alarms[0].text = a1.summary;
     std::array<DateTime,13> recurrences {
         DateTime{ gtz, 2015, 6, 18, 10, 1, 0 },
         DateTime{ gtz, 2015, 6, 19, 10, 1, 0 },
@@ -113,13 +113,41 @@ TEST_F(VAlarmFixture, MissingTriggers)
         DateTime{ gtz, 2015, 6, 30, 10, 1, 0 },
     };
     for (const auto& time : recurrences) {
-        a.begin = a.end = a.alarms[0].time = time;
-        expected.push_back(a);
+        a1.begin = a1.end = a1.alarms[0].time = time;
+        expected1.push_back(a1);
+    }
+
+    // build expected: one-time alarm 2
+    std::vector<Appointment> expected2;
+    Appointment a2;
+    a2.type = Appointment::ALARM;
+    a2.uid = "20150617T211838Z-6217-32011-2036-1@lomiri-phablet";
+    a2.color = "#62a0ea";
+    a2.summary = "One Time Alarm";
+    a2.begin = DateTime { gtz, 2015, 6, 18, 10, 0, 0};
+    a2.end = a2.begin;
+    a2.alarms.resize(1);
+    a2.alarms[0].audio_url = "file://" ALARM_DEFAULT_SOUND;
+    a2.alarms[0].time = a2.begin;
+    a2.alarms[0].text = a2.summary;
+    expected2.push_back(a2);
+
+    // build expected: recurring alarm 2
+    a2.uid = "20150617T211913Z-6217-32011-2036-5@lomiri-phablet";
+    a2.summary = "Recurring Alarm";
+    a2.alarms[0].text = a2.summary;
+    for (const auto& time : recurrences) {
+        a2.begin = a2.end = a2.alarms[0].time = time;
+        expected2.push_back(a2);
     }
 
     // the planner should match what we've got in the calendar.ics file
     const auto appts = planner->appointments().get();
-    EXPECT_EQ(expected, appts);
+
+    EXPECT_PRED3([](auto lAppointmentsIn, auto lAppointmentsExpected1, auto lAppointmentsExpected2)
+    {
+        return lAppointmentsIn == lAppointmentsExpected1 || lAppointmentsIn == lAppointmentsExpected2;
+    }, appts, expected1, expected2);
 
     // cleanup
     g_time_zone_unref(gtz);

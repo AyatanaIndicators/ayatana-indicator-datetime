@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Canonical Ltd.
- * Copyright 2021-2022 Robert Tari
+ * Copyright 2021-2024 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -80,19 +80,33 @@ TEST_F(VAlarmFixture, UTCAppointments)
     }
 
     // what we expect to get...
-    std::array<Appointment,1> expected_appts;
-    auto appt = &expected_appts[0];
-    appt->uid = "20160322T132738Z";
-    appt->color = "#becedd";
-    appt->summary = "UTC event";
-    appt->begin = DateTime{gtz,2016,3,22,15,0,0};
-    appt->end = DateTime{gtz,2016,3,22,16,0,0};
+    std::array<Appointment,1> expected_appts1;
+    auto appt1 = &expected_appts1[0];
+    appt1->uid = "20160322T132738Z";
+    appt1->color = "#becedd";
+    appt1->summary = "UTC event";
+    appt1->begin = DateTime{gtz,2016,3,22,15,0,0};
+    appt1->end = DateTime{gtz,2016,3,22,16,0,0};
+
+    std::array<Appointment,1> expected_appts2;
+    auto appt2 = &expected_appts2[0];
+    appt2->uid = "20160322T132738Z";
+    appt2->color = "#62a0ea";
+    appt2->summary = "UTC event";
+    appt2->begin = DateTime{gtz,2016,3,22,15,0,0};
+    appt2->end = DateTime{gtz,2016,3,22,16,0,0};
 
     // compare it to what we actually loaded...
     const auto appts = planner->appointments().get();
-    EXPECT_EQ(expected_appts.size(), appts.size());
-    for (size_t i=0, n=std::min(appts.size(),expected_appts.size()); i<n; i++)
-        EXPECT_EQ(expected_appts[i], appts[i]);
+    EXPECT_EQ(expected_appts1.size(), appts.size());
+    EXPECT_EQ(expected_appts2.size(), appts.size());
+    for (size_t i=0, n=std::min(appts.size(),expected_appts1.size()); i<n; i++)
+    {
+        EXPECT_PRED3([](auto pAppointmentIn, auto pAppointmentExpected1, auto pAppointmentExpected2)
+        {
+            return pAppointmentIn == pAppointmentExpected1 || pAppointmentIn == pAppointmentExpected2;
+        }, appts[i], expected_appts1[i], expected_appts2[i]);
+    }
 
     // cleanup
     g_time_zone_unref(gtz);

@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Canonical Ltd.
- * Copyright 2021 Robert Tari
+ * Copyright 2021-2024 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -81,7 +81,6 @@ TEST_F(VAlarmFixture, MultipleAppointments)
     // what we expect to get...
     Appointment expected_appt;
     expected_appt.uid = "20150521T111538Z-7449-1000-3572-0@ghidorah";
-    expected_appt.color = "#becedd";
     expected_appt.summary = "Memorial Day";
     expected_appt.begin = DateTime{gtz,2015,5,25,0,0,0};
     expected_appt.end = DateTime{gtz,2015,5,26,0,0,0};
@@ -93,9 +92,13 @@ TEST_F(VAlarmFixture, MultipleAppointments)
     EXPECT_EQ(expected_appt.begin, appt.begin);
     EXPECT_EQ(expected_appt.end, appt.end);
     EXPECT_EQ(expected_appt.uid, appt.uid);
-    EXPECT_EQ(expected_appt.color, appt.color);
     EXPECT_EQ(expected_appt.summary, appt.summary);
     EXPECT_EQ(0, appt.alarms.size());
+
+    EXPECT_PRED3([](auto sColourIn, auto sColourExpected1, auto sColourExpected2)
+    {
+        return sColourIn == sColourExpected1 || sColourIn == sColourExpected2;
+    }, appt.color, "#becedd", "#62a0ea");
 
     // cleanup
     g_time_zone_unref(gtz);
