@@ -41,9 +41,14 @@ function(add_test_by_name name)
   add_test (${TEST_NAME} ${TEST_NAME})
   target_link_libraries (${TEST_NAME} indicatordatetimeservice ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 endfunction()
+
 add_test_by_name(test-datetime)
 add_test_by_name(test-sound)
-add_test_by_name(test-notification)
+
+if (ENABLE_LOMIRI_FEATURES)
+    add_test_by_name(test-notification)
+endif ()
+
 add_test_by_name(test-notification-response)
 add_test_by_name(test-actions)
 add_test_by_name(test-alarm-queue)
