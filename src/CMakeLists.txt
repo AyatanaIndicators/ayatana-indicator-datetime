@@ -57,6 +57,7 @@ endif()
 # add the bin dir to our include path so our code can find the generated header files
 include_directories (${CMAKE_CURRENT_BINARY_DIR})
 
+set_source_files_properties (engine-eds.cpp PROPERTIES COMPILE_FLAGS "${CMAKE_C_FLAGS} -Wno-enum-constexpr-conversion")
 add_library (${SERVICE_LIB} STATIC ${SERVICE_C_SOURCES} ${SERVICE_CXX_SOURCES} ${SERVICE_GENERATED_SOURCES})
 include_directories (${CMAKE_SOURCE_DIR})
 link_directories (${SERVICE_DEPS_LIBRARY_DIRS})
