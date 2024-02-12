@@ -1,6 +1,62 @@
+2024-02-12 Mike Gabriel
+
+        * release 24.2.0 (HEAD -> main, tag: 24.2.0)
+
+2024-02-12 Robert Tari
+
+        * Merge branch 'sunweaver-pr/fix-soundtest' (e06f6b10)
+        * src/CMakeLists.txt: suppress Wenum-constexpr-conversion in
+          engine-eds.cpp (ee1824a0)
+
+2024-02-12 Mike Gabriel
+
+        * tests/: Fix test-sound. Drop parameterized test run for now. Needs
+          more investigation. (deb2a444)
+
+2024-02-01 Mike Gabriel
+
+        * Merge branch 'tari01-pr/notification-test-lomiri' (a26eeb15)
+
+2024-02-01 Robert Tari
+
+        * tests/CMakeLists.txt: Run test-notification only when building with
+          Lomiri features (d304a6d1)
+
+2024-02-01 Mike Gabriel
+
+        * Merge branch 'tari01-pr/fix-colour-tests' (6d67f7b4)
+
+2024-02-01 Robert Tari
+
+        * Fix tests relying on the default EDS appointment colour (d77ad890)
+
+2024-01-31 Mike Gabriel
+
+        * Revert "release 24.1.0" (0692cc58)
+        * release 24.1.0 (070fe966)
+        * Merge branch 'luigi311-fix-tests' (ddabb4a6)
+
+2024-01-19 Luigi311
+
+        * Tests: Fix show_alarms tests (54802146)
+
+2023-12-31 OPNA2608
+
+        * tests/test-menus: Fix build (dcfaedfd)
+
+2024-01-31 Mike Gabriel
+
+        * Merge branch 'personal/peat-psuwit/bring-back-lomiri-hints'
+          (2a2db70b)
+
+2023-12-21 Ratchanan Srirattanamet
+
+        * src, tests: enable notification code path without Lomiri deps
+          (30b2de45)
+
 2023-12-26 Mike Gabriel
 
-        * release 23.10.1 (HEAD -> main, tag: 23.10.1)
+        * release 23.10.1 (d8debd70) (tag: 23.10.1)
 
 2023-12-19 Mike Gabriel
 
@@ -17,6 +73,10 @@
 2021-03-18 kugiigi
 
         * Also apply show-events to Phone profile (4d984d26)
+
+2023-12-07 Ratchanan Srirattanamet
+
+        * Bring back Lomiri-specific notification hints (6f1c3f7f)
 
 2023-10-12 Mike Gabriel
 

@@ -1,3 +1,30 @@
+Overview of changes in ayatana-indicator-datetime 24.2.0
+
+  - src, tests: enable notification code path without Lomiri deps.
+  - tests/test-menus: Fix build.
+  - Tests: Fix show_alarms tests.
+  - Fix tests relying on the default EDS appointment colour.
+  - tests/CMakeLists.txt: Run test-notification only when building with
+    Lomiri features.
+  - tests/: Fix test-sound. Drop parameterized test run for now. Needs
+    more investigation.
+  - src/CMakeLists.txt: suppress Wenum-constexpr-conversion in
+    engine-eds.cpp.
+
+Overview of changes in ayatana-indicator-datetime 24.2.0
+
+  - src, tests: enable notification code path without Lomiri deps.
+  - tests/test-menus: Fix build.
+  - Tests: Fix show_alarms tests.
+  - Fix tests relying on the default EDS appointment colour.
+  - tests/CMakeLists.txt: Run test-notification only when building with
+    Lomiri features.
+  - tests/: Fix test-sound. Drop parameterized test run for now. Needs
+    more investigation.
+  - src/CMakeLists.txt: suppress Wenum-constexpr-conversion in
+    engine-eds.cpp
+  - Translation updates.
+
 Overview of changes in ayatana-indicator-datetime 23.10.1
 
   - Also apply show-events to Phone profile.
