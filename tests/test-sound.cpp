@@ -47,13 +47,8 @@ namespace
     return G_SOURCE_REMOVE;
   };
 
-  class SoundNotificationFixture : public NotificationFixture,
-                                   public testing::WithParamInterface<bool>
+  class SoundNotificationFixture : public NotificationFixture
   {
-  public:
-    bool IsLomiri() {
-      return GetParam();
-    }
   };
 }
 
@@ -61,7 +56,7 @@ namespace
 ****
 ***/
 
-TEST_P(SoundNotificationFixture, InteractiveDuration)
+TEST_F(SoundNotificationFixture, InteractiveDuration)
 {
   static constexpr int duration_minutes = 120;
   auto settings = std::make_shared<Settings>();
@@ -76,7 +71,12 @@ TEST_P(SoundNotificationFixture, InteractiveDuration)
   settings->cal_notification_bubbles.set(true);
   settings->cal_notification_list.set(true);
 
-  mock_capabilities(IsLomiri());
+#ifdef LOMIRI_FEATURES_ENABLED
+  /* Here both values true|false should succeed. */
+  mock_capabilities(true);
+#else
+  mock_capabilities(false);
+#endif
 
   // call the Snap Decision
   auto func = [this](const Appointment&, const Alarm&, const Snap::Response&){g_idle_add(quit_idle, loop);};
@@ -111,7 +111,8 @@ TEST_P(SoundNotificationFixture, InteractiveDuration)
   EXPECT_EQ(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count(), i32);
 
 #ifdef LOMIRI_FEATURES_ENABLED
-  if (IsLomiri()) {
+  /* If setting mock_capabilities to false, set the below to false, as well. */
+  if (true) {
     // Due to custom logic in Lomiri, also make sure custom timeout hint is set.
     bool b;
     auto hints = g_variant_get_child_value (params, 6);
@@ -125,15 +126,6 @@ TEST_P(SoundNotificationFixture, InteractiveDuration)
 
   ne.reset();
 }
-
-INSTANTIATE_TEST_SUITE_P(SoundNotificationTest,
-                         SoundNotificationFixture,
-                         testing::Values(
-#ifdef LOMIRI_FEATURES_ENABLED
-                          true,
-#endif
-                          false
-                         ));
 
 /***
 ****
