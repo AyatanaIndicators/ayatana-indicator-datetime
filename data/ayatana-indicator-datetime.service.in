@@ -1,11 +1,11 @@
 [Unit]
 Description=Ayatana Indicator DateTime Service
 PartOf=graphical-session.target
-PartOf=ayatana-indicators.target
+PartOf=ayatana-indicators.target lomiri-indicators.target
 
 [Service]
 ExecStart=@CMAKE_INSTALL_FULL_LIBEXECDIR@/ayatana-indicator-datetime/ayatana-indicator-datetime-service
 Restart=on-failure
 
 [Install]
-WantedBy=ayatana-indicators.target
+WantedBy=ayatana-indicators.target lomiri-indicators.target
