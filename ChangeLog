@@ -1,6 +1,51 @@
+2024-05-22 Mike Gabriel
+
+        * release 24.5.0 (HEAD -> main, tag: 24.5.0)
+
+2024-05-22 Robert Tari
+
+        * Merge branch 'sunweaver-pr/lomiri-indicators-target' (eba41f23)
+
+2024-04-10 bittin1ddc447d824349b2
+
+        * Translated using Weblate (Swedish) (c373f515)
+
+2024-04-11 Wellington Terumi Uemura
+
+        * Translated using Weblate (Portuguese (Brazil)) (15f6adcc)
+
+2024-04-01 复予
+
+        * Translated using Weblate (Chinese (Simplified)) (eb8980f9)
+
+2024-03-24 Steve
+
+        * Translated using Weblate (French) (c33453f3)
+
+2024-05-21 Mike Gabriel
+
+        * data/ayatana-indicator-datetime.service.in: Become part of
+          lomiri-indicators.target. (43c8d366)
+
+2024-04-10 bittin1ddc447d824349b2
+
+        * Translated using Weblate (Swedish) (176132e1)
+
+2024-04-11 Wellington Terumi Uemura
+
+        * Translated using Weblate (Portuguese (Brazil)) (281ded45)
+
+2024-04-01 复予
+
+        * Translated using Weblate (Chinese (Simplified)) (84f4b063)
+
+2024-03-24 Steve
+
+        * Translated using Weblate (French) (dafcf08c)
+
 2024-02-12 Mike Gabriel
 
-        * release 24.2.0 (HEAD -> main, tag: 24.2.0)
+        * release 24.2.0 (029dad79) (tag: 24.2.0)
 
 2024-02-12 Robert Tari
 
@@ -33,7 +78,7 @@
 2024-01-31 Mike Gabriel
 
         * Revert "release 24.1.0" (0692cc58)
-        * release 24.1.0 (070fe966)
+        * release 24.1.0 (070fe966) (tag: 24.1.0)
         * Merge branch 'luigi311-fix-tests' (ddabb4a6)
 
 2024-01-19 Luigi311

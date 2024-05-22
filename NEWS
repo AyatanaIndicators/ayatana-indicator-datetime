@@ -1,3 +1,9 @@
+Overview of changes in ayatana-indicator-datetime 24.5.0
+
+  - data/ayatana-indicator-datetime.service.in: Become part of
+    lomiri-indicators.target.
+  - Translation updates.
+
 Overview of changes in ayatana-indicator-datetime 24.2.0
 
   - src, tests: enable notification code path without Lomiri deps.
