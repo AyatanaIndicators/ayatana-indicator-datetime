@@ -180,6 +180,7 @@ TEST_F(SettingsFixture, StringProperties)
     TestStringProperty(m_gsettings, m_settings->timezone_name, SETTINGS_TIMEZONE_NAME_S);
     TestStringProperty(m_gsettings, m_settings->alarm_sound, SETTINGS_ALARM_SOUND_S);
     TestStringProperty(m_gsettings, m_settings->calendar_sound, SETTINGS_CALENDAR_SOUND_S);
+    TestStringProperty(m_gsettings, m_settings->calendar_volume, SETTINGS_CALENDAR_VOLUME_S);
     TestStringProperty(m_gsettings, m_settings->alarm_haptic, SETTINGS_ALARM_HAPTIC_S);
 }
 

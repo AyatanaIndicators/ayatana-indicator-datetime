@@ -121,7 +121,7 @@ public:
             // create the sound.
             const auto role = appointment.is_alarm() ? "alarm" : "alert";
             const auto uri = get_alarm_uri(appointment, alarm, m_settings);
-            const auto volume = m_settings->alarm_volume.get();
+            const auto volume = appointment.is_alarm() ? m_settings->alarm_volume.get() : m_settings->calendar_volume.get();
             const bool loop = interactive;
             sound = m_sound_builder->create(role, uri, volume, loop);
         }
