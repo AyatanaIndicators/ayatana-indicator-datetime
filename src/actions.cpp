@@ -124,7 +124,7 @@ void on_calendar_date_activated(GSimpleAction * /*action*/,
     g_return_if_fail(t != 0);
 
     auto dt = DateTime::Local(t).start_of_day();
-    static_cast<Actions*>(gself)->set_calendar_date(dt, false);
+    static_cast<Actions*>(gself)->set_calendar_date(dt, true);
 }
 
 GVariant* create_default_header_state()
