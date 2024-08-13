@@ -8,16 +8,16 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-10-10 23:55+0200\n"
-"PO-Revision-Date: 2020-09-07 10:36+0000\n"
-"Last-Translator: Baka Gaijin <lewdwarrior@waifu.club>\n"
-"Language-Team: Japanese <https://hosted.weblate.org/projects/ayatana-"
-"indicators/datetime-applet/ja/>\n"
+"PO-Revision-Date: 2024-08-14 08:09+0000\n"
+"Last-Translator: umesaburo sagawa <atowa-notonare-yamatonare427@pm.me>\n"
+"Language-Team: Japanese <https://hosted.weblate.org/projects/"
+"ayatana-indicators/datetime-applet/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.3-dev\n"
+"X-Generator: Weblate 5.7-dev\n"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. Format string for the day on the first menuitem in the datetime indicator.
@@ -43,7 +43,7 @@ msgstr "時間と日付の設定…"
 
 #: src/menu.cpp:555
 msgid "Date and Time"
-msgstr "日付と時計"
+msgstr "日時"
 
 #: src/menu.cpp:564
 msgid "Time & date settings, quick calendar access"
