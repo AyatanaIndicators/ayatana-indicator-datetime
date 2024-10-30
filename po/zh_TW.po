@@ -8,16 +8,16 @@ msgstr ""
 "Project-Id-Version: indicator-datetime\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-10-10 23:55+0200\n"
-"PO-Revision-Date: 2020-04-20 22:11+0000\n"
-"Last-Translator: Tommy Cheng <csckcac@gmail.com>\n"
-"Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
-"ayatana-indicators/datetime-applet/zh_Hant/>\n"
+"PO-Revision-Date: 2024-10-31 03:08+0000\n"
+"Last-Translator: hugoalh <hugoalh@users.noreply.hosted.weblate.org>\n"
+"Language-Team: Chinese (Traditional Han script) <https://hosted.weblate.org/"
+"projects/ayatana-indicators/datetime-applet/zh_Hant/>\n"
 "Language: zh_TW\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.0.2-dev\n"
+"X-Generator: Weblate 5.8.2-dev\n"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. Format string for the day on the first menuitem in the datetime indicator.
@@ -26,38 +26,37 @@ msgstr ""
 #. en_GB example: "%A, %e %B %Y" --> Saturday, 31 October 2020"
 #: src/menu.cpp:337
 msgid "%A, %e %B %Y"
-msgstr ""
+msgstr "%Y 年 %m 月 %e 日 %A"
 
 #. add the 'Add Event…' menuitem
 #: src/menu.cpp:438
 msgid "Add Event…"
-msgstr ""
+msgstr "增加事件…"
 
 #: src/menu.cpp:448
 msgid "Clock"
-msgstr ""
+msgstr "時鐘"
 
 #: src/menu.cpp:500
 msgid "Time and Date Settings…"
-msgstr ""
+msgstr "時間和日期設定…"
 
 #: src/menu.cpp:555
 msgid "Date and Time"
-msgstr ""
+msgstr "日期和時間"
 
 #: src/menu.cpp:564
 msgid "Time & date settings, quick calendar access"
-msgstr ""
+msgstr "時間和日期設定，快速日曆存取"
 
 #: src/menu.cpp:613
-#, fuzzy
 msgid "Time and Date"
-msgstr "設定時間和日期..."
+msgstr "時間和日期"
 
 #: src/menu.cpp:618
 #, c-format
 msgid "%s (has alarms)"
-msgstr ""
+msgstr "%s（有鬧鐘）"
 
 #. * strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 12h locale; e.g. Wed, 2:00 PM
@@ -74,20 +73,20 @@ msgstr ""
 #: src/snap.cpp:157
 #, c-format
 msgid "Alarm %s"
-msgstr ""
+msgstr "鬧鐘 %s"
 
 #: src/snap.cpp:159
 #, c-format
 msgid "Event %s"
-msgstr ""
+msgstr "事件 %s"
 
 #: src/snap.cpp:168 src/snap.cpp:172
 msgid "OK"
-msgstr ""
+msgstr "好的"
 
 #: src/snap.cpp:169
 msgid "Snooze"
-msgstr ""
+msgstr "延後"
 
 #~ msgid "The calendar's default sound file."
 #~ msgstr "日曆預設音效檔案。"
