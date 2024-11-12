@@ -138,6 +138,14 @@
               If a calendar or reminder event doesn't specify its own sound file, this file will be used as the fallback sound.
             </description>
         </key>
+        <key name="calendar-default-volume" type="u">
+            <range min="1" max="100"/>
+            <default>50</default>
+            <summary>The calendar's reminder alert default volume level.</summary>
+            <description>
+              The volume at which calendar reminder alert will be played.
+            </description>
+        </key>
         <key name="alarm-default-sound" type="s">
             <default>'@ALARM_DEFAULT_SOUND@'</default>
             <summary>The alarm's default sound file.</summary>

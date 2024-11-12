@@ -46,6 +46,7 @@ TimeFormatMode;
 #define SETTINGS_LOCATIONS_S            "locations"
 #define SETTINGS_TIMEZONE_NAME_S        "timezone-name"
 #define SETTINGS_CALENDAR_SOUND_S       "calendar-default-sound"
+#define SETTINGS_CALENDAR_VOLUME_S      "calendar-default-volume"
 #define SETTINGS_ALARM_SOUND_S          "alarm-default-sound"
 #define SETTINGS_ALARM_VOLUME_S         "alarm-default-volume"
 #define SETTINGS_ALARM_DURATION_S       "alarm-duration-minutes"

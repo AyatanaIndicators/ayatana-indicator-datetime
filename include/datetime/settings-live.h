@@ -60,6 +60,7 @@ private:
     void update_time_format_mode();
     void update_timezone_name();
     void update_calendar_sound();
+    void update_calendar_volume();
     void update_alarm_sound();
     void update_alarm_volume();
     void update_alarm_duration();
