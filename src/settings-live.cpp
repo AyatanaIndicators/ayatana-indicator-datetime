@@ -55,6 +55,7 @@ LiveSettings::LiveSettings():
     update_time_format_mode();
     update_timezone_name();
     update_calendar_sound();
+    update_calendar_volume();
     update_alarm_sound();
     update_alarm_volume();
     update_alarm_duration();
@@ -148,6 +149,10 @@ LiveSettings::LiveSettings():
 
     calendar_sound.changed().connect([this](const std::string& value){
         g_settings_set_string(m_settings, SETTINGS_CALENDAR_SOUND_S, value.c_str());
+    });
+
+    calendar_volume.changed().connect([this](unsigned int value){
+        g_settings_set_uint(m_settings, SETTINGS_CALENDAR_VOLUME_S, value);
     });
 
     alarm_sound.changed().connect([this](const std::string& value){
@@ -289,6 +294,11 @@ void LiveSettings::update_calendar_sound()
     auto val = g_settings_get_string(m_settings, SETTINGS_CALENDAR_SOUND_S);
     calendar_sound.set(val);
     g_free(val);
+}
+
+void LiveSettings::update_calendar_volume()
+{
+    calendar_volume.set(g_settings_get_uint(m_settings, SETTINGS_CALENDAR_VOLUME_S));
 }
 
 void LiveSettings::update_alarm_sound()
@@ -436,6 +446,8 @@ void LiveSettings::update_key_ccid(const std::string& key)
         update_timezone_name();
     else if (key == SETTINGS_CALENDAR_SOUND_S)
         update_calendar_sound();
+    else if (key == SETTINGS_CALENDAR_VOLUME_S)
+        update_calendar_volume();
     else if (key == SETTINGS_ALARM_SOUND_S)
         update_alarm_sound();
     else if (key == SETTINGS_ALARM_VOLUME_S)
