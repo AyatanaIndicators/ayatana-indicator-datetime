@@ -50,21 +50,21 @@ if [ -d ${CONFIG_DIR} ]; then
 fi
 
 # if there's a specific ics file to test, copy it on top of the canned config files
-if [ -e ${ICS_FILE} ]; then
+if [ -e "${ICS_FILE}" ]; then
   echo "copying ${ICS_FILE} into $HOME"
   mkdir -p ${XDG_DATA_HOME}/evolution/tasks/system/
-  cp --verbose --archive ${ICS_FILE} ${XDG_DATA_HOME}/evolution/tasks/system/tasks.ics
+  cp --verbose --archive "${ICS_FILE}" ${XDG_DATA_HOME}/evolution/tasks/system/tasks.ics
 fi
 
 # prepare online accounts database
-if [ -e ${ACCOUNTS_DB} ]; then
+if [ -e "${ACCOUNTS_DB}" ]; then
   echo "copying ${ACCOUNTS_DB} into $HOME"
   mkdir -p ${XDG_CONFIG_HOME}/libaccounts-glib/
-  cp --verbose --archive ${ACCOUNTS_DB} ${XDG_CONFIG_HOME}/libaccounts-glib/accounts.db
+  cp --verbose --archive "${ACCOUNTS_DB}" ${XDG_CONFIG_HOME}/libaccounts-glib/accounts.db
 fi
 
 # run the test
-${TEST_RUNNER} --keep-env --max-wait=90 --task ${TEST_EXEC} --task-name ${TEST_NAME} --wait-until-complete
+${TEST_RUNNER} --keep-env --max-wait=90 --task "${TEST_EXEC}" --task-name ${TEST_NAME} --wait-until-complete
 rv=$?
 
 # if the test passed, blow away the tmpdir
