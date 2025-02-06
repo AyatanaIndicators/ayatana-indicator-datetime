@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Canonical Ltd.
- * Copyright 2021-2024 Robert Tari
+ * Copyright 2021-2025 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -81,8 +81,13 @@ TEST_F(VAlarmFixture, MultipleAppointments)
     // what we expect to get...
     std::array<Appointment,1> expected_appts1;
     auto appt1 = &expected_appts1[0];
+#ifndef LOMIRI_FEATURES_ENABLED
     appt1->uid = "109264742";
     appt1->color = "#becedd";
+#else
+    appt1->uid = "4eade898-ffd4-49d6-a43a-c6ca9c20aace";
+    appt1->color = "#0000FF";
+#endif
     appt1->summary = "National Incubator Initiative for Clean Energy (NIICE) FOA: Pre-Concept Paper Informational Webinar";
     appt1->begin = DateTime{gtz,2014,1,21,11,0,0};
     appt1->end = DateTime{gtz,2014,1,21,13,0,0};
@@ -90,8 +95,13 @@ TEST_F(VAlarmFixture, MultipleAppointments)
 
     std::array<Appointment,1> expected_appts2;
     auto appt2 = &expected_appts2[0];
+#ifndef LOMIRI_FEATURES_ENABLED
     appt2->uid = "109264742";
     appt2->color = "#62a0ea";
+#else
+    appt2->uid = "4eade898-ffd4-49d6-a43a-c6ca9c20aace";
+    appt2->color = "";
+#endif
     appt2->summary = "National Incubator Initiative for Clean Energy (NIICE) FOA: Pre-Concept Paper Informational Webinar";
     appt2->begin = DateTime{gtz,2014,1,21,11,0,0};
     appt2->end = DateTime{gtz,2014,1,21,13,0,0};

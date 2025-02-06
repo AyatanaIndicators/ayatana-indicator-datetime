@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Canonical Ltd.
- * Copyright 2021-2024 Robert Tari
+ * Copyright 2021-2025 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -82,8 +82,13 @@ TEST_F(VAlarmFixture, MissingTriggers)
     std::vector<Appointment> expected1;
     Appointment a1;
     a1.type = Appointment::ALARM;
+#ifndef LOMIRI_FEATURES_ENABLED
     a1.uid = "20150617T211838Z-6217-32011-2036-1@lomiri-phablet";
     a1.color = "#becedd";
+#else
+    a1.uid = "a0121159-8810-434f-9066-cc3b71e3793f";
+    a1.color = "#0000FF";
+#endif
     a1.summary = "One Time Alarm";
     a1.begin = DateTime { gtz, 2015, 6, 18, 10, 0, 0};
     a1.end = a1.begin;
@@ -94,7 +99,11 @@ TEST_F(VAlarmFixture, MissingTriggers)
     expected1.push_back(a1);
 
     // build expected: recurring alarm 1
+#ifndef LOMIRI_FEATURES_ENABLED
     a1.uid = "20150617T211913Z-6217-32011-2036-5@lomiri-phablet";
+#else
+    a1.uid = "3b45cbc9-d5c3-49a4-ad29-acc776818259";
+#endif
     a1.summary = "Recurring Alarm";
     a1.alarms[0].text = a1.summary;
     std::array<DateTime,13> recurrences {
@@ -121,8 +130,13 @@ TEST_F(VAlarmFixture, MissingTriggers)
     std::vector<Appointment> expected2;
     Appointment a2;
     a2.type = Appointment::ALARM;
+#ifndef LOMIRI_FEATURES_ENABLED
     a2.uid = "20150617T211838Z-6217-32011-2036-1@lomiri-phablet";
     a2.color = "#62a0ea";
+#else
+    a2.uid = "a0121159-8810-434f-9066-cc3b71e3793f";
+    a2.color = "";
+#endif
     a2.summary = "One Time Alarm";
     a2.begin = DateTime { gtz, 2015, 6, 18, 10, 0, 0};
     a2.end = a2.begin;
@@ -133,7 +147,11 @@ TEST_F(VAlarmFixture, MissingTriggers)
     expected2.push_back(a2);
 
     // build expected: recurring alarm 2
+#ifndef LOMIRI_FEATURES_ENABLED
     a2.uid = "20150617T211913Z-6217-32011-2036-5@lomiri-phablet";
+#else
+    a2.uid = "3b45cbc9-d5c3-49a4-ad29-acc776818259";
+#endif
     a2.summary = "Recurring Alarm";
     a2.alarms[0].text = a2.summary;
     for (const auto& time : recurrences) {
