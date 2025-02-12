@@ -1,5 +1,6 @@
 /*
  * Copyright 2014 Canonical Ltd.
+ * Copyright 2024 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,11 +16,10 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include <datetime/planner-snooze.h>
-
-#include <libedataserver/libedataserver.h> // e_uid_new()
 
 namespace ayatana {
 namespace indicator {
@@ -67,7 +67,7 @@ public:
         appt.alarms[0].time += offset;
 
         // give it a new ID
-        gchar* uid = e_uid_new();
+        gchar* uid = g_uuid_string_random ();
         appt.uid = uid;
         g_free(uid);
 
