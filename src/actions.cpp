@@ -25,6 +25,11 @@
 #include <glib.h>
 #include <gio/gio.h>
 
+extern "C"
+{
+    #include <ayatana/common/utils.h>
+}
+
 namespace ayatana {
 namespace indicator {
 namespace datetime {
@@ -124,7 +129,8 @@ void on_calendar_date_activated(GSimpleAction * /*action*/,
     g_return_if_fail(t != 0);
 
     auto dt = DateTime::Local(t).start_of_day();
-    static_cast<Actions*>(gself)->set_calendar_date(dt, false);
+    bool bLomiri = ayatana_common_utils_is_lomiri ();
+    static_cast<Actions*>(gself)->set_calendar_date(dt, bLomiri);
 }
 
 GVariant* create_default_header_state()
