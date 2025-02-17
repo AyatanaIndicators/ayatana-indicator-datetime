@@ -8,13 +8,16 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-10-10 23:55+0200\n"
-"PO-Revision-Date: 2017-10-12 07:36+0200\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2025-02-17 04:59+0000\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <https://hosted.weblate.org/projects/"
+"ayatana-indicators/datetime-applet/ka/>\n"
 "Language: ka\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.10\n"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. Format string for the day on the first menuitem in the datetime indicator.
@@ -23,64 +26,64 @@ msgstr ""
 #. en_GB example: "%A, %e %B %Y" --> Saturday, 31 October 2020"
 #: src/menu.cpp:337
 msgid "%A, %e %B %Y"
-msgstr ""
+msgstr "%A, %e %B %Y"
 
 #. add the 'Add Event…' menuitem
 #: src/menu.cpp:438
 msgid "Add Event…"
-msgstr ""
+msgstr "მოვლენის დამატება…"
 
 #: src/menu.cpp:448
 msgid "Clock"
-msgstr ""
+msgstr "საათი"
 
 #: src/menu.cpp:500
 msgid "Time and Date Settings…"
-msgstr ""
+msgstr "დროისა და თარიღის მორგება…"
 
 #: src/menu.cpp:555
 msgid "Date and Time"
-msgstr ""
+msgstr "თარიღი და დრო"
 
 #: src/menu.cpp:564
 msgid "Time & date settings, quick calendar access"
-msgstr ""
+msgstr "დროისა და თარიღის მორგება, სწრაფი წვდომა კალენდართან"
 
 #: src/menu.cpp:613
 msgid "Time and Date"
-msgstr ""
+msgstr "დრო და თარიღი"
 
 #: src/menu.cpp:618
 #, c-format
 msgid "%s (has alarms)"
-msgstr ""
+msgstr "%s (აქვს განგაშები)"
 
 #. * strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 12h locale; e.g. Wed, 2:00 PM
 #: src/snap.cpp:147
 msgid "%a, %l:%M %p"
-msgstr ""
+msgstr "%a, %l:%M %p"
 
 #. * A strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 24h locale; e.g. Wed, 14:00
 #: src/snap.cpp:151
 msgid "%a, %H:%M"
-msgstr ""
+msgstr "%a, %H:%M"
 
 #: src/snap.cpp:157
 #, c-format
 msgid "Alarm %s"
-msgstr ""
+msgstr "განგაში %s"
 
 #: src/snap.cpp:159
 #, c-format
 msgid "Event %s"
-msgstr ""
+msgstr "მოვლენა %s"
 
 #: src/snap.cpp:168 src/snap.cpp:172
 msgid "OK"
-msgstr ""
+msgstr "დიახ"
 
 #: src/snap.cpp:169
 msgid "Snooze"
-msgstr ""
+msgstr "დროებით დადუმება"
