@@ -80,7 +80,11 @@ TEST_F(VAlarmFixture, MultipleAppointments)
 
     // what we expect to get...
     Appointment expected_appt;
+#ifndef LOMIRI_FEATURES_ENABLED
     expected_appt.uid = "20150521T111538Z-7449-1000-3572-0@ghidorah";
+#else
+    expected_appt.uid = "51340540-a924-468e-b3ee-0c0f222cd0f8";
+#endif
     expected_appt.summary = "Memorial Day";
     expected_appt.begin = DateTime{gtz,2015,5,25,0,0,0};
     expected_appt.end = DateTime{gtz,2015,5,26,0,0,0};
@@ -98,7 +102,11 @@ TEST_F(VAlarmFixture, MultipleAppointments)
     EXPECT_PRED3([](auto sColourIn, auto sColourExpected1, auto sColourExpected2)
     {
         return sColourIn == sColourExpected1 || sColourIn == sColourExpected2;
+#ifndef LOMIRI_FEATURES_ENABLED
     }, appt.color, "#becedd", "#62a0ea");
+#else
+    }, appt.color, "#0000FF", "");
+#endif
 
     // cleanup
     g_time_zone_unref(gtz);
