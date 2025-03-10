@@ -1,6 +1,6 @@
 /*
  * Copyright 2014 Canonical Ltd.
- * Copyright 2021-2023 Robert Tari
+ * Copyright 2021-2025 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -250,6 +250,12 @@ public:
                 g_object_unref (G_OBJECT(n));
             }
         );
+
+#ifdef LIBNOTIFY_HAS_SET_APP_ICON
+        NotifyNotification *pNotification = nn.get ();
+        const char *sIcon = info.m_icon_name.c_str ();
+        notify_notification_set_app_icon (pNotification, sIcon);
+#endif
 
         if (info.m_duration.count() != 0)
         {

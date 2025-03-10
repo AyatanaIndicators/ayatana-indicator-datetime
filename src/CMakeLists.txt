@@ -59,6 +59,13 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR})
 
 set_source_files_properties (engine-eds.cpp PROPERTIES COMPILE_FLAGS "${CMAKE_C_FLAGS} -Wno-enum-constexpr-conversion")
 add_library (${SERVICE_LIB} STATIC ${SERVICE_C_SOURCES} ${SERVICE_CXX_SOURCES} ${SERVICE_GENERATED_SOURCES})
+
+pkg_check_modules (LIBNOTIFY libnotify REQUIRED)
+
+if (LIBNOTIFY_VERSION VERSION_GREATER_EQUAL "0.8.4")
+    target_compile_definitions (${SERVICE_LIB} PUBLIC LIBNOTIFY_HAS_SET_APP_ICON)
+endif()
+
 include_directories (${CMAKE_SOURCE_DIR})
 link_directories (${SERVICE_DEPS_LIBRARY_DIRS})
 
