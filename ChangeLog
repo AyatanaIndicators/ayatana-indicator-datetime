@@ -1,6 +1,57 @@
+2025-03-12 Mike Gabriel
+
+        * release 24.5.1 (HEAD -> main, tag: 24.5.1)
+        * Merge branch 'tari01-pr/libnotify-0-8-4-icon-fix' (22b65e6b)
+
+2025-03-10 Robert Tari
+
+        * Fix missing notification icon with libnotify 0.8.4 (3bd6b2f4)
+
+2025-03-05 Droit
+
+        * Translated using Weblate (Chinese (Simplified) (zh_LATN@pinyin))
+          (d3dc11e4)
+
+2025-02-17 Temuri Doghonadze
+
+        * Translated using Weblate (Georgian) (831f5e82)
+
+2025-02-12 Mike Gabriel
+
+        * Merge branch 'tari01-pr/fix_calendar_not_updated' (439c0f7e)
+
+2024-12-13 Robert Tari
+
+        * fix calendar not refreshed on month range change (04038391)
+
+2025-02-01 Quentin PAGÈS
+
+        * Translated using Weblate (Occitan) (cabe8c5e)
+
+2024-11-13 Cleverson Cândido
+
+        * Translated using Weblate (Portuguese) (65427322)
+
+2024-11-08 தமிழ்நேரம்
+
+        * Translated using Weblate (Tamil) (e34dbedc)
+
+2024-10-30 hugoalh
+
+        * Translated using Weblate (Chinese (Traditional Han script))
+          (4afcdd50)
+
+2024-09-27 Remus-Gabriel Chelu
+
+        * Translated using Weblate (Romanian) (0f5ffc56)
+
+2024-08-13 umesaburo sagawa
+
+        * Translated using Weblate (Japanese) (2439918f)
+
 2024-05-22 Mike Gabriel
 
-        * release 24.5.0 (HEAD -> main, tag: 24.5.0)
+        * release 24.5.0 (b6d68d24) (tag: 24.5.0)
 
 2024-05-22 Robert Tari
 

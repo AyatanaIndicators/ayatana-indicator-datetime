@@ -1,3 +1,9 @@
+Overview of changes in ayatana-indicator-datetime 24.5.1
+
+  - Fix calendar not refreshed on month range change.
+  - Fix missing notification icon with libnotify 0.8.4.
+  - Translation updates.
+
 Overview of changes in ayatana-indicator-datetime 24.5.0
 
   - data/ayatana-indicator-datetime.service.in: Become part of
