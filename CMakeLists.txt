@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.13)
+cmake_minimum_required (VERSION 3.16)
 project (ayatana-indicator-datetime VERSION 24.5.1 LANGUAGES C CXX)
 
 list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -13,7 +13,7 @@ set (PACKAGE ${CMAKE_PROJECT_NAME})
 option(ENABLE_TESTS "Enable all tests and checks" OFF)
 option(ENABLE_COVERAGE "Enable coverage reports (includes enabling all tests and checks)" OFF)
 option(ENABLE_WERROR "Treat all build warnings as errors" OFF)
-option(ENABLE_LOMIRI_FEATURES "Build with Lomiri-specific libraries, schemas and media" OFF)
+option(ENABLE_LOMIRI_FEATURES "Build with Lomiri-specific libraries, schemas, media and backend" OFF)
 
 if(ENABLE_COVERAGE)
     set(ENABLE_TESTS ON)
@@ -61,9 +61,6 @@ set (
     libayatana-common>=0.9.3
     glib-2.0>=2.36
     gio-unix-2.0>=2.36
-    libical>=0.48
-    libecal-2.0>=3.16
-    libedataserver-1.2>=3.5
     gstreamer-1.0>=1.2
     libnotify>=0.7.6
     properties-cpp>=0.0.1
@@ -79,6 +76,7 @@ if (ENABLE_LOMIRI_FEATURES)
         lomiri-url-dispatcher>=0
         lomiri-sounds
         lomiri-schemas
+        libmkcal-qt5
     )
 
     pkg_get_variable(ALARM_DEFAULT_SOUND lomiri-sounds alarm_default_sound)
@@ -91,7 +89,19 @@ if (ENABLE_LOMIRI_FEATURES)
         -DALARM_DEFAULT_SOUND="${ALARM_DEFAULT_SOUND}"
         -DCALENDAR_DEFAULT_SOUND="${CALENDAR_DEFAULT_SOUND}"
     )
+
+    find_package (ECM REQUIRED NO_MODULE)
+    list (APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
+    find_package (KF5 COMPONENTS CalendarCore REQUIRED)
 else ()
+    list (
+        APPEND
+        SERVICE_DEPS
+        libecal-2.0>=3.16
+        libedataserver-1.2>=3.5
+        libical>=0.48
+    )
+
     add_definitions (
         -DALARM_DEFAULT_SOUND="dummy"
         -DCALENDAR_DEFAULT_SOUND="dummy"

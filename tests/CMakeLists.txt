@@ -77,23 +77,40 @@ target_link_libraries (${TEST_NAME} indicatordatetimeservice ${SERVICE_DEPS_LIBR
 
 find_program(DBUS_RUNNER dbus-test-runner)
 
-function(add_eds_ics_test_by_name name)
-  set (TEST_NAME ${name})
-  set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME} PARENT_SCOPE)
-  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.ics.in"
-                 "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.ics")
-  add_executable(${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
-  target_link_options(${TEST_NAME} PRIVATE -no-pie)
-  target_link_libraries (${TEST_NAME} indicatordatetimeservice ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
-  add_test (${TEST_NAME}
-            ${CMAKE_CURRENT_SOURCE_DIR}/run-eds-ics-test.sh
-            ${DBUS_RUNNER}                                         # arg1: dbus-test-runner exec
-            ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}               # arg2: test executable path
-            ${TEST_NAME}                                           # arg3: test name
-            ${CMAKE_CURRENT_SOURCE_DIR}/test-eds-ics-config-files  # arg4: base directory for config file template
-            ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.ics           # arg5: the ical file for this test
-            ${CMAKE_CURRENT_SOURCE_DIR}/accounts.db)               # arg6: online accounts database
-endfunction()
+if (ENABLE_LOMIRI_FEATURES)
+    function(add_eds_ics_test_by_name name)
+        set (TEST_NAME ${name})
+        set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME} PARENT_SCOPE)
+        add_executable(${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
+        target_link_options(${TEST_NAME} PRIVATE -no-pie)
+        target_link_libraries (${TEST_NAME} indicatordatetimeservice ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
+        add_test (${TEST_NAME}
+                ${CMAKE_CURRENT_SOURCE_DIR}/run-mkcal-db-test.sh
+                ${DBUS_RUNNER}                                         # arg1: dbus-test-runner exec
+                ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}               # arg2: test executable path
+                ${TEST_NAME}                                           # arg3: test name
+                ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.db            # arg4: the database file for this test
+                ${CMAKE_CURRENT_SOURCE_DIR}/accounts.db)               # arg5: online accounts database
+    endfunction()
+else ()
+    function(add_eds_ics_test_by_name name)
+      set (TEST_NAME ${name})
+      set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME} PARENT_SCOPE)
+      configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.ics.in"
+                     "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.ics")
+      add_executable(${TEST_NAME} ${TEST_NAME}.cpp gschemas.compiled)
+      target_link_options(${TEST_NAME} PRIVATE -no-pie)
+      target_link_libraries (${TEST_NAME} indicatordatetimeservice ${DBUSTEST_LIBRARIES} ${SERVICE_DEPS_LIBRARIES} ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
+      add_test (${TEST_NAME}
+                ${CMAKE_CURRENT_SOURCE_DIR}/run-eds-ics-test.sh
+                ${DBUS_RUNNER}                                         # arg1: dbus-test-runner exec
+                ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}               # arg2: test executable path
+                ${TEST_NAME}                                           # arg3: test name
+                ${CMAKE_CURRENT_SOURCE_DIR}/test-eds-ics-config-files  # arg4: base directory for config file template
+                ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.ics           # arg5: the ical file for this test
+                ${CMAKE_CURRENT_SOURCE_DIR}/accounts.db)               # arg6: online accounts database
+    endfunction()
+endif ()
 add_eds_ics_test_by_name(test-eds-ics-all-day-events)
 add_eds_ics_test_by_name(test-eds-ics-repeating-events)
 add_eds_ics_test_by_name(test-eds-ics-nonrepeating-events)

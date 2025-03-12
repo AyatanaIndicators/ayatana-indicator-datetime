@@ -15,7 +15,6 @@ set (SERVICE_CXX_SOURCES
      clock.cpp
      clock-live.cpp
      date-time.cpp
-     engine-eds.cpp
      exporter.cpp
      formatter.cpp
      formatter-desktop.cpp
@@ -40,6 +39,12 @@ set (SERVICE_CXX_SOURCES
      utils.c
      wakeup-timer-mainloop.cpp
      wakeup-timer-powerd.cpp)
+
+if (ENABLE_LOMIRI_FEATURES)
+    list (APPEND SERVICE_CXX_SOURCES engine-mkcal.cpp)
+else ()
+    list (APPEND SERVICE_CXX_SOURCES engine-eds.cpp)
+endif()
 
 # generated sources
 include (GdbusCodegen)
@@ -68,6 +73,12 @@ endif()
 
 include_directories (${CMAKE_SOURCE_DIR})
 link_directories (${SERVICE_DEPS_LIBRARY_DIRS})
+
+if (ENABLE_LOMIRI_FEATURES)
+    set_source_files_properties (engine-mkcal.cpp PROPERTIES COMPILE_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations")
+    target_link_libraries (${SERVICE_LIB} KF5::CalendarCore)
+    target_compile_definitions (${SERVICE_LIB} PRIVATE -DQT_DEBUG -DQT_MESSAGELOGCONTEXT)
+endif ()
 
 add_executable (${SERVICE_EXEC} main.cpp)
 target_link_libraries (${SERVICE_EXEC} ${SERVICE_LIB} ${SERVICE_DEPS_LIBRARIES})
