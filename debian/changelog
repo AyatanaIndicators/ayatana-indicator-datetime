@@ -1,4 +1,4 @@
-ayatana-indicator-datetime (24.5.1-0) UNRELEASED; urgency=medium
+ayatana-indicator-datetime (24.5.1-0) unstable; urgency=medium
 
   * Upstream-provided Debian package for ayatana-indicator-datetime.
     See upstream ChangeLog for recent changes.
