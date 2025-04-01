@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Canonical Ltd.
+ * Copyright 2025 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,6 +16,7 @@
  *
  * Authors:
  *   Charles Kerr <charles.kerr@canonical.com>
+ *   Robert Tari <robert@tari.in>
  */
 
 #include "geoclue-fixture.h"
@@ -39,9 +41,13 @@ namespace
     void set_file(const std::string& text)
     {
         auto fp = fopen(TIMEZONE_FILE, "w+");
-        fprintf(fp, "%s\n", text.c_str());
-        fclose(fp);
-        sync();
+
+        if (fp)
+        {
+            fprintf(fp, "%s\n", text.c_str());
+            fclose(fp);
+            sync();
+        }
     }
 }
 

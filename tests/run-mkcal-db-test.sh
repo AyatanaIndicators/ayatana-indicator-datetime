@@ -4,16 +4,14 @@ SELF=$0        # this script
 TEST_RUNNER=$1 # full executable path of dbus-test-runner
 TEST_EXEC=$2   # full executable path of test app
 TEST_NAME=$3   # test name
-CONFIG_DIR=$4  # config files
-ICS_FILE=$5    # ical file holding test data
-ACCOUNTS_DB=$6 # online account database
+DB_FILE=$4     # database file holding test data
+ACCOUNTS_DB=$5 # online account database
 
 echo "this script: ${SELF}"
 echo "test-runner: ${TEST_RUNNER}"
 echo "test-exec: ${TEST_EXEC}"
 echo "test-name: ${TEST_NAME}"
-echo "config-dir: ${CONFIG_DIR}"
-echo "ics-file: ${ICS_FILE}"
+echo "db-file: ${DB_FILE}"
 
 # set up the tmpdir
 export TEST_TMP_DIR=$(mktemp -p "${TMPDIR:-/tmp}" -d ${TEST_NAME}-XXXXXXXXXX) || exit 1
@@ -34,7 +32,6 @@ export XDG_PICTURES_DIR=${TEST_TMP_DIR}
 export XDG_PUBLICSHARE_DIR=${TEST_TMP_DIR}
 export XDG_TEMPLATES_DIR=${TEST_TMP_DIR}
 export XDG_VIDEOS_DIR=${TEST_TMP_DIR}
-export QORGANIZER_EDS_DEBUG=On
 export GIO_USE_VFS=local # needed to ensure GVFS shuts down cleanly after the test is over
 
 export G_MESSAGES_DEBUG=all
@@ -43,17 +40,11 @@ export G_DBUS_DEBUG=messages
 echo HOMEDIR=${HOME}
 rm -rf ${XDG_DATA_HOME}
 
-# if there are canned config files for this test, move them into place now
-if [ -d ${CONFIG_DIR} ]; then
-  echo "copying files from ${CONFIG_DIR} to $HOME"
-  cp --verbose --archive ${CONFIG_DIR}/. $HOME
-fi
-
-# if there's a specific ics file to test, copy it on top of the canned config files
-if [ -e "${ICS_FILE}" ]; then
-  echo "copying ${ICS_FILE} into $HOME"
-  mkdir -p ${XDG_DATA_HOME}/evolution/tasks/system/
-  cp --verbose --archive "${ICS_FILE}" ${XDG_DATA_HOME}/evolution/tasks/system/tasks.ics
+# if there's a specific db file to test, copy it
+if [ -e "${DB_FILE}" ]; then
+  echo "copying ${DB_FILE} into $HOME"
+  mkdir -p ${XDG_DATA_HOME}/system/privileged/Calendar/mkcal/
+  cp --verbose --archive "${DB_FILE}" ${XDG_DATA_HOME}/system/privileged/Calendar/mkcal/db
 fi
 
 # prepare online accounts database

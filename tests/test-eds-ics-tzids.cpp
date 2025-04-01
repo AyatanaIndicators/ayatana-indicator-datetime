@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Canonical Ltd.
- * Copyright 2021-2024 Robert Tari
+ * Copyright 2021-2025 Robert Tari
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -81,16 +81,26 @@ TEST_F(VAlarmFixture, MultipleAppointments)
     // what we expect to get...
     std::array<Appointment,1> expected_appts1;
     auto appt1 = &expected_appts1[0];
+#ifndef LOMIRI_FEATURES_ENABLED
     appt1->uid = "8ggc30kh89qql8vjumgtug7l14@google.com";
     appt1->color = "#becedd";
+#else
+    appt1->uid = "01fd35a6-8fbb-4c31-97e1-71d920190f18";
+    appt1->color = "#0000FF";
+#endif
     appt1->summary = "Hello";
     appt1->begin = DateTime{gtz,2015,7,1,20,0,0};
     appt1->end = DateTime{gtz,2015,7,1,22,0,0};
 
     std::array<Appointment,1> expected_appts2;
     auto appt2 = &expected_appts2[0];
+#ifndef LOMIRI_FEATURES_ENABLED
     appt2->uid = "8ggc30kh89qql8vjumgtug7l14@google.com";
     appt2->color = "#62a0ea";
+#else
+    appt2->uid = "01fd35a6-8fbb-4c31-97e1-71d920190f18";
+    appt2->color = "";
+#endif
     appt2->summary = "Hello";
     appt2->begin = DateTime{gtz,2015,7,1,20,0,0};
     appt2->end = DateTime{gtz,2015,7,1,22,0,0};
