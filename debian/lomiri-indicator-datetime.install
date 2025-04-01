@@ -1,0 +1,2 @@
+usr/libexec/lomiri-indicator-datetime/lomiri-indicator-datetime-service
+usr/lib/systemd/user/lomiri-indicator-datetime.service

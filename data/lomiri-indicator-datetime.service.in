@@ -1,0 +1,11 @@
+[Unit]
+Description=Lomiri Indicator DateTime Service
+PartOf=graphical-session.target
+PartOf=lomiri-indicators.target
+
+[Service]
+ExecStart=@CMAKE_INSTALL_FULL_LIBEXECDIR@/lomiri-indicator-datetime/lomiri-indicator-datetime-service
+Restart=on-failure
+
+[Install]
+WantedBy=lomiri-indicators.target

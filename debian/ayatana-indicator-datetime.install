@@ -1,0 +1,3 @@
+etc/xdg/autostart/ayatana-indicator-datetime.desktop
+usr/libexec/ayatana-indicator-datetime/ayatana-indicator-datetime-service
+usr/lib/systemd/user/ayatana-indicator-datetime.service

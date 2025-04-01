@@ -1,14 +1,70 @@
 #!/usr/bin/make -f
 
-LDFLAGS += -Wl,-z,defs -Wl,--as-needed
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
 
-%:
-	dh $@ --with systemd
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/buildflags.mk
 
-ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
-override_dh_auto_configure:
-	dh_auto_configure -- -DENABLE_TESTS=ON
+DEB_CMAKE_EXTRA_FLAGS = \
+    -DENABLE_COVERAGE=OFF \
+    $(NULL)
+
+ifeq ($(filter nocheck,$(DEB_BUILD_PROFILES)),)
+        DEB_CMAKE_EXTRA_FLAGS += -DENABLE_TESTS=ON
 endif
 
-override_dh_install:
-	dh_install --fail-missing
+%:
+	dh $@
+
+override_dh_auto_configure:
+	dh_auto_configure --builddirectory=lomiri-variant	\
+	                  --buildsystem=cmake			\
+	                  --					\
+	                  $(DEB_CMAKE_EXTRA_FLAGS)		\
+	                  -DENABLE_LOMIRI_FEATURES=ON		\
+	                  ..
+	dh_auto_configure --builddirectory=ayatana-variant	\
+	                  --buildsystem=cmake			\
+	                  --					\
+	                  $(DEB_CMAKE_EXTRA_FLAGS)		\
+	                  -DENABLE_LOMIRI_FEATURES=OFF		\
+	                  ..
+
+override_dh_auto_build:
+	dh_auto_build     --builddirectory=lomiri-variant	\
+	                  --buildsystem=cmake			\
+	                  ..
+	dh_auto_build     --builddirectory=ayatana-variant	\
+	                  --buildsystem=cmake			\
+	                  ..
+
+override_dh_auto_test:
+	dh_auto_test      --no-parallel				\
+	                  --builddirectory=lomiri-variant	\
+	                  --buildsystem=cmake			\
+	                  ..
+	dh_auto_test      --no-parallel				\
+	                  --builddirectory=ayatana-variant	\
+	                  --buildsystem=cmake			\
+	                  ..
+
+override_dh_auto_install:
+	dh_auto_install   --builddirectory=lomiri-variant	\
+	                  --buildsystem=cmake			\
+	                  ..
+	dh_auto_install   --builddirectory=ayatana-variant	\
+	                  --buildsystem=cmake			\
+	                  ..
+
+override_dh_auto_clean:
+	dh_auto_clean     --builddirectory=lomiri-variant	\
+	                  --buildsystem=cmake			\
+	                  ..
+	dh_auto_clean     --builddirectory=ayatana-variant	\
+	                  --buildsystem=cmake			\
+	                  ..
+
+override_dh_missing:
+	dh_missing --fail-missing
