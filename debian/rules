@@ -3,7 +3,7 @@
 LDFLAGS += -Wl,-z,defs -Wl,--as-needed
 
 %:
-	dh $@ --with systemd
+	dh $@
 
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 override_dh_auto_configure:
