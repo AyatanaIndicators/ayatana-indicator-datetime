@@ -1,7 +1,13 @@
 set (SERVICE_LIB "indicatordatetimeservice")
-set (SERVICE_EXEC "ayatana-indicator-datetime-service")
 
-add_definitions (-DG_LOG_DOMAIN="ayatana-indicator-datetime")
+if (ENABLE_LOMIRI_FEATURES)
+    set (INDICATOR_VARIANT_NAME "lomiri-indicator-datetime")
+else ()
+    set (INDICATOR_VARIANT_NAME "${CMAKE_PROJECT_NAME}")
+endif ()
+
+add_definitions (-DG_LOG_DOMAIN="${INDICATOR_VARIANT_NAME}")
+set (SERVICE_EXEC "${INDICATOR_VARIANT_NAME}-service")
 
 # handwritten sources
 set (SERVICE_C_SOURCES
@@ -82,4 +88,4 @@ endif ()
 
 add_executable (${SERVICE_EXEC} main.cpp)
 target_link_libraries (${SERVICE_EXEC} ${SERVICE_LIB} ${SERVICE_DEPS_LIBRARIES})
-install (TARGETS ${SERVICE_EXEC} RUNTIME DESTINATION "${CMAKE_INSTALL_FULL_LIBEXECDIR}/${CMAKE_PROJECT_NAME}")
+install (TARGETS ${SERVICE_EXEC} RUNTIME DESTINATION "${CMAKE_INSTALL_FULL_LIBEXECDIR}/${INDICATOR_VARIANT_NAME}")

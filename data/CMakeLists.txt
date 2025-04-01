@@ -1,4 +1,13 @@
 ##
+## indicator variant
+##
+if (ENABLE_LOMIRI_FEATURES)
+    set (INDICATOR_VARIANT_NAME "lomiri-indicator-datetime")
+else ()
+    set (INDICATOR_VARIANT_NAME "${CMAKE_PROJECT_NAME}")
+endif ()
+
+##
 ##  GSettings schema
 ##
 
@@ -22,7 +31,7 @@ if (${SYSTEMD_FOUND})
     pkg_get_variable(SYSTEMD_USER_DIR systemd systemduserunitdir)
     message (STATUS "${SYSTEMD_USER_DIR} is the systemd user unit file install dir")
 
-    set (SYSTEMD_USER_NAME "${CMAKE_PROJECT_NAME}.service")
+    set (SYSTEMD_USER_NAME "${INDICATOR_VARIANT_NAME}.service")
     set (SYSTEMD_USER_FILE "${CMAKE_CURRENT_BINARY_DIR}/${SYSTEMD_USER_NAME}")
     set (SYSTEMD_USER_FILE_IN "${CMAKE_CURRENT_SOURCE_DIR}/${SYSTEMD_USER_NAME}.in")
 
@@ -38,20 +47,22 @@ endif()
 ##  XDG Autostart File
 ##
 
-# where to install
-set (XDG_AUTOSTART_DIR "/etc/xdg/autostart")
-message (STATUS "${XDG_AUTOSTART_DIR} is the DBus Service File install dir")
+if (NOT ENABLE_LOMIRI_FEATURES)
+    # where to install
+    set (XDG_AUTOSTART_DIR "/etc/xdg/autostart")
+    message (STATUS "${XDG_AUTOSTART_DIR} is the DBus Service File install dir")
 
-set (XDG_AUTOSTART_NAME "${CMAKE_PROJECT_NAME}.desktop")
-set (XDG_AUTOSTART_FILE "${CMAKE_CURRENT_BINARY_DIR}/${XDG_AUTOSTART_NAME}")
-set (XDG_AUTOSTART_FILE_IN "${CMAKE_CURRENT_SOURCE_DIR}/${XDG_AUTOSTART_NAME}.in")
+    set (XDG_AUTOSTART_NAME "${CMAKE_PROJECT_NAME}.desktop")
+    set (XDG_AUTOSTART_FILE "${CMAKE_CURRENT_BINARY_DIR}/${XDG_AUTOSTART_NAME}")
+    set (XDG_AUTOSTART_FILE_IN "${CMAKE_CURRENT_SOURCE_DIR}/${XDG_AUTOSTART_NAME}.in")
 
-# build it
-configure_file ("${XDG_AUTOSTART_FILE_IN}" "${XDG_AUTOSTART_FILE}")
+    # build it
+    configure_file ("${XDG_AUTOSTART_FILE_IN}" "${XDG_AUTOSTART_FILE}")
 
-# install XDG autostart
-install (FILES "${XDG_AUTOSTART_FILE}"
-         DESTINATION "${XDG_AUTOSTART_DIR}")
+    # install XDG autostart
+    install (FILES "${XDG_AUTOSTART_FILE}"
+             DESTINATION "${XDG_AUTOSTART_DIR}")
+endif()
 
 ##
 ##  Ayatana Indicator File
