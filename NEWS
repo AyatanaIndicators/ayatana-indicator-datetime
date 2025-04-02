@@ -1,3 +1,13 @@
+Overview of changes in ayatana-indicator-datetime 25.4.0
+
+  - Add mkCal backend (to support Lomiri's calendar app backend).
+  - tests/test-timezones.cpp: Avoid potential null pointer.
+  - tests/run-eds-ics-test.sh: Quote file paths.
+  - tests/run-mkcal-db-test.sh: Make test script executable.
+  - CMake: Support building datetime indicator in two variants with
+    different service executable names and systemd service files.
+  - Translation updates.
+
 Overview of changes in ayatana-indicator-datetime 24.5.1
 
   - Fix calendar not refreshed on month range change.

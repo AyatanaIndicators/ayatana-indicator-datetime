@@ -1,6 +1,50 @@
+2025-04-02 Mike Gabriel
+
+        * release 25.4.0 (HEAD -> main, tag: 25.4.0)
+
+2025-04-01 Robert Tari
+
+        * Merge branch
+          'sunweaver-pr/dually-build-datetime-indicator-variants'
+          (6214cc82)
+
+2025-03-20 Bruno Fragoso
+
+        * Translated using Weblate (Portuguese) (1e8bfab0)
+
+2025-04-01 Mike Gabriel
+
+        * Bump version to 25.4.0. (8ba92f6c)
+        * debian/: Dually build datetime indicator as
+          ayatana-indicator-datetime and lomiri-indicator-datetime.
+          (54838d78)
+        * d/{control,compat}: Bump to DH compat level version 12. (b21548ca)
+        * d/changelog: set to released (forgotten with 24.5.1 release)
+          (bf9bcc0b)
+        * debian/ayatana-indicator-datetime.links: Drop file. Long not needed
+          anymore. (99b1b574)
+        * CMake: Switch to building datetime indicator in two variants with
+          different service executable names and systemd service
+          files. (e46cd132)
+        * tests/run-mkcal-db-test.sh: Make test script executable. (7f59c03c)
+
+2025-03-20 Bruno Fragoso
+
+        * Translated using Weblate (Portuguese) (84723ee8)
+
+2025-04-01 Mike Gabriel
+
+        * Merge branch 'tari01-pr/mkcal-backend' (8493897d)
+
+2025-02-06 Robert Tari
+
+        * tests/run-eds-ics-test.sh: Quote file paths (be6251cb)
+        * tests/test-timezones.cpp: Avoid potential null pointer (227aa4bc)
+        * Add mkCal backend (e87e6651)
+
 2025-03-12 Mike Gabriel
 
-        * release 24.5.1 (HEAD -> main, tag: 24.5.1)
+        * release 24.5.1 (f1f745da) (tag: 24.5.1)
         * Merge branch 'tari01-pr/libnotify-0-8-4-icon-fix' (22b65e6b)
 
 2025-03-10 Robert Tari
