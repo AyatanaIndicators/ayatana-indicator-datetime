@@ -8,16 +8,16 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-10-10 23:54+0200\n"
-"PO-Revision-Date: 2022-10-20 10:06+0000\n"
-"Last-Translator: Kristjan Räts <kristjanrats@gmail.com>\n"
-"Language-Team: Estonian <https://hosted.weblate.org/projects/ayatana-"
-"indicators/datetime-applet/et/>\n"
+"PO-Revision-Date: 2025-05-08 10:03+0000\n"
+"Last-Translator: Priit Jõerüüt <hwlate@joeruut.com>\n"
+"Language-Team: Estonian <https://hosted.weblate.org/projects/"
+"ayatana-indicators/datetime-applet/et/>\n"
 "Language: et\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.14.2-dev\n"
+"X-Generator: Weblate 5.12-dev\n"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. Format string for the day on the first menuitem in the datetime indicator.
@@ -39,15 +39,15 @@ msgstr "Kell"
 
 #: src/menu.cpp:500
 msgid "Time and Date Settings…"
-msgstr "Aja ja kuupäeva seaded…"
+msgstr "Aja ja kuupäeva seadistused…"
 
 #: src/menu.cpp:555
 msgid "Date and Time"
-msgstr "Kuupäev ja aeg"
+msgstr "Kuupäev ja kellaaeg"
 
 #: src/menu.cpp:564
 msgid "Time & date settings, quick calendar access"
-msgstr "Kella ja kuupäeva seaded, kiire juurdepääs kalendrile"
+msgstr "Kella ja kuupäeva seadistused, kiire juurdepääs kalendrile"
 
 #: src/menu.cpp:613
 msgid "Time and Date"
@@ -56,7 +56,7 @@ msgstr "Aeg ja kuupäev"
 #: src/menu.cpp:618
 #, c-format
 msgid "%s (has alarms)"
-msgstr "%s (alarmidega)"
+msgstr "%s (äratustega)"
 
 #. * strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 12h locale; e.g. Wed, 2:00 PM
@@ -73,7 +73,7 @@ msgstr "%a, %H:%M"
 #: src/snap.cpp:157
 #, c-format
 msgid "Alarm %s"
-msgstr "Alarm %s"
+msgstr "Äratus %s"
 
 #: src/snap.cpp:159
 #, c-format
@@ -82,11 +82,11 @@ msgstr "Sündmus %s"
 
 #: src/snap.cpp:168 src/snap.cpp:172
 msgid "OK"
-msgstr "ÕK"
+msgstr "Sobib"
 
 #: src/snap.cpp:169
 msgid "Snooze"
-msgstr "Korda"
+msgstr "Tukasta"
 
 #~ msgid "The calendar's default sound file."
 #~ msgstr "Kalendri vaikimisi helifail."
