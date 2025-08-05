@@ -180,8 +180,10 @@ DateTime DateTime::add_days(int days) const
 
 GDateTime* DateTime::get() const
 {
-    g_assert(m_dt);
-    return m_dt.get();
+    if (m_dt) {
+	return m_dt.get();
+    }
+    return nullptr;
 }
 
 std::string DateTime::format(const std::string& fmt) const
