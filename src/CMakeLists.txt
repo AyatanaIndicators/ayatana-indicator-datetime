@@ -46,7 +46,7 @@ set (SERVICE_CXX_SOURCES
      wakeup-timer-mainloop.cpp
      wakeup-timer-powerd.cpp)
 
-if (ENABLE_LOMIRI_FEATURES)
+if (ENABLE_MKCAL)
     list (APPEND SERVICE_CXX_SOURCES engine-mkcal.cpp)
 else ()
     list (APPEND SERVICE_CXX_SOURCES engine-eds.cpp)
@@ -80,7 +80,7 @@ endif()
 include_directories (${CMAKE_SOURCE_DIR})
 link_directories (${SERVICE_DEPS_LIBRARY_DIRS})
 
-if (ENABLE_LOMIRI_FEATURES)
+if (ENABLE_MKCAL)
     set_source_files_properties (engine-mkcal.cpp PROPERTIES COMPILE_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations")
     target_link_libraries (${SERVICE_LIB} KF5::CalendarCore)
     target_compile_definitions (${SERVICE_LIB} PRIVATE -DQT_DEBUG -DQT_MESSAGELOGCONTEXT)
