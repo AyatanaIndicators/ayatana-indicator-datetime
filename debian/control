@@ -14,11 +14,11 @@ Build-Depends: cmake,
                libgstreamer1.0-dev,
                libmessaging-menu-dev,
                uuid-dev,
-# for non-Lomiri ICS data storage backend
+# for EDS data storage backend
                libecal2.0-dev (>= 3.16),
                libical-dev (>= 1.0),
                libedataserver1.2-dev (>= 3.5),
-# for Lomiri ICS data storage backend
+# for mkcal data storage backend
                libkf5calendarcore-dev,
                libmkcal-qt5-dev,
 # more Lomiri features
@@ -91,7 +91,7 @@ Description: Lomiri Indicator providing clock and calendar
  Lomiri, this indicator supports phone devices.
  .
  This variant of the datetime indicator has been built for using
- msyncd (mkcal) as ICS data storage backend.
+ evolution-data-server as ICS data storage backend.
 
 Package: ayatana-indicator-datetime-common
 Architecture: any
