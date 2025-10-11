@@ -13,7 +13,9 @@ set (PACKAGE ${CMAKE_PROJECT_NAME})
 option(ENABLE_TESTS "Enable all tests and checks" OFF)
 option(ENABLE_COVERAGE "Enable coverage reports (includes enabling all tests and checks)" OFF)
 option(ENABLE_WERROR "Treat all build warnings as errors" OFF)
-option(ENABLE_LOMIRI_FEATURES "Build with Lomiri-specific libraries, schemas, media and backend" OFF)
+option(ENABLE_LOMIRI_FEATURES "Build with Lomiri-specific libraries, schemas, media" OFF)
+option(ENABLE_MKCAL "Use mkcal (libmkcal-qt5) instead of Evolution Data Server backend ( default )" OFF)
+
 
 if(ENABLE_COVERAGE)
     set(ENABLE_TESTS ON)
@@ -76,7 +78,6 @@ if (ENABLE_LOMIRI_FEATURES)
         lomiri-url-dispatcher>=0
         lomiri-sounds
         lomiri-schemas
-        libmkcal-qt5
     )
 
     pkg_get_variable(ALARM_DEFAULT_SOUND lomiri-sounds alarm_default_sound)
@@ -89,18 +90,7 @@ if (ENABLE_LOMIRI_FEATURES)
         -DALARM_DEFAULT_SOUND="${ALARM_DEFAULT_SOUND}"
         -DCALENDAR_DEFAULT_SOUND="${CALENDAR_DEFAULT_SOUND}"
     )
-
-    find_package (ECM REQUIRED NO_MODULE)
-    list (APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
-    find_package (KF5 COMPONENTS CalendarCore REQUIRED)
 else ()
-    list (
-        APPEND
-        SERVICE_DEPS
-        libecal-2.0>=3.16
-        libedataserver-1.2>=3.5
-        libical>=0.48
-    )
 
     add_definitions (
         -DALARM_DEFAULT_SOUND="dummy"
@@ -108,6 +98,30 @@ else ()
     )
 
     set (ALARM_DEFAULT_SOUND "dummy")
+endif ()
+
+if (ENABLE_MKCAL)
+    list (
+        APPEND
+        SERVICE_DEPS
+        libmkcal-qt5
+    )
+    find_package (ECM REQUIRED NO_MODULE)
+    list (APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
+    find_package (KF5 COMPONENTS CalendarCore REQUIRED)
+    add_definitions (
+        -DHAS_MKCAL
+    )
+
+else ()
+    # default is EDS
+    list (
+        APPEND
+        SERVICE_DEPS
+        libecal-2.0>=3.16
+        libedataserver-1.2>=3.5
+        libical>=0.48
+    )
 endif ()
 
 pkg_check_modules (SERVICE_DEPS REQUIRED ${SERVICE_DEPS})

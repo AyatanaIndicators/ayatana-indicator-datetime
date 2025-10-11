@@ -82,7 +82,7 @@ TEST_F(VAlarmFixture, UTCAppointments)
     // what we expect to get...
     std::array<Appointment,1> expected_appts1;
     auto appt1 = &expected_appts1[0];
-#ifndef LOMIRI_FEATURES_ENABLED
+#ifndef HAS_MKCAL
     appt1->uid = "20160322T132738Z";
     appt1->color = "#becedd";
 #else
@@ -95,7 +95,7 @@ TEST_F(VAlarmFixture, UTCAppointments)
 
     std::array<Appointment,1> expected_appts2;
     auto appt2 = &expected_appts2[0];
-#ifndef LOMIRI_FEATURES_ENABLED
+#ifndef HAS_MKCAL
     appt2->uid = "20160322T132738Z";
     appt2->color = "#62a0ea";
 #else

@@ -80,7 +80,7 @@ TEST_F(VAlarmFixture, MultipleAppointments)
 
     // what we expect to get...
     Appointment expected_appt;
-#ifndef LOMIRI_FEATURES_ENABLED
+#ifndef HAS_MKCAL
     expected_appt.uid = "20150507T211449Z-4262-32011-1418-1@lomiri-phablet";
 #else
     expected_appt.uid = "840ab899-1b0e-4697-9514-dcd336a5e125";
@@ -110,7 +110,7 @@ TEST_F(VAlarmFixture, MultipleAppointments)
         EXPECT_PRED3([](auto sColourIn, auto sColourExpected1, auto sColourExpected2)
         {
             return sColourIn == sColourExpected1 || sColourIn == sColourExpected2;
-    #ifndef LOMIRI_FEATURES_ENABLED
+    #ifndef HAS_MKCAL
         }, appt.color, "#becedd", "#62a0ea");
     #else
         }, appt.color, "#0000FF", "");
