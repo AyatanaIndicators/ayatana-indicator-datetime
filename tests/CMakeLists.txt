@@ -77,7 +77,7 @@ target_link_libraries (${TEST_NAME} indicatordatetimeservice ${SERVICE_DEPS_LIBR
 
 find_program(DBUS_RUNNER dbus-test-runner)
 
-if (ENABLE_LOMIRI_FEATURES)
+if (ENABLE_MKCAL)
     function(add_eds_ics_test_by_name name)
         set (TEST_NAME ${name})
         set (COVERAGE_TEST_TARGETS ${COVERAGE_TEST_TARGETS} ${TEST_NAME} PARENT_SCOPE)
