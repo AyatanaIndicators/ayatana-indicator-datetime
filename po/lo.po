@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-10-10 23:55+0200\n"
-"PO-Revision-Date: 2025-11-15 03:51+0000\n"
+"PO-Revision-Date: 2026-01-28 00:35+0000\n"
 "Last-Translator: BoneNI <bounkirdni@gmail.com>\n"
 "Language-Team: Lao <https://hosted.weblate.org/projects/ayatana-indicators/"
 "datetime-applet/lo/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.15-dev\n"
+"X-Generator: Weblate 5.16-dev\n"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. Format string for the day on the first menuitem in the datetime indicator.
@@ -26,59 +26,59 @@ msgstr ""
 #. en_GB example: "%A, %e %B %Y" --> Saturday, 31 October 2020"
 #: src/menu.cpp:337
 msgid "%A, %e %B %Y"
-msgstr ""
+msgstr "%A, %e %B %Y"
 
 #. add the 'Add Event…' menuitem
 #: src/menu.cpp:438
 msgid "Add Event…"
-msgstr ""
+msgstr "ເພີ່ມເຫດການ…"
 
 #: src/menu.cpp:448
 msgid "Clock"
-msgstr ""
+msgstr "ໂມງ"
 
 #: src/menu.cpp:500
 msgid "Time and Date Settings…"
-msgstr ""
+msgstr "ການຕັ້ງຄ່າເວລາ ແລະ ວັນທີ…"
 
 #: src/menu.cpp:555
 msgid "Date and Time"
-msgstr ""
+msgstr "ວັນທີ ແລະ ເວລາ"
 
 #: src/menu.cpp:564
 msgid "Time & date settings, quick calendar access"
-msgstr ""
+msgstr "ການຕັ້ງຄ່າເວລາ ແລະ ວັນທີ, ການເຂົ້າເຖິງປະຕິທິນແບບດ່ວນ"
 
 #: src/menu.cpp:613
 msgid "Time and Date"
-msgstr ""
+msgstr "ເວລາ ແລະ ວັນທີ"
 
 #: src/menu.cpp:618
 #, c-format
 msgid "%s (has alarms)"
-msgstr ""
+msgstr "%s (ມີການຕັ້ງປຸກ)"
 
 #. * strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 12h locale; e.g. Wed, 2:00 PM
 #: src/snap.cpp:147
 msgid "%a, %l:%M %p"
-msgstr ""
+msgstr "%a, %l:%M %p"
 
 #. * A strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 24h locale; e.g. Wed, 14:00
 #: src/snap.cpp:151
 msgid "%a, %H:%M"
-msgstr ""
+msgstr "%a, %H:%M"
 
 #: src/snap.cpp:157
 #, c-format
 msgid "Alarm %s"
-msgstr ""
+msgstr "ຕັ້ງປຸກ %s"
 
 #: src/snap.cpp:159
 #, c-format
 msgid "Event %s"
-msgstr ""
+msgstr "ເຫດການ %s"
 
 #: src/snap.cpp:168 src/snap.cpp:172
 msgid "OK"
@@ -86,4 +86,4 @@ msgstr "ຕົກລົງ"
 
 #: src/snap.cpp:169
 msgid "Snooze"
-msgstr ""
+msgstr "ເລື່ອນການປຸກ"
