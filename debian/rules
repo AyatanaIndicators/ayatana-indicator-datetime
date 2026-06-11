@@ -1,5 +1,7 @@
 #!/usr/bin/make -f
 
+NULL =
+
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
@@ -24,47 +26,47 @@ override_dh_auto_configure:
 	                  --					\
 	                  $(DEB_CMAKE_EXTRA_FLAGS)		\
 	                  -DENABLE_LOMIRI_FEATURES=ON		\
-	                  ..
+	                  $(NULL)
 	dh_auto_configure --builddirectory=ayatana-variant	\
 	                  --buildsystem=cmake			\
 	                  --					\
 	                  $(DEB_CMAKE_EXTRA_FLAGS)		\
 	                  -DENABLE_LOMIRI_FEATURES=OFF		\
-	                  ..
+	                  $(NULL)
 
 override_dh_auto_build:
 	dh_auto_build     --builddirectory=lomiri-variant	\
 	                  --buildsystem=cmake			\
-	                  ..
+	                  $(NULL)
 	dh_auto_build     --builddirectory=ayatana-variant	\
 	                  --buildsystem=cmake			\
-	                  ..
+	                  $(NULL)
 
 override_dh_auto_test:
 	dh_auto_test      --no-parallel				\
 	                  --builddirectory=lomiri-variant	\
 	                  --buildsystem=cmake			\
-	                  ..
+	                  $(NULL)
 	dh_auto_test      --no-parallel				\
 	                  --builddirectory=ayatana-variant	\
 	                  --buildsystem=cmake			\
-	                  ..
+	                  $(NULL)
 
 override_dh_auto_install:
 	dh_auto_install   --builddirectory=lomiri-variant	\
 	                  --buildsystem=cmake			\
-	                  ..
+	                  $(NULL)
 	dh_auto_install   --builddirectory=ayatana-variant	\
 	                  --buildsystem=cmake			\
-	                  ..
+	                  $(NULL)
 
 override_dh_auto_clean:
 	dh_auto_clean     --builddirectory=lomiri-variant	\
 	                  --buildsystem=cmake			\
-	                  ..
+	                  $(NULL)
 	dh_auto_clean     --builddirectory=ayatana-variant	\
 	                  --buildsystem=cmake			\
-	                  ..
+	                  $(NULL)
 
 override_dh_missing:
 	dh_missing --fail-missing
