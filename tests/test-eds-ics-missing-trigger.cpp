@@ -82,7 +82,7 @@ TEST_F(VAlarmFixture, MissingTriggers)
     std::vector<Appointment> expected1;
     Appointment a1;
     a1.type = Appointment::ALARM;
-#ifndef LOMIRI_FEATURES_ENABLED
+#ifndef HAS_MKCAL
     a1.uid = "20150617T211838Z-6217-32011-2036-1@lomiri-phablet";
     a1.color = "#becedd";
 #else
@@ -99,7 +99,7 @@ TEST_F(VAlarmFixture, MissingTriggers)
     expected1.push_back(a1);
 
     // build expected: recurring alarm 1
-#ifndef LOMIRI_FEATURES_ENABLED
+#ifndef HAS_MKCAL
     a1.uid = "20150617T211913Z-6217-32011-2036-5@lomiri-phablet";
 #else
     a1.uid = "3b45cbc9-d5c3-49a4-ad29-acc776818259";
@@ -130,7 +130,7 @@ TEST_F(VAlarmFixture, MissingTriggers)
     std::vector<Appointment> expected2;
     Appointment a2;
     a2.type = Appointment::ALARM;
-#ifndef LOMIRI_FEATURES_ENABLED
+#ifndef HAS_MKCAL
     a2.uid = "20150617T211838Z-6217-32011-2036-1@lomiri-phablet";
     a2.color = "#62a0ea";
 #else
@@ -147,7 +147,7 @@ TEST_F(VAlarmFixture, MissingTriggers)
     expected2.push_back(a2);
 
     // build expected: recurring alarm 2
-#ifndef LOMIRI_FEATURES_ENABLED
+#ifndef HAS_MKCAL
     a2.uid = "20150617T211913Z-6217-32011-2036-5@lomiri-phablet";
 #else
     a2.uid = "3b45cbc9-d5c3-49a4-ad29-acc776818259";
