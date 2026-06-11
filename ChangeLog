@@ -1,6 +1,71 @@
+2026-06-11 Mike Gabriel
+
+        * Release 26.6.0 (HEAD -> main, tag: 26.6.0)
+        * d/{control,rules}: Enable mkcal build variant for l-i-d (b8488dac)
+        * d/rules: Fix syntax (no '..' needed in dh_override_*) (ee17fc97)
+        * Merge branch 'lduboeuf-personal/lduboeuf/separate_mkcal' (8b6b6880)
+
+2025-10-11 Lionel Duboeuf
+
+        * d/control: update description Lomiri variant has EDS backend by
+          default (13d4f324)
+        * separate mkCal Option from Lomiri (c2bb201c)
+
+2026-03-18 Andi Chandler
+
+        * Translated using Weblate (English (United Kingdom)) (ef5f625e)
+
+2026-02-16 Arif Budiman
+
+        * Translated using Weblate (Indonesian) (b150ba2b)
+
+2026-01-27 BoneNI
+
+        * Translated using Weblate (Lao) (841aa045)
+
+2025-12-02 Daniel Frost
+
+        * Translated using Weblate (German) (21a80986)
+
+2025-11-14 BoneNI
+
+        * Translated using Weblate (Lao) (64b5150e)
+
+2025-09-16 Ida Brenna
+
+        * Translated using Weblate (Norwegian Bokmål) (703b16c6)
+
+2025-09-01 Mike Gabriel
+
+        * Merge branch 'sunweaver-pr/fix-google-calendar-syncing-crashes'
+          (85bd5d9d)
+
+2025-05-07 Priit Jõerüüt
+
+        * Translated using Weblate (Estonian) (3323e18a)
+
+2025-04-27 தமிழ்நேரம்
+
+        * Translated using Weblate (Tamil) (c89d6234)
+
+2025-08-05 Mike Gabriel
+
+        * src/date-time.cpp: Don't segfault-by-assert if m_dt is not
+          initialized. Fixes syncing from Google Calendar where
+          sometimes events in Evolution can result in incomplete
+          DateTime objects. (47e005dc)
+
+2025-05-07 Priit Jõerüüt
+
+        * Translated using Weblate (Estonian) (280e39c5)
+
+2025-04-27 தமிழ்நேரம்
+
+        * Translated using Weblate (Tamil) (387e90ae)
+
 2025-04-02 Mike Gabriel
 
-        * release 25.4.0 (HEAD -> main, tag: 25.4.0)
+        * release 25.4.0 (18ab458c) (tag: 25.4.0)
 
 2025-04-01 Robert Tari
 
