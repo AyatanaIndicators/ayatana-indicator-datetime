@@ -91,7 +91,7 @@ Description: Lomiri Indicator providing clock and calendar
  Lomiri, this indicator supports phone devices.
  .
  This variant of the datetime indicator has been built for using
- evolution-data-server as ICS data storage backend.
+ msyncd (mkcal) as ICS data storage backend.
 
 Package: ayatana-indicator-datetime-common
 Architecture: any

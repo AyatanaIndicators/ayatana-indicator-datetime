@@ -26,12 +26,14 @@ override_dh_auto_configure:
 	                  --					\
 	                  $(DEB_CMAKE_EXTRA_FLAGS)		\
 	                  -DENABLE_LOMIRI_FEATURES=ON		\
+	                  -DENABLE_MKCAL=ON			\
 	                  $(NULL)
 	dh_auto_configure --builddirectory=ayatana-variant	\
 	                  --buildsystem=cmake			\
 	                  --					\
 	                  $(DEB_CMAKE_EXTRA_FLAGS)		\
 	                  -DENABLE_LOMIRI_FEATURES=OFF		\
+	                  -DENABLE_MKCAL=OFF			\
 	                  $(NULL)
 
 override_dh_auto_build:
