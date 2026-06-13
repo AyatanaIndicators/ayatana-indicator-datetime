@@ -1,26 +1,252 @@
-This package was debianized by Didier Roche <didrocks@ubuntu.com> on
-Wed, 10 Feb 2010 11:11:01 +0100.
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: ayatana-indicator-datetime
+Upstream-Contact: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+Source: https://github.com/AyatanaIndicators/ayatana-indicator-datetime
 
-It was downloaded from https://launchpad.net/indicator-datetime
+Files: include/datetime/actions-live.h
+ include/datetime/actions.h
+ include/datetime/alarm-queue-simple.h
+ include/datetime/alarm-queue.h
+ include/datetime/clock-mock.h
+ include/datetime/clock.h
+ include/datetime/date-time.h
+ include/datetime/dbus-shared.h
+ include/datetime/exporter.h
+ include/datetime/formatter.h
+ include/datetime/locations-settings.h
+ include/datetime/locations.h
+ include/datetime/menu.h
+ include/datetime/myself.h
+ include/datetime/planner-aggregate.h
+ include/datetime/planner-month.h
+ include/datetime/planner-range.h
+ include/datetime/planner-snooze.h
+ include/datetime/planner-upcoming.h
+ include/datetime/planner.h
+ include/datetime/settings-live.h
+ include/datetime/settings-shared.h
+ include/datetime/settings.h
+ include/datetime/snap.h
+ include/datetime/state.h
+ include/datetime/timezone-timedated.h
+ include/datetime/timezone.h
+ include/datetime/timezones-live.h
+ include/datetime/timezones.h
+ include/datetime/utils.h
+ include/datetime/wakeup-timer-mainloop.h
+ include/datetime/wakeup-timer-powerd.h
+ include/datetime/wakeup-timer.h
+ include/notifications/awake.h
+ include/notifications/notifications.h
+ include/notifications/sound.h
+ src/alarm-queue-simple.cpp
+ src/appointment.cpp
+ src/awake.cpp
+ src/clock.cpp
+ src/formatter-desktop.cpp
+ src/formatter.cpp
+ src/myself.cpp
+ src/planner-month.cpp
+ src/planner-range.cpp
+ src/planner-upcoming.cpp
+ src/planner.cpp
+ src/settings-live.cpp
+ src/sound.cpp
+ src/timezone-geoclue.cpp
+ src/timezone-timedated.cpp
+ src/timezones-live.cpp
+ src/utils.c
+ tests/actions-mock.h
+ tests/geoclue-fixture.h
+ tests/glib-fixture.h
+ tests/libdbusmock-fixture.h
+ tests/planner-mock.h
+ tests/state-fixture.h
+ tests/state-mock.h
+ tests/test-eds-ics-non-selected-source.cpp
+ tests/test-exporter.cpp
+ tests/test-locations.cpp
+ tests/test-notification-response.cpp
+ tests/test-planner.cpp
+ tests/test-settings.cpp
+ tests/test-timezone-geoclue.cpp
+ tests/test-timezone-timedated.cpp
+ tests/test-utils.cpp
+ tests/timedated-fixture.h
+ tests/timezone-mock.h
+ tests/wakeup-timer-mock.h
+Copyright: 2010, 2014, Canonical Ltd.
+  2010, Canonical Ltd.
+  2013, Canonical Ltd.
+  2013-2016, Canonical Ltd.
+  2014, Canonical Ltd.
+  2014-2016, Canonical Ltd.
+  2015, Canonical Ltd.
+  2016, Canonical Ltd.
+License: GPL-3
 
-Upstream Author:
+Files: include/datetime/appointment.h
+ include/datetime/engine-eds.h
+ include/datetime/engine-mock.h
+ include/datetime/engine.h
+ include/datetime/timezone-geoclue.h
+ include/notifications/dbus-shared.h
+ include/notifications/haptic.h
+ src/actions-live.cpp
+ src/actions.cpp
+ src/clock-live.cpp
+ src/date-time.cpp
+ src/engine-eds.cpp
+ src/exporter.cpp
+ src/haptic.cpp
+ src/locations-settings.cpp
+ src/locations.cpp
+ src/main.cpp
+ src/menu.cpp
+ src/notifications.cpp
+ src/planner-aggregate.cpp
+ src/planner-snooze.cpp
+ src/snap.cpp
+ src/wakeup-timer-mainloop.cpp
+ src/wakeup-timer-powerd.cpp
+ tests/manual-test-snap.cpp
+ tests/notification-fixture.h
+ tests/test-actions.cpp
+ tests/test-alarm-queue.cpp
+ tests/test-clock.cpp
+ tests/test-datetime.cpp
+ tests/test-dbus-fixture.h
+ tests/test-eds-ics-all-day-events.cpp
+ tests/test-eds-ics-missing-trigger.cpp
+ tests/test-eds-ics-non-attending-alarms.cpp
+ tests/test-eds-ics-nonrepeating-events.cpp
+ tests/test-eds-ics-repeating-events-with-individual-change.cpp
+ tests/test-eds-ics-repeating-events.cpp
+ tests/test-eds-ics-repeating-valarms.cpp
+ tests/test-eds-ics-tzids-2.cpp
+ tests/test-eds-ics-tzids-utc.cpp
+ tests/test-eds-ics-tzids.cpp
+ tests/test-formatter.cpp
+ tests/test-live-actions.cpp
+ tests/test-menu-appointments.cpp
+ tests/test-menus.cpp
+ tests/test-notification.cpp
+ tests/test-sound.cpp
+ tests/test-timezones.cpp
+Copyright: 2013, Canonical Ltd.
+  2014, Canonical Ltd.
+  2014-2016, Canonical Ltd.
+  2015, Canonical Ltd.
+  2016, Canonical Ltd.
+  2021, Robert Tari
+  2021-2022, Robert Tari
+  2021-2023, Robert Tari
+  2021-2024, Robert Tari
+  2021-2025, Robert Tari
+  2022, Robert Tari
+  2023, Robert Tari
+  2024, Robert Tari
+  2025, Robert Tari
+License: GPL-3
 
-    Ted Gould <ted@canonical.com>
+Files: src/engine-mkcal.cpp
+Copyright: 2024-2025, Robert Tari
+License: GPL-3
 
-Copyright:
+Files: .build.yml
+ .travis.yml
+ AUTHORS
+ ChangeLog
+ CMakeLists.txt
+ INSTALL.md
+ NEWS
+ NEWS.Canonical
+ README.md
+ cmake/GdbusCodegen.cmake
+ data/CMakeLists.txt
+ data/ayatana-indicator-datetime.desktop.in
+ data/ayatana-indicator-datetime.service.in
+ data/lomiri-indicator-datetime.service.in
+ data/org.ayatana.indicator.datetime
+ data/org.ayatana.indicator.datetime.AlarmProperties.xml
+ data/org.ayatana.indicator.datetime.gschema.xml.in
+ include/CMakeLists.txt
+ include/datetime/CMakeLists.txt
+ include/notifications/CMakeLists.txt
+ po/CMakeLists.txt
+ po/LINGUAS
+ po/POTFILES.in
+ src/CMakeLists.txt
+ tests/CMakeLists.txt
+ tests/accounts.db
+ tests/manual
+ tests/run-eds-ics-test.sh
+ tests/run-mkcal-db-test.sh
+ tests/test-eds-ics-alarm-custom-sound.ics.in
+ tests/test-eds-ics-alarm-custom-sound.db
+ tests/test-eds-ics-all-day-events.ics.in
+ tests/test-eds-ics-all-day-events.db
+ tests/test-eds-ics-config-files/.config/evolution/sources/system-proxy.source
+ tests/test-eds-ics-missing-trigger.ics.in
+ tests/test-eds-ics-missing-trigger.db
+ tests/test-eds-ics-non-attending-alarms.ics.in
+ tests/test-eds-ics-non-attending-alarms.db
+ tests/test-eds-ics-non-selected-source.ics.in
+ tests/test-eds-ics-nonrepeating-events.ics.in
+ tests/test-eds-ics-nonrepeating-events.db
+ tests/test-eds-ics-repeating-events-with-individual-change.ics.in
+ tests/test-eds-ics-repeating-events-with-individual-change.db
+ tests/test-eds-ics-repeating-events.ics.in
+ tests/test-eds-ics-repeating-events.db
+ tests/test-eds-ics-repeating-valarms.ics.in
+ tests/test-eds-ics-repeating-valarms.db
+ tests/test-eds-ics-tzids-2.ics.in
+ tests/test-eds-ics-tzids-2.db
+ tests/test-eds-ics-tzids-utc.ics.in
+ tests/test-eds-ics-tzids-utc.db
+ tests/test-eds-ics-tzids.ics.in
+ tests/test-eds-ics-tzids.db
+Copyright: 2010-2016, Canonical Ltd.
+License: GPL-3
+Comment:
+ Assuming copyright holdership and licensing from other code files
+ in this project.
 
-    Copyright (C) 2009-2012 Canonical Ltd
+Files: po/*.po
+ po/ayatana-indicator-datetime.pot
+Copyright: 2010, THE PACKAGE'S COPYRIGHT HOLDER
+  2017, THE PACKAGE'S COPYRIGHT HOLDER
+  YEAR, THE PACKAGE'S COPYRIGHT HOLDER
+License: GPL-3
 
-License:
+Files: update-po.sh
+ update-pot.sh
+Copyright: 2017, Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+License: GPL-3
 
-  This program is free software: you can redistribute it and/or modify it
-  under the terms of the GNU General Public License version 3, as published
-  by the Free Software Foundation.
+Files: tests/test-eds-ics-alarm-custom-sound.cpp
+Copyright: 2015, Canonical Ltd.
+  2021, Robert Tari
+  2023, UBports Foundation.
+License: GPL-3
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+Files: debian/*
+Copyright: 2010-2016, Canonical Ltd.
+  2017-2025, Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+License: GPL-3
 
-The Debian packaging is (C) 2010, Canonical Ltd. and is licensed under the
-GPLv3, see /usr/share/common-licenses/GPL-3.
+License: GPL-3
+ This package is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; version 3 of the License.
+ .
+ This package is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>
+ .
+ On Debian systems, the complete text of the GNU General
+ Public License version 3 can be found in "/usr/share/common-licenses/GPL-3".

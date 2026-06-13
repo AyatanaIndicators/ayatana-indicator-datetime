@@ -1,64 +1,61 @@
 Source: ayatana-indicator-datetime
 Section: misc
-Priority: optional
-Maintainer: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+Maintainer: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>,
 Build-Depends: cmake,
                cmake-extras (>= 0.10),
                dbus,
-               debhelper-compat (= 12),
+               debhelper-compat (= 13),
                intltool,
                libaccounts-glib-dev (>= 1.18),
                libayatana-common-dev (>= 0.9.3),
                libglib2.0-dev (>= 2.35.4),
-               libnotify-dev (>= 0.7.6),
                libgstreamer1.0-dev,
                libmessaging-menu-dev,
+               libnotify-dev (>= 0.7.6),
+               libproperties-cpp-dev,
                uuid-dev,
-# for EDS data storage backend
+# for non-Lomiri ICS data storage backend
                libecal2.0-dev (>= 3.16),
                libical-dev (>= 1.0),
                libedataserver1.2-dev (>= 3.5),
-# for mkcal data storage backend
+# for Lomiri ICS data storage backend
                libkf5calendarcore-dev,
                libmkcal-qt5-dev,
 # more Lomiri features
                extra-cmake-modules,
-               lomiri-schemas,
-               lomiri-sounds,
-               libproperties-cpp-dev,
+               lomiri-schemas (>= 0.1.1),
+               lomiri-sounds (>= 22.02),
                liblomiri-url-dispatcher-dev,
 # for the test harness:
-               libgtest-dev <!nocheck>,
-               libdbustest1-dev <!nocheck>,
                dbus-test-runner <!nocheck>,
+               libdbustest1-dev <!nocheck>,
+               libgtest-dev <!nocheck>,
                python3-dbusmock <!nocheck>,
 # for 12h/24h locale unit tests:
                locales <!nocheck>,
 # for running live EDS tests:
                evolution-data-server <!nocheck>,
                gvfs-daemons <!nocheck>,
-               systemd-dev [linux-any],
 # for running live mkcal tests:
                mkcal-bin <!nocheck>,
-# for phone alarm/calendar notification sound tests:
-               lomiri-sounds | hello,
-# tests that require the org.ayatana.common GSchema
-               ayatana-indicator-common,
-Standards-Version: 4.1.3
-Homepage: https://github.com/ArcticaProject/ayatana-indicator-datetime
-Vcs-Git: git://cgit.arctica-project.org/ayatana/ayatana-indicator-datetime.git
-Vcs-Browser: https://cgit.arctica-project.org/ayatana/ayatana-indicator-datetime.git/
+               systemd-dev [linux-any],
+# for tests that require the org.ayatana.common GSchema
+               ayatana-indicator-common <!nocheck>,
+Standards-Version: 4.7.4
+Rules-Requires-Root: no
+Homepage: https://github.com/AyatanaIndicators/ayatana-indicator-datetime
+Vcs-Git: https://salsa.debian.org/debian-ayatana-team/ayatana-indicator-datetime.git
+Vcs-Browser: https://salsa.debian.org/debian-ayatana-team/ayatana-indicator-datetime/
 
 Package: ayatana-indicator-datetime
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         ayatana-indicator-common,
+         ayatana-indicator-common (>= 0.8.0),
          ayatana-indicator-datetime-common (>= ${source:Version}),
          libglib2.0-bin,
-Recommends: indicator-applet | mate-indicator-applet | xfce4-indicator-plugin | indicator-renderer,
-            evolution-data-server,
-            geoclue-provider,
+Recommends: evolution-data-server,
+Suggests: indicator-applet | mate-indicator-applet | xfce4-indicator-plugin | indicator-renderer,
 Breaks: indicator-datetime,
 Replaces: indicator-datetime,
 Description: Ayatana Indicator providing clock and calendar
@@ -78,8 +75,7 @@ Depends: ${shlibs:Depends},
          ayatana-indicator-common,
          ayatana-indicator-datetime-common (>= ${source:Version}),
          libglib2.0-bin,
-Recommends: geoclue-provider,
-            mkcal-bin,
+Recommends: mkcal-bin,
 Suggests: lomiri,
 Breaks: indicator-datetime,
 Replaces: indicator-datetime,
@@ -87,14 +83,14 @@ Description: Lomiri Indicator providing clock and calendar
  This Lomiri Indicator provides a combined calendar, clock, alarm and
  event management tool.
  .
- This variant of the datetime indicator is targetted for being used on
+ This variant of the datetime indicator is targeted for being used on
  Lomiri, this indicator supports phone devices.
  .
  This variant of the datetime indicator has been built for using
  msyncd (mkcal) as ICS data storage backend.
 
 Package: ayatana-indicator-datetime-common
-Architecture: any
+Architecture: all
 Depends: ${misc:Depends},
 Breaks: ayatana-indicator-datetime (<< 25.4.0),
 Replaces: ayatana-indicator-datetime (<< 25.4.0),
