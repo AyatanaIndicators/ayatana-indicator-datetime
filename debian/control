@@ -1,31 +1,33 @@
 Source: ayatana-indicator-datetime
+Standards-Version: 4.7.4
+Maintainer: Ayatana Packagers <pkg-ayatana-devel@lists.alioth.debian.org>
+Uploaders: Mike Gabriel <sunweaver@debian.org>,
+           Debian UBports Team <team+ubports@tracker.debian.org>,
 Section: misc
-Maintainer: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>,
-Build-Depends: cmake,
-               cmake-extras (>= 0.10),
-               dbus,
-               debhelper-compat (= 13),
+Build-Depends: debhelper-compat (= 13),
+               cmake,
+               cmake-extras,
                intltool,
-               libaccounts-glib-dev (>= 1.18),
-               libayatana-common-dev (>= 0.9.3),
-               libglib2.0-dev (>= 2.35.4),
+               libaccounts-glib-dev,
+               libayatana-common-dev,
+               libglib2.0-dev,
                libgstreamer1.0-dev,
                libmessaging-menu-dev,
-               libnotify-dev (>= 0.7.6),
+               libnotify-dev,
                libproperties-cpp-dev,
                uuid-dev,
 # for non-Lomiri ICS data storage backend
-               libecal2.0-dev (>= 3.16),
-               libical-dev (>= 1.0),
-               libedataserver1.2-dev (>= 3.5),
+               libecal2.0-dev,
+               libedataserver1.2-dev,
+               libical-dev,
 # for Lomiri ICS data storage backend
                libkf5calendarcore-dev,
                libmkcal-qt5-dev,
 # more Lomiri features
                extra-cmake-modules,
-               lomiri-schemas (>= 0.1.1),
-               lomiri-sounds (>= 22.02),
                liblomiri-url-dispatcher-dev,
+               lomiri-schemas,
+               lomiri-sounds,
 # for the test harness:
                dbus-test-runner <!nocheck>,
                libdbustest1-dev <!nocheck>,
@@ -41,19 +43,17 @@ Build-Depends: cmake,
                systemd-dev [linux-any],
 # for tests that require the org.ayatana.common GSchema
                ayatana-indicator-common <!nocheck>,
-Standards-Version: 4.7.4
-Rules-Requires-Root: no
+Vcs-Browser: https://github.com/AyatanaIndicators/ayatana-indicator-datetime
+Vcs-Git: https://github.com/AyatanaIndicators/ayatana-indicator-datetime.git
 Homepage: https://github.com/AyatanaIndicators/ayatana-indicator-datetime
-Vcs-Git: https://salsa.debian.org/debian-ayatana-team/ayatana-indicator-datetime.git
-Vcs-Browser: https://salsa.debian.org/debian-ayatana-team/ayatana-indicator-datetime/
 
 Package: ayatana-indicator-datetime
 Architecture: any
-Depends: ${shlibs:Depends},
-         ${misc:Depends},
-         ayatana-indicator-common (>= 0.8.0),
+Depends: ayatana-indicator-common,
          ayatana-indicator-datetime-common (>= ${source:Version}),
          libglib2.0-bin,
+         ${misc:Depends},
+         ${shlibs:Depends},
 Recommends: evolution-data-server,
 Suggests: indicator-applet | mate-indicator-applet | xfce4-indicator-plugin | indicator-renderer,
 Breaks: indicator-datetime,
@@ -70,11 +70,11 @@ Description: Ayatana Indicator providing clock and calendar
 
 Package: lomiri-indicator-datetime
 Architecture: any
-Depends: ${shlibs:Depends},
-         ${misc:Depends},
-         ayatana-indicator-common,
+Depends: ayatana-indicator-common,
          ayatana-indicator-datetime-common (>= ${source:Version}),
          libglib2.0-bin,
+         ${misc:Depends},
+         ${shlibs:Depends},
 Recommends: mkcal-bin,
 Suggests: lomiri,
 Breaks: indicator-datetime,
