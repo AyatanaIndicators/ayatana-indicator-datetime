@@ -62,7 +62,18 @@ add_test_by_name(test-menu-appointments)
 add_test_by_name(test-menus)
 add_test_by_name(test-planner)
 add_test_by_name(test-settings)
+
+# Prepare fake activatable timedated.
+# XXX: you may wonder why we have to `find_program()` such a basic utility.
+# Well, DBus service description requires full path to excutable. And on e.g.
+# NixOS, `true` is not always at `/bin/true`.
+find_program(TRUE_EXECUTABLE "true" REQUIRED)
+configure_file(
+  test-timezone-timedated-dbus-services/fake-timedated.service.in
+  test-timezone-timedated-dbus-services/fake-timedated.service
+  @ONLY)
 add_test_by_name(test-timezone-timedated)
+
 add_test_by_name(test-utils)
 
 set (TEST_NAME manual-test-snap)

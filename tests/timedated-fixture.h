@@ -47,6 +47,11 @@ protected:
 
         // use a fake bus
         m_test_bus = g_test_dbus_new(G_TEST_DBUS_NONE);
+
+        // Fake timedated's activatability.
+        g_test_dbus_add_service_dir(
+            m_test_bus, SANDBOX "/test-timezone-timedated-dbus-services");
+
         g_test_dbus_up(m_test_bus);
         const char * address = g_test_dbus_get_bus_address(m_test_bus);
         g_setenv("DBUS_SYSTEM_BUS_ADDRESS", address, true);
@@ -83,7 +88,8 @@ protected:
         g_free(json_parameters);
 
         // wait for it to appear on the bus
-        wait_for_name_owned(m_bus, Bus::Timedate1::BUSNAME);
+        wait_for_name_owned(m_bus, Bus::Timedate1::BUSNAME,
+            /* timeout_msec */ 1000, G_BUS_NAME_WATCHER_FLAGS_NONE);
     }
 
     bool wait_for_tzid(const std::string& tzid, ayatana::indicator::datetime::Timezone& tz)
