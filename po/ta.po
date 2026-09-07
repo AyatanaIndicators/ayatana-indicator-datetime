@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-10-10 23:55+0200\n"
-"PO-Revision-Date: 2026-08-21 11:51+0000\n"
+"PO-Revision-Date: 2026-09-07 14:51+0000\n"
 "Last-Translator: Alagirisamy Rengaraj <radhaalagirisamy@gmail.com>\n"
 "Language-Team: Tamil <https://hosted.weblate.org/projects/ayatana-indicators/"
 "datetime-applet/ta/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.9.dev0\n"
+"X-Generator: Weblate 2026.9.1.dev0\n"
 
 #. Translators, please edit/rearrange these strftime(3) tokens to suit your locale!
 #. Format string for the day on the first menuitem in the datetime indicator.
@@ -29,8 +29,9 @@ msgid "%A, %e %B %Y"
 msgstr ""
 "மொழிபெயர்ப்பாளர்கள்,தயவு செய்து இந்த காலச்(3) சரங்களை உங்கள் இடத்திற்கு தகுந்தாற்போல் பிழை "
 "திருத்தி அல்லது மாற்றிஅமைக்கவும். நாளும்பொழுதும் குறியீட்டின் முதல் பட்டியல் உருப்படி மீது நாள் "
-"சரங்களை வடிவமைக்கவும்.இந்த சர வடிவமைப்பு முழு கிழமை,நாள்,மாதம் மற்றும் ஆண்டை வழங்குகிறது. "
-"மாதிரி:--> சனிக்கிழமை, அக்டோபர் 31 2020\" மாதிரி: -> சனிக்கிழமை, 31 அக்டோபர் 2020\""
+"சரங்களை வடிவமைக்கவும்.இந்த வடிவமைப்பு சரம் முழு கிழமை,நாள்,மாதம் மற்றும் ஆண்டை "
+"வழங்குகிறது. மாதிரி:--> சனிக்கிழமை, அக்டோபர் 31 2026\" மாதிரி: -> சனிக்கிழமை, 31 "
+"அக்டோபர் 2026\""
 
 #. add the 'Add Event…' menuitem
 #: src/menu.cpp:438
@@ -47,7 +48,7 @@ msgstr "நேரம் மற்றும் தேதி அமைப்பு
 
 #: src/menu.cpp:555
 msgid "Date and Time"
-msgstr "நாளும் பொழுதும்"
+msgstr "தேதி மற்றும் நேரம்"
 
 #: src/menu.cpp:564
 msgid "Time & date settings, quick calendar access"
@@ -55,33 +56,33 @@ msgstr "நேரம் & தேதி அமைப்புகள், விர
 
 #: src/menu.cpp:613
 msgid "Time and Date"
-msgstr "நேரம் & தேதி"
+msgstr "நேரம் மற்றும் தேதி"
 
 #: src/menu.cpp:618
 #, c-format
 msgid "%s (has alarms)"
-msgstr "%s (எச்சரிக்கைஒலி உள்ளது)"
+msgstr "%s (எச்சரிக்கை மணிகள் உள்ளன)"
 
 #. * strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 12h locale; e.g. Wed, 2:00 PM
 #: src/snap.cpp:147
 msgid "%a, %l:%M %p"
 msgstr ""
-"12மணி இடங்களுக்கான சுருக்கப்பட்ட கிழமை,மணி,நிமிடங்களுக்கு காலச்சரம்(3)வடிவமைப்பு; %a, "
-"%l: %m %p எ.கா.புதன்,2:00 மாலை"
+"12மணி நேர அமைவிடங்களுக்கான சுருக்கப்பட்ட கிழமை,மணி,நிமிடங்களுக்கு காலச்சரம்(3)"
+"வடிவமைப்பு; %a, %l: %M %p எ.கா.புதன்,2:00 மாலை"
 
 #. * A strftime(3) format for abbreviated weekday,
 #. hours, minutes in a 24h locale; e.g. Wed, 14:00
 #: src/snap.cpp:151
 msgid "%a, %H:%M"
 msgstr ""
-"24மணி இடங்களுக்கான சுருக்கப்பட்ட கிழமை,மணி,நிமிடங்களுக்கு காலச்சரம்(3)வடிவமைப்பு; %a, "
-"%l: %m %p எ.கா.புதன்,14:00 %a, %h: %m"
+"24மணி நேர அமைவிடங்களுக்கான சுருக்கப்பட்ட கிழமை,மணி,நிமிடங்களுக்கு காலச்சரம்(3)"
+"வடிவமைப்பு; %a,%H:%M எ.கா.புதன்,14:00"
 
 #: src/snap.cpp:157
 #, c-format
 msgid "Alarm %s"
-msgstr "எச்சரிக்கைஒலி %s"
+msgstr "எச்சரிக்கை மணி %s"
 
 #: src/snap.cpp:159
 #, c-format
@@ -94,7 +95,7 @@ msgstr "சரி"
 
 #: src/snap.cpp:169
 msgid "Snooze"
-msgstr "உறக்கநிலை"
+msgstr "எச்சரிக்கை மணி இடைவேளை"
 
 #~ msgid "Show the clock in the panel"
 #~ msgstr "குழுவில் கடிகாரத்தைக் காட்டு"
