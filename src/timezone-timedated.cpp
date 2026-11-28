@@ -49,7 +49,7 @@ public:
         m_watcher_id = g_bus_watch_name_on_connection(
             m_connection,
             Bus::Timedate1::BUSNAME,
-            G_BUS_NAME_WATCHER_FLAGS_AUTO_START,
+            G_BUS_NAME_WATCHER_FLAGS_NONE,
             on_timedate1_appeared,
             on_timedate1_vanished,
             this,
@@ -67,6 +67,9 @@ public:
             on_properties_changed,
             this,
             nullptr);
+
+        // Will auto-start timedated if it's not already running.
+        ask_for_timezone();
     }
 
     ~Impl()
@@ -133,6 +136,11 @@ private:
 
     void ask_for_timezone()
     {
+        if (m_ask_timezone_in_flight)
+            return;
+
+        m_ask_timezone_in_flight = true;
+
         g_dbus_connection_call(
             m_connection,
             Bus::Timedate1::BUSNAME,
@@ -158,8 +166,13 @@ private:
         {
             if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
                 g_warning("%s Couldn't get timezone: %s", G_STRLOC, error->message);
+
+            return;
         }
-        else if (v != nullptr)
+
+        static_cast<Impl*>(gself)->m_ask_timezone_in_flight = false;
+
+        if (v != nullptr)
         {
             GVariant* tzv {};
             g_variant_get(v, "(v)", &tzv);
@@ -192,6 +205,7 @@ private:
     GCancellable* m_cancellable {};
     unsigned long m_signal_subscription_id {};
     unsigned int m_watcher_id {};
+    bool m_ask_timezone_in_flight {false};
 };
 
 /***
